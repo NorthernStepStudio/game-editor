@@ -58,6 +58,8 @@ export interface Constraint {
   targetPartId: string;
   influence: number;
   offset: number;
+  min?: number;
+  max?: number;
 }
 
 export interface FrameAnimation {

@@ -265,8 +265,8 @@ export class MotionCanvasRenderer {
         tform.rotation = tform.rotation + (targetRot - tform.rotation) * influence;
       }
       else if (con.type === 'limitRotation') {
-        const min = con.offset ?? -45;
-        const max = con.influence ?? 45; // abuse fields for limit
+        const min = (con as any).min ?? (con.offset ?? -45);
+        const max = (con as any).max ?? (con.influence ?? 45);
         tform.rotation = Math.max(min, Math.min(max, tform.rotation));
       }
     });
@@ -664,6 +664,21 @@ export class MotionCanvasRenderer {
 
   private pickPart(mx: number, my: number): CharacterPart | null {
     const project = ProjectState.project;
+
+    // IK target indicators: check orange diamond hit area first
+    for (const part of project.parts) {
+      const ik = (part as any).ikChain;
+      if (!ik?.targetPartId) continue;
+      const targetMat = this.latestMatrices.get(ik.targetPartId);
+      if (!targetMat) continue;
+      const dx = mx - targetMat.e;
+      const dy = my - targetMat.f;
+      if (Math.sqrt(dx * dx + dy * dy) <= 14) {
+        const targetPart = project.parts.find((p: any) => p.id === ik.targetPartId);
+        if (targetPart && !targetPart.locked) return targetPart;
+      }
+    }
+
     const sorted = [...project.parts].sort(
       (a: any, b: any) => (Number(b.zIndex) || 0) - (Number(a.zIndex) || 0)
     );

@@ -149,12 +149,14 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
           <div class="form-group"><label>Columns</label>
             <input type="number" id="pi-fa-cols"   value="${fa.columns ?? 4}"    min="1" step="1" ${locked ? 'disabled' : ''}></div>
         </div>
-        <div class="form-row">
+        <div class="form-row" style="margin-bottom:5px;">
           <div class="form-group"><label>Frame W</label>
             <input type="number" id="pi-fa-fw"     value="${fa.frameWidth ?? 64}"  min="1" step="1" ${locked ? 'disabled' : ''}></div>
           <div class="form-group"><label>Frame H</label>
             <input type="number" id="pi-fa-fh"     value="${fa.frameHeight ?? 64}" min="1" step="1" ${locked ? 'disabled' : ''}></div>
-        </div>` : `<div style="font-size:0.68rem; color:var(--text-muted); padding:4px 0;">Enable to animate through sprite sheet frames.</div>`}
+        </div>
+        <button id="pi-fa-autoslice" style="width:100%; font-size:0.7rem; padding:4px 0;" ${locked ? 'disabled' : ''}>⚡ Auto-Slice from Grid…</button>
+        ` : `<div style="font-size:0.68rem; color:var(--text-muted); padding:4px 0;">Enable to animate through sprite sheet frames.</div>`}
       </div>` : ''}
 
       <!-- IK Chain -->
@@ -202,12 +204,19 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
             ${otherParts.map((p: any) => `<option value="${p.id}" ${con.targetPartId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
           </select>
         </div>
+        ${con.type === 'limitRotation' ? `
+        <div class="form-row">
+          <div class="form-group"><label>Min °</label>
+            <input type="number" id="pi-con-min" value="${(con as any).min ?? -45}" step="1" ${locked ? 'disabled' : ''}></div>
+          <div class="form-group"><label>Max °</label>
+            <input type="number" id="pi-con-max" value="${(con as any).max ?? 45}" step="1" ${locked ? 'disabled' : ''}></div>
+        </div>` : `
         <div class="form-row">
           <div class="form-group"><label>Influence</label>
             <input type="range" id="pi-con-influence" min="0" max="1" step="0.05" value="${con.influence ?? 1}" ${locked ? 'disabled' : ''}></div>
           <div class="form-group"><label>Offset °</label>
             <input type="number" id="pi-con-offset" value="${con.offset ?? 0}" step="1" ${locked ? 'disabled' : ''}></div>
-        </div>` : ''}
+        </div>`}` : ''}
       </div>
 
       <!-- Flags -->
@@ -409,6 +418,44 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
     if (!(part as any).constraint) return;
     (part as any).constraint.offset = parseFloat(conOffset.value);
     DirtyState.markDirty(); onUpdate(true, false);
+  };
+
+  const conMin = container.querySelector('#pi-con-min') as HTMLInputElement;
+  if (conMin) conMin.oninput = () => {
+    if (!(part as any).constraint) return;
+    (part as any).constraint.min = parseFloat(conMin.value);
+    DirtyState.markDirty(); onUpdate(true, false);
+  };
+
+  const conMax = container.querySelector('#pi-con-max') as HTMLInputElement;
+  if (conMax) conMax.oninput = () => {
+    if (!(part as any).constraint) return;
+    (part as any).constraint.max = parseFloat(conMax.value);
+    DirtyState.markDirty(); onUpdate(true, false);
+  };
+
+  // Auto-slicer
+  const autoSliceBtn = container.querySelector('#pi-fa-autoslice') as HTMLElement;
+  if (autoSliceBtn) autoSliceBtn.onclick = () => {
+    const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
+    if (!asset) { alert('Attach an image asset first.'); return; }
+    const input = prompt('Enter grid dimensions as "columns × rows"\n(e.g. "4x2" for 4 columns and 2 rows):', '4x1');
+    if (!input) return;
+    const parts = input.split(/[xX×,\s]+/);
+    const cols = Math.max(1, parseInt(parts[0]) || 1);
+    const rows = Math.max(1, parseInt(parts[1] || '1') || 1);
+    const fw = Math.floor(asset.width  / cols);
+    const fh = Math.floor(asset.height / rows);
+    (part as any).frameAnimation = {
+      frameCount: cols * rows,
+      fps: (part as any).frameAnimation?.fps ?? 12,
+      startFrame: 0,
+      columns: cols,
+      frameWidth: fw,
+      frameHeight: fh,
+    };
+    DirtyState.markDirty();
+    onUpdate();
   };
 
   // Checkbox flags

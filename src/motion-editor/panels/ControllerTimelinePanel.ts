@@ -8,6 +8,48 @@ import { createDefaultController } from '../../../../../packages/nstep-motion-co
 
 let activeFilter: 'all' | 'selected' | 'moving' = 'all';
 
+// ── Keyframe diamond drag ─────────────────────────────────────────────────────
+interface KfDragState {
+  ctrl: any;
+  kfRef: any;
+  dur: number;
+  stripEl: HTMLElement;
+  onUpdate: (skipInsp?: boolean, skipTl?: boolean) => void;
+}
+let _kfDrag: KfDragState | null = null;
+let _kfDragWasActive = false;
+let _kfDragListenersInit = false;
+
+function initKfDragListeners() {
+  if (_kfDragListenersInit) return;
+  _kfDragListenersInit = true;
+
+  window.addEventListener('pointermove', (e: PointerEvent) => {
+    if (!_kfDrag) return;
+    const { ctrl, kfRef, dur, stripEl } = _kfDrag;
+    if (!stripEl.isConnected) { _kfDrag = null; return; }
+    const rect = stripEl.getBoundingClientRect();
+    if (rect.width === 0) return;
+    const relX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    kfRef.time = +(relX * dur).toFixed(3);
+    ctrl.keyframes.sort((a: any, b: any) => a.time - b.time);
+    // Update diamond positions directly without full re-render
+    const diamonds = stripEl.querySelectorAll('.kf-diamond');
+    ctrl.keyframes.forEach((kf: any, i: number) => {
+      if (diamonds[i]) (diamonds[i] as HTMLElement).style.left = `${(kf.time / dur * 100).toFixed(1)}%`;
+    });
+    DirtyState.markDirty();
+  });
+
+  window.addEventListener('pointerup', () => {
+    if (_kfDrag) {
+      _kfDragWasActive = true;
+      _kfDrag.onUpdate(true, false);
+      _kfDrag = null;
+    }
+  });
+}
+
 // Group presets by category for the dropdown
 const PRESET_GROUPS = FORMULA_PRESETS.reduce((acc, p) => {
   if (!acc[p.category]) acc[p.category] = [];
@@ -36,6 +78,7 @@ function presetSelect(selectedId: string, cls: string): string {
 }
 
 export function renderControllerTimeline(container: HTMLElement, onUpdate: (skipInspector?: boolean, skipTimeline?: boolean) => void) {
+  initKfDragListeners();
   const project = ProjectState.project;
   let anim = project.animations.find((a: any) => a.id === SelectionState.activeAnimId);
   if (!anim && project.animations.length > 0) {
@@ -251,6 +294,8 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
     const strip = card.querySelector('.kf-strip') as HTMLElement;
     if (strip) {
       strip.addEventListener('click', (e) => {
+        // Suppress click that follows a drag
+        if (_kfDragWasActive) { _kfDragWasActive = false; return; }
         const rect = strip.getBoundingClientRect();
         const relX = (e.clientX - rect.left) / rect.width;
         const kfTime = Math.max(0, Math.min(dur, relX * dur));
@@ -267,8 +312,8 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
         DirtyState.markDirty(); onUpdate();
       });
 
-      // Keyframe diamond right-click = delete
-      strip.querySelectorAll('.kf-diamond').forEach(diamond => {
+      // Keyframe diamond interactions: right-click = delete, pointerdown = drag
+      strip.querySelectorAll('.kf-diamond').forEach((diamond, di) => {
         diamond.addEventListener('contextmenu', (e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -277,6 +322,15 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
             ctrl.keyframes = ctrl.keyframes.filter((k: any) => Math.abs(k.time - kfTime) > 0.001);
             DirtyState.markDirty(); onUpdate();
           }
+        });
+
+        (diamond as HTMLElement).addEventListener('pointerdown', (e: PointerEvent) => {
+          e.stopPropagation();
+          e.preventDefault();
+          if (!ctrl.keyframes || !ctrl.keyframes[di]) return;
+          const kfRef = ctrl.keyframes[di];
+          _kfDrag = { ctrl, kfRef, dur, stripEl: strip, onUpdate };
+          (e.target as Element).setPointerCapture(e.pointerId);
         });
       });
     }

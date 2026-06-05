@@ -5,7 +5,7 @@ import { renderAssetsPanel } from './panels/AssetsPanel';
 import { ProjectState } from '../state/projectState';
 import { SelectionState } from '../state/selectionState';
 import { AppState } from '../state/appState';
-import { getPlaybackTimeForAnimation } from '../state/playbackState';
+import { PlaybackState, getPlaybackTimeForAnimation } from '../state/playbackState';
 import { DirtyState } from '../state/dirtyState';
 import { HERO_RIGS, DOOMED_RIGS } from './samples';
 import { SaveManager } from '../persistence/saveManager';

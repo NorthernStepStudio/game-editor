@@ -465,7 +465,7 @@ function paramField(label: string, cls: string, val: number, step: number): stri
 
 function applyTemplate(
   anim: any,
-  type: 'idle' | 'walk' | 'run' | 'jump' | 'hit' | 'death',
+  type: 'idle' | 'walk' | 'walkFront' | 'run' | 'runFront' | 'jump' | 'hit' | 'death',
   project: any,
   onUpdate: Function
 ) {

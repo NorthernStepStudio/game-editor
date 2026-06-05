@@ -619,6 +619,9 @@ select:focus { border-color: var(--border-accent); }
 .part-row:hover .part-row-actions button { opacity: 1; }
 .part-row-actions button:hover { color: var(--text-bright); background: rgba(255,255,255,0.07); border-radius: 3px; }
 .part-row-actions .del-btn:hover { color: var(--danger); }
+.part-row-actions [data-action="addchild"] { opacity: 0.45; color: var(--accent-green); }
+.part-row:hover .part-row-actions [data-action="addchild"] { opacity: 1; }
+.part-row-actions [data-action="addchild"]:hover { color: var(--accent-green); }
 
 .part-row-z {
   font-family: 'JetBrains Mono', monospace;

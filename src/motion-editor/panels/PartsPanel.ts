@@ -69,6 +69,16 @@ export function renderPartsPanel(container: HTMLElement, onUpdate: () => void) {
     };
   });
 
+  // Add child bone (extends a limb chain from the clicked part)
+  container.querySelectorAll('[data-action="addchild"]').forEach(btn => {
+    (btn as HTMLElement).onclick = (e) => {
+      e.stopPropagation();
+      const parentId = (btn as HTMLElement).getAttribute('data-id')!;
+      addChildBone(parentId);
+      onUpdate();
+    };
+  });
+
   // ── Drag-to-reparent ───────────────────────────────────────────────────
   container.querySelectorAll('.part-row[data-id]').forEach(row => {
     const el = row as HTMLElement;
@@ -159,6 +169,26 @@ export function renderPartsPanel(container: HTMLElement, onUpdate: () => void) {
   };
 }
 
+function addChildBone(parentId: string) {
+  const project = ProjectState.project;
+  const parent = project.parts.find(p => p.id === parentId);
+  if (!parent) return;
+  const id = 'p-' + Date.now();
+  const bone = createDefaultPart(id, `${parent.name} Bone`);
+  bone.parentId = parentId;
+  // Extend the new bone downward from the parent so it reads as a limb segment.
+  bone.baseX = 0;
+  bone.baseY = 30;
+  bone.shapeType = 'bone';
+  // Pivot at the top of the bone (the joint) so it rotates from where it connects.
+  bone.origin = { x: 20, y: 5 };
+  bone.zIndex = (Number(parent.zIndex) || 0) + 1;
+  bone.color = parent.color;
+  project.parts.push(bone);
+  SelectionState.activePartId = id;
+  DirtyState.markDirty();
+}
+
 function isDescendant(ancestorId: string, partId: string, parts: any[]): boolean {
   let current = parts.find(p => p.id === partId);
   while (current) {
@@ -203,6 +233,7 @@ function renderPartTree(parentId: string | null, allParts: any[], activeId: stri
               ${hasFa  ? '<span style="color:var(--accent-green);font-size:0.6rem;" title="Frame Anim">🎞</span>'  : ''}
               <span class="part-row-z">z:${p.zIndex ?? 0}</span>
               <div class="part-row-actions">
+                <button data-action="addchild" data-id="${p.id}" title="Add child bone">⊕</button>
                 <button data-action="vis"  data-id="${p.id}" title="Toggle visibility">${isHidden ? '🚫' : '👁'}</button>
                 <button data-action="lock" data-id="${p.id}" title="Toggle lock">${p.locked ? '🔒' : '🔓'}</button>
                 <button data-action="del"  data-id="${p.id}" class="del-btn" title="Delete">✕</button>

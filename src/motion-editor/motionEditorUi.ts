@@ -169,6 +169,11 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
     };
   }
 
+  const btnZoomIn  = document.getElementById('btn-zoom-in');
+  const btnZoomOut = document.getElementById('btn-zoom-out');
+  if (btnZoomIn)  btnZoomIn.onclick  = () => { if (_renderer) _renderer.zoomIn(); };
+  if (btnZoomOut) btnZoomOut.onclick = () => { if (_renderer) _renderer.zoomOut(); };
+
   const btnOnion = document.getElementById('btn-toggle-onion');
   if (btnOnion) {
     btnOnion.classList.toggle('active', !!(AppState as any).showOnionSkin);

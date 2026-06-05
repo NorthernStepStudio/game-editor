@@ -354,11 +354,17 @@ select:focus { border-color: var(--border-accent); }
   color: var(--accent);
 }
 
-/* Zoom indicator */
-.canvas-zoom-badge {
+/* Zoom controls */
+.canvas-zoom-controls {
   position: absolute;
   bottom: 10px;
   left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  z-index: 10;
+}
+.canvas-zoom-badge {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.65rem;
   color: var(--text-muted);
@@ -367,7 +373,28 @@ select:focus { border-color: var(--border-accent); }
   border-radius: 20px;
   border: 1px solid var(--border);
   pointer-events: none;
-  z-index: 10;
+  min-width: 44px;
+  text-align: center;
+}
+.zoom-step-btn {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  background: rgba(11,13,20,0.7);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.zoom-step-btn:hover {
+  color: var(--text-bright);
+  border-color: var(--border-strong);
+  background: var(--bg-surface-2);
 }
 
 /* ─── BOTTOM TIMELINE ─── */
@@ -845,17 +872,17 @@ dialog h3 { font-size: 1rem; color: var(--text-bright); margin-bottom: 4px; }
 .anim-tab-group:hover .anim-tab { color: var(--text-main); }
 
 .anim-del-btn {
-  padding: 2px 6px;
-  font-size: 0.58rem;
+  padding: 2px 5px;
+  font-size: 0.55rem;
   color: var(--text-muted);
   background: transparent;
   border: none;
-  opacity: 0;
+  opacity: 0.35;
   transition: opacity 0.12s, color 0.12s;
   cursor: pointer;
   line-height: 1;
 }
-.anim-tab-group:hover .anim-del-btn { opacity: 1; }
+.anim-tab-group:hover .anim-del-btn { opacity: 0.7; }
 .anim-del-btn:hover { color: var(--danger) !important; opacity: 1 !important; }
 
 /* Filter tabs */

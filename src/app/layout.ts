@@ -67,7 +67,11 @@ export const MAIN_LAYOUT = `
           <button id="btn-reset-view"      title="Reset zoom &amp; pan (press 0)">Reset</button>
           <button id="btn-fit-all"         title="Fit all parts in view (press F)">Fit</button>
         </div>
-        <div class="canvas-zoom-badge" id="zoom-badge">100%</div>
+        <div class="canvas-zoom-controls">
+          <button id="btn-zoom-out" class="zoom-step-btn" title="Zoom out (−)">−</button>
+          <div class="canvas-zoom-badge" id="zoom-badge">100%</div>
+          <button id="btn-zoom-in"  class="zoom-step-btn" title="Zoom in (+)">+</button>
+        </div>
       </div>
     </main>
 

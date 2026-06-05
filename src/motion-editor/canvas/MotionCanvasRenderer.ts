@@ -59,6 +59,9 @@ export class MotionCanvasRenderer {
 
   getZoom() { return this.zoom; }
 
+  zoomIn()  { this.zoom = Math.min(12,   this.zoom * 1.2); }
+  zoomOut() { this.zoom = Math.max(0.05, this.zoom / 1.2); }
+
   resetView() {
     this.zoom = 1.0;
     this.panX = 0;

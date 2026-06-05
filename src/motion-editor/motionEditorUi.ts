@@ -4,6 +4,7 @@ import { renderControllerTimeline } from './panels/ControllerTimelinePanel';
 import { renderAssetsPanel } from './panels/AssetsPanel';
 import { ProjectState } from '../state/projectState';
 import { SelectionState } from '../state/selectionState';
+import { AppState } from '../state/appState';
 import { getPlaybackTimeForAnimation } from '../state/playbackState';
 import { DirtyState } from '../state/dirtyState';
 import { HERO_RIGS, DOOMED_RIGS } from './samples';
@@ -13,23 +14,21 @@ import { preloadAssets } from './canvas/imageCache';
 import { newProject, loadProject, saveProject, importProject } from '../persistence/projectActions';
 
 let _onUpdate: (skipInspector?: boolean, skipTimeline?: boolean) => void = () => {};
+let _renderer: any = null;
+
+export function setRenderer(r: any) { _renderer = r; }
 
 export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boolean) => void) {
   _onUpdate = onUpdate;
-  
-  // 1. Setup Global Header Bindings
-  document.getElementById('btn-proj-new')!.onclick = () => {
-    newProject(_onUpdate);
-  };
-  document.getElementById('btn-proj-save')!.onclick = () => {
-    saveProject();
-  };
-  
-  document.getElementById('btn-export-json')!.onclick = exportJSON;
-  document.getElementById('btn-export-gd')!.onclick = exportGodot;
-  document.getElementById('btn-export-canvas')!.onclick = exportCanvasRuntime;
 
-  // Sync Project Name inline edit in header
+  // Project actions
+  document.getElementById('btn-proj-new')!.onclick   = () => newProject(_onUpdate);
+  document.getElementById('btn-proj-save')!.onclick  = () => saveProject();
+  document.getElementById('btn-export-json')!.onclick    = exportJSON;
+  document.getElementById('btn-export-gd')!.onclick      = exportGodot;
+  document.getElementById('btn-export-canvas')!.onclick  = exportCanvasRuntime;
+
+  // Project name inline edit
   const nameEl = document.getElementById('project-name');
   if (nameEl) {
     nameEl.textContent = ProjectState.project.name;
@@ -41,64 +40,53 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
         _onUpdate();
       }
     };
-    nameEl.onkeydown = (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        nameEl.blur();
-      }
-    };
+    nameEl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); } };
   }
 
-  const dlgLoad = document.getElementById('dlg-load') as HTMLDialogElement;
+  // Load dialog
+  const dlgLoad  = document.getElementById('dlg-load') as HTMLDialogElement;
   const loadList = document.getElementById('load-list')!;
-  
+
   document.getElementById('btn-load-json')!.onclick = () => {
     const projects = SaveManager.getIndex();
     if (projects.length === 0) {
       loadList.innerHTML = '<div class="panel-empty">No saved projects found.</div>';
     } else {
       loadList.innerHTML = projects.map((p: any) => `
-        <div class="item-list" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; padding:10px; background:var(--bg-surface); border:1px solid var(--border); border-radius:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-md);">
           <div>
-            <div style="font-weight:600; color:var(--text-main);">${p.name}</div>
-            <div style="font-size:0.7rem; color:var(--text-muted);">${new Date(p.updatedAt).toLocaleString()}</div>
+            <div style="font-weight:600; color:var(--text-bright); font-size:0.82rem;">${p.name}</div>
+            <div style="font-size:0.65rem; color:var(--text-muted); margin-top:2px;">${new Date(p.updatedAt).toLocaleString()}</div>
           </div>
-          <div style="display:flex; gap:5px;">
-            <button class="btn-load-item" data-id="${p.id}">Load</button>
-            <button class="btn-del-item danger" data-id="${p.id}" style="color:var(--danger); border:1px solid transparent; background:none; font-size:1.1rem; cursor:pointer;">×</button>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-load-item primary" data-id="${p.id}">Load</button>
+            <button class="btn-del-item danger-btn" data-id="${p.id}">Delete</button>
           </div>
         </div>
       `).join('');
-      
+
       loadList.querySelectorAll('.btn-load-item').forEach(btn => {
         (btn as HTMLElement).onclick = () => {
-          const id = (btn as HTMLElement).getAttribute('data-id')!;
-          loadProject(id, _onUpdate);
+          loadProject((btn as HTMLElement).getAttribute('data-id')!, _onUpdate);
           dlgLoad.close();
         };
       });
-
       loadList.querySelectorAll('.btn-del-item').forEach(btn => {
         (btn as HTMLElement).onclick = () => {
-          const id = (btn as HTMLElement).getAttribute('data-id')!;
           if (confirm('Delete this project?')) {
-            SaveManager.deleteProject(id);
-            document.getElementById('btn-load-json')!.click(); // Refresh list
+            SaveManager.deleteProject((btn as HTMLElement).getAttribute('data-id')!);
+            document.getElementById('btn-load-json')!.click();
           }
         };
       });
     }
 
-    // Append Import button to load dialog
-    const importContainer = document.createElement('div');
-    importContainer.style.borderTop = '1px solid var(--border)';
-    importContainer.style.marginTop = '15px';
-    importContainer.style.paddingTop = '15px';
-
+    // Import button
+    const importSection = document.createElement('div');
+    importSection.style.cssText = 'border-top:1px solid var(--border); margin-top:10px; padding-top:10px;';
     const importBtn = document.createElement('button');
-    importBtn.textContent = 'Import JSON Project File';
+    importBtn.textContent = '📁 Import JSON Project File';
     importBtn.style.width = '100%';
-    importBtn.style.padding = '8px';
     importBtn.onclick = async () => {
       const input = document.createElement('input');
       input.type = 'file';
@@ -106,90 +94,143 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
       input.onchange = async (e) => {
         const file = (e.target as HTMLInputElement).files?.[0];
         if (file) {
-          try {
-            await importProject(file, _onUpdate);
-            dlgLoad.close();
-          } catch (err) {
-            console.error(err);
-          }
+          try { await importProject(file, _onUpdate); dlgLoad.close(); }
+          catch (err) { console.error(err); alert('Failed to import project.'); }
         }
       };
       input.click();
     };
-    importContainer.appendChild(importBtn);
-    loadList.appendChild(importContainer);
+    importSection.appendChild(importBtn);
+    loadList.appendChild(importSection);
 
     dlgLoad.showModal();
   };
 
   document.getElementById('btn-close-load')!.onclick = () => dlgLoad.close();
 
-  // 2. Samples Selectors
+  // Samples
   const heroSelect = document.getElementById('hero-select') as HTMLSelectElement;
-  if (heroSelect) {
-    heroSelect.onchange = () => {
-      const id = heroSelect.value;
-      if (id && HERO_RIGS[id as keyof typeof HERO_RIGS]) {
-        ProjectState.setProject(HERO_RIGS[id as keyof typeof HERO_RIGS]);
-        preloadAssets(ProjectState.project);
-        _onUpdate();
-      }
-      heroSelect.value = '';
+  heroSelect?.addEventListener('change', () => {
+    const id = heroSelect.value;
+    if (id && HERO_RIGS[id as keyof typeof HERO_RIGS]) {
+      ProjectState.setProject(HERO_RIGS[id as keyof typeof HERO_RIGS]);
+      preloadAssets(ProjectState.project);
+      _onUpdate();
+    }
+    heroSelect.value = '';
+  });
+
+  const sampleSelect = document.getElementById('sample-select') as HTMLSelectElement;
+  sampleSelect?.addEventListener('change', () => {
+    const id = sampleSelect.value;
+    if (id && DOOMED_RIGS[id as keyof typeof DOOMED_RIGS]) {
+      ProjectState.setProject(DOOMED_RIGS[id as keyof typeof DOOMED_RIGS]);
+      preloadAssets(ProjectState.project);
+      _onUpdate();
+    }
+    sampleSelect.value = '';
+  });
+
+  // ── Canvas toolbar ──────────────────────────────────────────────────────
+  const btnGrid = document.getElementById('btn-toggle-grid');
+  const btnBones = document.getElementById('btn-toggle-skeleton');
+  const btnNames = document.getElementById('btn-toggle-names');
+  const btnReset = document.getElementById('btn-reset-view');
+
+  if (btnGrid) {
+    btnGrid.classList.toggle('active', AppState.showGrid);
+    btnGrid.onclick = () => {
+      AppState.showGrid = !AppState.showGrid;
+      btnGrid.classList.toggle('active', AppState.showGrid);
     };
   }
 
-  const sampleSelect = document.getElementById('sample-select') as HTMLSelectElement;
-  if (sampleSelect) {
-    sampleSelect.onchange = () => {
-      const id = sampleSelect.value;
-      if (id && DOOMED_RIGS[id as keyof typeof DOOMED_RIGS]) {
-        ProjectState.setProject(DOOMED_RIGS[id as keyof typeof DOOMED_RIGS]);
-        preloadAssets(ProjectState.project);
-        _onUpdate();
-      }
-      sampleSelect.value = '';
+  if (btnBones) {
+    btnBones.classList.toggle('active', AppState.showSkeleton);
+    btnBones.onclick = () => {
+      AppState.showSkeleton = !AppState.showSkeleton;
+      btnBones.classList.toggle('active', AppState.showSkeleton);
+      _onUpdate(true, false);
     };
   }
+
+  if (btnNames) {
+    btnNames.classList.toggle('active', AppState.showNames);
+    btnNames.onclick = () => {
+      AppState.showNames = !AppState.showNames;
+      btnNames.classList.toggle('active', AppState.showNames);
+      _onUpdate(true, false);
+    };
+  }
+
+  if (btnReset) {
+    btnReset.onclick = () => {
+      if (_renderer) _renderer.resetView();
+    };
+  }
+
+  // Keyboard shortcuts
+  window.addEventListener('keydown', (e) => {
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+    if (e.key === ' ') {
+      e.preventDefault();
+      document.getElementById('btn-tl-play')?.click();
+    }
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      // Only if canvas is focused (no text input active)
+      if (document.activeElement === document.body && SelectionState.activePartId) {
+        const part = ProjectState.project.parts.find(p => p.id === SelectionState.activePartId);
+        if (part && !part.locked && confirm(`Delete "${part.name}"?`)) {
+          ProjectState.project.parts.forEach(p => { if (p.parentId === part.id) p.parentId = part.parentId; });
+          ProjectState.project.parts = ProjectState.project.parts.filter(p => p.id !== part.id);
+          ProjectState.project.animations.forEach(a => {
+            a.controllers = a.controllers.filter((c: any) => c.targetPartId !== part.id);
+          });
+          SelectionState.activePartId = null;
+          DirtyState.markDirty();
+          _onUpdate();
+        }
+      }
+    }
+    if (e.key === 'Escape') {
+      SelectionState.isEditingPivot = false;
+      _onUpdate(true, false);
+    }
+    if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveProject(); }
+  });
 }
 
 export function renderUI(skipInspector = false, skipTimeline = false) {
   const project = ProjectState.project;
+
+  // Keep active anim valid
   if (project.animations.length > 0) {
     const exists = project.animations.some((a: any) => a.id === SelectionState.activeAnimId);
-    if (!exists) {
-      SelectionState.activeAnimId = project.animations[0].id;
-    }
+    if (!exists) SelectionState.activeAnimId = project.animations[0].id;
   }
 
-  const partsContainer = document.getElementById('parts-list-container')!;
-  const inspectorContainer = document.getElementById('inspector-container')!;
-  const controllerContainer = document.getElementById('controller-list-container')!;
+  // Rebuild renderer tree
+  if (_renderer) _renderer.rebuildTree(project);
 
-  renderPartsPanel(partsContainer, _onUpdate);
-  if (!skipInspector) {
-    renderInspectorPanel(inspectorContainer, _onUpdate);
-  }
-  if (!skipTimeline) {
-    renderControllerTimeline(controllerContainer, _onUpdate);
-  }
-  
-  // Render Assets
-  const assetsContainer = document.getElementById('assets-list-container');
-  if (assetsContainer) {
-    renderAssetsPanel(assetsContainer, _onUpdate);
-  }
+  const partsEl      = document.getElementById('parts-list-container')!;
+  const inspectorEl  = document.getElementById('inspector-container')!;
+  const controllerEl = document.getElementById('controller-list-container')!;
+  const assetsEl     = document.getElementById('assets-list-container');
 
-  // Update UI stats
-  const timeDisplay = document.getElementById('time-display');
-  if (timeDisplay) {
-    const anim = ProjectState.project.animations.find((a: any) => a.id === SelectionState.activeAnimId);
-    const dur = anim?.duration || 1;
-    timeDisplay.textContent = `${getPlaybackTimeForAnimation(anim).toFixed(2)}s / ${dur.toFixed(2)}s`;
+  renderPartsPanel(partsEl, _onUpdate);
+  if (!skipInspector) renderInspectorPanel(inspectorEl, _onUpdate);
+  if (!skipTimeline)  renderControllerTimeline(controllerEl, _onUpdate);
+  if (assetsEl)       renderAssetsPanel(assetsEl, _onUpdate);
+
+  // Time display (canvas renderer also updates #tl-time-display via render loop)
+  const anim = project.animations.find((a: any) => a.id === SelectionState.activeAnimId);
+  const durEl = document.getElementById('tl-time-display');
+  if (durEl && anim) {
+    durEl.textContent = `${getPlaybackTimeForAnimation(anim).toFixed(2)}s / ${(anim.duration || 1).toFixed(2)}s`;
   }
 
-  // Sync Project Name inline edit in header on render
+  // Sync project name
   const nameEl = document.getElementById('project-name');
-  if (nameEl && nameEl.textContent !== ProjectState.project.name) {
-    nameEl.textContent = ProjectState.project.name;
-  }
+  if (nameEl && nameEl.textContent !== project.name) nameEl.textContent = project.name;
 }

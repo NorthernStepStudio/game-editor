@@ -14,329 +14,269 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
     anim = project.animations[0];
     SelectionState.activeAnimId = anim.id;
   }
-  
-  console.log('renderControllerTimeline: activeAnimId =', SelectionState.activeAnimId, 'anim =', anim);
-  
+
   if (!anim) {
-    container.innerHTML = '<div class="panel-empty">No active animation</div>';
+    container.innerHTML = `<div class="panel-empty"><span class="panel-empty-icon">🎬</span>No animations. Create one to get started.</div>`;
     return;
   }
 
-  const displayTime = getPlaybackTimeForAnimation(anim);
+  const t = getPlaybackTimeForAnimation(anim);
+  const dur = anim.duration || 1;
+  const playing = PlaybackState.playing;
 
-  // Filter controllers
-  let filtered = anim.controllers;
+  let filtered = anim.controllers as any[];
   if (activeFilter === 'selected') {
     filtered = anim.controllers.filter((c: any) => c.targetPartId === SelectionState.activePartId);
   } else if (activeFilter === 'moving') {
-    filtered = anim.controllers.filter((c: any) => {
-      return c.enabled && (
-        c.params.amplitude !== 0 ||
-        c.params.offset !== 0 ||
-        c.params.min !== 0 ||
-        c.params.max !== 0
-      );
-    });
+    filtered = anim.controllers.filter((c: any) => c.enabled && (c.params.amplitude !== 0 || c.params.offset !== 0));
   }
 
   container.innerHTML = `
-    <!-- Top toolbar: Playback controls -->
-    <div class="panel-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; padding:10px; border-bottom:1px solid var(--border);">
-      <!-- Left: Active animation select & playback buttons -->
-      <div style="display:flex; align-items:center; gap:8px;">
-        <select id="select-active-anim" style="padding:4px 8px; font-size:0.75rem; background:var(--bg-surface); color:var(--text-main); border:1px solid var(--border); border-radius:4px;">
-          ${project.animations.map((a: any) => `
-            <option value="${a.id}" ${a.id === SelectionState.activeAnimId ? 'selected' : ''}>${a.name}</option>
-          `).join('')}
-        </select>
-        
-        <button id="btn-timeline-play" class="btn-icon" style="padding:4px 8px; font-size:0.75rem; border:1px solid var(--border); background:var(--bg-surface); cursor:pointer; color:var(--text-main); border-radius:4px; min-width:30px;">
-          ${PlaybackState.playing ? '⏸' : '▶'}
-        </button>
-        <button id="btn-timeline-stop" class="btn-icon" style="padding:4px 8px; font-size:0.75rem; border:1px solid var(--border); background:var(--bg-surface); cursor:pointer; color:var(--text-main); border-radius:4px; min-width:30px;">⏹</button>
-        
-        <div id="timeline-time-readout" style="font-size:0.75rem; color:var(--text-muted); font-family:monospace; min-width:80px; margin-left:4px;">
-          ${displayTime.toFixed(2)}s / ${(anim.duration || 1).toFixed(2)}s
-        </div>
+    <!-- Toolbar row 1: playback + animation selector -->
+    <div class="timeline-toolbar">
+      <!-- Animation tabs -->
+      <div style="display:flex; gap:3px; flex-shrink:0;">
+        ${project.animations.map((a: any) => `
+          <button class="anim-tab ${a.id === SelectionState.activeAnimId ? 'active' : ''}" data-anim-id="${a.id}">${a.name}</button>
+        `).join('')}
+        <button id="btn-add-anim" class="icon-btn" title="Add animation">+</button>
       </div>
 
-      <!-- Middle: Speed & Loop -->
-      <div style="display:flex; align-items:center; gap:12px;">
-        <div style="display:flex; align-items:center; gap:6px; font-size:0.75rem;">
-          <label style="color:var(--text-muted);">Speed:</label>
-          <input type="range" id="timeline-speed" min="0.1" max="3" step="0.1" value="${PlaybackState.speedMult}" style="width:70px; cursor:pointer;">
-          <span style="font-family:monospace; min-width:24px; color:var(--text-muted);">${PlaybackState.speedMult.toFixed(1)}x</span>
-        </div>
-        
-        <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer; color:var(--text-muted);">
-          <input type="checkbox" id="timeline-loop" ${anim.loop ? 'checked' : ''}> Loop
-        </label>
-      </div>
+      <div style="width:1px; height:18px; background:var(--border); flex-shrink:0; margin:0 4px;"></div>
 
-      <!-- Right: Filters -->
-      <div style="display:flex; align-items:center; gap:6px;">
-        <span style="font-size:0.75rem; color:var(--text-muted);">Filter:</span>
-        <button id="filter-btn-all" class="btn-tab ${activeFilter === 'all' ? 'active' : ''}" style="padding:3px 8px; font-size:0.75rem; border:1px solid var(--border); border-radius:4px; background:${activeFilter === 'all' ? 'var(--primary)' : 'var(--bg-surface)'}; color:${activeFilter === 'all' ? '#fff' : 'var(--text-main)'}; cursor:pointer;">All</button>
-        <button id="filter-btn-selected" class="btn-tab ${activeFilter === 'selected' ? 'active' : ''}" style="padding:3px 8px; font-size:0.75rem; border:1px solid var(--border); border-radius:4px; background:${activeFilter === 'selected' ? 'var(--primary)' : 'var(--bg-surface)'}; color:${activeFilter === 'selected' ? '#fff' : 'var(--text-main)'}; cursor:pointer;">Selected</button>
-        <button id="filter-btn-moving" class="btn-tab ${activeFilter === 'moving' ? 'active' : ''}" style="padding:3px 8px; font-size:0.75rem; border:1px solid var(--border); border-radius:4px; background:${activeFilter === 'moving' ? 'var(--primary)' : 'var(--bg-surface)'}; color:${activeFilter === 'moving' ? '#fff' : 'var(--text-main)'}; cursor:pointer;">Moving</button>
-      </div>
-    </div>
+      <!-- Playback -->
+      <button id="btn-tl-play" class="play-btn ${playing ? 'playing' : ''}" title="${playing ? 'Pause' : 'Play'} (Space)">
+        ${playing ? '⏸' : '▶'}
+      </button>
+      <button id="btn-tl-stop" class="icon-btn" title="Stop & rewind">⏹</button>
 
-    <!-- Actions toolbar: Add Controller, Apply Preset, Templates -->
-    <div class="panel-toolbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; padding:8px 10px; border-bottom:1px solid var(--border); background:rgba(0,0,0,0.15);">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button id="btn-add-ctrl" style="padding:4px 8px; font-size:0.75rem; border:1px solid var(--border); background:var(--bg-surface); cursor:pointer; color:var(--text-main); border-radius:4px;">+ Add Controller</button>
-        <div style="height:14px; width:1px; background:var(--border);"></div>
-        
-        <select id="select-preset-apply" style="padding:4px 8px; font-size:0.75rem; background:var(--bg-surface); color:var(--text-main); border:1px solid var(--border); border-radius:4px;">
+      <div id="tl-time-display" class="tl-time-display">${t.toFixed(2)}s / ${dur.toFixed(2)}s</div>
+
+      <!-- Speed -->
+      <label style="display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--text-muted); flex-shrink:0;">
+        Speed
+        <input type="range" id="tl-speed" min="0.1" max="3" step="0.1" value="${PlaybackState.speedMult}" style="width:60px; accent-color:var(--accent);">
+        <span id="tl-speed-label" style="font-family:'JetBrains Mono',monospace; min-width:28px;">${PlaybackState.speedMult.toFixed(1)}x</span>
+      </label>
+
+      <label style="display:flex; align-items:center; gap:4px; font-size:0.68rem; color:var(--text-muted); cursor:pointer; flex-shrink:0;">
+        <input type="checkbox" id="tl-loop" ${anim.loop ? 'checked' : ''} style="accent-color:var(--accent);"> Loop
+      </label>
+
+      <label style="display:flex; align-items:center; gap:4px; font-size:0.68rem; color:var(--text-muted); cursor:pointer; flex-shrink:0;">
+        Duration
+        <input type="number" id="tl-duration" value="${dur.toFixed(2)}" min="0.1" max="60" step="0.1"
+          style="width:52px; padding:2px 4px; background:rgba(0,0,0,0.3); border:1px solid var(--border);
+          color:var(--text-main); border-radius:4px; font-size:0.68rem; font-family:'JetBrains Mono',monospace;">
+        s
+      </label>
+
+      <div class="timeline-toolbar-right">
+        <!-- Filter -->
+        <button class="filter-tab ${activeFilter === 'all'      ? 'active' : ''}" data-filter="all">All</button>
+        <button class="filter-tab ${activeFilter === 'selected' ? 'active' : ''}" data-filter="selected">Selected</button>
+        <button class="filter-tab ${activeFilter === 'moving'   ? 'active' : ''}" data-filter="moving">Active</button>
+        <div style="width:1px; height:14px; background:var(--border); margin:0 4px;"></div>
+        <!-- Add controller actions -->
+        <button id="btn-add-ctrl">+ Controller</button>
+        <select id="sel-preset" style="font-size:0.68rem; padding:3px 5px; background:var(--bg-surface-2); border:1px solid var(--border); color:var(--text-main); border-radius:var(--r-md); max-width:130px;">
           ${FORMULA_PRESETS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
         </select>
-        <button id="btn-apply-preset" style="padding:4px 8px; font-size:0.75rem; border:1px solid var(--border); background:var(--bg-surface); cursor:pointer; color:var(--text-main); border-radius:4px;">Apply Preset to Selected Part</button>
-      </div>
-      
-      <div style="display:flex; align-items:center; gap:6px;">
-        <button id="btn-template-walk" style="padding:4px 8px; font-size:0.75rem; border:1px solid var(--border); background:var(--bg-surface); cursor:pointer; color:var(--text-main); border-radius:4px;">Apply Walk Template</button>
-        <button id="btn-template-run" style="padding:4px 8px; font-size:0.75rem; border:1px solid var(--border); background:var(--bg-surface); cursor:pointer; color:var(--text-main); border-radius:4px;">Apply Run Template</button>
+        <button id="btn-apply-preset">Apply to Part</button>
+        <button id="btn-tmpl-walk" style="color:var(--accent-green);">🚶 Walk</button>
+        <button id="btn-tmpl-run"  style="color:var(--accent-orange);">🏃 Run</button>
       </div>
     </div>
 
-    <!-- Controller list -->
-    <div class="controller-list" style="padding:10px; display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:10px; max-height:220px; overflow-y:auto;">
-      ${filtered.map((c: any) => renderControllerCard(c)).join('')}
+    <!-- Controller grid -->
+    <div class="controller-grid">
+      ${filtered.length > 0
+        ? filtered.map((c: any) => renderCard(c)).join('')
+        : `<div style="grid-column:1/-1; color:var(--text-muted); font-size:0.75rem; padding:12px; text-align:center;">
+             No controllers yet — add one above or apply a preset.
+           </div>`
+      }
     </div>
   `;
 
-  // Bind playback events
-  const selectAnim = container.querySelector('#select-active-anim') as HTMLSelectElement;
-  selectAnim.onchange = () => {
-    SelectionState.activeAnimId = selectAnim.value;
-    PlaybackState.time = 0;
+  // ── Bindings ──────────────────────────────────────────────────────────────
+
+  // Anim tabs
+  container.querySelectorAll('.anim-tab[data-anim-id]').forEach(btn => {
+    (btn as HTMLElement).onclick = () => {
+      SelectionState.activeAnimId = (btn as HTMLElement).getAttribute('data-anim-id')!;
+      PlaybackState.time = 0;
+      onUpdate();
+    };
+  });
+
+  // Add animation
+  const btnAddAnim = container.querySelector('#btn-add-anim') as HTMLElement;
+  if (btnAddAnim) btnAddAnim.onclick = () => {
+    const name = prompt('Animation name:', 'New Anim') || 'New Anim';
+    const id = 'anim-' + Date.now();
+    project.animations.push({ id, name, duration: 1, loop: true, controllers: [] });
+    SelectionState.activeAnimId = id;
+    DirtyState.markDirty();
     onUpdate();
   };
 
-  const btnPlay = container.querySelector('#btn-timeline-play') as HTMLButtonElement;
-  btnPlay.onclick = () => {
-    PlaybackState.playing = !PlaybackState.playing;
-    btnPlay.textContent = PlaybackState.playing ? '⏸' : '▶';
-    onUpdate(false, true);
-  };
+  // Playback
+  const btnPlay = container.querySelector('#btn-tl-play') as HTMLButtonElement;
+  btnPlay.onclick = () => { PlaybackState.playing = !PlaybackState.playing; onUpdate(false, true); };
 
-  const btnStop = container.querySelector('#btn-timeline-stop') as HTMLButtonElement;
-  btnStop.onclick = () => {
-    PlaybackState.time = 0;
-    PlaybackState.playing = false;
-    onUpdate();
-  };
+  const btnStop = container.querySelector('#btn-tl-stop') as HTMLButtonElement;
+  btnStop.onclick = () => { PlaybackState.time = 0; PlaybackState.playing = false; onUpdate(); };
 
-  const speedRange = container.querySelector('#timeline-speed') as HTMLInputElement;
+  const speedRange = container.querySelector('#tl-speed') as HTMLInputElement;
+  const speedLabel = container.querySelector('#tl-speed-label') as HTMLElement;
   speedRange.oninput = () => {
     PlaybackState.speedMult = +speedRange.value;
-    const speedVal = speedRange.nextElementSibling as HTMLElement;
-    if (speedVal) speedVal.textContent = PlaybackState.speedMult.toFixed(1) + 'x';
+    speedLabel.textContent = PlaybackState.speedMult.toFixed(1) + 'x';
   };
 
-  const loopChk = container.querySelector('#timeline-loop') as HTMLInputElement;
-  loopChk.onchange = () => {
-    anim.loop = loopChk.checked;
-    DirtyState.markDirty();
-    onUpdate(false, true);
+  const loopChk = container.querySelector('#tl-loop') as HTMLInputElement;
+  loopChk.onchange = () => { anim.loop = loopChk.checked; DirtyState.markDirty(); onUpdate(false, true); };
+
+  const durInput = container.querySelector('#tl-duration') as HTMLInputElement;
+  durInput.onchange = () => {
+    const v = parseFloat(durInput.value);
+    if (!isNaN(v) && v > 0) { anim.duration = v; DirtyState.markDirty(); onUpdate(); }
   };
 
-  // Bind filters
-  container.querySelector('#filter-btn-all')!.addEventListener('click', () => {
-    activeFilter = 'all';
-    onUpdate();
-  });
-  container.querySelector('#filter-btn-selected')!.addEventListener('click', () => {
-    activeFilter = 'selected';
-    onUpdate();
-  });
-  container.querySelector('#filter-btn-moving')!.addEventListener('click', () => {
-    activeFilter = 'moving';
-    onUpdate();
+  // Filter tabs
+  container.querySelectorAll('.filter-tab[data-filter]').forEach(btn => {
+    (btn as HTMLElement).onclick = () => {
+      activeFilter = (btn as HTMLElement).getAttribute('data-filter') as any;
+      onUpdate();
+    };
   });
 
-  // Bind creation buttons
-  container.querySelector('#btn-add-ctrl')!.addEventListener('click', () => {
-    if (!SelectionState.activePartId) {
-      alert('Select a part first');
-      return;
-    }
+  // Add controller
+  const btnAddCtrl = container.querySelector('#btn-add-ctrl') as HTMLElement;
+  btnAddCtrl.onclick = () => {
+    if (!SelectionState.activePartId) { alert('Select a part first.'); return; }
     anim.controllers.push(createDefaultController(SelectionState.activePartId));
     DirtyState.markDirty();
     onUpdate();
-  });
+  };
 
-  container.querySelector('#btn-apply-preset')!.addEventListener('click', () => {
+  // Apply preset
+  const btnPreset = container.querySelector('#btn-apply-preset') as HTMLElement;
+  const selPreset = container.querySelector('#sel-preset') as HTMLSelectElement;
+  btnPreset.onclick = () => {
     const partId = SelectionState.activePartId;
-    if (!partId) {
-      alert('Select a part first');
-      return;
-    }
+    if (!partId) { alert('Select a part first.'); return; }
     const part = project.parts.find(p => p.id === partId);
     if (!part) return;
-
-    const presetEl = container.querySelector('#select-preset-apply') as HTMLSelectElement;
-    const presetId = presetEl.value;
-    const targetProp = getDefaultPropertyForPreset(presetId);
-
-    addControllerSafe(anim, partId, part.name, targetProp, presetId, {
-      speed: 1.5,
-      amplitude: targetProp === 'rotation' ? 15 : 8,
-      phase: 0,
-      offset: 0
+    const preset = FORMULA_PRESETS.find(p => p.id === selPreset.value)!;
+    addControllerSafe(anim, partId, part.name, preset.defaultProperty, preset.id, {
+      speed: preset.defaultSpeed,
+      amplitude: preset.defaultAmplitude,
     });
-
     onUpdate();
-  });
+  };
 
-  // Bind template buttons
-  container.querySelector('#btn-template-walk')!.addEventListener('click', () => {
-    applyLocomotionTemplate(anim, 'walk');
-    onUpdate();
-  });
+  // Walk/Run templates
+  (container.querySelector('#btn-tmpl-walk') as HTMLElement).onclick = () => { applyLocomotionTemplate(anim, 'walk'); onUpdate(); };
+  (container.querySelector('#btn-tmpl-run')  as HTMLElement).onclick = () => { applyLocomotionTemplate(anim, 'run');  onUpdate(); };
 
-  container.querySelector('#btn-template-run')!.addEventListener('click', () => {
-    applyLocomotionTemplate(anim, 'run');
-    onUpdate();
-  });
-
-  // Bind each controller card fields
-  container.querySelectorAll('.controller-card').forEach(card => {
-    const id = card.getAttribute('data-id')!;
-    const ctrl = anim.controllers.find((c: any) => c.id === id)!;
+  // Controller cards
+  container.querySelectorAll('.controller-card[data-id]').forEach(card => {
+    const id   = card.getAttribute('data-id')!;
+    const ctrl = anim.controllers.find((c: any) => c.id === id);
     if (!ctrl) return;
-    
-    (card.querySelector('.btn-del-ctrl') as HTMLElement).onclick = () => {
+
+    // Delete
+    (card.querySelector('.ctrl-del-btn') as HTMLElement).onclick = () => {
       anim.controllers = anim.controllers.filter((c: any) => c.id !== id);
       DirtyState.markDirty();
       onUpdate();
     };
 
-    (card.querySelector('.ctrl-enabled') as HTMLInputElement).onchange = (e) => {
+    // Enabled
+    (card.querySelector('.ctrl-enabled-chk') as HTMLInputElement).onchange = (e) => {
       ctrl.enabled = (e.target as HTMLInputElement).checked;
       DirtyState.markDirty();
       onUpdate(true, true);
     };
 
-    const targetPartSelect = card.querySelector('.ctrl-target-part') as HTMLSelectElement;
-    targetPartSelect.onchange = () => {
-      ctrl.targetPartId = targetPartSelect.value;
-      DirtyState.markDirty();
-      onUpdate(true, false);
-    };
+    // Part select
+    const partSel = card.querySelector('.ctrl-part-select') as HTMLSelectElement;
+    partSel.onchange = () => { ctrl.targetPartId = partSel.value; DirtyState.markDirty(); onUpdate(true, false); };
 
-    const propertySelect = card.querySelector('.ctrl-property') as HTMLSelectElement;
-    propertySelect.onchange = () => {
-      ctrl.property = propertySelect.value as any;
-      DirtyState.markDirty();
-      onUpdate(true, false);
-    };
+    // Property
+    const propSel = card.querySelector('.ctrl-prop-select') as HTMLSelectElement;
+    propSel.onchange = () => { ctrl.property = propSel.value as any; DirtyState.markDirty(); onUpdate(true, false); };
 
-    (card.querySelector('.ctrl-preset') as HTMLSelectElement).onchange = (e) => {
-      ctrl.formulaPreset = (e.target as HTMLSelectElement).value;
-      DirtyState.markDirty();
-      onUpdate();
-    };
-    
+    // Preset
+    const presetSel = card.querySelector('.ctrl-preset-select') as HTMLSelectElement;
+    presetSel.onchange = () => { ctrl.formulaPreset = presetSel.value; DirtyState.markDirty(); onUpdate(); };
+
     // Params
-    const bindParam = (name: string, className: string) => {
-      const el = card.querySelector('.' + className) as HTMLInputElement;
+    const bp = (cls: string, name: string) => {
+      const el = card.querySelector('.' + cls) as HTMLInputElement;
+      if (!el) return;
       el.oninput = () => {
-        const val = parseFloat(el.value);
-        if (isNaN(val)) return;
-        (ctrl.params as any)[name] = val;
-        DirtyState.markDirty();
-        onUpdate(true, true);
+        const v = parseFloat(el.value);
+        if (!isNaN(v)) { (ctrl.params as any)[name] = v; DirtyState.markDirty(); onUpdate(true, true); }
       };
+      // Wheel scrub
+      el.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const step = +(el.step) || 1;
+        el.value = (parseFloat(el.value) + (e.deltaY < 0 ? 1 : -1) * step * (e.shiftKey ? 10 : 1)).toString();
+        el.dispatchEvent(new Event('input'));
+      }, { passive: false });
     };
-    bindParam('speed', 'param-speed');
-    bindParam('amplitude', 'param-amplitude');
-    bindParam('phase', 'param-phase');
-    bindParam('offset', 'param-offset');
-    bindParam('min', 'param-min');
-    bindParam('max', 'param-max');
+    bp('param-speed', 'speed');
+    bp('param-amp',   'amplitude');
+    bp('param-phase', 'phase');
+    bp('param-offset','offset');
+    bp('param-min',   'min');
+    bp('param-max',   'max');
   });
 }
 
-function renderControllerCard(c: any): string {
+function renderCard(c: any): string {
+  const parts = ProjectState.project.parts;
+  const isDisabled = !c.enabled;
   return `
-    <div class="controller-card" data-id="${c.id}" style="border: 1px solid var(--border); border-radius: 6px; padding: 10px; background: var(--bg-surface); display: flex; flex-direction: column; gap: 8px;">
-      <div class="ctrl-header" style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-        <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; width: 100%;">
-          <input type="checkbox" class="ctrl-enabled" ${c.enabled ? 'checked' : ''} style="cursor:pointer;">
-          <select class="ctrl-target-part" style="font-size: 0.75rem; padding: 2px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; max-width: 100px;">
-            ${ProjectState.project.parts.map(p => `<option value="${p.id}" ${c.targetPartId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
-          </select>
-          <span style="color:var(--text-muted);">:</span>
-          <select class="ctrl-property" style="font-size: 0.75rem; padding: 2px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px;">
-            ${['x', 'y', 'rotation', 'scaleX', 'scaleY', 'opacity'].map(p => `<option value="${p}" ${c.property === p ? 'selected' : ''}>${p}</option>`).join('')}
-          </select>
-        </div>
-        <button class="btn-del-ctrl" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-muted); line-height: 1; padding: 0 4px;">×</button>
-      </div>
-      
-      <div class="ctrl-body" style="display: flex; flex-direction: column; gap: 6px;">
-        <select class="ctrl-preset" style="padding: 4px; font-size: 0.75rem; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; width: 100%;">
-          ${FORMULA_PRESETS.map(f => `<option value="${f.id}" ${c.formulaPreset === f.id ? 'selected' : ''}>${f.name}</option>`).join('')}
+    <div class="controller-card ${isDisabled ? 'disabled' : ''}" data-id="${c.id}">
+      <div class="ctrl-header-row">
+        <input type="checkbox" class="ctrl-enabled-chk" ${c.enabled ? 'checked' : ''} title="Enable/disable">
+        <select class="ctrl-part-select ctrl-prop-select" style="display:none"></select>
+        <select class="ctrl-part-select">
+          ${parts.map(p => `<option value="${p.id}" ${c.targetPartId === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
         </select>
-        <div class="ctrl-params" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-          <div class="param-row" style="display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 0.7rem;">
-            <label style="color:var(--text-muted);">Speed</label>
-            <input type="number" class="param-speed" value="${c.params.speed ?? 1}" step="0.1" style="width: 50px; padding: 2px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; text-align: right;">
-          </div>
-          <div class="param-row" style="display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 0.7rem;">
-            <label style="color:var(--text-muted);">Amp</label>
-            <input type="number" class="param-amplitude" value="${c.params.amplitude ?? 0}" step="1" style="width: 50px; padding: 2px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; text-align: right;">
-          </div>
-          <div class="param-row" style="display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 0.7rem;">
-            <label style="color:var(--text-muted);">Phase</label>
-            <input type="number" class="param-phase" value="${c.params.phase ?? 0}" step="0.1" style="width: 50px; padding: 2px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; text-align: right;">
-          </div>
-          <div class="param-row" style="display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 0.7rem;">
-            <label style="color:var(--text-muted);">Offset</label>
-            <input type="number" class="param-offset" value="${c.params.offset ?? 0}" step="1" style="width: 50px; padding: 2px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; text-align: right;">
-          </div>
-          <div class="param-row" style="display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 0.7rem;">
-            <label style="color:var(--text-muted);">Min</label>
-            <input type="number" class="param-min" value="${c.params.min ?? 0}" step="1" style="width: 50px; padding: 2px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; text-align: right;">
-          </div>
-          <div class="param-row" style="display: flex; align-items: center; justify-content: space-between; gap: 4px; font-size: 0.7rem;">
-            <label style="color:var(--text-muted);">Max</label>
-            <input type="number" class="param-max" value="${c.params.max ?? 0}" step="1" style="width: 50px; padding: 2px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); border-radius: 4px; text-align: right;">
-          </div>
-        </div>
+        <span style="color:var(--text-muted);">→</span>
+        <select class="ctrl-prop-select">
+          ${['x','y','rotation','scaleX','scaleY','opacity'].map(p => `<option value="${p}" ${c.property === p ? 'selected' : ''}>${p}</option>`).join('')}
+        </select>
+        <button class="ctrl-del-btn" title="Remove">✕</button>
+      </div>
+      <select class="ctrl-preset-select" style="font-size:0.68rem; padding:3px 6px; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text-main); border-radius:var(--r-sm); width:100%;">
+        ${FORMULA_PRESETS.map(p => `<option value="${p.id}" ${c.formulaPreset === p.id ? 'selected' : ''}>${p.name}</option>`).join('')}
+      </select>
+      <div class="ctrl-params-grid">
+        ${paramField('Speed',  'param-speed',  c.params.speed  ?? 1,  0.1)}
+        ${paramField('Amp',    'param-amp',    c.params.amplitude ?? 0, 1)}
+        ${paramField('Phase',  'param-phase',  c.params.phase  ?? 0,  0.1)}
+        ${paramField('Offset', 'param-offset', c.params.offset ?? 0,  1)}
+        ${paramField('Min',    'param-min',    c.params.min    ?? 0,  1)}
+        ${paramField('Max',    'param-max',    c.params.max    ?? 0,  1)}
       </div>
     </div>
   `;
 }
 
-function getDefaultPropertyForPreset(presetId: string): 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY' | 'opacity' {
-  switch (presetId) {
-    case 'breathingY':
-    case 'bobPosition':
-    case 'hoverFloat':
-      return 'y';
-    case 'swayRotation':
-    case 'walkCycle':
-    case 'runCycle':
-    case 'weaponSwing':
-    case 'capeLag':
-    case 'staffSway':
-    case 'deathFall':
-    case 'runLean':
-    case 'legCycle':
-      return 'rotation';
-    case 'squashStretch':
-    case 'blinkScale':
-      return 'scaleY';
-    case 'recoil':
-    case 'impactShake':
-    case 'shieldBrace':
-      return 'x';
-    default:
-      return 'y';
-  }
+function paramField(label: string, cls: string, val: number, step: number): string {
+  return `
+    <div class="ctrl-param-row">
+      <label>${label}</label>
+      <input type="number" class="${cls}" value="${val}" step="${step}">
+    </div>
+  `;
 }
 
 function addControllerSafe(
@@ -345,121 +285,76 @@ function addControllerSafe(
   partName: string,
   property: 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY' | 'opacity',
   formulaPreset: string,
-  params: Partial<any>
+  params: Partial<{ speed: number; amplitude: number; phase: number; offset: number; min: number; max: number; }>
 ) {
   const existing = anim.controllers.find((c: any) => c.targetPartId === partId && c.property === property);
-  if (existing) {
-    if (!confirm(`A controller for "${partName}" : ${property} already exists. Do you want to duplicate it?`)) {
-      return;
-    }
-  }
-  
+  if (existing && !confirm(`"${partName}" already has a ${property} controller. Add another?`)) return;
+
   anim.controllers.push({
-    id: 'ctrl-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
+    id: 'ctrl-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
     targetPartId: partId,
     property,
     formulaPreset,
     enabled: true,
     params: {
-      speed: params.speed ?? 1,
+      speed:     params.speed     ?? 1,
       amplitude: params.amplitude ?? 10,
-      phase: params.phase ?? 0,
-      offset: params.offset ?? 0,
-      min: params.min ?? 0,
-      max: params.max ?? 0
-    }
+      phase:     params.phase     ?? 0,
+      offset:    params.offset    ?? 0,
+      min:       params.min       ?? 0,
+      max:       params.max       ?? 0,
+    },
   });
   DirtyState.markDirty();
 }
 
-function isSecondaryLimb(name: string): boolean {
-  const n = name.toLowerCase();
-  if (n.includes('right') || n.includes(' r') || n.endsWith('_r') || n.includes('back')) {
-    return true;
-  }
-  if (n.includes('left') || n.includes(' l') || n.endsWith('_l') || n.includes('front')) {
-    return false;
-  }
-  return false;
-}
-
 function applyLocomotionTemplate(anim: any, type: 'walk' | 'run') {
   const parts = ProjectState.project.parts;
-  
-  const bodyParts = parts.filter(p => {
-    const n = p.name.toLowerCase();
-    return n.includes('body') || n.includes('torso') || n.includes('chest') || n.includes('hip');
-  });
-  
-  const headParts = parts.filter(p => p.name.toLowerCase().includes('head'));
-  const legParts = parts.filter(p => p.name.toLowerCase().includes('leg') || p.name.toLowerCase().includes('foot'));
-  const armParts = parts.filter(p => p.name.toLowerCase().includes('arm') || p.name.toLowerCase().includes('hand'));
-  const weaponParts = parts.filter(p => {
-    const n = p.name.toLowerCase();
-    return n.includes('weapon') || n.includes('sword') || n.includes('staff') || n.includes('shield');
-  });
-  const capeParts = parts.filter(p => p.name.toLowerCase().includes('cape') || p.name.toLowerCase().includes('cloak'));
+  const speed = type === 'walk' ? 2 : 2.5;
 
-  if (bodyParts.length === 0 && legParts.length === 0) {
-    alert("No matching leg/body parts found.");
+  const match = (n: string, ...terms: string[]) =>
+    terms.some(t => n.toLowerCase().includes(t));
+
+  const bodies  = parts.filter(p => match(p.name, 'body', 'torso', 'chest', 'hip', 'pelvis'));
+  const heads   = parts.filter(p => match(p.name, 'head'));
+  const legs    = parts.filter(p => match(p.name, 'leg', 'foot', 'thigh', 'shin', 'knee'));
+  const arms    = parts.filter(p => match(p.name, 'arm', 'hand', 'elbow', 'shoulder'));
+  const weapons = parts.filter(p => match(p.name, 'weapon', 'sword', 'staff', 'shield', 'bow'));
+  const capes   = parts.filter(p => match(p.name, 'cape', 'cloak', 'cloth', 'tail'));
+
+  if (bodies.length === 0 && legs.length === 0) {
+    alert('No matching parts found. Name your parts with words like "body", "leg", "arm", "head", etc.');
     return;
   }
 
-  const speed = type === 'walk' ? 2 : 2.5;
+  const preset = type === 'walk' ? 'walkCycle' : 'runCycle';
 
-  // 1. Apply to body parts
-  bodyParts.forEach(part => {
-    if (type === 'walk') {
-      addControllerSafe(anim, part.id, part.name, 'y', 'walkCycle', { speed, amplitude: 4 });
-      addControllerSafe(anim, part.id, part.name, 'rotation', 'swayRotation', { speed, amplitude: 2, phase: 0.25 });
-    } else {
-      addControllerSafe(anim, part.id, part.name, 'y', 'runCycle', { speed, amplitude: 6 });
-      addControllerSafe(anim, part.id, part.name, 'rotation', 'runLean', { speed: 0, amplitude: 0, offset: 8 });
-    }
+  bodies.forEach(p => {
+    addControllerSafe(anim, p.id, p.name, 'y',        preset, { speed, amplitude: type === 'walk' ? 3 : 5 });
+    addControllerSafe(anim, p.id, p.name, 'rotation', type === 'walk' ? 'swayRotation' : 'runLean', { speed, amplitude: type === 'walk' ? 2 : 0, offset: type === 'run' ? 8 : 0 });
   });
 
-  // 2. Apply to head parts
-  headParts.forEach(part => {
-    addControllerSafe(anim, part.id, part.name, 'rotation', 'swayRotation', { speed, amplitude: type === 'walk' ? 1.5 : 2, phase: 0.5 });
+  heads.forEach(p => {
+    addControllerSafe(anim, p.id, p.name, 'rotation', 'swayRotation', { speed, amplitude: type === 'walk' ? 1.5 : 2.5, phase: 0.5 });
   });
 
-  // 3. Apply to leg parts
-  legParts.forEach((part, i) => {
-    const isSec = isSecondaryLimb(part.name) || (i % 2 === 1);
-    const amp = type === 'walk' ? 20 : 35;
-    addControllerSafe(anim, part.id, part.name, 'rotation', type === 'walk' ? 'walkCycle' : 'runCycle', {
-      speed,
-      amplitude: isSec ? -amp : amp,
-      phase: isSec ? 3.14 : 0
-    });
+  legs.forEach((p, i) => {
+    const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+    const amp = type === 'walk' ? 22 : 38;
+    addControllerSafe(anim, p.id, p.name, 'rotation', preset, { speed, amplitude: isRight ? amp : -amp, phase: isRight ? Math.PI : 0 });
   });
 
-  // 4. Apply to arm parts
-  armParts.forEach((part, i) => {
-    const isSec = isSecondaryLimb(part.name) || (i % 2 === 1);
-    const amp = type === 'walk' ? 15 : 25;
-    addControllerSafe(anim, part.id, part.name, 'rotation', type === 'walk' ? 'walkCycle' : 'runCycle', {
-      speed,
-      amplitude: isSec ? amp : -amp,
-      phase: isSec ? 0 : 3.14
-    });
+  arms.forEach((p, i) => {
+    const isLeft = i % 2 === 0 || p.name.toLowerCase().includes('left') || p.name.toLowerCase().includes('_l');
+    const amp = type === 'walk' ? 18 : 28;
+    addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing', { speed, amplitude: isLeft ? -amp : amp, phase: isLeft ? Math.PI : 0 });
   });
 
-  // 5. Apply to weapon parts
-  weaponParts.forEach(part => {
-    addControllerSafe(anim, part.id, part.name, 'rotation', type === 'walk' ? 'walkCycle' : 'runCycle', {
-      speed,
-      amplitude: type === 'walk' ? 5 : 10,
-      phase: 0.5
-    });
+  weapons.forEach(p => {
+    addControllerSafe(anim, p.id, p.name, 'rotation', preset, { speed, amplitude: type === 'walk' ? 5 : 10, phase: 0.5 });
   });
 
-  // 6. Apply to cape parts
-  capeParts.forEach(part => {
-    addControllerSafe(anim, part.id, part.name, 'rotation', 'capeLag', {
-      speed,
-      amplitude: type === 'walk' ? 8 : 12,
-      phase: 0.75
-    });
+  capes.forEach(p => {
+    addControllerSafe(anim, p.id, p.name, 'rotation', 'capeLag', { speed, amplitude: type === 'walk' ? 8 : 14, phase: 0.75 });
   });
 }

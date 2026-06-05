@@ -6,7 +6,7 @@ import { DirtyState } from '../state/dirtyState';
 import { setupKeyboardShortcuts } from '../input/keyboardShortcuts';
 import { MotionCanvasRenderer } from '../motion-editor/canvas/MotionCanvasRenderer';
 import { preloadAssets } from '../motion-editor/canvas/imageCache';
-import { setupUI, renderUI } from '../motion-editor/motionEditorUi';
+import { setupUI, renderUI, setRenderer } from '../motion-editor/motionEditorUi';
 import { setupRouter, navigate } from './router';
 
 import { setupCutterUI } from '../sprite-cutter/spriteCutterUi';
@@ -50,6 +50,7 @@ export function bootApp() {
   renderer.rebuildTree(ProjectState.project);
 
   // 3. Setup UI
+  setRenderer(renderer);
   const refreshRenderer = (skipInspector = false, skipTimeline = false) => {
     renderer.rebuildTree(ProjectState.project);
     renderUI(skipInspector, skipTimeline);

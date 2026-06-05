@@ -1,0 +1,1 @@
+- [NStep Motion Editor architecture](nstep-motion-editor.md) — formula-only anim system; boot.ts wires renderer+UI; AppState.showGrid controls grid

@@ -153,12 +153,14 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
         <div style="width:1px; height:14px; background:var(--border); margin:0 3px;"></div>
         <!-- Template buttons -->
         <span style="font-size:0.65rem; color:var(--text-muted); flex-shrink:0;">Templates:</span>
-        <button id="btn-tmpl-idle"  class="tmpl-btn" title="Apply Idle template">😶 Idle</button>
-        <button id="btn-tmpl-walk"  class="tmpl-btn" title="Apply Walk template" style="color:var(--accent-green);">🚶 Walk</button>
-        <button id="btn-tmpl-run"   class="tmpl-btn" title="Apply Run template"  style="color:var(--accent-orange);">🏃 Run</button>
-        <button id="btn-tmpl-jump"  class="tmpl-btn" title="Create Jump animation" style="color:var(--accent-2);">⬆ Jump</button>
-        <button id="btn-tmpl-hit"   class="tmpl-btn" title="Create Hit animation"  style="color:var(--warning);">💥 Hit</button>
-        <button id="btn-tmpl-death" class="tmpl-btn" title="Create Death animation" style="color:var(--danger);">💀 Death</button>
+        <button id="btn-tmpl-idle"       class="tmpl-btn" title="Apply Idle template">😶 Idle</button>
+        <button id="btn-tmpl-walk"       class="tmpl-btn" title="Apply Walk template (side-view)" style="color:var(--accent-green);">🚶 Walk</button>
+        <button id="btn-tmpl-walkfront"  class="tmpl-btn" title="Apply Walk template (front-facing)" style="color:var(--accent-green);">🚶 Walk↑</button>
+        <button id="btn-tmpl-run"        class="tmpl-btn" title="Apply Run template (side-view)"  style="color:var(--accent-orange);">🏃 Run</button>
+        <button id="btn-tmpl-runfront"   class="tmpl-btn" title="Apply Run template (front-facing)"  style="color:var(--accent-orange);">🏃 Run↑</button>
+        <button id="btn-tmpl-jump"       class="tmpl-btn" title="Create Jump animation" style="color:var(--accent-2);">⬆ Jump</button>
+        <button id="btn-tmpl-hit"        class="tmpl-btn" title="Create Hit animation"  style="color:var(--warning);">💥 Hit</button>
+        <button id="btn-tmpl-death"      class="tmpl-btn" title="Create Death animation" style="color:var(--danger);">💀 Death</button>
       </div>
     </div>
 
@@ -247,12 +249,14 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
   };
 
   // Template buttons
-  (container.querySelector('#btn-tmpl-idle')  as HTMLElement).onclick = () => { applyTemplate(anim, 'idle',  project, onUpdate); };
-  (container.querySelector('#btn-tmpl-walk')  as HTMLElement).onclick = () => { applyTemplate(anim, 'walk',  project, onUpdate); };
-  (container.querySelector('#btn-tmpl-run')   as HTMLElement).onclick = () => { applyTemplate(anim, 'run',   project, onUpdate); };
-  (container.querySelector('#btn-tmpl-jump')  as HTMLElement).onclick = () => { applyTemplate(anim, 'jump',  project, onUpdate); };
-  (container.querySelector('#btn-tmpl-hit')   as HTMLElement).onclick = () => { applyTemplate(anim, 'hit',   project, onUpdate); };
-  (container.querySelector('#btn-tmpl-death') as HTMLElement).onclick = () => { applyTemplate(anim, 'death', project, onUpdate); };
+  (container.querySelector('#btn-tmpl-idle')      as HTMLElement).onclick = () => { applyTemplate(anim, 'idle',      project, onUpdate); };
+  (container.querySelector('#btn-tmpl-walk')      as HTMLElement).onclick = () => { applyTemplate(anim, 'walk',      project, onUpdate); };
+  (container.querySelector('#btn-tmpl-walkfront') as HTMLElement).onclick = () => { applyTemplate(anim, 'walkFront', project, onUpdate); };
+  (container.querySelector('#btn-tmpl-run')       as HTMLElement).onclick = () => { applyTemplate(anim, 'run',       project, onUpdate); };
+  (container.querySelector('#btn-tmpl-runfront')  as HTMLElement).onclick = () => { applyTemplate(anim, 'runFront',  project, onUpdate); };
+  (container.querySelector('#btn-tmpl-jump')      as HTMLElement).onclick = () => { applyTemplate(anim, 'jump',      project, onUpdate); };
+  (container.querySelector('#btn-tmpl-hit')       as HTMLElement).onclick = () => { applyTemplate(anim, 'hit',       project, onUpdate); };
+  (container.querySelector('#btn-tmpl-death')     as HTMLElement).onclick = () => { applyTemplate(anim, 'death',     project, onUpdate); };
 
   // Controller cards
   container.querySelectorAll('.controller-card[data-id]').forEach(card => {
@@ -503,7 +507,7 @@ function applyTemplate(
     targetAnim = existing;
   }
 
-  const speed = type === 'walk' ? 2 : type === 'run' ? 2.5 : 1;
+  const speed = type === 'walk' || type === 'walkFront' ? 2 : type === 'run' || type === 'runFront' ? 2.5 : 1;
 
   if (type === 'idle') {
     anim.duration = 2.5;
@@ -583,6 +587,63 @@ function applyTemplate(
     });
     capes.forEach(p => {
       addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'capeLag', { speed, amplitude: 14, phase: 0.75 });
+    });
+  }
+
+  else if (type === 'walkFront') {
+    // Front-facing walk: legs march up/down instead of rotating forward/back
+    anim.duration = 1.0;
+    anim.loop = true;
+
+    bodies.forEach(p => {
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 3 });
+      addControllerSafe(anim, p.id, p.name, 'x',        'idleShift',    { speed: speed * 0.5, amplitude: 2, phase: 0.25 });
+    });
+    heads.forEach(p => {
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 2 });
+    });
+    legs.forEach((p, i) => {
+      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      // Y: leg lifts up on each step (negative = up in canvas coords)
+      addControllerSafe(anim, p.id, p.name, 'y',        'walkCycle',    { speed, amplitude: -14, phase: isRight ? 0.5 : 0 });
+      // Subtle scaleX pulse: leg "toward camera" appears slightly wider
+      addControllerSafe(anim, p.id, p.name, 'scaleX',   'walkCycle',    { speed, amplitude: 0.08, phase: isRight ? 0.5 : 0 });
+    });
+    arms.forEach((p, i) => {
+      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 12, phase: isRight ? 0.5 : 0 });
+    });
+    capes.forEach(p => {
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'capeLag',      { speed, amplitude: 8, phase: 0.75 });
+    });
+    weapons.forEach(p => {
+      addControllerSafe(anim, p.id, p.name, 'y',        'walkCycle',    { speed, amplitude: -6, phase: 0.25 });
+    });
+  }
+
+  else if (type === 'runFront') {
+    // Front-facing run: more exaggerated marching with body lean/bob
+    anim.duration = 0.7;
+    anim.loop = true;
+
+    bodies.forEach(p => {
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 6 });
+      addControllerSafe(anim, p.id, p.name, 'x',        'idleShift',    { speed: speed * 0.5, amplitude: 3, phase: 0.25 });
+    });
+    heads.forEach(p => {
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 4 });
+    });
+    legs.forEach((p, i) => {
+      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      addControllerSafe(anim, p.id, p.name, 'y',        'walkCycle',    { speed, amplitude: -22, phase: isRight ? 0.5 : 0 });
+      addControllerSafe(anim, p.id, p.name, 'scaleX',   'walkCycle',    { speed, amplitude: 0.12, phase: isRight ? 0.5 : 0 });
+    });
+    arms.forEach((p, i) => {
+      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 22, phase: isRight ? 0.5 : 0 });
+    });
+    capes.forEach(p => {
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'capeLag',      { speed, amplitude: 14, phase: 0.75 });
     });
   }
 

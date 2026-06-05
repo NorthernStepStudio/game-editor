@@ -169,6 +169,22 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
     };
   }
 
+  const btnOnion = document.getElementById('btn-toggle-onion');
+  if (btnOnion) {
+    btnOnion.classList.toggle('active', !!(AppState as any).showOnionSkin);
+    btnOnion.onclick = () => {
+      (AppState as any).showOnionSkin = !(AppState as any).showOnionSkin;
+      btnOnion.classList.toggle('active', !!(AppState as any).showOnionSkin);
+    };
+  }
+
+  const btnFit = document.getElementById('btn-fit-all');
+  if (btnFit) {
+    btnFit.onclick = () => {
+      if (_renderer) (_renderer as any).fitAll();
+    };
+  }
+
   // Keyboard shortcuts
   window.addEventListener('keydown', (e) => {
     const tag = (e.target as HTMLElement).tagName;

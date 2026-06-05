@@ -10,6 +10,12 @@ export interface Origin {
   y: number;
 }
 
+export interface Keyframe {
+  time: number;
+  value: number;
+  easing: 'linear' | 'easeInOut' | 'step' | 'spring';
+}
+
 export interface ControllerParams {
   speed: number;
   amplitude: number;
@@ -26,6 +32,8 @@ export interface AnimationController {
   formulaPreset: string;
   enabled: boolean;
   params: ControllerParams;
+  mode?: 'formula' | 'keyframe';
+  keyframes?: Keyframe[];
 }
 
 export interface CharacterAnimation {
@@ -43,6 +51,28 @@ export interface CharacterAsset {
   dataUrl: string;
   width: number;
   height: number;
+}
+
+export interface Constraint {
+  type: 'lookAt' | 'copyRotation' | 'limitRotation';
+  targetPartId: string;
+  influence: number;
+  offset: number;
+}
+
+export interface FrameAnimation {
+  frameCount: number;
+  fps: number;
+  startFrame: number;
+  columns: number;
+  frameWidth: number;
+  frameHeight: number;
+}
+
+export interface IKChain {
+  targetPartId: string;
+  chainLength: number;
+  bendDirection: number;
 }
 
 export interface CharacterPart {
@@ -67,6 +97,9 @@ export interface CharacterPart {
   flipX?: boolean;
   flipY?: boolean;
   inheritTransform?: boolean;
+  constraint?: Constraint;
+  ikChain?: IKChain;
+  frameAnimation?: FrameAnimation;
 }
 
 export interface CharacterProject {

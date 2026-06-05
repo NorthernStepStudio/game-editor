@@ -8,6 +8,7 @@ import { AppState } from '../../state/appState';
 import { imageCache } from './imageCache';
 import { drawShape } from './shapeRenderer';
 import { drawPartOverlays, drawSkeleton } from './motionOverlays';
+import { solve2BoneIK } from './ikSolver';
 
 export class MotionCanvasRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -83,7 +84,7 @@ export class MotionCanvasRenderer {
     const loop = (now: number) => {
       const dt = (now - this.lastTime) / 1000;
       this.lastTime = now;
-      this.update(dt);
+      this.advance(dt);
       this.render();
       this.updateZoomBadge();
       requestAnimationFrame(loop);
@@ -96,7 +97,7 @@ export class MotionCanvasRenderer {
     if (badge) badge.textContent = Math.round(this.zoom * 100) + '%';
   }
 
-  private update(dt: number) {
+  private advance(dt: number) {
     if (!PlaybackState.playing) return;
     const anim = ProjectState.project.animations.find((a: any) => a.id === SelectionState.activeAnimId);
     if (anim) {
@@ -111,6 +112,257 @@ export class MotionCanvasRenderer {
     }
   }
 
+  // ── Transform computation ─────────────────────────────────────────────────
+
+  private computeTransformsAtTime(
+    project: CharacterProject,
+    anim: any,
+    time: number
+  ): Map<string, any> {
+    const tforms = new Map<string, any>();
+    project.parts.forEach((p: any) => {
+      tforms.set(p.id, {
+        x:        p.baseX       ?? 0,
+        y:        p.baseY       ?? 0,
+        rotation: p.baseRotation ?? 0,
+        scaleX:   p.baseScaleX  ?? 1,
+        scaleY:   p.baseScaleY  ?? 1,
+        opacity:  p.opacity     ?? 1,
+      });
+    });
+
+    if (anim) {
+      const dur = anim.duration || 1;
+      anim.controllers.forEach((c: any) => {
+        if (!c.enabled) return;
+        const tform = tforms.get(c.targetPartId);
+        if (!tform) return;
+        const val = evaluateController(c, time, dur);
+        const base = tform[c.property] ?? 0;
+        let targetVal = base + val;
+        if (c.params.min !== c.params.max) {
+          targetVal = Math.max(base + c.params.min, Math.min(base + c.params.max, targetVal));
+        }
+        tform[c.property] = targetVal;
+      });
+    }
+
+    return tforms;
+  }
+
+  private buildMatrices(
+    project: CharacterProject,
+    tforms: Map<string, any>
+  ): Map<string, DOMMatrix> {
+    const matrices = new Map<string, DOMMatrix>();
+    const rootMatrix = new DOMMatrix()
+      .translate(this.canvas.width / 2 + this.panX, this.canvas.height / 2 + this.panY)
+      .scale(this.zoom, this.zoom);
+
+    const compute = (partId: string, parentMatrix: DOMMatrix) => {
+      const part = this.partsMap.get(partId);
+      if (!part) return;
+      const tform = tforms.get(partId);
+      if (!tform) return;
+      const effectiveParent = (part.inheritTransform === false) ? rootMatrix : parentMatrix;
+      const m = DOMMatrix.fromMatrix(effectiveParent);
+      m.translateSelf(tform.x, tform.y);
+      m.rotateSelf(tform.rotation);
+      m.scaleSelf(tform.scaleX, tform.scaleY);
+      matrices.set(partId, m);
+      (this.childrenMap.get(partId) || []).forEach(k => compute(k, m));
+    };
+    this.rootParts.forEach(root => compute(root, rootMatrix));
+    return matrices;
+  }
+
+  // ── IK solving ────────────────────────────────────────────────────────────
+
+  private applyIK(
+    project: CharacterProject,
+    tforms: Map<string, any>,
+    matrices: Map<string, DOMMatrix>
+  ) {
+    project.parts.forEach((part: any) => {
+      if (!part.ikChain?.targetPartId) return;
+      const targetMat = matrices.get(part.ikChain.targetPartId);
+      if (!targetMat) return;
+
+      const targetWorldX = targetMat.e;
+      const targetWorldY = targetMat.f;
+
+      // Find this part's world matrix
+      const rootMat = matrices.get(part.id);
+      if (!rootMat) return;
+
+      // Find first child (mid bone)
+      const children = this.childrenMap.get(part.id) || [];
+      if (children.length === 0) return;
+      const midId = children[0];
+      const midPart = this.partsMap.get(midId);
+      if (!midPart) return;
+
+      // Estimate bone lengths from base positions
+      const bone1 = Math.sqrt(
+        ((midPart.baseX ?? 0) ** 2) + ((midPart.baseY ?? 0) ** 2)
+      ) || 40;
+
+      // Find grandchild (end bone) to estimate bone2 length
+      const grandChildren = this.childrenMap.get(midId) || [];
+      let bone2 = bone1;
+      if (grandChildren.length > 0) {
+        const endPart = this.partsMap.get(grandChildren[0]);
+        if (endPart) {
+          bone2 = Math.sqrt(
+            ((endPart.baseX ?? 0) ** 2) + ((endPart.baseY ?? 0) ** 2)
+          ) || bone1;
+        }
+      }
+
+      const rootWorldX = rootMat.e;
+      const rootWorldY = rootMat.f;
+      const bendDir = part.ikChain.bendDirection ?? 1;
+
+      const result = solve2BoneIK(rootWorldX, rootWorldY, bone1, bone2, targetWorldX, targetWorldY, bendDir);
+
+      // Convert world angle to local rotation for root
+      const tform = tforms.get(part.id);
+      if (tform) tform.rotation = result.bone1AngleDeg;
+
+      const midTform = tforms.get(midId);
+      if (midTform) midTform.rotation = result.bone2AngleDeg;
+    });
+  }
+
+  // ── Constraint solving ────────────────────────────────────────────────────
+
+  private applyConstraints(
+    project: CharacterProject,
+    tforms: Map<string, any>,
+    matrices: Map<string, DOMMatrix>
+  ) {
+    project.parts.forEach((part: any) => {
+      const con = part.constraint;
+      if (!con || !con.targetPartId) return;
+      const targetMat = matrices.get(con.targetPartId);
+      const selfMat   = matrices.get(part.id);
+      if (!targetMat || !selfMat) return;
+
+      const influence = con.influence ?? 1;
+      const tform = tforms.get(part.id);
+      if (!tform) return;
+
+      if (con.type === 'lookAt') {
+        const dx = targetMat.e - selfMat.e;
+        const dy = targetMat.f - selfMat.f;
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI) + (con.offset ?? 0);
+        tform.rotation = tform.rotation + (angle - tform.rotation) * influence;
+      }
+      else if (con.type === 'copyRotation') {
+        // Decompose target's world rotation
+        const targetAngle = Math.atan2(targetMat.b, targetMat.a) * (180 / Math.PI);
+        const targetRot = targetAngle + (con.offset ?? 0);
+        tform.rotation = tform.rotation + (targetRot - tform.rotation) * influence;
+      }
+      else if (con.type === 'limitRotation') {
+        const min = con.offset ?? -45;
+        const max = con.influence ?? 45; // abuse fields for limit
+        tform.rotation = Math.max(min, Math.min(max, tform.rotation));
+      }
+    });
+  }
+
+  // ── Frame animation ───────────────────────────────────────────────────────
+
+  private getFrameSourceRect(part: any, time: number): { x: number; y: number; width: number; height: number } | null {
+    const fa = part.frameAnimation;
+    if (!fa || !fa.frameCount || !fa.fps || !fa.frameWidth || !fa.frameHeight) return null;
+    const frame = Math.floor(time * fa.fps + (fa.startFrame ?? 0)) % fa.frameCount;
+    const cols = fa.columns || 1;
+    const col = frame % cols;
+    const row = Math.floor(frame / cols);
+    return {
+      x: col * fa.frameWidth,
+      y: row * fa.frameHeight,
+      width: fa.frameWidth,
+      height: fa.frameHeight,
+    };
+  }
+
+  // ── Onion skins ───────────────────────────────────────────────────────────
+
+  private renderOnionSkin(
+    project: CharacterProject,
+    anim: any,
+    time: number,
+    tint: string,
+    alpha: number
+  ) {
+    const dur = anim.duration || 1;
+    const clampedTime = anim.loop ? ((time % dur) + dur) % dur : Math.max(0, Math.min(dur, time));
+    const tforms = this.computeTransformsAtTime(project, anim, clampedTime);
+    const matrices = this.buildMatrices(project, tforms);
+
+    const { ctx } = this;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.globalCompositeOperation = 'source-over';
+
+    const sortedParts = [...project.parts].sort((a: any, b: any) =>
+      (Number(a.zIndex) || 0) - (Number(b.zIndex) || 0)
+    );
+
+    sortedParts.forEach((part: any) => {
+      if (part.visible === false) return;
+      const m = matrices.get(part.id);
+      if (!m) return;
+      const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
+      const tform = tforms.get(part.id);
+
+      let width = 40, height = 40;
+      if (part.renderMode === 'image' && asset) {
+        const fa = this.getFrameSourceRect(part, clampedTime);
+        width  = (fa || part.sourceRect || asset).width  || asset.width;
+        height = (fa || part.sourceRect || asset).height || asset.height;
+      } else {
+        width  = (part.origin?.x ?? 20) * 2 || 40;
+        height = (part.origin?.y ?? 20) * 2 || 40;
+      }
+
+      ctx.save();
+      ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
+      ctx.globalAlpha = (tform?.opacity ?? 1) * alpha;
+
+      ctx.translate(-(part.origin?.x ?? 0), -(part.origin?.y ?? 0));
+
+      if (part.renderMode === 'image' && part.imageAssetId) {
+        const img = imageCache.get(part.imageAssetId);
+        if (img && img.complete && img.naturalWidth > 0) {
+          const fa = this.getFrameSourceRect(part, clampedTime);
+          const src = fa || part.sourceRect;
+          // Tint the onion skin
+          ctx.fillStyle = tint;
+          ctx.fillRect(0, 0, width, height);
+          ctx.globalCompositeOperation = 'multiply';
+          if (src) {
+            ctx.drawImage(img, src.x, src.y, src.width, src.height, 0, 0, width, height);
+          } else {
+            ctx.drawImage(img, 0, 0, width, height);
+          }
+          ctx.globalCompositeOperation = 'source-over';
+        }
+      } else {
+        ctx.fillStyle = tint;
+        drawShape(ctx, part, width, height);
+      }
+      ctx.restore();
+    });
+
+    ctx.restore();
+  }
+
+  // ── Main render ───────────────────────────────────────────────────────────
+
   private render() {
     const { ctx, canvas } = this;
     const project = ProjectState.project;
@@ -119,67 +371,43 @@ export class MotionCanvasRenderer {
 
     if (AppState.showGrid) this.drawGrid();
 
-    const currentTransforms = new Map<string, any>();
-    project.parts.forEach((p: any) => {
-      currentTransforms.set(p.id, {
-        x: p.baseX ?? 0,
-        y: p.baseY ?? 0,
-        rotation: p.baseRotation ?? 0,
-        scaleX: p.baseScaleX ?? 1,
-        scaleY: p.baseScaleY ?? 1,
-        opacity: p.opacity ?? 1,
-      });
-    });
-
     const anim = project.animations.find((a: any) => a.id === SelectionState.activeAnimId);
-    if (anim) {
-      const animDur = anim.duration || 1;
-      const playbackTime = getPlaybackTimeForAnimation(anim);
-      anim.controllers.forEach((c: any) => {
-        if (!c.enabled) return;
-        const tform = currentTransforms.get(c.targetPartId);
-        if (!tform) return;
-        const val = evaluateController(c, playbackTime, animDur);
-        const p = c.params;
-        let base = tform[c.property] ?? 0;
-        let targetVal = base + val;
-        if (p.min !== p.max) {
-          targetVal = Math.max(base + p.min, Math.min(base + p.max, targetVal));
-        }
-        tform[c.property] = targetVal;
-      });
+    const playbackTime = anim ? getPlaybackTimeForAnimation(anim) : 0;
+
+    // Onion skins (before main frame)
+    if ((AppState as any).showOnionSkin && anim) {
+      const step = 1 / 24;
+      this.renderOnionSkin(project, anim, playbackTime - step * 2, 'rgba(0,120,255,0.5)', 0.15);
+      this.renderOnionSkin(project, anim, playbackTime - step,     'rgba(0,120,255,0.5)', 0.25);
+      this.renderOnionSkin(project, anim, playbackTime + step,     'rgba(255,50,50,0.5)', 0.15);
     }
 
-    const matrices = new Map<string, DOMMatrix>();
-    const rootMatrix = new DOMMatrix()
-      .translate(canvas.width / 2 + this.panX, canvas.height / 2 + this.panY)
-      .scale(this.zoom, this.zoom);
+    // Main frame
+    const tforms = this.computeTransformsAtTime(project, anim, playbackTime);
 
-    const computeMatrix = (partId: string, parentMatrix: DOMMatrix) => {
-      const part = this.partsMap.get(partId);
-      if (!part) return;
-      const tform = currentTransforms.get(partId);
-      const effectiveParent = (part.inheritTransform === false) ? rootMatrix : parentMatrix;
-      const m = DOMMatrix.fromMatrix(effectiveParent);
-      m.translateSelf(tform.x, tform.y);
-      m.rotateSelf(tform.rotation);
-      m.scaleSelf(tform.scaleX, tform.scaleY);
-      matrices.set(partId, m);
-      (this.childrenMap.get(partId) || []).forEach(k => computeMatrix(k, m));
-    };
-    this.rootParts.forEach(root => computeMatrix(root, rootMatrix));
+    // First matrix pass
+    let matrices = this.buildMatrices(project, tforms);
+
+    // IK solving (uses first-pass matrices to get target world pos)
+    this.applyIK(project, tforms, matrices);
+
+    // Constraint solving
+    this.applyConstraints(project, tforms, matrices);
+
+    // Rebuild matrices after IK + constraints
+    matrices = this.buildMatrices(project, tforms);
 
     const sortedParts = [...project.parts].sort((a: any, b: any) =>
       (Number(a.zIndex) || 0) - (Number(b.zIndex) || 0)
     );
 
-    // 1. Draw parts
+    // Draw parts
     sortedParts.forEach((part: any) => {
       if (part.visible === false) return;
       const m = matrices.get(part.id);
       if (!m) return;
       const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
-      const tform = currentTransforms.get(part.id);
+      const tform = tforms.get(part.id);
 
       ctx.save();
       ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
@@ -198,10 +426,16 @@ export class MotionCanvasRenderer {
 
       if (part.flipX || part.flipY) ctx.scale(part.flipX ? -1 : 1, part.flipY ? -1 : 1);
 
+      // Frame animation: compute dynamic sourceRect
+      const dynamicSrc = (part.renderMode === 'image' && part.frameAnimation)
+        ? this.getFrameSourceRect(part, playbackTime)
+        : null;
+      const activeSrc = dynamicSrc || part.sourceRect;
+
       let width = 40, height = 40;
       if (part.renderMode === 'image' && asset) {
-        width  = part.sourceRect ? part.sourceRect.width  : asset.width;
-        height = part.sourceRect ? part.sourceRect.height : asset.height;
+        width  = activeSrc ? activeSrc.width  : asset.width;
+        height = activeSrc ? activeSrc.height : asset.height;
       } else {
         width  = (part.origin?.x ?? 20) * 2 || 40;
         height = (part.origin?.y ?? 20) * 2 || 40;
@@ -212,17 +446,12 @@ export class MotionCanvasRenderer {
       if (part.renderMode === 'image' && part.imageAssetId) {
         const img = imageCache.get(part.imageAssetId);
         if (img && img.complete && img.naturalWidth > 0) {
-          if (part.sourceRect) {
-            ctx.drawImage(img,
-              part.sourceRect.x, part.sourceRect.y,
-              part.sourceRect.width, part.sourceRect.height,
-              0, 0, width, height
-            );
+          if (activeSrc) {
+            ctx.drawImage(img, activeSrc.x, activeSrc.y, activeSrc.width, activeSrc.height, 0, 0, width, height);
           } else {
             ctx.drawImage(img, 0, 0, width, height);
           }
         } else {
-          // Placeholder while image loads
           ctx.fillStyle = 'rgba(76,142,245,0.12)';
           ctx.strokeStyle = 'rgba(76,142,245,0.3)';
           ctx.lineWidth = 1;
@@ -241,10 +470,13 @@ export class MotionCanvasRenderer {
       ctx.restore();
     });
 
-    // 2. Skeleton overlay
+    // Draw IK target indicators
+    this.drawIKIndicators(project, matrices);
+
+    // Draw skeleton overlay
     drawSkeleton(ctx, project.parts, matrices);
 
-    // 3. Selection overlays
+    // Draw selection overlays
     sortedParts.forEach((part: any) => {
       if (part.visible === false) return;
       const m = matrices.get(part.id);
@@ -255,10 +487,14 @@ export class MotionCanvasRenderer {
       ctx.save();
       ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
       const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
+      const dynamicSrc = (part.renderMode === 'image' && part.frameAnimation)
+        ? this.getFrameSourceRect(part, playbackTime)
+        : null;
+      const activeSrc = dynamicSrc || part.sourceRect;
       let w = 40, h = 40;
       if (part.renderMode === 'image' && asset) {
-        w = part.sourceRect ? part.sourceRect.width  : asset.width;
-        h = part.sourceRect ? part.sourceRect.height : asset.height;
+        w = activeSrc ? activeSrc.width  : asset.width;
+        h = activeSrc ? activeSrc.height : asset.height;
       } else {
         w = (part.origin?.x ?? 20) * 2 || 40;
         h = (part.origin?.y ?? 20) * 2 || 40;
@@ -270,6 +506,46 @@ export class MotionCanvasRenderer {
 
     this.latestMatrices = matrices;
     this.syncPlaybackReadout(anim);
+  }
+
+  private drawIKIndicators(project: CharacterProject, matrices: Map<string, DOMMatrix>) {
+    const { ctx } = this;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    project.parts.forEach((part: any) => {
+      if (!part.ikChain?.targetPartId) return;
+      const targetMat = matrices.get(part.ikChain.targetPartId);
+      if (!targetMat) return;
+      // Draw IK target as a diamond
+      const tx = targetMat.e;
+      const ty = targetMat.f;
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.rotate(Math.PI / 4);
+      ctx.strokeStyle = 'rgba(255, 160, 0, 0.85)';
+      ctx.fillStyle   = 'rgba(255, 160, 0, 0.15)';
+      ctx.lineWidth = 1.5;
+      const s = 7;
+      ctx.fillRect(-s/2, -s/2, s, s);
+      ctx.strokeRect(-s/2, -s/2, s, s);
+      ctx.restore();
+
+      // Draw line from root to target
+      const rootMat = matrices.get(part.id);
+      if (rootMat) {
+        ctx.strokeStyle = 'rgba(255, 160, 0, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(rootMat.e, rootMat.f);
+        ctx.lineTo(tx, ty);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    });
+
+    ctx.restore();
   }
 
   private drawGrid() {
@@ -290,7 +566,6 @@ export class MotionCanvasRenderer {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
     }
 
-    // Center crosshair
     const cx = canvas.width / 2 + this.panX;
     const cy = canvas.height / 2 + this.panY;
     ctx.strokeStyle = 'rgba(76,142,245,0.18)';
@@ -302,7 +577,6 @@ export class MotionCanvasRenderer {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Origin dot
     ctx.fillStyle = 'rgba(76,142,245,0.5)';
     ctx.beginPath();
     ctx.arc(cx, cy, 3, 0, Math.PI * 2);
@@ -315,10 +589,11 @@ export class MotionCanvasRenderer {
     if (!anim) return;
     const dur = anim.duration || 1;
     const t = getPlaybackTimeForAnimation(anim);
-    const readout = `${t.toFixed(2)}s / ${dur.toFixed(2)}s`;
     const el = document.getElementById('tl-time-display');
-    if (el) el.textContent = readout;
+    if (el) el.textContent = `${t.toFixed(2)}s / ${dur.toFixed(2)}s`;
   }
+
+  // ── Interaction ───────────────────────────────────────────────────────────
 
   private setupInteraction() {
     this.canvas.addEventListener('mousedown', (e) => {
@@ -371,7 +646,7 @@ export class MotionCanvasRenderer {
       part.baseX = this.dragStartPartX + dx;
       part.baseY = this.dragStartPartY + dy;
       DirtyState.markDirty();
-      if (this.onUpdate) this.onUpdate(true, false);
+      if (this.onUpdate) (this.onUpdate as any)(true, false);
     });
 
     window.addEventListener('mouseup', (e) => {
@@ -467,6 +742,30 @@ export class MotionCanvasRenderer {
       if (e.key === '=' || e.key === '+') { e.preventDefault(); this.zoom = Math.min(12, this.zoom * 1.12); }
       else if (e.key === '-' || e.key === '_') { e.preventDefault(); this.zoom = Math.max(0.05, this.zoom * 0.9); }
       else if (e.key === '0') { e.preventDefault(); this.resetView(); }
+      else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); this.fitAll(); }
     });
+  }
+
+  private fitAll() {
+    // Fit all parts in view
+    const project = ProjectState.project;
+    if (project.parts.length === 0) { this.resetView(); return; }
+    const matrices = this.latestMatrices;
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    project.parts.forEach((p: any) => {
+      const m = matrices.get(p.id);
+      if (m) {
+        minX = Math.min(minX, m.e);
+        maxX = Math.max(maxX, m.e);
+        minY = Math.min(minY, m.f);
+        maxY = Math.max(maxY, m.f);
+      }
+    });
+    if (!isFinite(minX)) { this.resetView(); return; }
+    const pw = this.canvas.width, ph = this.canvas.height;
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+    this.panX += pw / 2 - cx;
+    this.panY += ph / 2 - cy;
   }
 }

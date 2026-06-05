@@ -60,10 +60,12 @@ export const MAIN_LAYOUT = `
       <div class="canvas-container">
         <canvas id="main-canvas" width="800" height="600"></canvas>
         <div class="canvas-toolbar" id="canvas-toolbar">
-          <button id="btn-toggle-grid" class="active" title="Toggle grid">Grid</button>
-          <button id="btn-toggle-skeleton" title="Toggle skeleton">Bones</button>
-          <button id="btn-toggle-names" title="Toggle part names">Names</button>
-          <button id="btn-reset-view" title="Reset zoom &amp; pan (press 0)">Reset</button>
+          <button id="btn-toggle-grid"     class="active" title="Toggle grid (G)">Grid</button>
+          <button id="btn-toggle-skeleton" title="Toggle bone skeleton">Bones</button>
+          <button id="btn-toggle-names"    title="Toggle part name labels">Names</button>
+          <button id="btn-toggle-onion"    title="Toggle onion skinning">Onion</button>
+          <button id="btn-reset-view"      title="Reset zoom &amp; pan (press 0)">Reset</button>
+          <button id="btn-fit-all"         title="Fit all parts in view (press F)">Fit</button>
         </div>
         <div class="canvas-zoom-badge" id="zoom-badge">100%</div>
       </div>
@@ -72,9 +74,7 @@ export const MAIN_LAYOUT = `
     <!-- Right: Inspector + Assets -->
     <aside class="panel right-panel">
       <div class="right-panel-inner">
-        <div class="panel-header">
-          Properties
-        </div>
+        <div class="panel-header">Properties</div>
         <div class="right-panel-top panel-content" id="inspector-container">
           <div class="panel-empty"><span class="panel-empty-icon">🎯</span>Select a part to inspect</div>
         </div>
@@ -83,15 +83,13 @@ export const MAIN_LAYOUT = `
           Asset Library
           <span id="asset-count-badge">0 assets</span>
         </div>
-        <div class="right-panel-bottom" id="assets-list-container" style="padding: 8px; max-height: 180px; overflow-y: auto;"></div>
+        <div class="right-panel-bottom" id="assets-list-container" style="padding:8px; max-height:180px; overflow-y:auto;"></div>
       </div>
     </aside>
 
     <!-- Bottom: Timeline -->
     <footer class="panel bottom-panel" style="border-right:none;">
-      <div class="panel-header" style="padding:7px 10px;">
-        Motion Timeline
-      </div>
+      <div class="panel-header" style="padding:7px 10px;">Motion Timeline</div>
       <div class="panel-content" id="controller-list-container"></div>
     </footer>
   </div>
@@ -101,7 +99,7 @@ export const MAIN_LAYOUT = `
   <dialog id="dlg-load">
     <h3>Load Project</h3>
     <p style="font-size:0.75rem; color:var(--text-muted); margin-top:4px; margin-bottom:16px;">Select a saved project or import a JSON file.</p>
-    <div id="load-list" style="max-height: 380px; overflow-y: auto; display:flex; flex-direction:column; gap:6px;"></div>
+    <div id="load-list" style="max-height:380px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
       <button id="btn-close-load">Close</button>
     </div>

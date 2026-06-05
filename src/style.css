@@ -844,3 +844,187 @@ dialog h3 { font-size: 1rem; color: var(--text-bright); margin-bottom: 4px; }
 .right-panel-top { flex: 1; overflow-y: auto; min-height: 0; }
 .right-panel-divider { height: 1px; background: var(--border-strong); flex-shrink: 0; }
 .right-panel-bottom { flex-shrink: 0; }
+
+/* ─── DRAG TO REPARENT ─── */
+.part-row[draggable="true"] { cursor: grab; }
+.part-row[draggable="true"]:active { cursor: grabbing; }
+.part-row.drag-source { opacity: 0.4; outline: 1px dashed var(--accent); }
+.part-row.drag-over {
+  outline: 2px solid var(--accent);
+  background: var(--accent-dim);
+  border-radius: var(--r-sm);
+}
+.parts-tree.drag-over-root {
+  outline: 2px dashed rgba(76,142,245,0.4);
+  border-radius: var(--r-md);
+}
+
+/* ─── KEYFRAME STRIP ─── */
+.kf-strip {
+  position: relative;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  cursor: crosshair;
+  margin: 6px 0 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.kf-strip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent calc(10% - 1px),
+    rgba(255,255,255,0.04) calc(10% - 1px),
+    rgba(255,255,255,0.04) 10%
+  );
+  pointer-events: none;
+}
+.kf-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: rgba(255, 60, 60, 0.85);
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: 0 0 4px rgba(255, 60, 60, 0.5);
+}
+.kf-diamond {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border: 1.5px solid rgba(255,255,255,0.5);
+  cursor: pointer;
+  z-index: 3;
+  transition: background 0.1s;
+}
+.kf-diamond:hover {
+  background: #fff;
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* ─── KEYFRAME TABLE ─── */
+.kf-table {
+  font-size: 0.65rem;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.kf-table-head {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr;
+  gap: 4px;
+  padding: 3px 6px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+.kf-table-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 1fr;
+  gap: 4px;
+  padding: 3px 6px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.kf-table-row:last-child { border-bottom: none; }
+
+/* ─── CONTROLLER MODE BUTTON ─── */
+.ctrl-mode-btn {
+  font-size: 0.6rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.ctrl-mode-btn:hover  { color: var(--text-main); border-color: var(--border-strong); }
+.ctrl-mode-btn.active { color: var(--accent-orange); background: rgba(245,166,35,0.12); border-color: rgba(245,166,35,0.35); }
+
+/* ─── TEMPLATE BUTTONS ─── */
+.tmpl-btn {
+  padding: 3px 9px;
+  font-size: 0.68rem;
+  border-radius: var(--r-sm);
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.tmpl-btn:hover {
+  color: var(--text-bright);
+  background: rgba(255,255,255,0.08);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+.tmpl-btn:active { transform: translateY(0); }
+
+/* ─── IK + CONSTRAINT SECTIONS ─── */
+.inspector-section-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 7px;
+}
+.insp-flag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.insp-flag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: var(--text-main);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.insp-action-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.danger-btn {
+  color: var(--danger) !important;
+  border-color: rgba(232,93,93,0.3) !important;
+}
+.danger-btn:hover {
+  background: rgba(232,93,93,0.1) !important;
+  border-color: rgba(232,93,93,0.55) !important;
+}
+.pivot-row {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.layer-btns {
+  display: flex;
+  gap: 4px;
+}
+
+/* ─── ONION SKIN PULSE (when active) ─── */
+#btn-toggle-onion.active {
+  color: var(--accent-2);
+  background: rgba(157,127,232,0.15);
+  border-color: rgba(157,127,232,0.4);
+}

@@ -1,1 +1,2 @@
 - [NStep Motion Editor architecture](nstep-motion-editor.md) — formula-only anim system; boot.ts wires renderer+UI; AppState.showGrid controls grid
+- [Animation phase units](animation-phase-units.md) — phase param is cycle fractions (0–1), NOT radians. Use 0.5 for 180° alternation, never Math.PI.

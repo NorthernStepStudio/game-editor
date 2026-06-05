@@ -536,19 +536,23 @@ function applyTemplate(
     anim.loop = true;
 
     bodies.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'y',        'walkCycle',    { speed, amplitude: 3 });
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'swayRotation', { speed, amplitude: 2, phase: 0.25 });
+      // headBob = -|sin(t·TAU)|·amp → body rises twice per stride (once per step)
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 4 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'swayRotation', { speed: speed * 0.5, amplitude: 1.5, phase: 0.25 });
     });
     heads.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 2, phase: 0.5 });
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 2 });
     });
     legs.forEach((p, i) => {
+      // phase:0 = left (lead), phase:0.5 = right (half-cycle behind) — proper alternation
       const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'walkCycle',    { speed, amplitude: isRight ? 22 : -22, phase: isRight ? Math.PI : 0 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'walkCycle',    { speed, amplitude: 22, phase: isRight ? 0.5 : 0 });
     });
     arms.forEach((p, i) => {
-      const isLeft = i % 2 === 0 || p.name.toLowerCase().includes('left') || p.name.toLowerCase().includes('_l');
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: isLeft ? -18 : 18, phase: isLeft ? Math.PI : 0 });
+      // armSwing uses -sin so it naturally counter-swings to legs
+      // left arm phase=0 swings back when left leg swings forward
+      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 18, phase: isRight ? 0.5 : 0 });
     });
     capes.forEach(p => {
       addControllerSafe(anim, p.id, p.name, 'rotation', 'capeLag',      { speed, amplitude: 8,  phase: 0.75 });
@@ -563,19 +567,19 @@ function applyTemplate(
     anim.loop = true;
 
     bodies.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'y',        'runCycle',     { speed, amplitude: 5 });
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 6 });
       addControllerSafe(anim, p.id, p.name, 'rotation', 'runLean',      { speed: 0, amplitude: 0, offset: 8 });
     });
     heads.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 3, phase: 0.5 });
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 3 });
     });
     legs.forEach((p, i) => {
       const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'runCycle',     { speed, amplitude: isRight ? 35 : -35, phase: isRight ? Math.PI : 0 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'runCycle',     { speed, amplitude: 35, phase: isRight ? 0.5 : 0 });
     });
     arms.forEach((p, i) => {
-      const isLeft = i % 2 === 0 || p.name.toLowerCase().includes('left') || p.name.toLowerCase().includes('_l');
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: isLeft ? -28 : 28, phase: isLeft ? Math.PI : 0 });
+      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 28, phase: isRight ? 0.5 : 0 });
     });
     capes.forEach(p => {
       addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'capeLag', { speed, amplitude: 14, phase: 0.75 });

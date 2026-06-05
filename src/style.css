@@ -824,16 +824,39 @@ dialog h3 { font-size: 1rem; color: var(--text-bright); margin-bottom: 4px; }
 .play-btn.playing { background: var(--accent); border-color: transparent; color: #fff; }
 
 /* Animation tabs */
-.anim-tab {
-  padding: 3px 10px;
-  font-size: 0.68rem;
+.anim-tab-group {
+  display: inline-flex;
+  align-items: center;
   border-radius: 20px;
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+.anim-tab-group:hover { border-color: var(--border); background: rgba(255,255,255,0.03); }
+.anim-tab-group.active { background: var(--bg-surface-2); border-color: var(--border-strong); }
+.anim-tab-group.active .anim-tab { color: var(--text-bright); }
+
+.anim-tab {
+  padding: 3px 8px 3px 10px;
+  font-size: 0.68rem;
   color: var(--text-muted);
   background: transparent;
-  border: 1px solid transparent;
+  border: none;
 }
-.anim-tab:hover { color: var(--text-main); border-color: var(--border); background: rgba(255,255,255,0.03); }
-.anim-tab.active { color: var(--text-bright); background: var(--bg-surface-2); border-color: var(--border-strong); }
+.anim-tab-group:hover .anim-tab { color: var(--text-main); }
+
+.anim-del-btn {
+  padding: 2px 6px;
+  font-size: 0.58rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s;
+  cursor: pointer;
+  line-height: 1;
+}
+.anim-tab-group:hover .anim-del-btn { opacity: 1; }
+.anim-del-btn:hover { color: var(--danger) !important; opacity: 1 !important; }
 
 /* Filter tabs */
 .filter-tab { padding: 3px 9px; font-size: 0.68rem; border-radius: 20px; color: var(--text-muted); background: transparent; border: 1px solid transparent; }

@@ -105,9 +105,11 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
   container.innerHTML = `
     <div class="timeline-toolbar">
       <!-- Anim tabs -->
-      <div style="display:flex; gap:3px; flex-shrink:0; flex-wrap:wrap;">
+      <div style="display:flex; gap:3px; flex-shrink:0; flex-wrap:wrap; align-items:center;">
         ${project.animations.map((a: any) => `
-          <button class="anim-tab ${a.id === SelectionState.activeAnimId ? 'active' : ''}" data-anim-id="${a.id}">${a.name}</button>
+          <span class="anim-tab-group ${a.id === SelectionState.activeAnimId ? 'active' : ''}">
+            <button class="anim-tab" data-anim-id="${a.id}">${a.name}</button><button class="anim-del-btn" data-del-anim-id="${a.id}" title="Delete animation">✕</button>
+          </span>
         `).join('')}
         <button id="btn-add-anim" class="icon-btn" title="Add animation">+</button>
       </div>
@@ -177,6 +179,24 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
     (btn as HTMLElement).onclick = () => {
       SelectionState.activeAnimId = (btn as HTMLElement).getAttribute('data-anim-id')!;
       PlaybackState.time = 0;
+      onUpdate();
+    };
+  });
+
+  container.querySelectorAll('.anim-del-btn[data-del-anim-id]').forEach(btn => {
+    (btn as HTMLElement).onclick = (e) => {
+      e.stopPropagation();
+      if (project.animations.length <= 1) { alert('Cannot delete the last animation.'); return; }
+      const delId = (btn as HTMLElement).getAttribute('data-del-anim-id')!;
+      const delAnim = project.animations.find((a: any) => a.id === delId);
+      if (!delAnim) return;
+      if (!confirm(`Delete animation "${delAnim.name}"?`)) return;
+      project.animations = project.animations.filter((a: any) => a.id !== delId);
+      if (SelectionState.activeAnimId === delId) {
+        SelectionState.activeAnimId = project.animations[0]?.id ?? null;
+      }
+      PlaybackState.time = 0;
+      DirtyState.markDirty();
       onUpdate();
     };
   });

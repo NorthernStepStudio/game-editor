@@ -397,6 +397,70 @@ select:focus { border-color: var(--border-accent); }
   background: var(--bg-surface-2);
 }
 
+/* ─── LOCOMOTION D-PAD ─── */
+.loco-pad {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(11,13,20,0.85);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 8px 10px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  z-index: 20;
+  backdrop-filter: blur(4px);
+  user-select: none;
+}
+.loco-pad-title {
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+.loco-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 28px);
+  grid-template-rows: repeat(3, 28px);
+  gap: 3px;
+}
+.loco-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  line-height: 1;
+}
+.loco-btn:hover   { background: rgba(255,255,255,0.1); color: var(--text-bright); border-color: var(--border-strong); }
+.loco-btn.active  { background: var(--accent-dim); color: var(--accent); border-color: rgba(76,142,245,0.4); }
+.loco-stop        { font-size: 0.55rem; }
+.loco-speed-row {
+  display: flex;
+  gap: 4px;
+}
+.loco-speed-btn {
+  padding: 2px 8px;
+  font-size: 0.62rem;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+.loco-speed-btn.active { background: var(--accent-dim); color: var(--accent); border-color: rgba(76,142,245,0.4); }
+.loco-speed-btn:hover  { color: var(--text-bright); }
+
 /* ─── BOTTOM TIMELINE ─── */
 .bottom-panel {
   grid-column: 1 / -1;

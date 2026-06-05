@@ -174,6 +174,48 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
   if (btnZoomIn)  btnZoomIn.onclick  = () => { if (_renderer) _renderer.zoomIn(); };
   if (btnZoomOut) btnZoomOut.onclick = () => { if (_renderer) _renderer.zoomOut(); };
 
+  // ── Locomotion d-pad ───────────────────────────────────────────────────────
+  let locoSpeed = 80; // walk default
+  const locoAllBtns = () => document.querySelectorAll('.loco-btn');
+  const locoSetActive = (id: string) => {
+    locoAllBtns().forEach(b => b.classList.remove('active'));
+    document.getElementById(id)?.classList.add('active');
+  };
+  const locoGo = (dir: 'left' | 'right' | 'up' | 'down') => {
+    if (!_renderer) return;
+    _renderer.setLocomotion(dir, locoSpeed);
+    locoSetActive('loco-' + dir);
+    // Auto-play the animation so motion is visible
+    if (!PlaybackState.playing) {
+      PlaybackState.playing = true;
+      document.getElementById('btn-tl-play')?.classList.add('playing');
+    }
+  };
+  document.getElementById('loco-left')?.addEventListener('click',  () => locoGo('left'));
+  document.getElementById('loco-right')?.addEventListener('click', () => locoGo('right'));
+  document.getElementById('loco-up')?.addEventListener('click',    () => locoGo('up'));
+  document.getElementById('loco-down')?.addEventListener('click',  () => locoGo('down'));
+  document.getElementById('loco-stop')?.addEventListener('click',  () => {
+    if (_renderer) _renderer.setLocomotion('none');
+    locoSetActive('loco-stop');
+  });
+  document.getElementById('loco-walk')?.addEventListener('click', () => {
+    locoSpeed = 80;
+    document.querySelectorAll('.loco-speed-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('loco-walk')?.classList.add('active');
+    if (_renderer && _renderer.getLocomotionDir() !== 'none') {
+      _renderer.setLocomotion(_renderer.getLocomotionDir(), locoSpeed);
+    }
+  });
+  document.getElementById('loco-run')?.addEventListener('click', () => {
+    locoSpeed = 160;
+    document.querySelectorAll('.loco-speed-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('loco-run')?.classList.add('active');
+    if (_renderer && _renderer.getLocomotionDir() !== 'none') {
+      _renderer.setLocomotion(_renderer.getLocomotionDir(), locoSpeed);
+    }
+  });
+
   const btnOnion = document.getElementById('btn-toggle-onion');
   if (btnOnion) {
     btnOnion.classList.toggle('active', !!(AppState as any).showOnionSkin);

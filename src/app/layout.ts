@@ -72,6 +72,26 @@ export const MAIN_LAYOUT = `
           <div class="canvas-zoom-badge" id="zoom-badge">100%</div>
           <button id="btn-zoom-in"  class="zoom-step-btn" title="Zoom in (+)">+</button>
         </div>
+
+        <!-- Locomotion d-pad -->
+        <div class="loco-pad" id="loco-pad">
+          <div class="loco-pad-title">Move Preview</div>
+          <div class="loco-dpad">
+            <div></div>
+            <button id="loco-up"    class="loco-btn" title="Move up">▲</button>
+            <div></div>
+            <button id="loco-left"  class="loco-btn" title="Move left (flips character)">◀</button>
+            <button id="loco-stop"  class="loco-btn loco-stop active" title="Stop">■</button>
+            <button id="loco-right" class="loco-btn" title="Move right">▶</button>
+            <div></div>
+            <button id="loco-down"  class="loco-btn" title="Move down">▼</button>
+            <div></div>
+          </div>
+          <div class="loco-speed-row">
+            <button id="loco-walk" class="loco-speed-btn active" title="Walk speed">Walk</button>
+            <button id="loco-run"  class="loco-speed-btn"       title="Run speed">Run</button>
+          </div>
+        </div>
       </div>
     </main>
 

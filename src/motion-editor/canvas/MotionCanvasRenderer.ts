@@ -25,6 +25,12 @@ export class MotionCanvasRenderer {
   private panX: number = 0;
   private panY: number = 0;
   private isPanning: boolean = false;
+
+  // ── Locomotion preview ────────────────────────────────────────────────────
+  private locomotionDir: 'none' | 'left' | 'right' | 'up' | 'down' = 'none';
+  private locomotionOffsetX: number = 0;
+  private locomotionOffsetY: number = 0;
+  private locomotionSpeed: number = 80;
   private startPanX: number = 0;
   private startPanY: number = 0;
   private startMouseX: number = 0;
@@ -61,6 +67,13 @@ export class MotionCanvasRenderer {
 
   zoomIn()  { this.zoom = Math.min(12,   this.zoom * 1.2); }
   zoomOut() { this.zoom = Math.max(0.05, this.zoom / 1.2); }
+
+  setLocomotion(dir: 'none' | 'left' | 'right' | 'up' | 'down', speed: number = 80) {
+    this.locomotionDir   = dir;
+    this.locomotionSpeed = speed;
+    if (dir === 'none') { this.locomotionOffsetX = 0; this.locomotionOffsetY = 0; }
+  }
+  getLocomotionDir() { return this.locomotionDir; }
 
   resetView() {
     this.zoom = 1.0;
@@ -101,17 +114,34 @@ export class MotionCanvasRenderer {
   }
 
   private advance(dt: number) {
-    if (!PlaybackState.playing) return;
-    const anim = ProjectState.project.animations.find((a: any) => a.id === SelectionState.activeAnimId);
-    if (anim) {
-      PlaybackState.time += dt * PlaybackState.speedMult;
-      const dur = anim.duration || 1;
-      if (anim.loop) {
-        if (PlaybackState.time > dur) PlaybackState.time = PlaybackState.time % dur;
-      } else if (PlaybackState.time > dur) {
-        PlaybackState.time = dur;
-        PlaybackState.playing = false;
+    if (PlaybackState.playing) {
+      const anim = ProjectState.project.animations.find((a: any) => a.id === SelectionState.activeAnimId);
+      if (anim) {
+        PlaybackState.time += dt * PlaybackState.speedMult;
+        const dur = anim.duration || 1;
+        if (anim.loop) {
+          if (PlaybackState.time > dur) PlaybackState.time = PlaybackState.time % dur;
+        } else if (PlaybackState.time > dur) {
+          PlaybackState.time = dur;
+          PlaybackState.playing = false;
+        }
       }
+    }
+
+    // Locomotion preview — runs independently of playback
+    if (this.locomotionDir !== 'none') {
+      const sp = this.locomotionSpeed;
+      if (this.locomotionDir === 'right') this.locomotionOffsetX += sp * dt;
+      if (this.locomotionDir === 'left')  this.locomotionOffsetX -= sp * dt;
+      if (this.locomotionDir === 'down')  this.locomotionOffsetY += sp * dt;
+      if (this.locomotionDir === 'up')    this.locomotionOffsetY -= sp * dt;
+      // Wrap around canvas edges so character re-enters from the opposite side
+      const halfW = this.canvas.width  / 2 + 200;
+      const halfH = this.canvas.height / 2 + 200;
+      if (this.locomotionOffsetX >  halfW) this.locomotionOffsetX = -halfW;
+      if (this.locomotionOffsetX < -halfW) this.locomotionOffsetX =  halfW;
+      if (this.locomotionOffsetY >  halfH) this.locomotionOffsetY = -halfH;
+      if (this.locomotionOffsetY < -halfH) this.locomotionOffsetY =  halfH;
     }
   }
 
@@ -158,9 +188,12 @@ export class MotionCanvasRenderer {
     tforms: Map<string, any>
   ): Map<string, DOMMatrix> {
     const matrices = new Map<string, DOMMatrix>();
+    // Flip character horizontally when moving left
+    const flipX = this.locomotionDir === 'left' ? -this.zoom : this.zoom;
     const rootMatrix = new DOMMatrix()
-      .translate(this.canvas.width / 2 + this.panX, this.canvas.height / 2 + this.panY)
-      .scale(this.zoom, this.zoom);
+      .translate(this.canvas.width / 2 + this.panX + this.locomotionOffsetX,
+                 this.canvas.height / 2 + this.panY + this.locomotionOffsetY)
+      .scale(flipX, this.zoom);
 
     const compute = (partId: string, parentMatrix: DOMMatrix) => {
       const part = this.partsMap.get(partId);

@@ -4,6 +4,7 @@ export const MAIN_LAYOUT = `
       <div class="logo">N<span>Step</span></div>
       <nav class="main-nav">
         <button id="btn-nav-editor" class="nav-btn active">Editor</button>
+        <button id="btn-nav-rigging" class="nav-btn">Rigging</button>
         <button id="btn-nav-cutter" class="nav-btn">Cutter</button>
       </nav>
 
@@ -119,6 +120,8 @@ export const MAIN_LAYOUT = `
   </div>
 
   <div id="cutter-page" class="app-page" style="display:none;"></div>
+
+  <div id="rigging-page" class="app-page" style="display:none;"></div>
 
   <dialog id="dlg-load">
     <h3>Load Project</h3>

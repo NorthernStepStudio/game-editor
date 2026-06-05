@@ -21,6 +21,7 @@ export class MotionCanvasRenderer {
   onUpdate?: () => void;
   private latestMatrices = new Map<string, DOMMatrix>();
 
+  private active: boolean = true;
   private zoom: number = 1.0;
   private panX: number = 0;
   private panY: number = 0;
@@ -81,6 +82,10 @@ export class MotionCanvasRenderer {
     this.panY = 0;
   }
 
+  /** Public wrappers so other pages (e.g. the rigging workshop) can drive the view. */
+  fit() { this.fitAll(); }
+  resize() { this.resizeCanvas(); }
+
   rebuildTree(project: CharacterProject) {
     this.partsMap.clear();
     this.childrenMap.clear();
@@ -100,12 +105,24 @@ export class MotionCanvasRenderer {
     const loop = (now: number) => {
       const dt = (now - this.lastTime) / 1000;
       this.lastTime = now;
-      this.advance(dt);
-      this.render();
-      this.updateZoomBadge();
+      // Only the renderer bound to the visible page advances shared playback
+      // state, renders, and writes the (shared) zoom badge. Inactive instances
+      // (e.g. the rigging-page renderer while the editor is visible) idle so
+      // they never double-drive global state.
+      if (this.active) {
+        this.advance(dt);
+        this.render();
+        this.updateZoomBadge();
+      }
       requestAnimationFrame(loop);
     };
     requestAnimationFrame(loop);
+  }
+
+  /** Activate/deactivate this renderer's update loop. */
+  setActive(v: boolean) {
+    this.active = v;
+    if (v) this.lastTime = performance.now();
   }
 
   private updateZoomBadge() {

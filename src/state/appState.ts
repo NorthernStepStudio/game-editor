@@ -1,5 +1,5 @@
 export const AppState = {
-  currentPage: 'editor' as 'editor' | 'cutter',
+  currentPage: 'editor' as 'editor' | 'cutter' | 'rigging',
 
   showGrid:     true,
   showSkeleton: false,

@@ -30,76 +30,75 @@ const ARM = '#1098ad';
 const LEG = '#7048e8';
 const ACCENT = '#e8590c';
 
+// Pivot near the top of a limb bone so it rotates around its joint.
 const jointOrigin = { x: 20, y: 5 };
 
-// ── Humanoid: full skeleton with 2-segment limbs (the previously-missing parts) ──
+// ── 2D rigging principle ──────────────────────────────────────────────────────
+// In 2D skeletal animation (Spine / DragonBones style) you add a bone ONLY where
+// a sprite piece needs its own pivot. No anatomy-for-anatomy's-sake: ears are part
+// of the head sprite (no bone), there is no neck unless the head tilts on its own,
+// and the back is a SINGLE torso bone — not a chain of spine vertebrae (that's a
+// 3D/cinematic concern). These presets are lean, side-view, game-ready rigs.
+
+// ── Humanoid: lean side-view biped with elbows & knees ──
 const HUMANOID: SkeletonPreset = {
   id: 'humanoid',
   name: 'Humanoid',
   icon: '🧍',
-  description: 'Full biped — spine, head, two-segment arms & legs (thigh + shin + foot).',
-  boneCount: 15,
+  description: 'Side-view 2D biped — hip, one torso, head, and arms & legs with elbows/knees. No neck or spine chain.',
+  boneCount: 0,
   bones: [
-    { localId: 'hips',      parentLocalId: null,        name: 'Hips',       x: 0,   y: 0,   z: 10, color: TORSO, shape: 'roundedRect', origin: { x: 20, y: 20 } },
-    { localId: 'spine',     parentLocalId: 'hips',      name: 'Spine',      x: 0,   y: -28, z: 11, color: TORSO },
-    { localId: 'chest',     parentLocalId: 'spine',     name: 'Chest',      x: 0,   y: -28, z: 12, color: TORSO },
-    { localId: 'head',      parentLocalId: 'chest',     name: 'Head',       x: 0,   y: -26, z: 13, color: HEAD,  shape: 'circle', origin: { x: 20, y: 20 } },
-    { localId: 'arm_l',     parentLocalId: 'chest',     name: 'Arm L',      x: -22, y: -20, z: 9,  color: ARM },
-    { localId: 'forearm_l', parentLocalId: 'arm_l',     name: 'Forearm L',  x: 0,   y: 30,  z: 9,  color: ARM },
-    { localId: 'hand_l',    parentLocalId: 'forearm_l', name: 'Hand L',     x: 0,   y: 26,  z: 9,  color: ACCENT },
-    { localId: 'arm_r',     parentLocalId: 'chest',     name: 'Arm R',      x: 22,  y: -20, z: 14, color: ARM },
-    { localId: 'forearm_r', parentLocalId: 'arm_r',     name: 'Forearm R',  x: 0,   y: 30,  z: 14, color: ARM },
-    { localId: 'hand_r',    parentLocalId: 'forearm_r', name: 'Hand R',     x: 0,   y: 26,  z: 14, color: ACCENT },
-    { localId: 'thigh_l',   parentLocalId: 'hips',      name: 'Thigh L',    x: -12, y: 14,  z: 8,  color: LEG },
-    { localId: 'shin_l',    parentLocalId: 'thigh_l',   name: 'Shin L',     x: 0,   y: 34,  z: 8,  color: LEG },
-    { localId: 'foot_l',    parentLocalId: 'shin_l',    name: 'Foot L',     x: 0,   y: 30,  z: 8,  color: ACCENT },
-    { localId: 'thigh_r',   parentLocalId: 'hips',      name: 'Thigh R',    x: 12,  y: 14,  z: 8,  color: LEG },
-    { localId: 'shin_r',    parentLocalId: 'thigh_r',   name: 'Shin R',     x: 0,   y: 34,  z: 8,  color: LEG },
-    { localId: 'foot_r',    parentLocalId: 'shin_r',    name: 'Foot R',     x: 0,   y: 30,  z: 8,  color: ACCENT },
+    { localId: 'hip',          parentLocalId: null,         name: 'Hip',         x: 0,  y: 0,   z: 10, color: TORSO, shape: 'roundedRect', origin: { x: 20, y: 20 } },
+    { localId: 'torso',        parentLocalId: 'hip',        name: 'Torso',       x: 0,  y: -30, z: 11, color: TORSO },
+    { localId: 'head',         parentLocalId: 'torso',      name: 'Head',        x: 0,  y: -30, z: 12, color: HEAD, shape: 'circle', origin: { x: 20, y: 20 } },
+    { localId: 'arm_back_u',   parentLocalId: 'torso',      name: 'Back Arm',    x: 3,  y: -24, z: 9,  color: ARM },
+    { localId: 'arm_back_l',   parentLocalId: 'arm_back_u', name: 'Back Forearm',x: 0,  y: 28,  z: 9,  color: ARM },
+    { localId: 'arm_front_u',  parentLocalId: 'torso',      name: 'Front Arm',   x: -3, y: -24, z: 14, color: ARM },
+    { localId: 'arm_front_l',  parentLocalId: 'arm_front_u',name: 'Front Forearm',x: 0, y: 28,  z: 14, color: ARM },
+    { localId: 'leg_back_u',   parentLocalId: 'hip',        name: 'Back Thigh',  x: 4,  y: 10,  z: 8,  color: LEG },
+    { localId: 'leg_back_l',   parentLocalId: 'leg_back_u', name: 'Back Shin',   x: 0,  y: 32,  z: 8,  color: LEG },
+    { localId: 'leg_front_u',  parentLocalId: 'hip',        name: 'Front Thigh', x: -4, y: 10,  z: 13, color: LEG },
+    { localId: 'leg_front_l',  parentLocalId: 'leg_front_u',name: 'Front Shin',  x: 0,  y: 32,  z: 13, color: LEG },
   ],
 };
-// Correct the count to match the actual bone list length.
-HUMANOID.boneCount = HUMANOID.bones.length;
 
-// ── Simple Biped: single-segment limbs for a quick start ──
+// ── Stick Figure: ultra-minimal, single-segment limbs (crowds, quick start) ──
 const SIMPLE_BIPED: SkeletonPreset = {
   id: 'simpleBiped',
-  name: 'Simple Biped',
+  name: 'Stick Figure',
   icon: '🚶',
-  description: 'Quick start — body, head, one-segment arms and legs.',
-  boneCount: 6,
+  description: 'Ultra-minimal — body, head, one bone per arm and leg. The leanest rig that can still walk.',
+  boneCount: 0,
   bones: [
-    { localId: 'body',  parentLocalId: null,   name: 'Body',  x: 0,   y: 0,   z: 10, color: TORSO, shape: 'roundedRect', origin: { x: 20, y: 20 } },
-    { localId: 'head',  parentLocalId: 'body', name: 'Head',  x: 0,   y: -30, z: 13, color: HEAD, shape: 'circle', origin: { x: 20, y: 20 } },
-    { localId: 'arm_l', parentLocalId: 'body', name: 'Arm L', x: -22, y: -14, z: 9,  color: ARM },
-    { localId: 'arm_r', parentLocalId: 'body', name: 'Arm R', x: 22,  y: -14, z: 14, color: ARM },
-    { localId: 'leg_l', parentLocalId: 'body', name: 'Leg L', x: -12, y: 20,  z: 8,  color: LEG },
-    { localId: 'leg_r', parentLocalId: 'body', name: 'Leg R', x: 12,  y: 20,  z: 8,  color: LEG },
+    { localId: 'body',  parentLocalId: null,   name: 'Body',      x: 0,  y: 0,   z: 10, color: TORSO, shape: 'roundedRect', origin: { x: 20, y: 20 } },
+    { localId: 'head',  parentLocalId: 'body', name: 'Head',      x: 0,  y: -30, z: 12, color: HEAD, shape: 'circle', origin: { x: 20, y: 20 } },
+    { localId: 'arm_b', parentLocalId: 'body', name: 'Back Arm',  x: 3,  y: -16, z: 9,  color: ARM },
+    { localId: 'arm_f', parentLocalId: 'body', name: 'Front Arm', x: -3, y: -16, z: 13, color: ARM },
+    { localId: 'leg_b', parentLocalId: 'body', name: 'Back Leg',  x: 4,  y: 18,  z: 8,  color: LEG },
+    { localId: 'leg_f', parentLocalId: 'body', name: 'Front Leg', x: -4, y: 18,  z: 13, color: LEG },
   ],
 };
 
-// ── Quadruped: body, head, tail, four two-segment legs ──
+// ── Quadruped: lean side-view animal (no neck, single-segment legs) ──
 const QUADRUPED: SkeletonPreset = {
   id: 'quadruped',
   name: 'Quadruped',
   icon: '🐾',
-  description: 'Four-legged creature — body, head, tail, two-segment legs.',
-  boneCount: 12,
+  description: 'Side-view 2D animal — body, head, tail, and a near + far leg front and back. No neck.',
+  boneCount: 0,
   bones: [
-    { localId: 'body',     parentLocalId: null,       name: 'Body',        x: 0,   y: 0,  z: 10, color: TORSO, shape: 'roundedRect', origin: { x: 30, y: 15 } },
-    { localId: 'neck',     parentLocalId: 'body',     name: 'Neck',        x: 34,  y: -6, z: 11, color: TORSO },
-    { localId: 'head',     parentLocalId: 'neck',     name: 'Head',        x: 10,  y: -10,z: 12, color: HEAD, shape: 'circle', origin: { x: 20, y: 20 } },
-    { localId: 'tail',     parentLocalId: 'body',     name: 'Tail',        x: -34, y: -2, z: 9,  color: ACCENT, shape: 'cape' },
-    { localId: 'fleg_l_u', parentLocalId: 'body',     name: 'Front Leg L', x: 24,  y: 12, z: 8,  color: LEG },
-    { localId: 'fleg_l_d', parentLocalId: 'fleg_l_u', name: 'Front Shin L',x: 0,   y: 28, z: 8,  color: LEG },
-    { localId: 'fleg_r_u', parentLocalId: 'body',     name: 'Front Leg R', x: 24,  y: 12, z: 13, color: LEG },
-    { localId: 'fleg_r_d', parentLocalId: 'fleg_r_u', name: 'Front Shin R',x: 0,   y: 28, z: 13, color: LEG },
-    { localId: 'bleg_l_u', parentLocalId: 'body',     name: 'Back Leg L',  x: -24, y: 12, z: 8,  color: LEG },
-    { localId: 'bleg_l_d', parentLocalId: 'bleg_l_u', name: 'Back Shin L', x: 0,   y: 28, z: 8,  color: LEG },
-    { localId: 'bleg_r_u', parentLocalId: 'body',     name: 'Back Leg R',  x: -24, y: 12, z: 13, color: LEG },
-    { localId: 'bleg_r_d', parentLocalId: 'bleg_r_u', name: 'Back Shin R', x: 0,   y: 28, z: 13, color: LEG },
+    { localId: 'body',   parentLocalId: null,   name: 'Body',          x: 0,   y: 0,  z: 10, color: TORSO, shape: 'roundedRect', origin: { x: 30, y: 15 } },
+    { localId: 'head',   parentLocalId: 'body', name: 'Head',          x: 36,  y: -8, z: 12, color: HEAD, shape: 'circle', origin: { x: 20, y: 20 } },
+    { localId: 'tail',   parentLocalId: 'body', name: 'Tail',          x: -34, y: -6, z: 9,  color: ACCENT, shape: 'cape' },
+    { localId: 'fleg_n', parentLocalId: 'body', name: 'Front Leg',     x: 26,  y: 12, z: 13, color: LEG },
+    { localId: 'fleg_f', parentLocalId: 'body', name: 'Front Leg Far', x: 22,  y: 12, z: 8,  color: LEG },
+    { localId: 'bleg_n', parentLocalId: 'body', name: 'Back Leg',      x: -24, y: 12, z: 13, color: LEG },
+    { localId: 'bleg_f', parentLocalId: 'body', name: 'Back Leg Far',  x: -28, y: 12, z: 8,  color: LEG },
   ],
 };
+
+// Keep the displayed counts in lockstep with the actual bone lists.
+[HUMANOID, SIMPLE_BIPED, QUADRUPED].forEach(p => { p.boneCount = p.bones.length; });
 
 export const SKELETON_PRESETS: SkeletonPreset[] = [HUMANOID, SIMPLE_BIPED, QUADRUPED];
 

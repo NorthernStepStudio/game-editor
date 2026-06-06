@@ -93,6 +93,6 @@ export function bootApp() {
 
   // Initial Render
   refreshRenderer();
-  
+
   console.log('NStep Code Motion Editor: Boot Complete.');
 }

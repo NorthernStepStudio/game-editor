@@ -682,35 +682,47 @@ export class MotionCanvasRenderer {
         return;
       }
 
-      // --- Click cycling ---
-      // Each click at the same screen location cycles one step deeper through
-      // all bones that overlap that point (high-z first → … → root). This lets
-      // the user reach ANY bone, including parents/roots buried under children.
-      const CYCLE_THRESH = 10;
-      const isSameSpot = Math.hypot(mx - this.lastCycleX, my - this.lastCycleY) < CYCLE_THRESH;
-      const allAtPoint = this.getAllPartsAtPoint(mx, my);
-
+      // --- Bone picking (priority order) ---
+      // Priority 1: KEEP the currently-selected bone if it exists anywhere under the cursor.
+      //             This makes hierarchy-panel selection + canvas-drag always reliable.
+      // Priority 2: ANCHOR-first picking — bones whose pivot circle is within 24 px of the
+      //             cursor (screen space) come before large-image-bounding-box hits. This lets
+      //             the user click directly on a small bone indicator even when a big image
+      //             from another bone overlaps the same area.
+      // Priority 3: CYCLE — re-clicking the same spot (within 12 px) cycles one step deeper
+      //             through the remaining bones so buried/root bones are always reachable.
+      const CYCLE_THRESH = 12;
+      const allAtPoint = this.getAllPartsAtPoint(mx, my);   // anchor hits come first inside
       let picked: CharacterPart | null = null;
+
       if (allAtPoint.length === 0) {
-        // Clicked empty space — deselect and reset cycle
+        // Clicked empty space → deselect, reset cycle
         this.lastCycleX = mx; this.lastCycleY = my;
         this.lastCycleParts = []; this.lastCycleIdx = 0;
-      } else if (isSameSpot && this.lastCycleParts.length > 1) {
-        // Same spot, multiple bones — advance one step in the cycle
-        this.lastCycleIdx = (this.lastCycleIdx + 1) % allAtPoint.length;
-        this.lastCycleParts = allAtPoint;
-        picked = allAtPoint[this.lastCycleIdx];
       } else {
-        // New spot (or only one bone here) — start fresh, prefer already-selected
-        this.lastCycleX = mx; this.lastCycleY = my;
-        this.lastCycleParts = allAtPoint;
-        const selIdx = allAtPoint.findIndex(p => p.id === SelectionState.activePartId);
-        if (selIdx >= 0) {
-          this.lastCycleIdx = selIdx;  // keep current selection if it's under cursor
+        // PRIORITY 1: if the selected bone is anywhere under the cursor, keep it.
+        // Prevents large image bounding boxes from overriding a hierarchy selection.
+        const selPart = allAtPoint.find((p: CharacterPart) => p.id === SelectionState.activePartId);
+        if (selPart) {
+          picked = selPart;
+          this.lastCycleX = mx; this.lastCycleY = my;
+          this.lastCycleParts = allAtPoint;
+          this.lastCycleIdx = allAtPoint.indexOf(selPart);
         } else {
-          this.lastCycleIdx = 0;       // otherwise pick topmost
+          // PRIORITY 2+3: anchor-priority pick or cycle through stacked bones
+          const isSameSpot = Math.hypot(mx - this.lastCycleX, my - this.lastCycleY) < CYCLE_THRESH;
+          if (isSameSpot && this.lastCycleParts.length > 1) {
+            // Cycle: advance one step through the stack so the user can reach any bone
+            this.lastCycleIdx = (this.lastCycleIdx + 1) % allAtPoint.length;
+            this.lastCycleParts = allAtPoint;
+          } else {
+            // Fresh spot: pick index 0 (anchor hits sort first, so this is the most precise bone)
+            this.lastCycleX = mx; this.lastCycleY = my;
+            this.lastCycleParts = allAtPoint;
+            this.lastCycleIdx = 0;
+          }
+          picked = allAtPoint[this.lastCycleIdx];
         }
-        picked = allAtPoint[this.lastCycleIdx];
       }
 
       const prevId = SelectionState.activePartId;
@@ -816,21 +828,37 @@ export class MotionCanvasRenderer {
     return null;
   }
 
-  /** Returns ALL visible, unlocked parts whose bounding box contains (mx,my),
-   *  sorted from highest z-index (topmost) to lowest (root/buried). */
+  /** Returns ALL visible, unlocked parts that the cursor overlaps, sorted so that
+   *  bones whose pivot anchor (m.e / m.f in screen space) is within ANCHOR_R pixels
+   *  come FIRST (by descending z-index), followed by bones that only hit via their
+   *  image/shape bounding box (also by descending z-index).
+   *  This means clicking near a bone's small circle indicator always beats clicking
+   *  on the large image of a different bone that happens to overlap the same area. */
   private getAllPartsAtPoint(mx: number, my: number): CharacterPart[] {
+    const ANCHOR_R = 24; // screen-space pixels around the bone anchor circle
     const project = ProjectState.project;
     const sorted = [...project.parts].sort(
       (a: any, b: any) => (Number(b.zIndex) || 0) - (Number(a.zIndex) || 0)
     );
-    const result: CharacterPart[] = [];
+    const anchorHits: CharacterPart[] = [];
+    const bboxHits:   CharacterPart[] = [];
+
     for (const part of sorted) {
       if (part.visible === false || part.locked === true) continue;
       const m = this.latestMatrices.get(part.id);
       if (!m) continue;
+
+      // ── Anchor-proximity check (screen space) ────────────────────────────
+      const adx = mx - m.e, ady = my - m.f;
+      if (adx * adx + ady * ady <= ANCHOR_R * ANCHOR_R) {
+        anchorHits.push(part);
+        continue; // don't also add to bboxHits
+      }
+
+      // ── Bounding-box check (local space) ─────────────────────────────────
       try {
         const inv = m.inverse();
-        const lp = inv.transformPoint(new DOMPoint(mx, my));
+        const lp  = inv.transformPoint(new DOMPoint(mx, my));
         const lx = lp.x, ly = lp.y;
         const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
         let w = 40, h = 40;
@@ -844,11 +872,12 @@ export class MotionCanvasRenderer {
         const ox = part.origin?.x ?? 0;
         const oy = part.origin?.y ?? 0;
         if (lx >= -ox && lx <= -ox + w && ly >= -oy && ly <= -oy + h) {
-          result.push(part);
+          bboxHits.push(part);
         }
       } catch {}
     }
-    return result;
+    // Anchor hits first, then bounding-box hits (both groups sorted by z desc already)
+    return [...anchorHits, ...bboxHits];
   }
 
   private setupViewportGestures() {

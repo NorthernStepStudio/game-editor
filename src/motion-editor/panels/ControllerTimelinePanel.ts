@@ -1,4 +1,5 @@
 import { ProjectState } from '../../state/projectState';
+import { HistoryState } from '../../state/historyState';
 import { SelectionState } from '../../state/selectionState';
 import { PlaybackState, getPlaybackTimeForAnimation } from '../../state/playbackState';
 import { DirtyState } from '../../state/dirtyState';
@@ -280,15 +281,19 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
     onUpdate();
   };
 
-  // Template buttons
-  (container.querySelector('#btn-tmpl-idle')      as HTMLElement).onclick = () => { applyTemplate(anim, 'idle',      project, onUpdate); };
-  (container.querySelector('#btn-tmpl-walk')      as HTMLElement).onclick = () => { applyTemplate(anim, 'walk',      project, onUpdate); };
-  (container.querySelector('#btn-tmpl-walkfront') as HTMLElement).onclick = () => { applyTemplate(anim, 'walkFront', project, onUpdate); };
-  (container.querySelector('#btn-tmpl-run')       as HTMLElement).onclick = () => { applyTemplate(anim, 'run',       project, onUpdate); };
-  (container.querySelector('#btn-tmpl-runfront')  as HTMLElement).onclick = () => { applyTemplate(anim, 'runFront',  project, onUpdate); };
-  (container.querySelector('#btn-tmpl-jump')      as HTMLElement).onclick = () => { applyTemplate(anim, 'jump',      project, onUpdate); };
-  (container.querySelector('#btn-tmpl-hit')       as HTMLElement).onclick = () => { applyTemplate(anim, 'hit',       project, onUpdate); };
-  (container.querySelector('#btn-tmpl-death')     as HTMLElement).onclick = () => { applyTemplate(anim, 'death',     project, onUpdate); };
+  // Template buttons — push history before overwriting animation keyframes
+  const tmpl = (type: Parameters<typeof applyTemplate>[1]) => {
+    HistoryState.push();
+    applyTemplate(anim, type, project, onUpdate);
+  };
+  (container.querySelector('#btn-tmpl-idle')      as HTMLElement).onclick = () => tmpl('idle');
+  (container.querySelector('#btn-tmpl-walk')      as HTMLElement).onclick = () => tmpl('walk');
+  (container.querySelector('#btn-tmpl-walkfront') as HTMLElement).onclick = () => tmpl('walkFront');
+  (container.querySelector('#btn-tmpl-run')       as HTMLElement).onclick = () => tmpl('run');
+  (container.querySelector('#btn-tmpl-runfront')  as HTMLElement).onclick = () => tmpl('runFront');
+  (container.querySelector('#btn-tmpl-jump')      as HTMLElement).onclick = () => tmpl('jump');
+  (container.querySelector('#btn-tmpl-hit')       as HTMLElement).onclick = () => tmpl('hit');
+  (container.querySelector('#btn-tmpl-death')     as HTMLElement).onclick = () => tmpl('death');
 
   // Controller cards
   container.querySelectorAll('.controller-card[data-id]').forEach(card => {

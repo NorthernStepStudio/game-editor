@@ -4,6 +4,7 @@ import { SaveManager } from '../persistence/saveManager';
 import { setupAutosave, triggerAutosave } from '../persistence/autosave';
 import { DirtyState } from '../state/dirtyState';
 import { setupKeyboardShortcuts } from '../input/keyboardShortcuts';
+import { HistoryState } from '../state/historyState';
 import { MotionCanvasRenderer } from '../motion-editor/canvas/MotionCanvasRenderer';
 import { preloadAssets } from '../motion-editor/canvas/imageCache';
 import { setupUI, renderUI, setRenderer } from '../motion-editor/motionEditorUi';
@@ -64,6 +65,13 @@ export function bootApp() {
     renderer.setActive(page === 'editor');
     setRiggingActive(page === 'rigging');
   };
+
+  // Undo/redo restore: re-preload image cache and re-render everything
+  HistoryState.setRestoreCallback(() => {
+    preloadAssets(ProjectState.project);
+    renderer.rebuildTree(ProjectState.project);
+    renderUI();
+  });
 
   setupUI(refreshRenderer);
   setupCutterUI((page) => {

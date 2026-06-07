@@ -4,6 +4,7 @@ import { DirtyState } from '../../state/dirtyState';
 import { AppState } from '../../state/appState';
 import { trimToAlphaBounds } from '../utils/assetUtils';
 import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
+import { HistoryState } from '../../state/historyState';
 
 function esc(s: string): string {
   return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -256,7 +257,10 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
   const bind = (id: string, prop: string, isNum = true, obj?: any) => {
     const el = container.querySelector('#' + id) as HTMLInputElement;
     if (!el) return;
+    let sessionPushed = false;
+    el.addEventListener('focus', () => { sessionPushed = false; });
     const update = () => {
+      if (!sessionPushed) { HistoryState.push(); sessionPushed = true; }
       const val = isNum ? parseFloat(el.value) : el.value;
       if (isNum && isNaN(val as number)) return;
       const oldMatrices = computeAllWorldMatrices(project.parts, 800, 600);
@@ -293,7 +297,7 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
 
   // Parent
   const parentSel = container.querySelector('#pi-parent') as HTMLSelectElement;
-  if (parentSel) parentSel.onchange = () => { part.parentId = parentSel.value || null; DirtyState.markDirty(); onUpdate(); };
+  if (parentSel) parentSel.onchange = () => { HistoryState.push(); part.parentId = parentSel.value || null; DirtyState.markDirty(); onUpdate(); };
 
   // Pivot edit
   const pivotBtn = container.querySelector('#pi-edit-pivot') as HTMLElement;
@@ -303,7 +307,7 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
   const getZs = () => project.parts.map((p: any) => Number(p.zIndex) || 0);
   const lbq = (id: string, fn: () => void) => {
     const b = container.querySelector('#' + id) as HTMLElement;
-    if (b) b.onclick = () => { fn(); DirtyState.markDirty(); onUpdate(); };
+    if (b) b.onclick = () => { HistoryState.push(); fn(); DirtyState.markDirty(); onUpdate(); };
   };
   lbq('pi-back-all', () => { const z = getZs(); part.zIndex = (z.length ? Math.min(...z) : 0) - 1; });
   lbq('pi-back-1',   () => { part.zIndex = (Number(part.zIndex) || 0) - 1; });
@@ -312,7 +316,7 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
 
   // Mode
   const modeSel = container.querySelector('#pi-mode') as HTMLSelectElement;
-  if (modeSel) modeSel.onchange = () => { part.renderMode = modeSel.value as any; DirtyState.markDirty(); onUpdate(); };
+  if (modeSel) modeSel.onchange = () => { HistoryState.push(); part.renderMode = modeSel.value as any; DirtyState.markDirty(); onUpdate(); };
 
   // Shape type
   const shapeSel = container.querySelector('#pi-shape-type') as HTMLSelectElement;
@@ -325,6 +329,7 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
   // Asset
   const assetSel = container.querySelector('#pi-asset') as HTMLSelectElement;
   if (assetSel) assetSel.onchange = () => {
+    HistoryState.push();
     if (assetSel.value) {
       part.imageAssetId = assetSel.value;
       part.renderMode = 'image';

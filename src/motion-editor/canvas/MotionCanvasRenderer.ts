@@ -10,6 +10,7 @@ import { drawShape } from './shapeRenderer';
 import { drawPartOverlays, drawSkeleton } from './motionOverlays';
 import { solve2BoneIK } from './ikSolver';
 import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
+import { HistoryState } from '../../state/historyState';
 
 export class MotionCanvasRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -47,6 +48,12 @@ export class MotionCanvasRenderer {
   // while only the dragged bone's local position changes.
   private dragBoneOnly: boolean = false;
   private dragStartWorldMatrices: Map<string, DOMMatrix> = new Map();
+  // Click-cycling: clicking the same spot repeatedly cycles through all
+  // overlapping bones (topmost → … → root), so buried parts are reachable.
+  private lastCycleX: number = -1e9;
+  private lastCycleY: number = -1e9;
+  private lastCycleParts: CharacterPart[] = [];
+  private lastCycleIdx: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -675,48 +682,49 @@ export class MotionCanvasRenderer {
         return;
       }
 
-      // Pick the topmost part, but prefer the already-selected part when it
-      // is also under the cursor — this lets users drag a specific bone that
-      // is buried under other overlapping bones (all stacked at the same position).
-      let picked = this.pickPart(mx, my);
-      if (picked?.id !== SelectionState.activePartId && SelectionState.activePartId) {
-        const selPart = project.parts.find((p: any) => p.id === SelectionState.activePartId);
-        if (selPart && !selPart.locked && selPart.visible !== false) {
-          const sm = this.latestMatrices.get(selPart.id);
-          if (sm) {
-            try {
-              const inv = sm.inverse();
-              const lp = inv.transformPoint(new DOMPoint(mx, my));
-              const sAsset = project.assets?.find((a: any) => a.id === (selPart as any).imageAssetId);
-              let sw = 40, sh = 40;
-              if ((selPart as any).renderMode === 'image' && sAsset) {
-                sw = (selPart as any).sourceRect?.width  ?? sAsset.width;
-                sh = (selPart as any).sourceRect?.height ?? sAsset.height;
-              } else {
-                sw = (selPart.origin?.x ?? 20) * 2 || 40;
-                sh = (selPart.origin?.y ?? 20) * 2 || 40;
-              }
-              const sox = selPart.origin?.x ?? 0;
-              const soy = selPart.origin?.y ?? 0;
-              if (lp.x >= -sox && lp.x <= -sox + sw && lp.y >= -soy && lp.y <= -soy + sh) {
-                picked = selPart as any;
-              }
-            } catch {}
-          }
+      // --- Click cycling ---
+      // Each click at the same screen location cycles one step deeper through
+      // all bones that overlap that point (high-z first → … → root). This lets
+      // the user reach ANY bone, including parents/roots buried under children.
+      const CYCLE_THRESH = 10;
+      const isSameSpot = Math.hypot(mx - this.lastCycleX, my - this.lastCycleY) < CYCLE_THRESH;
+      const allAtPoint = this.getAllPartsAtPoint(mx, my);
+
+      let picked: CharacterPart | null = null;
+      if (allAtPoint.length === 0) {
+        // Clicked empty space — deselect and reset cycle
+        this.lastCycleX = mx; this.lastCycleY = my;
+        this.lastCycleParts = []; this.lastCycleIdx = 0;
+      } else if (isSameSpot && this.lastCycleParts.length > 1) {
+        // Same spot, multiple bones — advance one step in the cycle
+        this.lastCycleIdx = (this.lastCycleIdx + 1) % allAtPoint.length;
+        this.lastCycleParts = allAtPoint;
+        picked = allAtPoint[this.lastCycleIdx];
+      } else {
+        // New spot (or only one bone here) — start fresh, prefer already-selected
+        this.lastCycleX = mx; this.lastCycleY = my;
+        this.lastCycleParts = allAtPoint;
+        const selIdx = allAtPoint.findIndex(p => p.id === SelectionState.activePartId);
+        if (selIdx >= 0) {
+          this.lastCycleIdx = selIdx;  // keep current selection if it's under cursor
+        } else {
+          this.lastCycleIdx = 0;       // otherwise pick topmost
         }
+        picked = allAtPoint[this.lastCycleIdx];
       }
+
       const prevId = SelectionState.activePartId;
       SelectionState.activePartId = picked ? picked.id : null;
 
       if (picked && !picked.locked) {
+        // Snapshot state for undo before the drag mutates anything
+        HistoryState.push();
         this.isDraggingPart = true;
         this.dragBoneOnly = e.shiftKey;
         this.dragStartPartX = picked.baseX ?? 0;
         this.dragStartPartY = picked.baseY ?? 0;
         this.dragStartMouseX = mx;
         this.dragStartMouseY = my;
-        // Snapshot world matrices before the drag so preserveDescendantWorldTransforms
-        // can compensate child positions when Shift is held.
         if (this.dragBoneOnly) {
           this.dragStartWorldMatrices = computeAllWorldMatrices(
             ProjectState.project.parts, this.canvas.width, this.canvas.height
@@ -806,6 +814,41 @@ export class MotionCanvasRenderer {
       } catch {}
     }
     return null;
+  }
+
+  /** Returns ALL visible, unlocked parts whose bounding box contains (mx,my),
+   *  sorted from highest z-index (topmost) to lowest (root/buried). */
+  private getAllPartsAtPoint(mx: number, my: number): CharacterPart[] {
+    const project = ProjectState.project;
+    const sorted = [...project.parts].sort(
+      (a: any, b: any) => (Number(b.zIndex) || 0) - (Number(a.zIndex) || 0)
+    );
+    const result: CharacterPart[] = [];
+    for (const part of sorted) {
+      if (part.visible === false || part.locked === true) continue;
+      const m = this.latestMatrices.get(part.id);
+      if (!m) continue;
+      try {
+        const inv = m.inverse();
+        const lp = inv.transformPoint(new DOMPoint(mx, my));
+        const lx = lp.x, ly = lp.y;
+        const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
+        let w = 40, h = 40;
+        if (part.renderMode === 'image' && asset) {
+          w = part.sourceRect ? part.sourceRect.width  : asset.width;
+          h = part.sourceRect ? part.sourceRect.height : asset.height;
+        } else {
+          w = (part.origin?.x ?? 20) * 2 || 40;
+          h = (part.origin?.y ?? 20) * 2 || 40;
+        }
+        const ox = part.origin?.x ?? 0;
+        const oy = part.origin?.y ?? 0;
+        if (lx >= -ox && lx <= -ox + w && ly >= -oy && ly <= -oy + h) {
+          result.push(part);
+        }
+      } catch {}
+    }
+    return result;
   }
 
   private setupViewportGestures() {

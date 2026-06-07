@@ -3,6 +3,7 @@ import { SelectionState } from '../state/selectionState';
 import { ProjectState } from '../state/projectState';
 import { DirtyState } from '../state/dirtyState';
 import { SaveManager } from '../persistence/saveManager';
+import { HistoryState } from '../state/historyState';
 
 export function setupKeyboardShortcuts(renderCb: () => void) {
   window.addEventListener('keydown', (e) => {
@@ -11,6 +12,18 @@ export function setupKeyboardShortcuts(renderCb: () => void) {
       return;
     }
 
+    // Ctrl+Z: Undo
+    if (e.ctrlKey && !e.shiftKey && e.key === 'z') {
+      e.preventDefault();
+      HistoryState.undo();
+      return;
+    }
+    // Ctrl+Y or Ctrl+Shift+Z: Redo
+    if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && (e.key === 'z' || e.key === 'Z'))) {
+      e.preventDefault();
+      HistoryState.redo();
+      return;
+    }
     // Ctrl+S: Save
     if (e.ctrlKey && e.key === 's') {
       e.preventDefault();

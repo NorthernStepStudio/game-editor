@@ -559,7 +559,7 @@ function applyTemplate(
   // meaning re-applying a template on an existing animation did nothing.
   targetAnim.controllers = [];
 
-  const speed = type === 'walk' || type === 'walkFront' ? 2 : type === 'run' || type === 'runFront' ? 2.5 : 1;
+  const speed = type === 'walk' ? 1.5 : type === 'walkFront' ? 1.8 : type === 'run' || type === 'runFront' ? 2.5 : 1;
 
   if (type === 'idle') {
     anim.duration = 2.5;
@@ -588,32 +588,28 @@ function applyTemplate(
   }
 
   else if (type === 'walk') {
+    // Same motion style as run — runCycle legs + headBob + counter-swing torso —
+    // but at speed 1.5 vs run's 2.5, giving a relaxed stride with the same feel.
     anim.duration = 1.0;
     anim.loop = true;
 
-    // Root body: vertical bounce + lateral weight shift + gentle torso rotation
-    roots.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 5 });
-      addControllerSafe(anim, p.id, p.name, 'x',        'idleShift',    { speed: speed * 0.5, amplitude: 3, phase: 0.25 });
-    });
     bodies.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'swayRotation', { speed: speed * 0.5, amplitude: 2, phase: 0.25 });
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 5 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'swayRotation', { speed, amplitude: 5, phase: 0.5, offset: 0 });
     });
     legs.forEach((p, i) => {
-      // legCycle has a secondary harmonic for a more natural arc than pure sine
       const isRight = sideIsRight(p.name, i);
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'legCycle',     { speed, amplitude: 30, phase: isRight ? 0.5 : 0 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'runCycle',     { speed, amplitude: 32, phase: isRight ? 0.5 : 0 });
     });
     arms.forEach((p, i) => {
-      // armSwing (-sin) naturally counter-swings to legs
       const isRight = sideIsRight(p.name, i);
       addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 24, phase: isRight ? 0.5 : 0 });
     });
     capes.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'capeLag',      { speed, amplitude: 8,  phase: 0.75 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'capeLag',      { speed, amplitude: 10, phase: 0.75 });
     });
     weapons.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'legCycle',     { speed, amplitude: 5,  phase: 0.5 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'runCycle',     { speed, amplitude: 5,  phase: 0.5 });
     });
   }
 

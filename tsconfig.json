@@ -16,9 +16,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "../../../../packages/nstep-motion-core/src/*": ["../../packages/nstep-motion-core/src/*"],
-      "../../../../../packages/nstep-motion-core/src/*": ["../../packages/nstep-motion-core/src/*"]
+      "../../../../packages/nstep-motion-core/src/*": ["./packages/nstep-motion-core/src/*"],
+      "../../../../../packages/nstep-motion-core/src/*": ["./packages/nstep-motion-core/src/*"]
     }
   },
-  "include": ["src", "../../packages/nstep-motion-core/src"]
+  "include": ["src", "packages/nstep-motion-core/src"]
 }

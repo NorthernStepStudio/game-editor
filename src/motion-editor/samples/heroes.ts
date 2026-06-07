@@ -64,10 +64,12 @@ export const HERO_RIGS: Record<string, CharacterProject> = {
           { id: 'w-i1', targetPartId: 'body', property: 'y', formulaPreset: 'breathingY', enabled: true, params: { speed: 1, amplitude: 2, phase: 0, offset: 0, min: 0, max: 0 }},
           { id: 'w-i2', targetPartId: 'head', property: 'rotation', formulaPreset: 'breathingY', enabled: true, params: { speed: 1, amplitude: 1, phase: 0.5, offset: 0, min: 0, max: 0 }}
       ]},
-      { id: 'walk', name: 'Walk', duration: 1.2, loop: true, controllers: [
-          { id: 'w-w1', targetPartId: 'body', property: 'y', formulaPreset: 'walkCycle', enabled: true, params: { speed: 2, amplitude: 3, phase: 0, offset: 0, min: 0, max: 0 }},
-          { id: 'w-w2', targetPartId: 'leg_l', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 2, amplitude: 25, phase: 0, offset: 0, min: 0, max: 0 }},
-          { id: 'w-w3', targetPartId: 'leg_r', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 2, amplitude: 25, phase: 0.5, offset: 0, min: 0, max: 0 }}
+      { id: 'walk', name: 'Walk', duration: 1.0, loop: true, controllers: [
+          { id: 'w-w1',  targetPartId: 'body', property: 'y',        formulaPreset: 'headBob',      enabled: true, params: { speed: 2,   amplitude: 5,  phase: 0,    offset: 0,  min: 0, max: 0 }},
+          { id: 'w-w1x', targetPartId: 'body', property: 'x',        formulaPreset: 'idleShift',    enabled: true, params: { speed: 1,   amplitude: 3,  phase: 0.25, offset: 0,  min: 0, max: 0 }},
+          { id: 'w-w1r', targetPartId: 'body', property: 'rotation', formulaPreset: 'swayRotation', enabled: true, params: { speed: 1,   amplitude: 2,  phase: 0.25, offset: 0,  min: 0, max: 0 }},
+          { id: 'w-w2',  targetPartId: 'leg_l', property: 'rotation', formulaPreset: 'legCycle',    enabled: true, params: { speed: 2,   amplitude: 30, phase: 0,    offset: 0,  min: 0, max: 0 }},
+          { id: 'w-w3',  targetPartId: 'leg_r', property: 'rotation', formulaPreset: 'legCycle',    enabled: true, params: { speed: 2,   amplitude: 30, phase: 0.5,  offset: 0,  min: 0, max: 0 }}
       ]}
     ],
     parts: [
@@ -87,14 +89,17 @@ export const HERO_RIGS: Record<string, CharacterProject> = {
           { id: 'm-i1', targetPartId: 'body', property: 'y', formulaPreset: 'hoverFloat', enabled: true, params: { speed: 1, amplitude: 6, phase: 0, offset: -5, min: 0, max: 0 }},
           { id: 'm-i2', targetPartId: 'staff_arm', property: 'rotation', formulaPreset: 'breathingY', enabled: true, params: { speed: 0.5, amplitude: 4, phase: -0.5, offset: 0, min: 0, max: 0 }}
       ]},
-      { id: 'walk', name: 'Walk', duration: 1.5, loop: true, controllers: [
-          { id: 'm-w1', targetPartId: 'body', property: 'y', formulaPreset: 'hoverFloat', enabled: true, params: { speed: 1.5, amplitude: 4, phase: 0, offset: -5, min: 0, max: 0 }},
-          { id: 'm-w2', targetPartId: 'front_leg', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 1.5, amplitude: 15, phase: 0, offset: 0, min: 0, max: 0 }},
-          { id: 'm-w3', targetPartId: 'back_leg', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 1.5, amplitude: 15, phase: 0.5, offset: 0, min: 0, max: 0 }}
+      { id: 'walk', name: 'Walk', duration: 1.0, loop: true, controllers: [
+          { id: 'm-w1',  targetPartId: 'body',       property: 'y',        formulaPreset: 'headBob',      enabled: true, params: { speed: 1.5, amplitude: 5,  phase: 0,    offset: -5, min: 0, max: 0 }},
+          { id: 'm-w1x', targetPartId: 'body',       property: 'x',        formulaPreset: 'idleShift',    enabled: true, params: { speed: 0.75, amplitude: 3, phase: 0.25, offset: 0,  min: 0, max: 0 }},
+          { id: 'm-w2',  targetPartId: 'front_leg',  property: 'rotation', formulaPreset: 'legCycle',     enabled: true, params: { speed: 1.5, amplitude: 22, phase: 0,    offset: 0,  min: 0, max: 0 }},
+          { id: 'm-w3',  targetPartId: 'back_leg',   property: 'rotation', formulaPreset: 'legCycle',     enabled: true, params: { speed: 1.5, amplitude: 22, phase: 0.5,  offset: 0,  min: 0, max: 0 }}
       ]},
-      { id: 'run', name: 'Run', duration: 1.0, loop: true, controllers: [
-          { id: 'm-r1', targetPartId: 'body', property: 'rotation', formulaPreset: 'runLean', enabled: true, params: { speed: 0, amplitude: 0, phase: 0, offset: 10, min: 0, max: 0 }},
-          { id: 'm-r2', targetPartId: 'body', property: 'y', formulaPreset: 'runCycle', enabled: true, params: { speed: 2, amplitude: 3, phase: 0, offset: -5, min: 0, max: 0 }}
+      { id: 'run', name: 'Run', duration: 0.7, loop: true, controllers: [
+          { id: 'm-r1',  targetPartId: 'body',       property: 'rotation', formulaPreset: 'swayRotation', enabled: true, params: { speed: 2.5, amplitude: 6,  phase: 0.5,  offset: 0,  min: 0, max: 0 }},
+          { id: 'm-r2',  targetPartId: 'body',       property: 'y',        formulaPreset: 'headBob',      enabled: true, params: { speed: 2.5, amplitude: 6,  phase: 0,    offset: -5, min: 0, max: 0 }},
+          { id: 'm-r3',  targetPartId: 'front_leg',  property: 'rotation', formulaPreset: 'legCycle',     enabled: true, params: { speed: 2.5, amplitude: 30, phase: 0,    offset: 0,  min: 0, max: 0 }},
+          { id: 'm-r4',  targetPartId: 'back_leg',   property: 'rotation', formulaPreset: 'legCycle',     enabled: true, params: { speed: 2.5, amplitude: 30, phase: 0.5,  offset: 0,  min: 0, max: 0 }}
       ]}
     ],
     parts: [

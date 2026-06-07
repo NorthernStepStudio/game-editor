@@ -554,6 +554,11 @@ function applyTemplate(
     targetAnim = existing;
   }
 
+  // Always wipe and regenerate — templates are starting points, not additive.
+  // Previously addControllerSafe prompted "Add another?" for every duplicate,
+  // meaning re-applying a template on an existing animation did nothing.
+  targetAnim.controllers = [];
+
   const speed = type === 'walk' || type === 'walkFront' ? 2 : type === 'run' || type === 'runFront' ? 2.5 : 1;
 
   if (type === 'idle') {

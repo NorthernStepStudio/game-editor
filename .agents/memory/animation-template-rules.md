@@ -37,3 +37,14 @@ New hitFlash: starts at 1 (visible), dips twice after impact, settles at 1.
 `walkCycle = sin(t*TAU)` — pure sine, mechanical-looking.
 `legCycle = sin(t*TAU) - 0.15*sin(t*TAU*2)` — secondary harmonic creates natural knee-pause at apex.
 Use `legCycle` for all walk/locomotion; `walkCycle` only for simpler non-leg parts.
+
+## Rule 6: Templates never replaced — the "still the same" bug
+`addControllerSafe` checked for existing controllers and prompted "Add another?" per duplicate.
+Re-clicking a template on an animation that already had controllers showed N dialogs and added nothing.
+**Fix:** `applyTemplate` now does `targetAnim.controllers = []` before adding anything.
+Templates are starting points — wipe and replace is the correct behavior.
+
+## Rule 7: Sample rig JSON has hardcoded stale animation data
+Sample rigs (heroes.ts, enemies.ts) bake animation controller data inline.
+Formula/param improvements to `applyTemplate` do NOT backfill sample data.
+Must update sample JSON alongside template changes, or the samples keep showing old behavior.

@@ -682,47 +682,62 @@ export class MotionCanvasRenderer {
         return;
       }
 
-      // --- Bone picking (priority order) ---
-      // Priority 1: KEEP the currently-selected bone if it exists anywhere under the cursor.
-      //             This makes hierarchy-panel selection + canvas-drag always reliable.
-      // Priority 2: ANCHOR-first picking — bones whose pivot circle is within 24 px of the
-      //             cursor (screen space) come before large-image-bounding-box hits. This lets
-      //             the user click directly on a small bone indicator even when a big image
-      //             from another bone overlaps the same area.
-      // Priority 3: CYCLE — re-clicking the same spot (within 12 px) cycles one step deeper
-      //             through the remaining bones so buried/root bones are always reachable.
-      const CYCLE_THRESH = 12;
-      const allAtPoint = this.getAllPartsAtPoint(mx, my);   // anchor hits come first inside
+      // ── Bone picking ──────────────────────────────────────────────────────
+      // Rule 1  If the selected bone's own anchor circle (24 px radius) is
+      //         near the cursor → drag the selected bone.  Hierarchy-panel
+      //         selection always survives a canvas click, even when the bone
+      //         is buried under many stacked siblings.
+      // Rule 2  If the selected bone's anchor is NOT near the cursor but a
+      //         DIFFERENT bone's anchor IS → the user deliberately clicked
+      //         that other bone indicator: switch to it.
+      // Rule 3  No selection, or selected anchor and no other anchor near →
+      //         drag whatever is selected; fall back to bbox pick if nothing
+      //         selected.
+      // Result: large image bounding boxes never override a hierarchy pick;
+      //         the only way to change selection via canvas is to click within
+      //         24 px of a different bone's pivot circle indicator.
+
+      const ANCHOR_R = 20; // screen-space px radius around each bone's pivot dot
+
+      // Collect all bones with anchor near cursor (sorted desc z-index)
+      const anchorHits: CharacterPart[] = [];
+      {
+        const sp = [...project.parts]
+          .sort((a: any, b: any) => (Number(b.zIndex) || 0) - (Number(a.zIndex) || 0));
+        for (const p of sp) {
+          if (p.visible === false || (p as any).locked === true) continue;
+          const m = this.latestMatrices.get(p.id);
+          if (!m) continue;
+          const adx = mx - m.e, ady = my - m.f;
+          if (adx * adx + ady * ady <= ANCHOR_R * ANCHOR_R) anchorHits.push(p as CharacterPart);
+        }
+      }
+
+      // activePart is declared at the top of this handler (may be locked)
+      const activeUnlocked = (activePart && !activePart.locked) ? activePart as CharacterPart : undefined;
+
       let picked: CharacterPart | null = null;
 
-      if (allAtPoint.length === 0) {
-        // Clicked empty space → deselect, reset cycle
-        this.lastCycleX = mx; this.lastCycleY = my;
-        this.lastCycleParts = []; this.lastCycleIdx = 0;
-      } else {
-        // PRIORITY 1: if the selected bone is anywhere under the cursor, keep it.
-        // Prevents large image bounding boxes from overriding a hierarchy selection.
-        const selPart = allAtPoint.find((p: CharacterPart) => p.id === SelectionState.activePartId);
-        if (selPart) {
-          picked = selPart;
-          this.lastCycleX = mx; this.lastCycleY = my;
-          this.lastCycleParts = allAtPoint;
-          this.lastCycleIdx = allAtPoint.indexOf(selPart);
+      if (activeUnlocked) {
+        // Is the SELECTED bone's anchor near the cursor?
+        const selM = this.latestMatrices.get(activeUnlocked.id);
+        const selAnchorNear = selM
+          ? ((mx - selM.e) ** 2 + (my - selM.f) ** 2 <= ANCHOR_R * ANCHOR_R)
+          : false;
+
+        // Is there a DIFFERENT bone's anchor near the cursor?
+        const differentAnchor = anchorHits.find(p => p.id !== activeUnlocked.id) ?? null;
+
+        if (selAnchorNear || !differentAnchor) {
+          // Selected bone is near cursor, OR nothing else is nearby → drag selected
+          picked = activeUnlocked;
         } else {
-          // PRIORITY 2+3: anchor-priority pick or cycle through stacked bones
-          const isSameSpot = Math.hypot(mx - this.lastCycleX, my - this.lastCycleY) < CYCLE_THRESH;
-          if (isSameSpot && this.lastCycleParts.length > 1) {
-            // Cycle: advance one step through the stack so the user can reach any bone
-            this.lastCycleIdx = (this.lastCycleIdx + 1) % allAtPoint.length;
-            this.lastCycleParts = allAtPoint;
-          } else {
-            // Fresh spot: pick index 0 (anchor hits sort first, so this is the most precise bone)
-            this.lastCycleX = mx; this.lastCycleY = my;
-            this.lastCycleParts = allAtPoint;
-            this.lastCycleIdx = 0;
-          }
-          picked = allAtPoint[this.lastCycleIdx];
+          // A different bone's indicator is near and selected bone's is not → switch
+          picked = differentAnchor;
         }
+      } else {
+        // Nothing selected: anchor hit first, then bounding-box pick
+        picked = anchorHits[0] ?? this.pickPart(mx, my);
       }
 
       const prevId = SelectionState.activePartId;

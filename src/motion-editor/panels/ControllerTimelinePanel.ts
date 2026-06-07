@@ -205,9 +205,19 @@ export function renderControllerTimeline(container: HTMLElement, onUpdate: (skip
 
   container.querySelectorAll('.anim-tab[data-anim-id]').forEach(btn => {
     (btn as HTMLElement).onclick = () => {
-      SelectionState.activeAnimId = (btn as HTMLElement).getAttribute('data-anim-id')!;
-      PlaybackState.time = 0;
-      onUpdate();
+      const clickedId = (btn as HTMLElement).getAttribute('data-anim-id')!;
+      if (clickedId !== SelectionState.activeAnimId) {
+        SelectionState.activeAnimId = clickedId;
+        PlaybackState.time = 0;
+        onUpdate();
+      }
+    };
+    (btn as HTMLElement).ondblclick = () => {
+      const clickedId = (btn as HTMLElement).getAttribute('data-anim-id')!;
+      const target = project.animations.find((a: any) => a.id === clickedId);
+      if (!target) return;
+      const newName = prompt('Rename animation:', target.name);
+      if (newName !== null && newName.trim()) { target.name = newName.trim(); DirtyState.markDirty(); onUpdate(); }
     };
   });
 
@@ -503,6 +513,17 @@ function applyTemplate(
   const capes   = parts.filter(p => match(p.name,'cape','cloak','cloth','tail','hair','skirt'));
   const eyes    = parts.filter(p => match(p.name,'eye','brow','eyelid'));
 
+  // Determine which side of the body a bone belongs to.
+  // Names containing 'front' / 'right' / '_r' → right/front side (phase 0.5).
+  // Names containing 'back' / 'left' / '_l'  → left/back side  (phase 0).
+  // Unknown names fall back to index parity so old rigs (e.g. "Arm L", "Arm R") still work.
+  const sideIsRight = (name: string, i: number): boolean => {
+    const n = name.toLowerCase();
+    if (n.includes('front') || n.includes('right') || n.includes('_r')) return true;
+    if (n.includes('back')  || n.includes('left')  || n.includes('_l')) return false;
+    return i % 2 === 1;
+  };
+
   const hasAnyPart = bodies.length + legs.length + arms.length > 0;
   if (!hasAnyPart && type !== 'hit') {
     alert(`No matching parts found. Name your parts with words like "body", "leg", "arm", "head", etc.`);
@@ -571,13 +592,13 @@ function applyTemplate(
     });
     legs.forEach((p, i) => {
       // phase:0 = left (lead), phase:0.5 = right (half-cycle behind) — proper alternation
-      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      const isRight = sideIsRight(p.name, i);
       addControllerSafe(anim, p.id, p.name, 'rotation', 'walkCycle',    { speed, amplitude: 22, phase: isRight ? 0.5 : 0 });
     });
     arms.forEach((p, i) => {
       // armSwing uses -sin so it naturally counter-swings to legs
       // left arm phase=0 swings back when left leg swings forward
-      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      const isRight = sideIsRight(p.name, i);
       addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 18, phase: isRight ? 0.5 : 0 });
     });
     capes.forEach(p => {
@@ -594,17 +615,17 @@ function applyTemplate(
 
     bodies.forEach(p => {
       addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 6 });
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'runLean',      { speed: 0, amplitude: 0, offset: 8 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'swayRotation', { speed, amplitude: 6, phase: 0.5, offset: 0 });
     });
     heads.forEach(p => {
       addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 3 });
     });
     legs.forEach((p, i) => {
-      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      const isRight = sideIsRight(p.name, i);
       addControllerSafe(anim, p.id, p.name, 'rotation', 'runCycle',     { speed, amplitude: 35, phase: isRight ? 0.5 : 0 });
     });
     arms.forEach((p, i) => {
-      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      const isRight = sideIsRight(p.name, i);
       addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 28, phase: isRight ? 0.5 : 0 });
     });
     capes.forEach(p => {
@@ -625,14 +646,14 @@ function applyTemplate(
       addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 2 });
     });
     legs.forEach((p, i) => {
-      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      const isRight = sideIsRight(p.name, i);
       // Y: leg lifts up on each step (negative = up in canvas coords)
       addControllerSafe(anim, p.id, p.name, 'y',        'walkCycle',    { speed, amplitude: -14, phase: isRight ? 0.5 : 0 });
       // Subtle scaleX pulse: leg "toward camera" appears slightly wider
       addControllerSafe(anim, p.id, p.name, 'scaleX',   'walkCycle',    { speed, amplitude: 0.08, phase: isRight ? 0.5 : 0 });
     });
     arms.forEach((p, i) => {
-      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      const isRight = sideIsRight(p.name, i);
       addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 12, phase: isRight ? 0.5 : 0 });
     });
     capes.forEach(p => {
@@ -656,12 +677,12 @@ function applyTemplate(
       addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 4 });
     });
     legs.forEach((p, i) => {
-      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      const isRight = sideIsRight(p.name, i);
       addControllerSafe(anim, p.id, p.name, 'y',        'walkCycle',    { speed, amplitude: -22, phase: isRight ? 0.5 : 0 });
       addControllerSafe(anim, p.id, p.name, 'scaleX',   'walkCycle',    { speed, amplitude: 0.12, phase: isRight ? 0.5 : 0 });
     });
     arms.forEach((p, i) => {
-      const isRight = i % 2 === 1 || p.name.toLowerCase().includes('right') || p.name.toLowerCase().includes('_r');
+      const isRight = sideIsRight(p.name, i);
       addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 22, phase: isRight ? 0.5 : 0 });
     });
     capes.forEach(p => {

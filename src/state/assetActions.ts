@@ -70,6 +70,12 @@ export function attachAssetToPart(assetId: string, partId: string, onUpdate: () 
   part.renderMode = 'image';
   part.imageAssetId = assetId;
 
+  // Auto-center the pivot on the image so it aligns correctly from the start.
+  const asset = ProjectState.project.assets?.find((a: any) => a.id === assetId);
+  if (asset) {
+    part.origin = { x: Math.round(asset.width / 2), y: Math.round(asset.height / 2) };
+  }
+
   DirtyState.markDirty();
   onUpdate();
 }

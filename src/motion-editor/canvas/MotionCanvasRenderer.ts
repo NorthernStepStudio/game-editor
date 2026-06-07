@@ -670,7 +670,36 @@ export class MotionCanvasRenderer {
         return;
       }
 
-      const picked = this.pickPart(mx, my);
+      // Pick the topmost part, but prefer the already-selected part when it
+      // is also under the cursor — this lets users drag a specific bone that
+      // is buried under other overlapping bones (all stacked at the same position).
+      let picked = this.pickPart(mx, my);
+      if (picked?.id !== SelectionState.activePartId && SelectionState.activePartId) {
+        const selPart = project.parts.find((p: any) => p.id === SelectionState.activePartId);
+        if (selPart && !selPart.locked && selPart.visible !== false) {
+          const sm = this.latestMatrices.get(selPart.id);
+          if (sm) {
+            try {
+              const inv = sm.inverse();
+              const lp = inv.transformPoint(new DOMPoint(mx, my));
+              const sAsset = project.assets?.find((a: any) => a.id === (selPart as any).imageAssetId);
+              let sw = 40, sh = 40;
+              if ((selPart as any).renderMode === 'image' && sAsset) {
+                sw = (selPart as any).sourceRect?.width  ?? sAsset.width;
+                sh = (selPart as any).sourceRect?.height ?? sAsset.height;
+              } else {
+                sw = (selPart.origin?.x ?? 20) * 2 || 40;
+                sh = (selPart.origin?.y ?? 20) * 2 || 40;
+              }
+              const sox = selPart.origin?.x ?? 0;
+              const soy = selPart.origin?.y ?? 0;
+              if (lp.x >= -sox && lp.x <= -sox + sw && lp.y >= -soy && lp.y <= -soy + sh) {
+                picked = selPart as any;
+              }
+            } catch {}
+          }
+        }
+      }
       const prevId = SelectionState.activePartId;
       SelectionState.activePartId = picked ? picked.id : null;
 

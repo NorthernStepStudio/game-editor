@@ -124,6 +124,9 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
             <option value="">— none —</option>
             ${(project.assets || []).map((a: any) => `<option value="${a.id}" ${part.imageAssetId === a.id ? 'selected' : ''}>${esc(a.name)}</option>`).join('')}
           </select>
+          <div style="font-size:0.65rem; color:var(--text-muted); margin-top:3px; line-height:1.4;">
+            Pivot auto-centers on image. Use <strong>Fit Asset</strong> below to re-center, or drag the ✛ handle to reposition it.
+          </div>
         </div>`}
       </div>
 
@@ -241,7 +244,7 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
       <!-- Actions -->
       <div class="inspector-section">
         <div class="insp-action-row">
-          <button id="pi-fit-asset" ${locked ? 'disabled' : ''}>Fit Asset</button>
+          <button id="pi-fit-asset" title="Center the pivot on the image and reset scale to 1×" ${locked ? 'disabled' : ''}>⊕ Fit Asset</button>
           <button id="pi-trim-alpha" style="${part.renderMode === 'image' ? '' : 'display:none'}" ${locked ? 'disabled' : ''}>Trim Alpha</button>
           <button id="pi-delete" class="danger-btn">Delete Part</button>
         </div>
@@ -322,8 +325,19 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
   // Asset
   const assetSel = container.querySelector('#pi-asset') as HTMLSelectElement;
   if (assetSel) assetSel.onchange = () => {
-    if (assetSel.value) { part.imageAssetId = assetSel.value; part.renderMode = 'image'; }
-    else { part.imageAssetId = undefined; part.renderMode = 'shape'; }
+    if (assetSel.value) {
+      part.imageAssetId = assetSel.value;
+      part.renderMode = 'image';
+      // Auto-center the pivot on the assigned image so the bone anchor
+      // lands at the image center instead of the default (20,20) corner offset.
+      const asset = project.assets?.find((a: any) => a.id === assetSel.value);
+      if (asset) {
+        part.origin = { x: Math.round(asset.width / 2), y: Math.round(asset.height / 2) };
+      }
+    } else {
+      part.imageAssetId = undefined;
+      part.renderMode = 'shape';
+    }
     DirtyState.markDirty();
     onUpdate();
   };

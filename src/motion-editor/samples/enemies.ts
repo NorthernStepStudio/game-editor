@@ -11,7 +11,7 @@ export const DOOMED_RIGS = {
       { id: 'walk', name: 'Walk', duration: 1, loop: true, controllers: [
           { id: 'rr-c2', targetPartId: 'body', property: 'y', formulaPreset: 'bobPosition', enabled: true, params: { speed: 4, amplitude: 5, phase: 0, offset: 0, min: 0, max: 0 }},
           { id: 'rr-c3', targetPartId: 'leg-f', property: 'rotation', formulaPreset: 'legCycle', enabled: true, params: { speed: 4, amplitude: 25, phase: 0, offset: 0, min: 0, max: 0 }},
-          { id: 'rr-c4', targetPartId: 'leg-b', property: 'rotation', formulaPreset: 'legCycle', enabled: true, params: { speed: 4, amplitude: 25, phase: 3.14, offset: 0, min: 0, max: 0 }}
+          { id: 'rr-c4', targetPartId: 'leg-b', property: 'rotation', formulaPreset: 'legCycle', enabled: true, params: { speed: 4, amplitude: 25, phase: 0.5, offset: 0, min: 0, max: 0 }}
       ]},
       { id: 'attack', name: 'Attack', duration: 1, loop: false, controllers: [
           { id: 'rr-c5', targetPartId: 'head', property: 'rotation', formulaPreset: 'clawTwitch', enabled: true, params: { speed: 10, amplitude: 30, phase: 0, offset: -20, min: 0, max: 0 }}
@@ -42,7 +42,7 @@ export const DOOMED_RIGS = {
       ]},
       { id: 'walk', name: 'Walk', duration: 1, loop: true, controllers: [
           { id: 'bw-3', targetPartId: 'leg-l', property: 'rotation', formulaPreset: 'legCycle', enabled: true, params: { speed: 1.5, amplitude: 30, phase: 0, offset: 0, min: 0, max: 0 }},
-          { id: 'bw-4', targetPartId: 'leg-r', property: 'rotation', formulaPreset: 'legCycle', enabled: true, params: { speed: 1.5, amplitude: -30, phase: 3.14, offset: 0, min: 0, max: 0 }}
+          { id: 'bw-4', targetPartId: 'leg-r', property: 'rotation', formulaPreset: 'legCycle', enabled: true, params: { speed: 1.5, amplitude: 30, phase: 0.5, offset: 0, min: 0, max: 0 }}
       ]},
       { id: 'attack', name: 'Attack', duration: 1, loop: false, controllers: []},
       { id: 'hurt', name: 'Hurt', duration: 0.5, loop: false, controllers: []},

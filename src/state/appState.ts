@@ -1,13 +1,12 @@
 export const AppState = {
-  // Page routing
-  currentPage: 'editor' as 'editor' | 'cutter',
-  
-  // View Helpers
-  showPivots: true,
+  currentPage: 'editor' as 'editor' | 'cutter' | 'rigging',
+
+  showGrid:     true,
   showSkeleton: false,
-  showNames: false,
-  showTrails: false,
-  showBounds: false,
-  
+  showNames:    false,
+  showPivots:   true,
+  showBounds:   false,
+  showTrails:   false,
+
   controllerFilter: 'all' as 'all' | 'selected' | 'animation',
 };

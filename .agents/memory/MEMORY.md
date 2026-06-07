@@ -1,0 +1,4 @@
+- [NStep Motion Editor architecture](nstep-motion-editor.md) — formula-only anim system; boot.ts wires renderer+UI; AppState.showGrid controls grid
+- [Animation phase units](animation-phase-units.md) — phase param is cycle fractions (0–1), NOT radians. Use 0.5 for 180° alternation, never Math.PI.
+- [Locomotion templates](locomotion-templates.md) — walk/run have side-view (leg rotation) and front-view (leg y+scaleX) variants; front rotation looks wrong head-on.
+- [Multi-renderer global state](multi-renderer-global-state.md) — extra MotionCanvasRenderer instances (Rigging page) must be gated via setActive() or they double-drive PlaybackState + #zoom-badge.

@@ -67,7 +67,7 @@ export const HERO_RIGS: Record<string, CharacterProject> = {
       { id: 'walk', name: 'Walk', duration: 1.2, loop: true, controllers: [
           { id: 'w-w1', targetPartId: 'body', property: 'y', formulaPreset: 'walkCycle', enabled: true, params: { speed: 2, amplitude: 3, phase: 0, offset: 0, min: 0, max: 0 }},
           { id: 'w-w2', targetPartId: 'leg_l', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 2, amplitude: 25, phase: 0, offset: 0, min: 0, max: 0 }},
-          { id: 'w-w3', targetPartId: 'leg_r', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 2, amplitude: -25, phase: 3.14, offset: 0, min: 0, max: 0 }}
+          { id: 'w-w3', targetPartId: 'leg_r', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 2, amplitude: 25, phase: 0.5, offset: 0, min: 0, max: 0 }}
       ]}
     ],
     parts: [
@@ -90,7 +90,7 @@ export const HERO_RIGS: Record<string, CharacterProject> = {
       { id: 'walk', name: 'Walk', duration: 1.5, loop: true, controllers: [
           { id: 'm-w1', targetPartId: 'body', property: 'y', formulaPreset: 'hoverFloat', enabled: true, params: { speed: 1.5, amplitude: 4, phase: 0, offset: -5, min: 0, max: 0 }},
           { id: 'm-w2', targetPartId: 'front_leg', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 1.5, amplitude: 15, phase: 0, offset: 0, min: 0, max: 0 }},
-          { id: 'm-w3', targetPartId: 'back_leg', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 1.5, amplitude: -15, phase: 3.14, offset: 0, min: 0, max: 0 }}
+          { id: 'm-w3', targetPartId: 'back_leg', property: 'rotation', formulaPreset: 'walkCycle', enabled: true, params: { speed: 1.5, amplitude: 15, phase: 0.5, offset: 0, min: 0, max: 0 }}
       ]},
       { id: 'run', name: 'Run', duration: 1.0, loop: true, controllers: [
           { id: 'm-r1', targetPartId: 'body', property: 'rotation', formulaPreset: 'runLean', enabled: true, params: { speed: 0, amplitude: 0, phase: 0, offset: 10, min: 0, max: 0 }},

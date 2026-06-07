@@ -52,7 +52,7 @@ export function setupRiggingUI(onBack: () => void, onExternalChange: () => void)
             <div class="canvas-zoom-badge" id="rig-zoom-badge">100%</div>
             <button id="rig-zoom-in"  class="zoom-step-btn" title="Zoom in">+</button>
           </div>
-          <div class="rigging-hint">Drag bones to position them · click ⊕ in the hierarchy to add child bones</div>
+          <div class="rigging-hint">Drag bone — moves with children &nbsp;·&nbsp; <kbd>Shift</kbd>+drag — moves bone only, children stay &nbsp;·&nbsp; click ⊕ in hierarchy to add child bones</div>
         </main>
 
         <!-- Right: inspector -->

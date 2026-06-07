@@ -9,6 +9,7 @@ import { imageCache } from './imageCache';
 import { drawShape } from './shapeRenderer';
 import { drawPartOverlays, drawSkeleton } from './motionOverlays';
 import { solve2BoneIK } from './ikSolver';
+import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
 
 export class MotionCanvasRenderer {
   private ctx: CanvasRenderingContext2D;
@@ -42,6 +43,10 @@ export class MotionCanvasRenderer {
   private dragStartPartY: number = 0;
   private dragStartMouseX: number = 0;
   private dragStartMouseY: number = 0;
+  // When true (Shift held at drag start), children are kept in world space
+  // while only the dragged bone's local position changes.
+  private dragBoneOnly: boolean = false;
+  private dragStartWorldMatrices: Map<string, DOMMatrix> = new Map();
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -705,11 +710,19 @@ export class MotionCanvasRenderer {
 
       if (picked && !picked.locked) {
         this.isDraggingPart = true;
+        this.dragBoneOnly = e.shiftKey;
         this.dragStartPartX = picked.baseX ?? 0;
         this.dragStartPartY = picked.baseY ?? 0;
         this.dragStartMouseX = mx;
         this.dragStartMouseY = my;
-        this.canvas.style.cursor = 'move';
+        // Snapshot world matrices before the drag so preserveDescendantWorldTransforms
+        // can compensate child positions when Shift is held.
+        if (this.dragBoneOnly) {
+          this.dragStartWorldMatrices = computeAllWorldMatrices(
+            ProjectState.project.parts, this.canvas.width, this.canvas.height
+          );
+        }
+        this.canvas.style.cursor = this.dragBoneOnly ? 'crosshair' : 'move';
       }
 
       if (picked?.id !== prevId && this.onUpdate) this.onUpdate();
@@ -717,13 +730,22 @@ export class MotionCanvasRenderer {
 
     window.addEventListener('mousemove', (e) => {
       if (!this.isDraggingPart) return;
-      const part = ProjectState.project.parts.find((p: any) => p.id === SelectionState.activePartId);
+      const project = ProjectState.project;
+      const part = project.parts.find((p: any) => p.id === SelectionState.activePartId);
       if (!part || part.locked) return;
       const { mx, my } = this.getMouse(e);
       const dx = (mx - this.dragStartMouseX) / this.zoom;
       const dy = (my - this.dragStartMouseY) / this.zoom;
       part.baseX = this.dragStartPartX + dx;
       part.baseY = this.dragStartPartY + dy;
+      // Shift held: keep every child in world space while only the
+      // dragged bone's local position changes (same as "move bone only").
+      if (this.dragBoneOnly && this.dragStartWorldMatrices.size > 0) {
+        preserveDescendantWorldTransforms(
+          part.id, project.parts, this.dragStartWorldMatrices,
+          this.canvas.width, this.canvas.height
+        );
+      }
       DirtyState.markDirty();
       if (this.onUpdate) (this.onUpdate as any)(true, false);
     });

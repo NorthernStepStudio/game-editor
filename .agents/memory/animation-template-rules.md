@@ -48,3 +48,22 @@ Templates are starting points — wipe and replace is the correct behavior.
 Sample rigs (heroes.ts, enemies.ts) bake animation controller data inline.
 Formula/param improvements to `applyTemplate` do NOT backfill sample data.
 Must update sample JSON alongside template changes, or the samples keep showing old behavior.
+
+## Rule 8: Image-bone pivot — auto-center on assign
+When an image is assigned to a part, `part.origin` must be set to
+`{x: asset.width/2, y: asset.height/2}` or the bone pivot lands ~20px from the
+image top-left (old default), making all animation pivots wrong.
+Fixed in `InspectorPanel.ts` assetSel.onchange AND `assetActions.ts` attachAssetToPart.
+"⊕ Fit Asset" button also does this + resets scale to 1×.
+
+## Rule 9: Canvas drag pick — prefer selected part over topmost
+When all bones pile up at position (0,0), topmost z-index bone always wins pick.
+Fix: in mousedown, check if the already-selected part is also under cursor first —
+if yes, drag it instead of the topmost. Users select via hierarchy list, then drag canvas.
+Location: MotionCanvasRenderer.ts setupInteraction mousedown.
+
+## Rule 10: Shift+drag = move bone only, children stay in world space
+Normal drag moves bone + all children (hierarchy-correct).
+Shift+drag snapshots world matrices at drag start, then on each mousemove calls
+preserveDescendantWorldTransforms so child world positions stay fixed.
+Cursor changes to crosshair while Shift+drag mode is active.

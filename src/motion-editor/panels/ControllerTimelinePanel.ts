@@ -524,6 +524,10 @@ function applyTemplate(
     return i % 2 === 1;
   };
 
+  // Root bones drive whole-body displacement (x, y). Children follow automatically
+  // through the hierarchy, so applying y/x to non-roots causes double-displacement.
+  const roots = bodies.filter((p: any) => !p.parentId);
+
   const hasAnyPart = bodies.length + legs.length + arms.length > 0;
   if (!hasAnyPart && type !== 'hit') {
     alert(`No matching parts found. Name your parts with words like "body", "leg", "arm", "head", etc.`);
@@ -582,30 +586,29 @@ function applyTemplate(
     anim.duration = 1.0;
     anim.loop = true;
 
-    bodies.forEach(p => {
-      // headBob = -|sin(t·TAU)|·amp → body rises twice per stride (once per step)
-      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 4 });
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'swayRotation', { speed: speed * 0.5, amplitude: 1.5, phase: 0.25 });
+    // Root body: vertical bounce + lateral weight shift + gentle torso rotation
+    roots.forEach(p => {
+      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 5 });
+      addControllerSafe(anim, p.id, p.name, 'x',        'idleShift',    { speed: speed * 0.5, amplitude: 3, phase: 0.25 });
     });
-    heads.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'y',        'headBob',      { speed, amplitude: 2 });
+    bodies.forEach(p => {
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'swayRotation', { speed: speed * 0.5, amplitude: 2, phase: 0.25 });
     });
     legs.forEach((p, i) => {
-      // phase:0 = left (lead), phase:0.5 = right (half-cycle behind) — proper alternation
+      // legCycle has a secondary harmonic for a more natural arc than pure sine
       const isRight = sideIsRight(p.name, i);
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'walkCycle',    { speed, amplitude: 22, phase: isRight ? 0.5 : 0 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'legCycle',     { speed, amplitude: 30, phase: isRight ? 0.5 : 0 });
     });
     arms.forEach((p, i) => {
-      // armSwing uses -sin so it naturally counter-swings to legs
-      // left arm phase=0 swings back when left leg swings forward
+      // armSwing (-sin) naturally counter-swings to legs
       const isRight = sideIsRight(p.name, i);
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 18, phase: isRight ? 0.5 : 0 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'armSwing',     { speed, amplitude: 24, phase: isRight ? 0.5 : 0 });
     });
     capes.forEach(p => {
       addControllerSafe(anim, p.id, p.name, 'rotation', 'capeLag',      { speed, amplitude: 8,  phase: 0.75 });
     });
     weapons.forEach(p => {
-      addControllerSafe(anim, p.id, p.name, 'rotation', 'walkCycle',    { speed, amplitude: 5,  phase: 0.5 });
+      addControllerSafe(anim, p.id, p.name, 'rotation', 'legCycle',     { speed, amplitude: 5,  phase: 0.5 });
     });
   }
 
@@ -691,59 +694,80 @@ function applyTemplate(
   }
 
   else if (type === 'jump') {
-    [...bodies, ...heads].forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'y',      'jumpArc',      { speed: 1, amplitude: 70 });
+    // Only the root bone drives the vertical arc — children follow through hierarchy.
+    // Applying y to heads/torso too would cause parts to fly off independently.
+    roots.forEach(p => {
+      addControllerSafe(targetAnim, p.id, p.name, 'y',      'jumpArc',    { speed: 1, amplitude: 80 });
+      addControllerSafe(targetAnim, p.id, p.name, 'scaleY', 'landSquash', { speed: 1, amplitude: 0.35 });
+      addControllerSafe(targetAnim, p.id, p.name, 'scaleX', 'landSquash', { speed: 1, amplitude: -0.15 });
     });
     bodies.forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'scaleY', 'landSquash',   { speed: 1, amplitude: 0.35 });
-      addControllerSafe(targetAnim, p.id, p.name, 'scaleX', 'landSquash',   { speed: 1, amplitude: -0.15 });
+      // Torso leans slightly forward at the apex — natural running-jump posture
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'jumpArc',  { speed: 1, amplitude: -8 });
     });
     legs.forEach((p, i) => {
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'jumpLegExtend', { speed: 1, amplitude: i % 2 === 0 ? 28 : -28 });
+      // Split: front leg tucks forward, back leg extends behind
+      const isRight = sideIsRight(p.name, i);
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'jumpLegExtend', { speed: 1, amplitude: isRight ? 32 : -32 });
     });
     arms.forEach((p, i) => {
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'jumpArc',    { speed: 1, amplitude: i % 2 === 0 ? -35 : 35 });
+      // Both arms raise during apex; slight phase split for natural look
+      const isRight = sideIsRight(p.name, i);
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'jumpArc',  { speed: 1, amplitude: -36, phase: isRight ? 0.08 : 0 });
     });
     capes.forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'jumpArc',   { speed: 1, amplitude: 15, phase: 0.3 });
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'jumpArc',  { speed: 1, amplitude: 18, phase: 0.3 });
     });
   }
 
   else if (type === 'hit') {
-    const allParts = parts.length > 0 ? parts : [{ id: '', name: 'all' }];
-    [...bodies, ...heads].forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'x',        'hitKnockback', { speed: 1.2, amplitude: 20 });
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'hitStagger',   { speed: 1.2, amplitude: 12 });
+    // Knockback displacement only on root — head/arms follow through hierarchy.
+    // hitRebound starts at full amplitude at t=0 (spring at rest position = max),
+    // causing "weird start pose". Use hitStagger instead (starts at 0, decays).
+    roots.forEach(p => {
+      addControllerSafe(targetAnim, p.id, p.name, 'x',       'hitKnockback', { speed: 1.2, amplitude: 22 });
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation','hitStagger',   { speed: 1.2, amplitude: 10 });
+      addControllerSafe(targetAnim, p.id, p.name, 'opacity', 'hitFlash',     { speed: 1.2, amplitude: 0.6 });
     });
-    allParts.forEach(p => {
-      if (!p.id) return;
-      addControllerSafe(targetAnim, p.id, p.name, 'opacity',  'hitFlash',     { speed: 1.2, amplitude: 0.6 });
+    heads.forEach(p => {
+      // Head snaps back harder than body — more expressive impact
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation','hitStagger',   { speed: 1.2, amplitude: 20 });
     });
     arms.forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'hitRebound',   { speed: 1.2, amplitude: 25 });
+      // Arms fling from impact — hitStagger starts at 0, no weird initial pose
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation','hitStagger',   { speed: 1.2, amplitude: 38 });
     });
   }
 
   else if (type === 'death') {
+    // Speed=0.38 ensures tWrapped never wraps in a 2.5s animation (1/0.38≈2.63s).
+    // At speed≥0.4, tWrapped wraps at t=2.5s and clamped formulas (deathSlump,
+    // deathDrop, deathFade) snap back to their t=0 values — causing the glitch.
+    const ds = 0.38;
+    roots.forEach(p => {
+      // Whole-body drop via root only; children follow
+      addControllerSafe(targetAnim, p.id, p.name, 'y',        'deathDrop',   { speed: ds, amplitude: 80 });
+    });
     bodies.forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'deathSlump',  { speed: 0.5, amplitude: 85 });
-      addControllerSafe(targetAnim, p.id, p.name, 'y',        'deathDrop',   { speed: 0.5, amplitude: 70 });
+      // Body rotation: character slumps forward/falls
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'deathSlump',  { speed: ds, amplitude: 80 });
     });
     heads.forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'deathFall',   { speed: 0.5, amplitude: 45 });
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'deathFall',   { speed: ds, amplitude: 42 });
     });
     arms.forEach((p, i) => {
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'deathSlump',  { speed: 0.4, amplitude: i % 2 === 0 ? 60 : -60 });
+      const isRight = sideIsRight(p.name, i);
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'deathSlump',  { speed: ds, amplitude: isRight ? -55 : 55 });
     });
     legs.forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'deathTwitch', { speed: 0.6, amplitude: 15 });
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'deathTwitch', { speed: ds, amplitude: 13 });
     });
     capes.forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'capeLag',     { speed: 0.4, amplitude: 25, phase: 0.5 });
+      addControllerSafe(targetAnim, p.id, p.name, 'rotation', 'capeLag',     { speed: ds * 2, amplitude: 28, phase: 0.5 });
     });
-    // Fade all parts
+    // Fade all parts smoothly
     parts.forEach(p => {
-      addControllerSafe(targetAnim, p.id, p.name, 'opacity',  'deathFade',   { speed: 0.4, amplitude: 1 });
+      addControllerSafe(targetAnim, p.id, p.name, 'opacity',  'deathFade',   { speed: ds, amplitude: 1 });
     });
   }
 

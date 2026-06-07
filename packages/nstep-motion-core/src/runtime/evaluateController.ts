@@ -265,13 +265,14 @@ export function evaluateController(
     }
 
     case 'hitFlash': {
-      // Rapid opacity flash then fade
+      // Starts visible, dips twice on impact then settles — amplitude controls dim depth
       const n = tWrapped;
-      if (n < 0.05) return offset; // invisible on impact
-      if (n < 0.12) return 1 + offset;
-      if (n < 0.18) return offset;
-      if (n < 0.25) return 1 + offset;
-      return 1 + offset * (1 - (n - 0.25) / 0.75); // settle
+      const dim = Math.max(0, 1 - amplitude);
+      if (n < 0.10) return 1 + offset;           // visible at moment of hit
+      if (n < 0.18) return dim + offset;          // dim — impact frame
+      if (n < 0.26) return 1 + offset;            // flash back
+      if (n < 0.34) return dim + offset;          // second dim
+      return 1 + offset;                           // settled
     }
 
     case 'hitStagger': {

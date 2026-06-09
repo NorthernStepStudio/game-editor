@@ -748,9 +748,15 @@ export class MotionCanvasRenderer {
       if (!part.ikChain?.targetPartId) return;
       const targetMat = matrices.get(part.ikChain.targetPartId);
       if (!targetMat) return;
-      const tx = targetMat.e;
-      const ty = targetMat.f;
       const isPinned = !!(part.ikChain.pin);
+      // When pinned and a captured position exists, show handle at the pinned
+      // world coords so it matches the actual solve target, not the live part pos.
+      const tx = (isPinned && part.ikChain.pinnedWorldX !== undefined)
+        ? part.ikChain.pinnedWorldX as number
+        : targetMat.e;
+      const ty = (isPinned && part.ikChain.pinnedWorldY !== undefined)
+        ? part.ikChain.pinnedWorldY as number
+        : targetMat.f;
       const isDragging = this.isIKHandleDrag && this.ikHandleDragTargetId === part.ikChain.targetPartId;
 
       // ── Dashed line from IK root to handle ─────────────────────────────────

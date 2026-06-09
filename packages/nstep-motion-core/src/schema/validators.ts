@@ -58,19 +58,26 @@ function normalizeIKChain(ik: any): any {
 function normalizeConstraint(c: any): any {
   if (!c || typeof c !== 'object' || !c.type || c.type === 'none') return undefined;
   const out: any = { type: String(c.type) };
-  if (c.targetPartId) out.targetPartId = String(c.targetPartId);
-  if (c.offset != null) out.offset = Number(c.offset);
+  if (c.targetPartId != null) out.targetPartId = String(c.targetPartId);
+  if (c.influence    != null) out.influence    = Number(c.influence);
+  if (c.offset       != null) out.offset       = Number(c.offset);
+  if (c.min          != null) out.min          = Number(c.min);
+  if (c.max          != null) out.max          = Number(c.max);
   return out;
 }
 
 function normalizeFrameAnimation(fa: any): any {
   if (!fa || typeof fa !== 'object') return undefined;
   const out: any = {};
-  if (fa.columns != null) out.columns = parseInt(fa.columns) || 1;
-  if (fa.rows    != null) out.rows    = parseInt(fa.rows)    || 1;
-  if (fa.frameCount != null) out.frameCount = parseInt(fa.frameCount) || 1;
-  if (fa.fps     != null) out.fps     = Number(fa.fps)     || 12;
-  if (fa.enabled != null) out.enabled = !!fa.enabled;
+  if (fa.frameCount  != null) out.frameCount  = parseInt(fa.frameCount)  || 1;
+  if (fa.fps         != null) out.fps         = Number(fa.fps)           || 12;
+  if (fa.startFrame  != null) out.startFrame  = parseInt(fa.startFrame)  || 0;
+  if (fa.columns     != null) out.columns     = parseInt(fa.columns)     || 1;
+  if (fa.frameWidth  != null) out.frameWidth  = Number(fa.frameWidth);
+  if (fa.frameHeight != null) out.frameHeight = Number(fa.frameHeight);
+  // Legacy field – keep if present so old projects don't lose data
+  if (fa.rows        != null) out.rows        = parseInt(fa.rows)        || 1;
+  if (fa.enabled     != null) out.enabled     = !!fa.enabled;
   return Object.keys(out).length ? out : undefined;
 }
 

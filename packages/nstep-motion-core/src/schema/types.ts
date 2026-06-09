@@ -83,6 +83,9 @@ export interface IKChain {
   targetPartId: string;
   chainLength: number;
   bendDirection: number;
+  pin?: boolean;
+  pinnedWorldX?: number;
+  pinnedWorldY?: number;
 }
 
 export interface CharacterPart {
@@ -111,6 +114,7 @@ export interface CharacterPart {
   constraint?: Constraint;
   ikChain?: IKChain;
   frameAnimation?: FrameAnimation;
+  fkOverride?: boolean;
 }
 
 export interface CharacterProject {

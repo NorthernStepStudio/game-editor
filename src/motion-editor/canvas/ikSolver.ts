@@ -58,6 +58,56 @@ export function solve2BoneIK(
 }
 
 /**
+ * FABRIK (Forward And Backward Reaching IK) solver for N-bone chains.
+ *
+ * @param joints  Array of N+1 joint positions [root, j1, …, jN-1, tip].
+ *                joints[0] is pinned (the root) and joints[N] is the end-effector.
+ * @param lengths Array of N bone lengths: lengths[i] is the distance from joints[i] to joints[i+1].
+ * @param targetX Target world X for the end-effector (joints[N]).
+ * @param targetY Target world Y for the end-effector (joints[N]).
+ * @returns       New joint positions after FABRIK convergence.
+ */
+export function solveFABRIK(
+  joints: Array<{x: number; y: number}>,
+  lengths: number[],
+  targetX: number,
+  targetY: number,
+  maxIter = 10,
+  tolerance = 0.5
+): Array<{x: number; y: number}> {
+  const n = joints.length;
+  const pos = joints.map(j => ({x: j.x, y: j.y}));
+  const root = {x: pos[0].x, y: pos[0].y};
+
+  for (let iter = 0; iter < maxIter; iter++) {
+    // ── Forward pass: move end to target, cascade backward ──────────────────
+    pos[n - 1] = {x: targetX, y: targetY};
+    for (let i = n - 2; i >= 0; i--) {
+      const dx = pos[i].x - pos[i + 1].x;
+      const dy = pos[i].y - pos[i + 1].y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
+      const r = lengths[i] / dist;
+      pos[i] = {x: pos[i + 1].x + dx * r, y: pos[i + 1].y + dy * r};
+    }
+    // ── Backward pass: pin root, cascade forward ─────────────────────────────
+    pos[0] = root;
+    for (let i = 0; i < n - 1; i++) {
+      const dx = pos[i + 1].x - pos[i].x;
+      const dy = pos[i + 1].y - pos[i].y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
+      const r = lengths[i] / dist;
+      pos[i + 1] = {x: pos[i].x + dx * r, y: pos[i].y + dy * r};
+    }
+    // ── Convergence check ─────────────────────────────────────────────────────
+    const edx = pos[n - 1].x - targetX;
+    const edy = pos[n - 1].y - targetY;
+    if (Math.sqrt(edx * edx + edy * edy) < tolerance) break;
+  }
+
+  return pos;
+}
+
+/**
  * Given a chain of part IDs (root → mid → end), world matrices, and a target position,
  * returns the corrected local rotations for root and mid bones.
  */

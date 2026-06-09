@@ -190,13 +190,17 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
         </div>
         <div class="form-row" style="margin-bottom:5px;">
           <div class="form-group"><label>Chain Length</label>
-            <input type="number" id="pi-ik-chain" value="${ik.chainLength ?? 2}" min="1" max="4" step="1" ${locked ? 'disabled' : ''}></div>
+            <input type="number" id="pi-ik-chain" value="${ik.chainLength ?? 2}" min="2" max="20" step="1" ${locked ? 'disabled' : ''}></div>
           <div class="form-group"><label>Bend Dir</label>
             <select id="pi-ik-bend" ${locked ? 'disabled' : ''}>
               <option value="1"  ${(ik.bendDirection ?? 1) === 1  ? 'selected' : ''}>Left</option>
               <option value="-1" ${(ik.bendDirection ?? 1) === -1 ? 'selected' : ''}>Right</option>
             </select>
           </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+          <label class="insp-flag"><input type="checkbox" id="pi-ik-pin" ${ik.pin ? 'checked' : ''}> Pin End-Effector</label>
+          <button id="pi-ik-setpin" style="font-size:0.68rem; padding:2px 8px;" title="Re-capture current end-effector world position as the pin target" ${locked ? 'disabled' : ''}>📌 Recapture</button>
         </div>` : `<div style="font-size:0.68rem; color:var(--text-muted); padding:4px 0;">Enable to make this part the root of an IK chain.</div>`}
       </div>
 
@@ -242,6 +246,7 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
           <label class="insp-flag"><input type="checkbox" id="pi-editkids" ${(part as any).editChildrenTogether !== false ? 'checked' : ''}> Edit w/ Children</label>
           <label class="insp-flag"><input type="checkbox" id="pi-flipx"    ${part.flipX ? 'checked' : ''}> Flip X</label>
           <label class="insp-flag"><input type="checkbox" id="pi-flipy"    ${part.flipY ? 'checked' : ''}> Flip Y</label>
+          <label class="insp-flag" title="Exclude this bone from IK solving — use manual/animated rotation instead"><input type="checkbox" id="pi-fk-override" ${(part as any).fkOverride ? 'checked' : ''}> FK Override</label>
         </div>
         <div class="insp-flag-row" style="margin-top:6px; padding-top:6px; border-top:1px solid var(--border);">
           <label class="insp-flag"><input type="checkbox" id="pi-debug"    ${SelectionState.showDebugBounds ? 'checked' : ''}> Debug Bounds</label>
@@ -419,6 +424,26 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
     DirtyState.markDirty(); onUpdate(true, false);
   };
 
+  const ikPin = container.querySelector('#pi-ik-pin') as HTMLInputElement;
+  if (ikPin) ikPin.onchange = () => {
+    if (!(part as any).ikChain) return;
+    (part as any).ikChain.pin = ikPin.checked;
+    // Clear captured pin position so renderer auto-captures on next frame
+    (part as any).ikChain.pinnedWorldX = undefined;
+    (part as any).ikChain.pinnedWorldY = undefined;
+    DirtyState.markDirty(); onUpdate(true, false);
+  };
+
+  const ikSetPin = container.querySelector('#pi-ik-setpin') as HTMLElement;
+  if (ikSetPin) ikSetPin.onclick = () => {
+    if (!(part as any).ikChain) return;
+    (part as any).ikChain.pin = true;
+    // Clear so renderer re-captures current position on next frame
+    (part as any).ikChain.pinnedWorldX = undefined;
+    (part as any).ikChain.pinnedWorldY = undefined;
+    DirtyState.markDirty(); onUpdate(true, false);
+  };
+
   // Constraint
   const conType = container.querySelector('#pi-con-type') as HTMLSelectElement;
   if (conType) conType.onchange = () => {
@@ -500,7 +525,8 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
   chk('pi-inherit',  v => { part.inheritTransform = v; });
   chk('pi-editkids', v => { (part as any).editChildrenTogether = v; });
   chk('pi-flipx',    v => { part.flipX = v; });
-  chk('pi-flipy',    v => { part.flipY = v; });
+  chk('pi-flipy',       v => { part.flipY = v; });
+  chk('pi-fk-override', v => { (part as any).fkOverride = v; });
   chk('pi-debug',    v => { SelectionState.showDebugBounds = v; onUpdate(true, false); });
   chk('pi-skeleton', v => { AppState.showSkeleton = v; });
   chk('pi-names',    v => { AppState.showNames = v; });

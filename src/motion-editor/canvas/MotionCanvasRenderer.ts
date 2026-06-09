@@ -8,7 +8,7 @@ import { AppState } from '../../state/appState';
 import { imageCache } from './imageCache';
 import { drawShape } from './shapeRenderer';
 import { drawPartOverlays, drawSkeleton } from './motionOverlays';
-import { solve2BoneIK } from './ikSolver';
+import { solve2BoneIK, solveFABRIK } from './ikSolver';
 import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
 import { HistoryState } from '../../state/historyState';
 
@@ -292,53 +292,132 @@ export class MotionCanvasRenderer {
     matrices: Map<string, DOMMatrix>
   ) {
     project.parts.forEach((part: any) => {
-      if (!part.ikChain?.targetPartId) return;
-      const targetMat = matrices.get(part.ikChain.targetPartId);
-      if (!targetMat) return;
+      const ik = part.ikChain;
+      if (!ik?.targetPartId) return;
 
-      const targetWorldX = targetMat.e;
-      const targetWorldY = targetMat.f;
+      // Skip IK entirely for this chain if root has FK override
+      if (part.fkOverride) return;
 
-      // Find this part's world matrix
+      const chainLength = ik.chainLength ?? 2;
+
+      // ── Determine target world position (pin vs live) ─────────────────────
+      let targetWorldX: number;
+      let targetWorldY: number;
+      if (ik.pin) {
+        if (ik.pinnedWorldX === undefined) {
+          // Auto-capture current target position on first pin frame
+          const tm = matrices.get(ik.targetPartId);
+          if (tm) { ik.pinnedWorldX = tm.e; ik.pinnedWorldY = tm.f; }
+        }
+        targetWorldX = ik.pinnedWorldX ?? 0;
+        targetWorldY = ik.pinnedWorldY ?? 0;
+      } else {
+        const targetMat = matrices.get(ik.targetPartId);
+        if (!targetMat) return;
+        targetWorldX = targetMat.e;
+        targetWorldY = targetMat.f;
+      }
+
       const rootMat = matrices.get(part.id);
       if (!rootMat) return;
 
-      // Find first child (mid bone)
-      const children = this.childrenMap.get(part.id) || [];
-      if (children.length === 0) return;
-      const midId = children[0];
-      const midPart = this.partsMap.get(midId);
-      if (!midPart) return;
+      // ── Collect chain parts (root + up to chainLength-1 descendants) ──────
+      const chainParts: string[] = [part.id];
+      let cur = part.id;
+      for (let i = 0; i < chainLength - 1; i++) {
+        const ch = this.childrenMap.get(cur) || [];
+        if (ch.length === 0) break;
+        cur = ch[0];
+        chainParts.push(cur);
+      }
+      const N = chainParts.length;
 
-      // Estimate bone lengths from base positions
-      const bone1 = Math.sqrt(
-        ((midPart.baseX ?? 0) ** 2) + ((midPart.baseY ?? 0) ** 2)
-      ) || 40;
+      // ── Fast path: 2-bone analytical solver ───────────────────────────────
+      if (chainLength <= 2) {
+        const midId = chainParts[1] ?? null;
+        const midPart = midId ? this.partsMap.get(midId) : null;
+        const bone1 = midPart
+          ? Math.sqrt((midPart.baseX ?? 0) ** 2 + (midPart.baseY ?? 0) ** 2) || 40
+          : 40;
+        let bone2 = bone1;
+        if (midId) {
+          const gc = this.childrenMap.get(midId) || [];
+          if (gc.length > 0) {
+            const gcPart = this.partsMap.get(gc[0]);
+            if (gcPart) bone2 = Math.sqrt((gcPart.baseX ?? 0) ** 2 + (gcPart.baseY ?? 0) ** 2) || bone1;
+          }
+        }
+        const bendDir = ik.bendDirection ?? 1;
+        const result = solve2BoneIK(rootMat.e, rootMat.f, bone1, bone2, targetWorldX, targetWorldY, bendDir);
+        const tform = tforms.get(part.id);
+        if (tform) tform.rotation = result.bone1AngleDeg;
+        if (midId && !(this.partsMap.get(midId) as any)?.fkOverride) {
+          const midTform = tforms.get(midId);
+          if (midTform) midTform.rotation = result.bone2AngleDeg;
+        }
+        return;
+      }
 
-      // Find grandchild (end bone) to estimate bone2 length
-      const grandChildren = this.childrenMap.get(midId) || [];
-      let bone2 = bone1;
-      if (grandChildren.length > 0) {
-        const endPart = this.partsMap.get(grandChildren[0]);
-        if (endPart) {
-          bone2 = Math.sqrt(
-            ((endPart.baseX ?? 0) ** 2) + ((endPart.baseY ?? 0) ** 2)
-          ) || bone1;
+      // ── FABRIK for chains longer than 2 bones ─────────────────────────────
+      const joints: Array<{x: number; y: number}> = [];
+      for (const pid of chainParts) {
+        const m = matrices.get(pid);
+        if (!m) return;
+        joints.push({x: m.e, y: m.f});
+      }
+      joints.push({x: targetWorldX, y: targetWorldY});
+
+      // Bone lengths: inter-part distances from local baseX/Y offsets
+      const lengths: number[] = [];
+      for (let i = 0; i < N; i++) {
+        if (i < N - 1) {
+          const nextPart = this.partsMap.get(chainParts[i + 1]);
+          lengths.push(nextPart
+            ? Math.sqrt((nextPart.baseX ?? 0) ** 2 + (nextPart.baseY ?? 0) ** 2) || 40
+            : 40);
+        } else {
+          // Last bone: length from the Nth chain part to the end-effector tip
+          const gcCh = this.childrenMap.get(chainParts[N - 1]) || [];
+          let lastLen = lengths.length > 0 ? lengths[0] : 40;
+          if (gcCh.length > 0) {
+            const gcPart = this.partsMap.get(gcCh[0]);
+            if (gcPart) lastLen = Math.sqrt((gcPart.baseX ?? 0) ** 2 + (gcPart.baseY ?? 0) ** 2) || lastLen;
+          }
+          lengths.push(lastLen);
         }
       }
 
-      const rootWorldX = rootMat.e;
-      const rootWorldY = rootMat.f;
-      const bendDir = part.ikChain.bendDirection ?? 1;
+      const newPos = solveFABRIK(joints, lengths, targetWorldX, targetWorldY);
 
-      const result = solve2BoneIK(rootWorldX, rootWorldY, bone1, bone2, targetWorldX, targetWorldY, bendDir);
+      // Convert FABRIK output positions → local rotations
+      for (let i = 0; i < N; i++) {
+        const pid = chainParts[i];
+        if ((this.partsMap.get(pid) as any)?.fkOverride) continue;
+        const tform = tforms.get(pid);
+        if (!tform) continue;
 
-      // Convert world angle to local rotation for root
-      const tform = tforms.get(part.id);
-      if (tform) tform.rotation = result.bone1AngleDeg;
+        const worldAngleDeg = Math.atan2(
+          newPos[i + 1].y - newPos[i].y,
+          newPos[i + 1].x - newPos[i].x
+        ) * (180 / Math.PI);
 
-      const midTform = tforms.get(midId);
-      if (midTform) midTform.rotation = result.bone2AngleDeg;
+        if (i === 0) {
+          // Root bone: subtract parent's world rotation so result is local
+          const parentId = (this.partsMap.get(pid) as any)?.parentId;
+          const parentMat = parentId ? matrices.get(parentId) : null;
+          const parentAngleDeg = parentMat
+            ? Math.atan2(parentMat.b, parentMat.a) * (180 / Math.PI)
+            : 0;
+          tform.rotation = worldAngleDeg - parentAngleDeg;
+        } else {
+          // Each subsequent bone is relative to the direction of the previous
+          const prevWorldAngleDeg = Math.atan2(
+            newPos[i].y - newPos[i - 1].y,
+            newPos[i].x - newPos[i - 1].x
+          ) * (180 / Math.PI);
+          tform.rotation = worldAngleDeg - prevWorldAngleDeg;
+        }
+      }
     });
   }
 

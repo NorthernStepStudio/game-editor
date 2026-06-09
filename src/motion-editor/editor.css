@@ -718,6 +718,56 @@ button.timeline-add-anim-btn:hover {
 .tmpl-btn:hover { color: var(--text-bright); background: rgba(255,255,255,0.08); border-color: var(--border-strong); transform: translateY(-1px); }
 .tmpl-btn:active { transform: translateY(0); }
 
+/* ─── DOPESHEET ─── */
+.ds-mount {
+  flex-shrink: 0;
+  width: 100%;
+}
+.ds-wrapper {
+  width: 100%;
+  overflow: hidden;
+  background: #0d0d13;
+}
+.ds-canvas {
+  display: block;
+  cursor: crosshair;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+.ds-hint {
+  font-size: 0.59rem;
+  color: var(--text-dim);
+  padding: 2px 8px;
+  background: rgba(0,0,0,0.18);
+  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tl-frame-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  min-width: 36px;
+  text-align: center;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.tl-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 0 4px;
+}
+
 /* ─── ONION SKIN ─── */
 #btn-toggle-onion.active {
   color: var(--accent-2);

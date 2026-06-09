@@ -145,6 +145,14 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
       e.preventDefault();
       document.getElementById('btn-tl-play')?.click();
     }
+    if (e.key === ',') {
+      e.preventDefault();
+      document.getElementById('btn-tl-prev')?.click();
+    }
+    if (e.key === '.') {
+      e.preventDefault();
+      document.getElementById('btn-tl-next')?.click();
+    }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       // Only if canvas is focused (no text input active)
       if (document.activeElement === document.body && SelectionState.activePartId) {

@@ -4,4 +4,6 @@ export const SelectionState = {
   clipboardController: null as any | null,
   isEditingPivot: false,
   showDebugBounds: false,
+  selectedLaneCtrlId: null as string | null,
+  selectedKfKeys: new Set<string>(),
 };

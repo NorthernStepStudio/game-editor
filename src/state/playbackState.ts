@@ -2,6 +2,7 @@ export const PlaybackState = {
   playing: true,
   time: 0,
   speedMult: 1.0,
+  fps: 24,
 };
 
 type AnimationTiming = {

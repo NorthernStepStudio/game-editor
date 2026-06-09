@@ -1,3 +1,4 @@
 - [Animation Template Rules](animation-template-rules.md) — displacement must be root-only; tWrapped wraps cause death glitch; hitRebound starts at max; legCycle > walkCycle.
 - [CSS split strategy](css-split-strategy.md) — style.css base-only; feature CSS in editor.css/cutter.css/rigging.css imported via TS (not @import); Vite bundles correctly.
 - [ControllerTimelinePanel extraction](controller-timeline-extraction.md) — applyTemplate→animationTemplates.ts, kfDrag state→keyframeDrag.ts; use setKfDrag/wasKfDragActive exports for cross-module drag state.
+- [Dopesheet panel lifecycle](dopesheet-lifecycle.md) — DopesheetPanel is a singleton; survives innerHTML re-renders via DOM detach/reattach; RAF loop tracks PlaybackState.time; keyframeDrag.ts is now orphaned.

@@ -22,6 +22,25 @@ function springDecay(t: number, freq: number, decay: number): number {
   return Math.exp(-t * decay) * Math.cos(t * TAU * freq);
 }
 
+// ── Cubic Bézier helpers ──────────────────────────────────────────────────────
+function cubicBezier1D(t: number, p0: number, p1: number, p2: number, p3: number): number {
+  const u = 1 - t;
+  return u * u * u * p0 + 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t * p3;
+}
+
+/**
+ * Solve for the parametric t that gives Bx(t) = targetX using binary search.
+ * p0x=0 and p3x=1 are assumed (normalised segment).
+ */
+function solveBezierT(cp1x: number, cp2x: number, targetX: number): number {
+  let lo = 0, hi = 1;
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) * 0.5;
+    if (cubicBezier1D(mid, 0, cp1x, cp2x, 1) < targetX) lo = mid; else hi = mid;
+  }
+  return (lo + hi) * 0.5;
+}
+
 // ── Keyframe interpolation ────────────────────────────────────────────────────
 function interpolateKeyframes(keyframes: Keyframe[], time: number, _duration: number): number {
   if (!keyframes || keyframes.length === 0) return 0;
@@ -42,6 +61,13 @@ function interpolateKeyframes(keyframes: Keyframe[], time: number, _duration: nu
   const span = hi.time - lo.time;
   if (span <= 0) return lo.value;
   const t = (time - lo.time) / span;
+
+  // Bézier easing: tangents stored on lo keyframe, normalised [0,1]×[0,1]
+  if (lo.easing === 'bezier' && lo.tangentOut && lo.tangentIn) {
+    const bT = solveBezierT(lo.tangentOut.x, lo.tangentIn.x, t);
+    const bY = cubicBezier1D(bT, 0, lo.tangentOut.y, lo.tangentIn.y, 1);
+    return lo.value + (hi.value - lo.value) * bY;
+  }
 
   switch (lo.easing) {
     case 'step':      return t < 1 ? lo.value : hi.value;

@@ -8,11 +8,13 @@ import { evaluateController } from '@nstep-core/runtime/evaluateController';
 import { createDefaultController } from '@nstep-core/schema/defaults';
 import { applyTemplate, addControllerSafe } from '../animationTemplates';
 import { DopesheetPanel } from './DopesheetPanel';
+import { CurveEditorPanel } from './CurveEditorPanel';
 
 let activeFilter: 'all' | 'selected' | 'moving' = 'all';
 
-// ── Persistent dopesheet instance ───────────────────────────────────────────
-let _dopesheet: DopesheetPanel | null = null;
+// ── Persistent panel instances ───────────────────────────────────────────────
+let _dopesheet:   DopesheetPanel   | null = null;
+let _curveEditor: CurveEditorPanel | null = null;
 
 // Group presets by category
 const PRESET_GROUPS = FORMULA_PRESETS.reduce((acc, p) => {
@@ -153,6 +155,7 @@ export function renderControllerTimeline(
     <div class="ds-hint">
       Double-click lane: add keyframe &nbsp;·&nbsp; Drag ◆: move &nbsp;·&nbsp; Right-click ◆: delete &nbsp;·&nbsp; Delete: remove selected &nbsp;·&nbsp; Shift-click / box-drag: multi-select
     </div>
+    <div class="curve-editor-mount"></div>
 
     <div class="controller-grid">
       ${filtered.length > 0
@@ -170,6 +173,43 @@ export function renderControllerTimeline(
   } else {
     _dopesheet = new DopesheetPanel(dsMount, onUpdate);
     _dopesheet.setAnim(anim);
+  }
+
+  // ── Mount / update curve editor ────────────────────────────────────────────
+  const ceMount = container.querySelector('.curve-editor-mount') as HTMLElement;
+  {
+    // Find the selected keyframe and its next neighbour
+    let selectedKf:  any = null;
+    let nextKf:      any = null;
+
+    if (SelectionState.selectedKeyframeIds.size === 1) {
+      const selId = [...SelectionState.selectedKeyframeIds][0];
+      // Search all controllers for the selected kf
+      for (const ctrl of anim.controllers as any[]) {
+        if (!ctrl.keyframes) continue;
+        const sorted = [...ctrl.keyframes].sort((a: any, b: any) => a.time - b.time);
+        const idx    = sorted.findIndex((k: any) => k.id === selId);
+        if (idx !== -1 && idx < sorted.length - 1) {
+          selectedKf = sorted[idx];
+          nextKf     = sorted[idx + 1];
+          break;
+        }
+      }
+    }
+
+    if (selectedKf && nextKf) {
+      if (!_curveEditor) {
+        _curveEditor = new CurveEditorPanel(ceMount, onUpdate);
+      } else if (!ceMount.contains(_curveEditor.wrapper)) {
+        ceMount.appendChild(_curveEditor.wrapper);
+      }
+      _curveEditor.setKeyframes(selectedKf, nextKf);
+    } else {
+      // Hide: detach wrapper but keep the instance alive for next show
+      if (_curveEditor && ceMount.contains(_curveEditor.wrapper)) {
+        ceMount.removeChild(_curveEditor.wrapper);
+      }
+    }
   }
 
   // ── Bindings ───────────────────────────────────────────────────────────────
@@ -427,7 +467,7 @@ function renderCard(c: any, _dur: number): string {
                 style="width:52px; padding:1px 3px; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text-main); border-radius:3px; font-size:0.65rem;">
               <select class="kf-easing-sel" data-kf-idx="${i}"
                 style="font-size:0.65rem; padding:1px 3px; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text-main); border-radius:3px;">
-                ${['linear','easeInOut','step','spring'].map(e => `<option ${kf.easing === e ? 'selected' : ''}>${e}</option>`).join('')}
+                ${['linear','easeInOut','bezier','step','spring'].map(e => `<option ${kf.easing === e ? 'selected' : ''}>${e}</option>`).join('')}
               </select>
             </div>
           `).join('')}

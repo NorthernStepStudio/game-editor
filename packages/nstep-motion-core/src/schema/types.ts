@@ -10,11 +10,18 @@ export interface Origin {
   y: number;
 }
 
+export interface TangentPoint {
+  x: number;
+  y: number;
+}
+
 export interface Keyframe {
-  id:     string;
-  time:   number;
-  value:  number;
-  easing: 'linear' | 'easeInOut' | 'step' | 'spring';
+  id:          string;
+  time:        number;
+  value:       number;
+  easing:      'linear' | 'easeInOut' | 'step' | 'spring' | 'bezier';
+  tangentOut?: TangentPoint;
+  tangentIn?:  TangentPoint;
 }
 
 export interface ControllerParams {

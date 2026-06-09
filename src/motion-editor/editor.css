@@ -790,3 +790,75 @@ button.timeline-add-anim-btn:hover {
   background: rgba(157,127,232,0.15);
   border-color: rgba(157,127,232,0.4);
 }
+
+/* ─── CURVE EDITOR ─── */
+.curve-editor-mount {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.curve-editor-wrapper {
+  width: 100%;
+  background: #08080f;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border-strong);
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.curve-editor-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px 3px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+
+.curve-presets {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 8px;
+  flex-wrap: wrap;
+  background: rgba(0,0,0,0.18);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.curve-preset-btn {
+  padding: 2px 8px;
+  font-size: 0.62rem;
+  border-radius: 10px;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  cursor: var(--cursor-hand);
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.curve-preset-btn:hover {
+  color: var(--text-bright);
+  background: rgba(255,255,255,0.08);
+  border-color: var(--border-strong);
+}
+.curve-preset-btn.active {
+  color: var(--accent-orange);
+  background: rgba(245,166,35,0.12);
+  border-color: rgba(245,166,35,0.38);
+}
+
+.curve-editor-canvas {
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+  flex-shrink: 0;
+}

@@ -1,12 +1,15 @@
 import type { CharacterProject, CharacterPart, CharacterAnimation, AnimationController } from './types.js';
 
 function normalizeKeyframe(k: any): any {
-  return {
+  const kf: any = {
     id:     k.id || 'kf-' + Math.random().toString(36).substr(2, 9),
     time:   Number(k.time ?? 0),
     value:  Number(k.value ?? 0),
     easing: k.easing || 'easeInOut',
   };
+  if (k.tangentOut) kf.tangentOut = { x: Number(k.tangentOut.x), y: Number(k.tangentOut.y) };
+  if (k.tangentIn)  kf.tangentIn  = { x: Number(k.tangentIn.x),  y: Number(k.tangentIn.y)  };
+  return kf;
 }
 
 function normalizeController(c: any): AnimationController {

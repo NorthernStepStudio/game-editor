@@ -119,7 +119,13 @@ export const MAIN_LAYOUT = `
           Asset Library
           <span id="asset-count-badge">0 assets</span>
         </div>
-        <div class="right-panel-bottom" id="assets-list-container" style="padding:8px; max-height:180px; overflow-y:auto;"></div>
+        <div class="right-panel-bottom" id="assets-list-container" style="padding:8px; max-height:140px; overflow-y:auto;"></div>
+        <div class="right-panel-divider"></div>
+        <div class="panel-header">
+          Skins
+          <span id="skin-count-badge">0 skins</span>
+        </div>
+        <div id="skins-list-container" style="padding:8px; max-height:160px; overflow-y:auto;"></div>
       </div>
     </aside>
 

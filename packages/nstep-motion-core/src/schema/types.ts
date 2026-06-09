@@ -126,6 +126,18 @@ export interface CharacterPart {
   fkOverride?: boolean;
 }
 
+export interface SlotOverride {
+  imageAssetId?: string;
+  color?: string;
+  sourceRect?: SourceRect;
+}
+
+export interface Skin {
+  id: string;
+  name: string;
+  slots: Record<string, SlotOverride>;
+}
+
 export interface CharacterProject {
   id: string;
   name: string;
@@ -136,6 +148,8 @@ export interface CharacterProject {
   lastSelectedAnimId?: string;
   lastSelectedPartId?: string;
   blendConfigs?: BlendConfig[];
+  skins?: Skin[];
+  activeSkinId?: string;
 }
 
 export interface SpriteSheetSource {

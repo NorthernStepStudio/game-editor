@@ -123,6 +123,37 @@ function normalizePart(p: any): CharacterPart {
   return out as CharacterPart;
 }
 
+function normalizeSlotOverride(s: any): any {
+  if (!s || typeof s !== 'object') return {};
+  const out: any = {};
+  if (s.imageAssetId) out.imageAssetId = String(s.imageAssetId);
+  if (s.color)        out.color        = String(s.color);
+  if (s.sourceRect && typeof s.sourceRect === 'object') {
+    out.sourceRect = {
+      x:      Number(s.sourceRect.x      ?? 0),
+      y:      Number(s.sourceRect.y      ?? 0),
+      width:  Number(s.sourceRect.width  ?? 0),
+      height: Number(s.sourceRect.height ?? 0),
+    };
+  }
+  return out;
+}
+
+function normalizeSkin(s: any): any {
+  if (!s || typeof s !== 'object') return null;
+  const slots: Record<string, any> = {};
+  if (s.slots && typeof s.slots === 'object') {
+    for (const [partId, override] of Object.entries(s.slots)) {
+      slots[partId] = normalizeSlotOverride(override);
+    }
+  }
+  return {
+    id:    s.id   || 'skin-' + Math.random().toString(36).substr(2, 9),
+    name:  s.name || 'Skin',
+    slots,
+  };
+}
+
 function normalizeBlendConfig(b: any): any {
   if (!b || typeof b !== 'object') return null;
   if (!b.animAId || !b.animBId) return null;
@@ -153,5 +184,10 @@ export function normalizeProject(p: any): CharacterProject {
     const configs = p.blendConfigs.map(normalizeBlendConfig).filter(Boolean);
     if (configs.length) out.blendConfigs = configs;
   }
+  if (Array.isArray(p.skins)) {
+    const skins = p.skins.map(normalizeSkin).filter(Boolean);
+    if (skins.length) out.skins = skins;
+  }
+  if (p.activeSkinId) out.activeSkinId = String(p.activeSkinId);
   return out;
 }

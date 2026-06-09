@@ -3,6 +3,7 @@ import { renderPartsPanel } from './panels/PartsPanel';
 import { renderInspectorPanel } from './panels/InspectorPanel';
 import { renderControllerTimeline } from './panels/ControllerTimelinePanel';
 import { renderAssetsPanel } from './panels/AssetsPanel';
+import { renderSkinsPanel } from './panels/SkinsPanel';
 import { ProjectState } from '../state/projectState';
 import { SelectionState } from '../state/selectionState';
 import { getPlaybackTimeForAnimation } from '../state/playbackState';
@@ -205,6 +206,8 @@ export function renderUI(skipInspector = false, skipTimeline = false) {
   if (!skipInspector) renderInspectorPanel(inspectorEl, _onUpdate);
   if (!skipTimeline)  renderControllerTimeline(controllerEl, _onUpdate);
   if (assetsEl)       renderAssetsPanel(assetsEl, _onUpdate);
+  const skinsEl = document.getElementById('skins-list-container');
+  if (skinsEl)        renderSkinsPanel(skinsEl, _onUpdate);
 
   // Time display (canvas renderer also updates #tl-time-display via render loop)
   const anim = project.animations.find((a: any) => a.id === SelectionState.activeAnimId);

@@ -5,12 +5,17 @@ import { DirtyState } from './dirtyState';
 
 export const ProjectState = {
   project: createDefaultProject(),
-  
+
   setProject(p: CharacterProject) {
     this.project = JSON.parse(JSON.stringify(p)); // Deep copy
     if (this.project.animations.length > 0) {
       SelectionState.activeAnimId = this.project.animations[0].id;
     }
     DirtyState.markClean();
-  }
+  },
+
+  setActiveSkin(skinId: string | null) {
+    this.project.activeSkinId = skinId ?? undefined;
+    DirtyState.markDirty();
+  },
 };

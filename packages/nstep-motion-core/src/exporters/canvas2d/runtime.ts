@@ -153,6 +153,7 @@ class NStepPlayer {
     this._images = {};
     this._blend = null;
     this._xfade = null;
+    this._activeSkinId = null;
     this._preloadImages();
   }
 
@@ -175,6 +176,22 @@ class NStepPlayer {
   resume(){ this.playing = true; this._lastT = null; this._loop(performance.now()); return this; }
   seekTo(t) { this.time = t; this.render(); return this; }
   setAnim(idx) { this.animIndex = idx; this.time = 0; this._blend = null; this._xfade = null; return this; }
+
+  /**
+   * Switch the active skin by name.
+   * @param name  The skin name to activate, or null to clear.
+   */
+  setSkin(name) {
+    if (name === null || name === undefined) {
+      this._activeSkinId = null;
+    } else {
+      const skin = (this.project.skins || []).find(s => s.name === name);
+      if (!skin) { console.warn('NStepPlayer: skin "' + name + '" not found'); return this; }
+      this._activeSkinId = skin.id;
+    }
+    this.render();
+    return this;
+  }
 
   /**
    * Preview a weighted blend between two named animations.
@@ -372,7 +389,13 @@ class NStepPlayer {
       const m = matrices[part.id];
       if (!m) return;
       const tf = transforms[part.id];
-      const asset = (project.assets || []).find(a => a.id === part.imageAssetId);
+      // Resolve active skin slot override
+      const _aSkin = this._activeSkinId && (project.skins || []).find(s => s.id === this._activeSkinId);
+      const _sSlot = _aSkin && _aSkin.slots && _aSkin.slots[part.id];
+      const effImgId   = (_sSlot && _sSlot.imageAssetId) || part.imageAssetId;
+      const effColor   = (_sSlot && _sSlot.color)        || part.color;
+      const effSrcRect = (_sSlot && _sSlot.sourceRect)   || null;
+      const asset = (project.assets || []).find(a => a.id === effImgId);
 
       ctx.save();
       ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
@@ -380,7 +403,7 @@ class NStepPlayer {
       if (part.flipX || part.flipY) ctx.scale(part.flipX ? -1 : 1, part.flipY ? -1 : 1);
 
       // Frame animation
-      let srcRect = part.sourceRect || null;
+      let srcRect = effSrcRect || part.sourceRect || null;
       const fa = part.frameAnimation;
       if (fa && fa.frameCount && fa.fps && fa.frameWidth && fa.frameHeight) {
         const frame = Math.floor(t * fa.fps + (fa.startFrame || 0)) % fa.frameCount;
@@ -403,7 +426,7 @@ class NStepPlayer {
           if (srcRect) ctx.drawImage(img, srcRect.x, srcRect.y, srcRect.width, srcRect.height, 0, 0, w, h);
           else ctx.drawImage(img, 0, 0, w, h);
         } else {
-          ctx.fillStyle = part.color || '#4c8ef5';
+          ctx.fillStyle = effColor || '#4c8ef5';
           ctx.fillRect(0, 0, w, h);
         }
         // Tint overlay for image parts
@@ -420,7 +443,7 @@ class NStepPlayer {
         const w = (part.origin?.x ?? 20) * 2 || 40;
         const h = (part.origin?.y ?? 20) * 2 || 40;
         ctx.translate(-ox, -oy);
-        const baseColor = part.color || '#4c8ef5';
+        const baseColor = effColor || '#4c8ef5';
         ctx.fillStyle = (colorInfluence > 0.001 && tintColor)
           ? _blendHex(baseColor, tintColor, colorInfluence)
           : baseColor;

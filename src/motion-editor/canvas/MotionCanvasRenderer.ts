@@ -644,7 +644,13 @@ export class MotionCanvasRenderer {
       if (part.visible === false) return;
       const m = matrices.get(part.id);
       if (!m) return;
-      const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
+      // Resolve active skin slot override for this part
+      const _activeSkin = (project as any).skins?.find((s: any) => s.id === (project as any).activeSkinId);
+      const _skinSlot   = _activeSkin?.slots?.[part.id];
+      const effectiveImageAssetId = _skinSlot?.imageAssetId ?? part.imageAssetId;
+      const effectiveColor        = _skinSlot?.color        ?? part.color;
+      const effectiveSourceRect   = _skinSlot?.sourceRect   ?? part.sourceRect;
+      const asset = project.assets?.find((a: any) => a.id === effectiveImageAssetId);
       const tform = tforms.get(part.id);
 
       ctx.save();
@@ -668,7 +674,7 @@ export class MotionCanvasRenderer {
       const dynamicSrc = (part.renderMode === 'image' && part.frameAnimation)
         ? this.getFrameSourceRect(part, playbackTime)
         : null;
-      const activeSrc = dynamicSrc || part.sourceRect;
+      const activeSrc = dynamicSrc || effectiveSourceRect;
 
       let width = 40, height = 40;
       if (part.renderMode === 'image' && asset) {
@@ -681,8 +687,8 @@ export class MotionCanvasRenderer {
 
       ctx.translate(-(part.origin?.x ?? 0), -(part.origin?.y ?? 0));
 
-      if (part.renderMode === 'image' && part.imageAssetId) {
-        const img = imageCache.get(part.imageAssetId);
+      if (part.renderMode === 'image' && effectiveImageAssetId) {
+        const img = imageCache.get(effectiveImageAssetId);
         if (img && img.complete && img.naturalWidth > 0) {
           if (activeSrc) {
             ctx.drawImage(img, activeSrc.x, activeSrc.y, activeSrc.width, activeSrc.height, 0, 0, width, height);
@@ -704,9 +710,9 @@ export class MotionCanvasRenderer {
         const colorInfluence = tform?.color ?? 0;
         const tintColor = part.tintColor as string | undefined;
         if (colorInfluence > 0.001 && tintColor) {
-          ctx.fillStyle = blendHexColors(part.color || '#4c8ef5', tintColor, colorInfluence);
+          ctx.fillStyle = blendHexColors(effectiveColor || '#4c8ef5', tintColor, colorInfluence);
         } else {
-          ctx.fillStyle = part.color || '#4c8ef5';
+          ctx.fillStyle = effectiveColor || '#4c8ef5';
         }
         drawShape(ctx, part, width, height);
       }

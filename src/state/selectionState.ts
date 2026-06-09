@@ -6,4 +6,6 @@ export const SelectionState = {
   showDebugBounds: false,
   selectedLaneCtrlId: null as string | null,
   selectedKeyframeIds: new Set<string>(),
+  selectedPartIds: new Set<string>(),
+  gizmoMode: 'move' as 'move' | 'rotate' | 'scale',
 };

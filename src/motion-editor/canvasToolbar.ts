@@ -1,4 +1,12 @@
 import { AppState } from '../state/appState';
+import { SelectionState } from '../state/selectionState';
+
+export function refreshGizmoButtons() {
+  const mode = SelectionState.gizmoMode;
+  document.getElementById('btn-gizmo-move')?.classList.toggle('active', mode === 'move');
+  document.getElementById('btn-gizmo-rotate')?.classList.toggle('active', mode === 'rotate');
+  document.getElementById('btn-gizmo-scale')?.classList.toggle('active', mode === 'scale');
+}
 
 export function setupCanvasToolbar(
   renderer: any,
@@ -57,4 +65,13 @@ export function setupCanvasToolbar(
   if (btnFit) {
     btnFit.onclick = () => { if (renderer) (renderer as any).fitAll(); };
   }
+
+  const setMode = (mode: 'move' | 'rotate' | 'scale') => {
+    SelectionState.gizmoMode = mode;
+    refreshGizmoButtons();
+  };
+  document.getElementById('btn-gizmo-move')?.addEventListener('click', () => setMode('move'));
+  document.getElementById('btn-gizmo-rotate')?.addEventListener('click', () => setMode('rotate'));
+  document.getElementById('btn-gizmo-scale')?.addEventListener('click', () => setMode('scale'));
+  refreshGizmoButtons();
 }

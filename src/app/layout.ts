@@ -74,6 +74,10 @@ export const MAIN_LAYOUT = `
           <button id="btn-toggle-onion"    title="Toggle onion skinning">Onion</button>
           <button id="btn-reset-view"      title="Reset zoom &amp; pan (press 0)">Reset</button>
           <button id="btn-fit-all"         title="Fit all parts in view (press F)">Fit</button>
+          <span style="width:1px;background:var(--border);align-self:stretch;margin:0 3px;display:inline-block;"></span>
+          <button id="btn-gizmo-move"   class="active" title="Move tool (W)" style="min-width:34px;">↕</button>
+          <button id="btn-gizmo-rotate" title="Rotate tool (E)" style="min-width:34px;">↻</button>
+          <button id="btn-gizmo-scale"  title="Scale tool (R)" style="min-width:34px;">⊡</button>
         </div>
         <div class="canvas-zoom-controls">
           <button id="btn-zoom-out" class="zoom-step-btn" title="Zoom out (−)">−</button>

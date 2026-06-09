@@ -29,6 +29,11 @@ function blendHexColors(c1: string, c2: string, t: number): string {
 }
 
 export class MotionCanvasRenderer {
+  private static readonly GIZMO_RING_R    = 52;
+  private static readonly GIZMO_RING_HIT  = 14;
+  private static readonly GIZMO_HANDLE_SZ = 8;
+  private static readonly GIZMO_HANDLE_HIT = 10;
+
   private ctx: CanvasRenderingContext2D;
   private canvas: HTMLCanvasElement;
   private lastTime: number = performance.now();
@@ -64,6 +69,29 @@ export class MotionCanvasRenderer {
   // while only the dragged bone's local position changes.
   private dragBoneOnly: boolean = false;
   private dragStartWorldMatrices: Map<string, DOMMatrix> = new Map();
+
+  // Gizmo drag
+  private dragMode: 'none' | 'move' | 'rotate' | 'scale' = 'none';
+  private dragStartAngle: number = 0;
+  private dragStartRotation: number = 0;
+  private dragScaleHandleIdx: number = 0;
+  private dragStartScaleX: number = 1;
+  private dragStartScaleY: number = 1;
+  private dragPivotX: number = 0;
+  private dragPivotY: number = 0;
+  private dragInitProjX: number = 1;
+  private dragInitProjY: number = 1;
+  private dragLocalAxisX: [number, number] = [1, 0];
+  private dragLocalAxisY: [number, number] = [0, 1];
+  private dragShiftConstrain: boolean = false;
+  private multiSelectStartPositions: Map<string, { x: number; y: number }> = new Map();
+
+  // Box selection
+  private isBoxSelecting: boolean = false;
+  private boxStartX: number = 0;
+  private boxStartY: number = 0;
+  private boxEndX: number = 0;
+  private boxEndY: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -604,6 +632,11 @@ export class MotionCanvasRenderer {
       ctx.restore();
     });
 
+    // Transform gizmo overlay
+    this.drawGizmo(project, matrices);
+    // Box-selection rect
+    if (this.isBoxSelecting) this.drawBoxSelect();
+
     this.latestMatrices = matrices;
     this.syncPlaybackReadout(anim);
   }
@@ -685,6 +718,123 @@ export class MotionCanvasRenderer {
     ctx.restore();
   }
 
+  // ── Gizmo helpers ─────────────────────────────────────────────────────────
+
+  private getGizmoHandles(part: any, m: DOMMatrix, project: CharacterProject): DOMPoint[] {
+    const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
+    let w = 40, h = 40;
+    if (part.renderMode === 'image' && asset) {
+      w = part.sourceRect ? part.sourceRect.width  : (asset.width  || 40);
+      h = part.sourceRect ? part.sourceRect.height : (asset.height || 40);
+    } else {
+      w = (part.origin?.x ?? 20) * 2 || 40;
+      h = (part.origin?.y ?? 20) * 2 || 40;
+    }
+    const ox = part.origin?.x ?? 0;
+    const oy = part.origin?.y ?? 0;
+    // 8 handles: TL(0), T(1), TR(2), R(3), BR(4), B(5), BL(6), L(7)
+    const locals: [number, number][] = [
+      [-ox,       -oy      ],
+      [-ox + w/2, -oy      ],
+      [-ox + w,   -oy      ],
+      [-ox + w,   -oy + h/2],
+      [-ox + w,   -oy + h  ],
+      [-ox + w/2, -oy + h  ],
+      [-ox,       -oy + h  ],
+      [-ox,       -oy + h/2],
+    ];
+    return locals.map(([lx, ly]) => m.transformPoint(new DOMPoint(lx, ly)));
+  }
+
+  private hitTestRotateRing(mx: number, my: number, m: DOMMatrix): boolean {
+    const dx = mx - m.e, dy = my - m.f;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const r   = MotionCanvasRenderer.GIZMO_RING_R;
+    const hw  = MotionCanvasRenderer.GIZMO_RING_HIT;
+    return dist >= r - hw && dist <= r + hw;
+  }
+
+  private hitTestScaleHandle(mx: number, my: number, m: DOMMatrix, part: any, project: CharacterProject): number {
+    const handles = this.getGizmoHandles(part, m, project);
+    const rSq = MotionCanvasRenderer.GIZMO_HANDLE_HIT ** 2;
+    for (let i = 0; i < handles.length; i++) {
+      const h = handles[i];
+      if ((mx - h.x) ** 2 + (my - h.y) ** 2 <= rSq) return i;
+    }
+    return -1;
+  }
+
+  private drawGizmo(project: CharacterProject, matrices: Map<string, DOMMatrix>) {
+    const { ctx } = this;
+    const activeId = SelectionState.activePartId;
+    if (!activeId) return;
+    const part = project.parts.find((p: any) => p.id === activeId);
+    if (!part) return;
+    const m = matrices.get(activeId);
+    if (!m) return;
+
+    const px = m.e, py = m.f;
+    const mode = SelectionState.gizmoMode;
+    const r  = MotionCanvasRenderer.GIZMO_RING_R;
+    const hs = MotionCanvasRenderer.GIZMO_HANDLE_SZ;
+
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    // Rotation ring
+    ctx.beginPath();
+    ctx.arc(px, py, r, 0, Math.PI * 2);
+    ctx.strokeStyle = mode === 'rotate' ? '#ffd700' : 'rgba(255,215,0,0.5)';
+    ctx.lineWidth   = mode === 'rotate' ? 2.5 : 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Scale handles
+    const handles = this.getGizmoHandles(part, m, project);
+    handles.forEach((h) => {
+      ctx.fillStyle   = mode === 'scale' ? '#ffd700' : 'rgba(255,215,0,0.7)';
+      ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+      ctx.lineWidth   = 1;
+      ctx.fillRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+      ctx.strokeRect(h.x - hs / 2, h.y - hs / 2, hs, hs);
+    });
+
+    // Multi-select part highlights
+    SelectionState.selectedPartIds.forEach((id: string) => {
+      if (id === activeId) return;
+      const sm = matrices.get(id);
+      if (!sm) return;
+      ctx.strokeStyle = 'rgba(80,200,255,0.7)';
+      ctx.lineWidth   = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.arc(sm.e, sm.f, 14, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    ctx.restore();
+  }
+
+  private drawBoxSelect() {
+    const { ctx } = this;
+    const x = Math.min(this.boxStartX, this.boxEndX);
+    const y = Math.min(this.boxStartY, this.boxEndY);
+    const w = Math.abs(this.boxEndX - this.boxStartX);
+    const h = Math.abs(this.boxEndY - this.boxStartY);
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle   = 'rgba(80,200,255,0.07)';
+    ctx.strokeStyle = 'rgba(80,200,255,0.85)';
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([4, 3]);
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
   private syncPlaybackReadout(anim: any) {
     if (!anim) return;
     const dur = anim.duration || 1;
@@ -702,6 +852,7 @@ export class MotionCanvasRenderer {
       const project = ProjectState.project;
       const activePart = project.parts.find((p: any) => p.id === SelectionState.activePartId);
 
+      // ── Pivot edit mode ───────────────────────────────────────────────────
       if (SelectionState.isEditingPivot && activePart && !activePart.locked) {
         const m = this.latestMatrices.get(activePart.id);
         if (m) {
@@ -720,24 +871,49 @@ export class MotionCanvasRenderer {
         return;
       }
 
+      // ── Gizmo handle hit-test (before bone picking) ───────────────────────
+      if (activePart && !activePart.locked) {
+        const m = this.latestMatrices.get(activePart.id);
+        if (m) {
+          if (this.hitTestRotateRing(mx, my, m)) {
+            HistoryState.push();
+            this.dragMode = 'rotate';
+            this.dragPivotX = m.e;
+            this.dragPivotY = m.f;
+            this.dragStartAngle = Math.atan2(my - m.f, mx - m.e);
+            this.dragStartRotation = (activePart as any).baseRotation ?? 0;
+            this.canvas.style.cursor = 'alias';
+            return;
+          }
+          const scaleHit = this.hitTestScaleHandle(mx, my, m, activePart, project);
+          if (scaleHit >= 0) {
+            HistoryState.push();
+            this.dragMode = 'scale';
+            this.dragPivotX = m.e;
+            this.dragPivotY = m.f;
+            this.dragScaleHandleIdx = scaleHit;
+            this.dragStartScaleX = (activePart as any).baseScaleX ?? 1;
+            this.dragStartScaleY = (activePart as any).baseScaleY ?? 1;
+            this.dragShiftConstrain = e.shiftKey;
+            const axLen = Math.sqrt(m.a * m.a + m.b * m.b) || 1;
+            const ayLen = Math.sqrt(m.c * m.c + m.d * m.d) || 1;
+            this.dragLocalAxisX = [m.a / axLen, m.b / axLen];
+            this.dragLocalAxisY = [m.c / ayLen, m.d / ayLen];
+            const handles = this.getGizmoHandles(activePart, m, project);
+            const h = handles[scaleHit];
+            this.dragInitProjX = (h.x - m.e) * this.dragLocalAxisX[0] + (h.y - m.f) * this.dragLocalAxisX[1];
+            this.dragInitProjY = (h.x - m.e) * this.dragLocalAxisY[0] + (h.y - m.f) * this.dragLocalAxisY[1];
+            this.canvas.style.cursor = 'nwse-resize';
+            return;
+          }
+        }
+      }
+
       // ── Bone picking ──────────────────────────────────────────────────────
-      // Rule 1  If the selected bone's own anchor circle (24 px radius) is
-      //         near the cursor → drag the selected bone.  Hierarchy-panel
-      //         selection always survives a canvas click, even when the bone
-      //         is buried under many stacked siblings.
-      // Rule 2  If the selected bone's anchor is NOT near the cursor but a
-      //         DIFFERENT bone's anchor IS → the user deliberately clicked
-      //         that other bone indicator: switch to it.
-      // Rule 3  No selection, or selected anchor and no other anchor near →
-      //         drag whatever is selected; fall back to bbox pick if nothing
-      //         selected.
-      // Result: large image bounding boxes never override a hierarchy pick;
-      //         the only way to change selection via canvas is to click within
-      //         24 px of a different bone's pivot circle indicator.
+      // Rule: selected bone's anchor circle takes priority; only switches when a
+      // different bone's anchor is visibly near the cursor but the selected one isn't.
 
-      const ANCHOR_R = 20; // screen-space px radius around each bone's pivot dot
-
-      // Collect all bones with anchor near cursor (sorted desc z-index)
+      const ANCHOR_R = 20;
       const anchorHits: CharacterPart[] = [];
       {
         const sp = [...project.parts]
@@ -751,30 +927,21 @@ export class MotionCanvasRenderer {
         }
       }
 
-      // activePart is declared at the top of this handler (may be locked)
       const activeUnlocked = (activePart && !activePart.locked) ? activePart as CharacterPart : undefined;
-
       let picked: CharacterPart | null = null;
 
       if (activeUnlocked) {
-        // Is the SELECTED bone's anchor near the cursor?
         const selM = this.latestMatrices.get(activeUnlocked.id);
         const selAnchorNear = selM
           ? ((mx - selM.e) ** 2 + (my - selM.f) ** 2 <= ANCHOR_R * ANCHOR_R)
           : false;
-
-        // Is there a DIFFERENT bone's anchor near the cursor?
         const differentAnchor = anchorHits.find(p => p.id !== activeUnlocked.id) ?? null;
-
         if (selAnchorNear || !differentAnchor) {
-          // Selected bone is near cursor, OR nothing else is nearby → drag selected
           picked = activeUnlocked;
         } else {
-          // A different bone's indicator is near and selected bone's is not → switch
           picked = differentAnchor;
         }
       } else {
-        // Nothing selected: anchor hit first, then bounding-box pick
         picked = anchorHits[0] ?? this.pickPart(mx, my);
       }
 
@@ -782,40 +949,126 @@ export class MotionCanvasRenderer {
       SelectionState.activePartId = picked ? picked.id : null;
 
       if (picked && !picked.locked) {
-        // Snapshot state for undo before the drag mutates anything
         HistoryState.push();
+        this.dragMode = 'move';
         this.isDraggingPart = true;
         this.dragBoneOnly = e.shiftKey;
-        this.dragStartPartX = picked.baseX ?? 0;
-        this.dragStartPartY = picked.baseY ?? 0;
+        this.dragStartPartX = (picked as any).baseX ?? 0;
+        this.dragStartPartY = (picked as any).baseY ?? 0;
         this.dragStartMouseX = mx;
         this.dragStartMouseY = my;
+        // Snapshot start positions for multi-selected parts
+        this.multiSelectStartPositions.clear();
+        SelectionState.selectedPartIds.forEach((id: string) => {
+          if (id === picked!.id) return;
+          const sp = project.parts.find((p: any) => p.id === id);
+          if (sp) this.multiSelectStartPositions.set(id, { x: (sp as any).baseX ?? 0, y: (sp as any).baseY ?? 0 });
+        });
         if (this.dragBoneOnly) {
           this.dragStartWorldMatrices = computeAllWorldMatrices(
             ProjectState.project.parts, this.canvas.width, this.canvas.height
           );
         }
         this.canvas.style.cursor = this.dragBoneOnly ? 'crosshair' : 'move';
+      } else if (!picked) {
+        // Empty canvas click: start box selection
+        SelectionState.selectedPartIds.clear();
+        this.isBoxSelecting = true;
+        this.boxStartX = mx;
+        this.boxStartY = my;
+        this.boxEndX  = mx;
+        this.boxEndY  = my;
+        this.canvas.style.cursor = 'crosshair';
       }
 
       if (picked?.id !== prevId && this.onUpdate) this.onUpdate();
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (!this.isDraggingPart) return;
+      const { mx, my } = this.getMouse(e);
       const project = ProjectState.project;
+
+      // ── Rotate drag ───────────────────────────────────────────────────────
+      if (this.dragMode === 'rotate') {
+        const part = project.parts.find((p: any) => p.id === SelectionState.activePartId);
+        if (part && !part.locked) {
+          const curAngle = Math.atan2(my - this.dragPivotY, mx - this.dragPivotX);
+          const delta = curAngle - this.dragStartAngle;
+          (part as any).baseRotation = this.dragStartRotation + delta * (180 / Math.PI);
+          DirtyState.markDirty();
+          if (this.onUpdate) (this.onUpdate as any)(true, false);
+        }
+        return;
+      }
+
+      // ── Scale drag ────────────────────────────────────────────────────────
+      if (this.dragMode === 'scale') {
+        const part = project.parts.find((p: any) => p.id === SelectionState.activePartId);
+        if (part && !part.locked) {
+          const idx = this.dragScaleHandleIdx;
+          const AFFECTS_X = [true, false, true, true, true, false, true, true];
+          const AFFECTS_Y = [true, true, true, false, true, true, true, false];
+          const IS_CORNER = [true, false, true, false, true, false, true, false];
+          const axX = this.dragLocalAxisX[0], axY = this.dragLocalAxisX[1];
+          const ayX = this.dragLocalAxisY[0], ayY = this.dragLocalAxisY[1];
+          const relX = mx - this.dragPivotX;
+          const relY = my - this.dragPivotY;
+          const curProjX = relX * axX + relY * axY;
+          const curProjY = relX * ayX + relY * ayY;
+
+          let newSX = this.dragStartScaleX;
+          let newSY = this.dragStartScaleY;
+
+          if (AFFECTS_X[idx] && this.dragInitProjX !== 0) {
+            newSX = this.dragStartScaleX * (curProjX / this.dragInitProjX);
+          }
+          if (AFFECTS_Y[idx] && this.dragInitProjY !== 0) {
+            newSY = this.dragStartScaleY * (curProjY / this.dragInitProjY);
+          }
+
+          if (IS_CORNER[idx] && this.dragShiftConstrain) {
+            const ratioX = Math.abs(this.dragStartScaleX) > 0 ? Math.abs(newSX / this.dragStartScaleX) : 1;
+            const ratioY = Math.abs(this.dragStartScaleY) > 0 ? Math.abs(newSY / this.dragStartScaleY) : 1;
+            const avgRatio = (ratioX + ratioY) / 2;
+            newSX = this.dragStartScaleX * avgRatio;
+            newSY = this.dragStartScaleY * avgRatio;
+          }
+
+          const clamp = (v: number) => Math.sign(v || 1) * Math.max(0.05, Math.abs(v));
+          (part as any).baseScaleX = clamp(newSX);
+          (part as any).baseScaleY = clamp(newSY);
+          DirtyState.markDirty();
+          if (this.onUpdate) (this.onUpdate as any)(true, false);
+        }
+        return;
+      }
+
+      // ── Box selection rect update ─────────────────────────────────────────
+      if (this.isBoxSelecting) {
+        this.boxEndX = mx;
+        this.boxEndY = my;
+        return;
+      }
+
+      // ── Move drag ─────────────────────────────────────────────────────────
+      if (!this.isDraggingPart) return;
       const part = project.parts.find((p: any) => p.id === SelectionState.activePartId);
       if (!part || part.locked) return;
-      const { mx, my } = this.getMouse(e);
       const dx = (mx - this.dragStartMouseX) / this.zoom;
       const dy = (my - this.dragStartMouseY) / this.zoom;
-      part.baseX = this.dragStartPartX + dx;
-      part.baseY = this.dragStartPartY + dy;
-      // Shift held: keep every child in world space while only the
-      // dragged bone's local position changes (same as "move bone only").
+      (part as any).baseX = this.dragStartPartX + dx;
+      (part as any).baseY = this.dragStartPartY + dy;
+      // Move all co-selected parts by the same world-space delta
+      this.multiSelectStartPositions.forEach((startPos, id) => {
+        const sp = project.parts.find((p: any) => p.id === id);
+        if (sp && !sp.locked) {
+          (sp as any).baseX = startPos.x + dx;
+          (sp as any).baseY = startPos.y + dy;
+        }
+      });
       if (this.dragBoneOnly && this.dragStartWorldMatrices.size > 0) {
         preserveDescendantWorldTransforms(
-          part.id, project.parts, this.dragStartWorldMatrices,
+          (part as any).id, project.parts, this.dragStartWorldMatrices,
           this.canvas.width, this.canvas.height
         );
       }
@@ -824,8 +1077,44 @@ export class MotionCanvasRenderer {
     });
 
     window.addEventListener('mouseup', (e) => {
-      if (e.button === 0 && this.isDraggingPart) {
+      if (e.button !== 0) return;
+
+      // ── Commit box selection ──────────────────────────────────────────────
+      if (this.isBoxSelecting) {
+        const project = ProjectState.project;
+        const x1 = Math.min(this.boxStartX, this.boxEndX);
+        const x2 = Math.max(this.boxStartX, this.boxEndX);
+        const y1 = Math.min(this.boxStartY, this.boxEndY);
+        const y2 = Math.max(this.boxStartY, this.boxEndY);
+        if (x2 - x1 > 4 || y2 - y1 > 4) {
+          SelectionState.selectedPartIds.clear();
+          project.parts.forEach((p: any) => {
+            if (p.visible === false) return;
+            const m = this.latestMatrices.get(p.id);
+            if (!m) return;
+            if (m.e >= x1 && m.e <= x2 && m.f >= y1 && m.f <= y2) {
+              SelectionState.selectedPartIds.add(p.id);
+            }
+          });
+          if (SelectionState.selectedPartIds.size > 0) {
+            SelectionState.activePartId = Array.from(SelectionState.selectedPartIds)[0];
+            if (this.onUpdate) this.onUpdate();
+          }
+        }
+        this.isBoxSelecting = false;
+        this.canvas.style.cursor = '';
+        return;
+      }
+
+      if (this.dragMode !== 'none') {
+        this.dragMode = 'none';
+        this.canvas.style.cursor = '';
+        return;
+      }
+
+      if (this.isDraggingPart) {
         this.isDraggingPart = false;
+        this.dragMode = 'none';
         this.canvas.style.cursor = '';
       }
     });

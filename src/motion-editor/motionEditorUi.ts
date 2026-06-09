@@ -12,7 +12,7 @@ import { SaveManager } from '../persistence/saveManager';
 import { exportJSON, exportGodot, exportCanvasRuntime } from '../exporters/exportActions';
 import { preloadAssets } from './canvas/imageCache';
 import { newProject, loadProject, saveProject, importProject } from '../persistence/projectActions';
-import { setupCanvasToolbar } from './canvasToolbar';
+import { setupCanvasToolbar, refreshGizmoButtons } from './canvasToolbar';
 import { setupLocomotionControls } from './locomotionControls';
 
 let _onUpdate: (skipInspector?: boolean, skipTimeline?: boolean) => void = () => {};
@@ -174,6 +174,11 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
     if (e.key === 'Escape') {
       SelectionState.isEditingPivot = false;
       _onUpdate(true, false);
+    }
+    if (!e.ctrlKey && !e.altKey) {
+      if (e.key === 'w' || e.key === 'W') { SelectionState.gizmoMode = 'move';   refreshGizmoButtons(); }
+      if (e.key === 'e' || e.key === 'E') { SelectionState.gizmoMode = 'rotate'; refreshGizmoButtons(); }
+      if (e.key === 'r' || e.key === 'R') { SelectionState.gizmoMode = 'scale';  refreshGizmoButtons(); }
     }
     if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveProject(); }
   });

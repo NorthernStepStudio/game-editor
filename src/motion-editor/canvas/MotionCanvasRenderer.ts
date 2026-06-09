@@ -938,10 +938,13 @@ export class MotionCanvasRenderer {
           ? ((mx - selM.e) ** 2 + (my - selM.f) ** 2 <= ANCHOR_R * ANCHOR_R)
           : false;
         const differentAnchor = anchorHits.find(p => p.id !== activeUnlocked.id) ?? null;
-        if (selAnchorNear || !differentAnchor) {
+        if (selAnchorNear) {
           picked = activeUnlocked;
-        } else {
+        } else if (differentAnchor) {
           picked = differentAnchor;
+        } else {
+          // No anchor near cursor — bbox-pick (returns null on empty canvas → box-select)
+          picked = this.pickPart(mx, my);
         }
       } else {
         picked = anchorHits[0] ?? this.pickPart(mx, my);
@@ -949,6 +952,12 @@ export class MotionCanvasRenderer {
 
       const prevId = SelectionState.activePartId;
       SelectionState.activePartId = picked ? picked.id : null;
+
+      // Sync single-selection into the set so move-drag never moves stale group members
+      if (picked) {
+        SelectionState.selectedPartIds.clear();
+        SelectionState.selectedPartIds.add(picked.id);
+      }
 
       if (picked && !picked.locked) {
         HistoryState.push();
@@ -1109,6 +1118,24 @@ export class MotionCanvasRenderer {
       }
 
       if (this.dragMode !== 'none') {
+        // ── Keyframe-mode commit for gizmo rotate/scale ───────────────────────
+        if (this.dragMode === 'rotate' || this.dragMode === 'scale') {
+          const project = ProjectState.project;
+          const part = project.parts.find((p: any) => p.id === SelectionState.activePartId);
+          const anim = (project as any).animations?.find((a: any) => a.id === SelectionState.activeAnimId);
+          if (part && !part.locked && anim && PlaybackState.time > 0.0005) {
+            if (this.dragMode === 'rotate') {
+              this.commitGizmoKeyframe(part, anim, 'rotation', 'baseRotation',
+                this.dragStartRotation, (part as any).baseRotation ?? 0);
+            } else {
+              this.commitGizmoKeyframe(part, anim, 'scaleX', 'baseScaleX',
+                this.dragStartScaleX, (part as any).baseScaleX ?? 1);
+              this.commitGizmoKeyframe(part, anim, 'scaleY', 'baseScaleY',
+                this.dragStartScaleY, (part as any).baseScaleY ?? 1);
+            }
+            if (this.onUpdate) this.onUpdate();
+          }
+        }
         this.isDraggingPart = false;
         this.dragMode = 'none';
         this.canvas.style.cursor = '';
@@ -1248,5 +1275,47 @@ export class MotionCanvasRenderer {
     const cy = (minY + maxY) / 2;
     this.panX += pw / 2 - cx;
     this.panY += ph / 2 - cy;
+  }
+
+  private commitGizmoKeyframe(
+    part: any, anim: any,
+    property: 'rotation' | 'scaleX' | 'scaleY',
+    baseProp: string,
+    startValue: number, finalValue: number
+  ) {
+    const delta = finalValue - startValue;
+    if (Math.abs(delta) < 0.0001) return;
+    // Revert the live base change — the delta moves into a keyframe instead
+    part[baseProp] = startValue;
+    // Find or create a keyframe-mode controller for this part + property
+    let ctrl = (anim.controllers as any[]).find(
+      (c: any) => c.targetPartId === part.id && c.property === property && c.mode === 'keyframe'
+    );
+    if (!ctrl) {
+      ctrl = {
+        id: 'ctrl-' + Math.random().toString(36).slice(2, 11),
+        targetPartId: part.id,
+        property,
+        formulaPreset: 'none',
+        enabled: true,
+        params: { speed: 1, amplitude: 1, phase: 0, offset: 0, min: -9999, max: 9999 },
+        mode: 'keyframe',
+        keyframes: [],
+      };
+      (anim.controllers as any[]).push(ctrl);
+    }
+    const t = getPlaybackTimeForAnimation(anim);
+    const existing = (ctrl.keyframes as any[]).find((k: any) => Math.abs(k.time - t) < 0.005);
+    if (existing) {
+      existing.value += delta;
+    } else {
+      (ctrl.keyframes as any[]).push({
+        id: 'kf-' + Math.random().toString(36).slice(2, 11),
+        time: t,
+        value: delta,
+        easing: 'linear',
+      });
+    }
+    DirtyState.markDirty();
   }
 }

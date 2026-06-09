@@ -34,10 +34,6 @@ export function setupKeyboardShortcuts(renderCb: () => void) {
       e.preventDefault();
       PlaybackState.playing = !PlaybackState.playing;
     } 
-    // R: Reset Time
-    else if (e.key.toLowerCase() === 'r') {
-      PlaybackState.time = 0;
-    } 
     // Delete: Remove Part
     else if (e.key === 'Delete') {
       if (SelectionState.activePartId) {

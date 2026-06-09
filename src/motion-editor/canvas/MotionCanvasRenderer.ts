@@ -871,11 +871,11 @@ export class MotionCanvasRenderer {
         return;
       }
 
-      // ── Gizmo handle hit-test (before bone picking) ───────────────────────
-      if (activePart && !activePart.locked) {
+      // ── Gizmo handle hit-test (before bone picking, gated by gizmoMode) ─────
+      if (activePart && !activePart.locked && SelectionState.gizmoMode !== 'move') {
         const m = this.latestMatrices.get(activePart.id);
         if (m) {
-          if (this.hitTestRotateRing(mx, my, m)) {
+          if (SelectionState.gizmoMode === 'rotate' && this.hitTestRotateRing(mx, my, m)) {
             HistoryState.push();
             this.dragMode = 'rotate';
             this.dragPivotX = m.e;
@@ -885,26 +885,28 @@ export class MotionCanvasRenderer {
             this.canvas.style.cursor = 'alias';
             return;
           }
-          const scaleHit = this.hitTestScaleHandle(mx, my, m, activePart, project);
-          if (scaleHit >= 0) {
-            HistoryState.push();
-            this.dragMode = 'scale';
-            this.dragPivotX = m.e;
-            this.dragPivotY = m.f;
-            this.dragScaleHandleIdx = scaleHit;
-            this.dragStartScaleX = (activePart as any).baseScaleX ?? 1;
-            this.dragStartScaleY = (activePart as any).baseScaleY ?? 1;
-            this.dragShiftConstrain = e.shiftKey;
-            const axLen = Math.sqrt(m.a * m.a + m.b * m.b) || 1;
-            const ayLen = Math.sqrt(m.c * m.c + m.d * m.d) || 1;
-            this.dragLocalAxisX = [m.a / axLen, m.b / axLen];
-            this.dragLocalAxisY = [m.c / ayLen, m.d / ayLen];
-            const handles = this.getGizmoHandles(activePart, m, project);
-            const h = handles[scaleHit];
-            this.dragInitProjX = (h.x - m.e) * this.dragLocalAxisX[0] + (h.y - m.f) * this.dragLocalAxisX[1];
-            this.dragInitProjY = (h.x - m.e) * this.dragLocalAxisY[0] + (h.y - m.f) * this.dragLocalAxisY[1];
-            this.canvas.style.cursor = 'nwse-resize';
-            return;
+          if (SelectionState.gizmoMode === 'scale') {
+            const scaleHit = this.hitTestScaleHandle(mx, my, m, activePart, project);
+            if (scaleHit >= 0) {
+              HistoryState.push();
+              this.dragMode = 'scale';
+              this.dragPivotX = m.e;
+              this.dragPivotY = m.f;
+              this.dragScaleHandleIdx = scaleHit;
+              this.dragStartScaleX = (activePart as any).baseScaleX ?? 1;
+              this.dragStartScaleY = (activePart as any).baseScaleY ?? 1;
+              this.dragShiftConstrain = e.shiftKey;
+              const axLen = Math.sqrt(m.a * m.a + m.b * m.b) || 1;
+              const ayLen = Math.sqrt(m.c * m.c + m.d * m.d) || 1;
+              this.dragLocalAxisX = [m.a / axLen, m.b / axLen];
+              this.dragLocalAxisY = [m.c / ayLen, m.d / ayLen];
+              const handles = this.getGizmoHandles(activePart, m, project);
+              const h = handles[scaleHit];
+              this.dragInitProjX = (h.x - m.e) * this.dragLocalAxisX[0] + (h.y - m.f) * this.dragLocalAxisX[1];
+              this.dragInitProjY = (h.x - m.e) * this.dragLocalAxisY[0] + (h.y - m.f) * this.dragLocalAxisY[1];
+              this.canvas.style.cursor = 'nwse-resize';
+              return;
+            }
           }
         }
       }
@@ -1107,6 +1109,7 @@ export class MotionCanvasRenderer {
       }
 
       if (this.dragMode !== 'none') {
+        this.isDraggingPart = false;
         this.dragMode = 'none';
         this.canvas.style.cursor = '';
         return;

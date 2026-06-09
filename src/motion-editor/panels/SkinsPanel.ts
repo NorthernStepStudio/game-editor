@@ -5,19 +5,18 @@ function genId() { return 'skin-' + Math.random().toString(36).slice(2, 11); }
 
 function createDefaultSkin(name: string): any {
   const proj = ProjectState.project;
+  const activeSkin = (proj as any).skins?.find((s: any) => s.id === (proj as any).activeSkinId) || null;
   const slots: Record<string, any> = {};
   proj.parts.forEach((p: any) => {
-    if (p.imageAssetId) {
-      slots[p.id] = { imageAssetId: p.imageAssetId };
-    }
-    if (p.color) {
-      if (!slots[p.id]) slots[p.id] = {};
-      slots[p.id].color = p.color;
-    }
-    if (p.sourceRect) {
-      if (!slots[p.id]) slots[p.id] = {};
-      slots[p.id].sourceRect = { ...p.sourceRect };
-    }
+    const override = activeSkin?.slots?.[p.id];
+    const imgId   = override?.imageAssetId ?? p.imageAssetId;
+    const color   = override?.color        ?? p.color;
+    const srcRect = override?.sourceRect   ?? p.sourceRect;
+    const slot: any = {};
+    if (imgId)   slot.imageAssetId = imgId;
+    if (color)   slot.color = color;
+    if (srcRect) slot.sourceRect = { ...srcRect };
+    if (Object.keys(slot).length) slots[p.id] = slot;
   });
   return { id: genId(), name, slots };
 }
@@ -36,7 +35,7 @@ export function renderSkinsPanel(container: HTMLElement, onUpdate: () => void): 
     <div style="display:flex; gap:4px; margin-bottom:6px; flex-wrap:wrap;">
       <button id="btn-skin-new" style="flex:1; font-size:0.7rem; padding:4px 6px;">＋ New Skin</button>
       <button id="btn-skin-dup" style="flex:1; font-size:0.7rem; padding:4px 6px;" ${!activeSkin ? 'disabled' : ''}>⧉ Duplicate</button>
-      <button id="btn-skin-del" style="flex:1; font-size:0.7rem; padding:4px 6px; color:var(--danger);" ${!activeSkin ? 'disabled' : ''}>🗑 Delete</button>
+      <button id="btn-skin-del" style="flex:1; font-size:0.7rem; padding:4px 6px; color:var(--danger);" ${(!activeSkin || activeSkin.name === 'Default' || skins.length <= 1) ? 'disabled' : ''}>🗑 Delete</button>
     </div>
 
     ${skins.length === 0
@@ -93,26 +92,25 @@ export function renderSkinsPanel(container: HTMLElement, onUpdate: () => void): 
     onUpdate();
   };
 
-  // Delete skin
+  // Delete skin — cannot delete the Default skin or the last skin
   const btnDel = container.querySelector('#btn-skin-del') as HTMLButtonElement;
   if (btnDel) btnDel.onclick = () => {
     if (!activeSkin) return;
+    if (activeSkin.name === 'Default') { alert('The Default skin cannot be deleted.'); return; }
+    if (skins.length <= 1) { alert('Cannot delete the only skin.'); return; }
     if (!confirm(`Delete skin "${activeSkin.name}"?`)) return;
     (project as any).skins = (project as any).skins.filter((s: any) => s.id !== activeSkin.id);
-    if ((project as any).activeSkinId === activeSkin.id) {
-      (project as any).activeSkinId = (project as any).skins[0]?.id ?? undefined;
-    }
+    const remaining = (project as any).skins;
+    ProjectState.setActiveSkin(remaining[0]?.id ?? null);
     DirtyState.markDirty();
     onUpdate();
   };
 
-  // Skin row click → set active
+  // Skin row click → set active (clicking the active skin again deactivates to Default)
   container.querySelectorAll('.skin-row').forEach(el => {
     (el as HTMLElement).onclick = () => {
       const id = el.getAttribute('data-skin-id')!;
-      const isCurrent = id === activeSkinId;
-      (project as any).activeSkinId = isCurrent ? undefined : id;
-      DirtyState.markDirty();
+      ProjectState.setActiveSkin(id);
       onUpdate();
     };
   });

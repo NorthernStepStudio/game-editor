@@ -184,10 +184,17 @@ export function normalizeProject(p: any): CharacterProject {
     const configs = p.blendConfigs.map(normalizeBlendConfig).filter(Boolean);
     if (configs.length) out.blendConfigs = configs;
   }
-  if (Array.isArray(p.skins)) {
-    const skins = p.skins.map(normalizeSkin).filter(Boolean);
-    if (skins.length) out.skins = skins;
+  {
+    const raw = Array.isArray(p.skins) ? p.skins.map(normalizeSkin).filter(Boolean) : [];
+    if (!raw.some((s: any) => s.name === 'Default')) {
+      raw.unshift({ id: 'skin-default', name: 'Default', slots: {} });
+    }
+    out.skins = raw;
   }
-  if (p.activeSkinId) out.activeSkinId = String(p.activeSkinId);
+  if (p.activeSkinId) {
+    out.activeSkinId = String(p.activeSkinId);
+  } else if (!p.activeSkinId && out.skins!.length > 0) {
+    out.activeSkinId = out.skins![0].id;
+  }
   return out;
 }

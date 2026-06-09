@@ -153,7 +153,7 @@ class NStepPlayer {
     this._images = {};
     this._blend = null;
     this._xfade = null;
-    this._activeSkinId = null;
+    this._activeSkinId = projectData.activeSkinId || null;
     this._preloadImages();
   }
 

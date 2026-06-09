@@ -15,7 +15,9 @@ export function createDefaultProject(): CharacterProject {
         controllers: []
       }
     ],
-    parts: []
+    parts: [],
+    skins: [{ id: 'skin-default', name: 'Default', slots: {} }],
+    activeSkinId: 'skin-default',
   };
 }
 

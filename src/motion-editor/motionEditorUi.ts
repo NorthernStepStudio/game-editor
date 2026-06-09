@@ -13,7 +13,10 @@ import { copyPoseToClipboard, pastePose, mirrorPose } from './poseActions';
 import { HistoryState } from '../state/historyState';
 import { HERO_RIGS, DOOMED_RIGS } from './samples';
 import { SaveManager } from '../persistence/saveManager';
-import { exportJSON, exportGodot, exportCanvasRuntime } from '../exporters/exportActions';
+import {
+  exportJSON, exportGodot, exportCanvasRuntime, exportDemoHTML,
+  exportImageSequence, exportGIF, exportUnityCSharp,
+} from '../exporters/exportActions';
 import { preloadAssets } from './canvas/imageCache';
 import { newProject, loadProject, saveProject, importProject } from '../persistence/projectActions';
 import { setupCanvasToolbar, refreshGizmoButtons } from './canvasToolbar';
@@ -113,6 +116,69 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
   };
 
   document.getElementById('btn-close-load')!.onclick = () => dlgLoad.close();
+
+  // ── Export panel dialog ───────────────────────────────────────────────────
+  const dlgExport = document.getElementById('dlg-export') as HTMLDialogElement;
+  if (dlgExport) {
+    const expAnimSel   = document.getElementById('exp-anim')         as HTMLSelectElement;
+    const expFpsSel    = document.getElementById('exp-fps')          as HTMLSelectElement;
+    const expWidthIn   = document.getElementById('exp-width')        as HTMLInputElement;
+    const expHeightIn  = document.getElementById('exp-height')       as HTMLInputElement;
+    const expBgSel     = document.getElementById('exp-bg')           as HTMLSelectElement;
+    const expProgress  = document.getElementById('exp-progress')!;
+    const expProgBar   = document.getElementById('exp-progress-bar') as HTMLProgressElement;
+    const expProgLabel = document.getElementById('exp-progress-label')!;
+
+    document.getElementById('btn-export-panel')!.onclick = () => {
+      const anims = ProjectState.project.animations as any[];
+      expAnimSel.innerHTML = anims.map(a =>
+        `<option value="${a.id}">${a.name}</option>`
+      ).join('');
+      dlgExport.showModal();
+    };
+    document.getElementById('btn-close-export')!.onclick = () => dlgExport.close();
+
+    const getOpts = () => ({
+      animId:  expAnimSel.value,
+      fps:     parseInt(expFpsSel.value, 10) || 24,
+      width:   Math.max(64, Math.min(2048, parseInt(expWidthIn.value, 10) || 512)),
+      height:  Math.max(64, Math.min(2048, parseInt(expHeightIn.value, 10) || 512)),
+      bgColor: expBgSel.value === 'transparent' ? null : expBgSel.value,
+    });
+
+    const withProgress = async (label: string, fn: (opts: any) => Promise<void>) => {
+      expProgress.style.display = 'block';
+      expProgBar.value = 0;
+      expProgLabel.textContent = label;
+      const allBtns = dlgExport.querySelectorAll('button');
+      allBtns.forEach(b => ((b as HTMLButtonElement).disabled = true));
+      try {
+        await fn({
+          ...getOpts(),
+          onProgress: (pct: number, msg: string) => {
+            expProgBar.value = pct;
+            expProgLabel.textContent = msg;
+          },
+        });
+      } catch (err) {
+        console.error(err);
+        alert('Export failed: ' + (err as Error).message);
+      } finally {
+        expProgress.style.display = 'none';
+        allBtns.forEach(b => ((b as HTMLButtonElement).disabled = false));
+      }
+    };
+
+    document.getElementById('btn-exp-imgseq')!.onclick = () =>
+      withProgress('Rendering frames…', exportImageSequence);
+
+    document.getElementById('btn-exp-gif')!.onclick = () =>
+      withProgress('Encoding GIF…', exportGIF);
+
+    document.getElementById('btn-exp-unity')!.onclick = () => { exportUnityCSharp(); };
+
+    document.getElementById('btn-exp-demo-html')!.onclick = () => { exportDemoHTML(); };
+  }
 
   // Samples
   const heroSelect = document.getElementById('hero-select') as HTMLSelectElement;

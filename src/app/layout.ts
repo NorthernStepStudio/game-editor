@@ -51,6 +51,7 @@ export const MAIN_LAYOUT = `
         <button id="btn-export-json" title="Export project as JSON">JSON</button>
         <button id="btn-export-gd" title="Export as Godot GDScript">Godot</button>
         <button id="btn-export-canvas" title="Export Canvas2D runtime">Runtime</button>
+        <button id="btn-export-panel" class="primary" title="Image sequence, GIF, Unity C#">Export…</button>
       </div>
     </header>
 
@@ -146,6 +147,69 @@ export const MAIN_LAYOUT = `
     <div id="load-list" style="max-height:380px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
       <button id="btn-close-load">Close</button>
+    </div>
+  </dialog>
+
+  <dialog id="dlg-export" style="min-width:420px; max-width:500px;">
+    <h3 style="margin:0 0 4px;">Export</h3>
+    <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 16px;">Render frames as image sequence or GIF, or generate a Unity C# runtime.</p>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+      <label style="display:flex; flex-direction:column; gap:4px; font-size:0.78rem; font-weight:600; color:var(--text-muted);">
+        Animation
+        <select id="exp-anim" style="font-size:0.82rem;"></select>
+      </label>
+      <label style="display:flex; flex-direction:column; gap:4px; font-size:0.78rem; font-weight:600; color:var(--text-muted);">
+        FPS
+        <select id="exp-fps" style="font-size:0.82rem;">
+          <option value="12">12 fps</option>
+          <option value="24" selected>24 fps</option>
+          <option value="30">30 fps</option>
+          <option value="60">60 fps</option>
+        </select>
+      </label>
+      <label style="display:flex; flex-direction:column; gap:4px; font-size:0.78rem; font-weight:600; color:var(--text-muted);">
+        Width (px)
+        <input id="exp-width" type="number" value="512" min="64" max="2048" step="64" style="font-size:0.82rem; padding:5px 8px; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text-bright);">
+      </label>
+      <label style="display:flex; flex-direction:column; gap:4px; font-size:0.78rem; font-weight:600; color:var(--text-muted);">
+        Height (px)
+        <input id="exp-height" type="number" value="512" min="64" max="2048" step="64" style="font-size:0.82rem; padding:5px 8px; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text-bright);">
+      </label>
+      <label style="display:flex; flex-direction:column; gap:4px; font-size:0.78rem; font-weight:600; color:var(--text-muted);">
+        Background
+        <select id="exp-bg" style="font-size:0.82rem;">
+          <option value="transparent">Transparent</option>
+          <option value="#ffffff">White</option>
+          <option value="#000000">Black</option>
+          <option value="#1a1a2e">Dark</option>
+        </select>
+      </label>
+      <div></div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+      <button id="btn-exp-imgseq" class="primary" style="text-align:left; padding:10px 14px;">
+        📦 Image Sequence (.zip) — one PNG per frame
+      </button>
+      <button id="btn-exp-gif" class="primary" style="text-align:left; padding:10px 14px;">
+        🎞️ Animated GIF — single animated file
+      </button>
+      <button id="btn-exp-unity" style="text-align:left; padding:10px 14px;">
+        🎮 Unity C# Runtime — NStepAnimator MonoBehaviour
+      </button>
+      <button id="btn-exp-demo-html" style="text-align:left; padding:10px 14px;">
+        🌐 Demo HTML — standalone browser preview
+      </button>
+    </div>
+
+    <div id="exp-progress" style="display:none; margin-bottom:12px;">
+      <div id="exp-progress-label" style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Rendering…</div>
+      <progress id="exp-progress-bar" style="width:100%; height:6px;" max="100" value="0"></progress>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; padding-top:12px; border-top:1px solid var(--border);">
+      <button id="btn-close-export">Close</button>
     </div>
   </dialog>
 `;

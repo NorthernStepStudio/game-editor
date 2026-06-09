@@ -8,6 +8,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "fflate": "^0.8.3",
+    "gifenc": "^1.0.3",
     "lucide": "^0.300.0"
   },
   "devDependencies": {

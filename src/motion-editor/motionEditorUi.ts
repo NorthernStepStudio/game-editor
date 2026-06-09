@@ -10,6 +10,7 @@ import { getPlaybackTimeForAnimation } from '../state/playbackState';
 import { DirtyState } from '../state/dirtyState';
 import { ClipboardState } from '../state/clipboardState';
 import { copyPoseToClipboard, pastePose, mirrorPose } from './poseActions';
+import { HistoryState } from '../state/historyState';
 import { HERO_RIGS, DOOMED_RIGS } from './samples';
 import { SaveManager } from '../persistence/saveManager';
 import { exportJSON, exportGodot, exportCanvasRuntime } from '../exporters/exportActions';
@@ -205,6 +206,7 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
       const pose = e.shiftKey
         ? mirrorPose(ClipboardState.copiedPose, ProjectState.project.parts as any[])
         : ClipboardState.copiedPose;
+      HistoryState.push();
       pastePose(animId, getPlaybackTimeForAnimation(anim), pose);
       _onUpdate();
     }

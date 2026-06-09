@@ -476,11 +476,13 @@ export function renderControllerTimeline(
   (container.querySelector('#btn-tmpl-death')     as HTMLElement).onclick = () => tmpl('death');
 
   // ── Pose buttons ────────────────────────────────────────────────────────────
-  const currentTime = getPlaybackTimeForAnimation(anim);
+  // NOTE: time is read inside each handler so it reflects the actual playhead
+  // position at the moment of the click, not the stale render-time snapshot.
 
   const copyBtn = container.querySelector('#btn-copy-pose') as HTMLElement;
   copyBtn.onclick = () => {
-    copyPoseToClipboard(anim.id, currentTime);
+    const t = getPlaybackTimeForAnimation(anim);
+    copyPoseToClipboard(anim.id, t);
     const prev = copyBtn.textContent;
     copyBtn.textContent = '✓ Copied!';
     copyBtn.style.color = 'var(--accent-green, #4ade80)';
@@ -493,22 +495,25 @@ export function renderControllerTimeline(
 
   (container.querySelector('#btn-paste-pose') as HTMLElement).onclick = () => {
     if (!ClipboardState.copiedPose) return;
+    const t = getPlaybackTimeForAnimation(anim);
     HistoryState.push();
-    pastePose(anim.id, currentTime, ClipboardState.copiedPose);
+    pastePose(anim.id, t, ClipboardState.copiedPose);
     onUpdate();
   };
 
   (container.querySelector('#btn-paste-mirror') as HTMLElement).onclick = () => {
     if (!ClipboardState.copiedPose) return;
+    const t = getPlaybackTimeForAnimation(anim);
     HistoryState.push();
     const mirrored = mirrorPose(ClipboardState.copiedPose, project.parts as any[]);
-    pastePose(anim.id, currentTime, mirrored);
+    pastePose(anim.id, t, mirrored);
     onUpdate();
   };
 
   (container.querySelector('#btn-reset-pose') as HTMLElement).onclick = () => {
+    const t = getPlaybackTimeForAnimation(anim);
     HistoryState.push();
-    resetPoseAtTime(anim.id, currentTime);
+    resetPoseAtTime(anim.id, t);
     onUpdate();
   };
 

@@ -17,16 +17,20 @@ export function capturePose(animId: string, time: number): Pose {
 
   const pose: Pose = {};
 
+  // Seed every part with zero offsets so all bones are captured even if they
+  // have no controllers (paste will write 0-valued keyframes, locking the pose).
+  for (const part of project.parts as any[]) {
+    pose[part.id] = { x: 0, y: 0, rotation: 0, scaleX: 0, scaleY: 0 };
+  }
+
+  // Add each enabled controller's contribution at the target time.
   for (const ctrl of anim.controllers as any[]) {
     if (!ctrl.enabled) continue;
     const prop = ctrl.property as string;
     if (!(POSE_PROPS as readonly string[]).includes(prop)) continue;
+    if (!pose[ctrl.targetPartId]) continue; // part was removed from project
 
     const value = evaluateController(ctrl, time, anim.duration || 1);
-
-    if (!pose[ctrl.targetPartId]) {
-      pose[ctrl.targetPartId] = { x: 0, y: 0, rotation: 0, scaleX: 0, scaleY: 0 };
-    }
     (pose[ctrl.targetPartId] as any)[prop] += value;
   }
 

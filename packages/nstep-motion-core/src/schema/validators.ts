@@ -1,4 +1,7 @@
-import type { CharacterProject, CharacterPart, CharacterAnimation, AnimationController } from './types.js';
+import type { CharacterProject, CharacterPart, CharacterAnimation, AnimationController, PartRestPose } from './types.js';
+import { CURRENT_PROJECT_SCHEMA_VERSION } from './version.js';
+import { migrateProject } from './migrations.js';
+import { capturePartRestPose, getPartRestPose } from './restPose.js';
 
 function normalizeKeyframe(k: any): any {
   const kf: any = {
@@ -92,7 +95,6 @@ function normalizeFrameAnimation(fa: any): any {
   if (fa.columns     != null) out.columns     = parseInt(fa.columns)     || 1;
   if (fa.frameWidth  != null) out.frameWidth  = Number(fa.frameWidth);
   if (fa.frameHeight != null) out.frameHeight = Number(fa.frameHeight);
-  // Legacy field – keep if present so old projects don't lose data
   if (fa.rows        != null) out.rows        = parseInt(fa.rows)        || 1;
   if (fa.enabled     != null) out.enabled     = !!fa.enabled;
   return Object.keys(out).length ? out : undefined;
@@ -109,8 +111,22 @@ function normalizePhysics(ph: any): any {
   return out;
 }
 
+function normalizeRestPose(raw: any, part: CharacterPart): PartRestPose {
+  if (!raw || typeof raw !== 'object') return capturePartRestPose(part);
+  (part as any).restPose = {
+    x: Number(raw.x ?? part.baseX ?? 0),
+    y: Number(raw.y ?? part.baseY ?? 0),
+    rotation: Number(raw.rotation ?? part.baseRotation ?? 0),
+    scaleX: Number(raw.scaleX ?? part.baseScaleX ?? 1),
+    scaleY: Number(raw.scaleY ?? part.baseScaleY ?? 1),
+    originX: Number(raw.originX ?? part.origin?.x ?? 20),
+    originY: Number(raw.originY ?? part.origin?.y ?? 20),
+  };
+  return getPartRestPose(part);
+}
+
 function normalizePart(p: any): CharacterPart {
-  const out: any = {
+  const out: CharacterPart = {
     id: p.id || 'part-' + Math.random().toString(36).substr(2, 9),
     name: p.name || 'Part',
     parentId: p.parentId ?? null,
@@ -132,21 +148,21 @@ function normalizePart(p: any): CharacterPart {
     opacity: p.opacity,
     flipX: p.flipX,
     flipY: p.flipY,
-    inheritTransform: p.inheritTransform
+    inheritTransform: p.inheritTransform,
+    editChildrenTogether: p.editChildrenTogether !== undefined ? !!p.editChildrenTogether : true,
   };
 
-  // Preserve optional extended fields — omit entirely when not present so
-  // JSON serialization stays lean and round-trips without spurious undefined keys.
-  if (p.fkOverride != null)           out.fkOverride           = !!p.fkOverride;
-  if (p.editChildrenTogether != null) out.editChildrenTogether = !!p.editChildrenTogether;
+  normalizeRestPose(p.restPose, out);
+
+  if (p.fkOverride != null) out.fkOverride = !!p.fkOverride;
   const ikNorm = normalizeIKChain(p.ikChain);
-  if (ikNorm)                         out.ikChain              = ikNorm;
+  if (ikNorm) out.ikChain = ikNorm;
   const conNorm = normalizeConstraint(p.constraint);
-  if (conNorm)                        out.constraint           = conNorm;
+  if (conNorm) out.constraint = conNorm;
   const faNorm = normalizeFrameAnimation(p.frameAnimation);
-  if (faNorm)                         out.frameAnimation       = faNorm;
+  if (faNorm) out.frameAnimation = faNorm;
   const phNorm = normalizePhysics(p.physics);
-  if (phNorm)                         out.physics              = phNorm;
+  if (phNorm) out.physics = phNorm;
   if (p.mesh && Array.isArray(p.mesh.vertices) && Array.isArray(p.mesh.triangles)) {
     out.mesh = {
       vertices:    p.mesh.vertices.map((v: any) => ({ x: Number(v.x ?? 0), y: Number(v.y ?? 0) })),
@@ -157,7 +173,7 @@ function normalizePart(p: any): CharacterPart {
     };
   }
 
-  return out as CharacterPart;
+  return out;
 }
 
 function normalizeSlotOverride(s: any): any {
@@ -208,6 +224,7 @@ export function normalizeProject(p: any): CharacterProject {
     throw new Error('Invalid project data');
   }
   const out: CharacterProject = {
+    schemaVersion: CURRENT_PROJECT_SCHEMA_VERSION,
     id: p.id || 'proj-' + Math.random().toString(36).substr(2, 9),
     name: p.name || 'Untitled',
     assets: Array.isArray(p.assets) ? p.assets : [],
@@ -233,5 +250,5 @@ export function normalizeProject(p: any): CharacterProject {
   } else if (!p.activeSkinId && out.skins!.length > 0) {
     out.activeSkinId = out.skins![0].id;
   }
-  return out;
+  return migrateProject(out).project;
 }

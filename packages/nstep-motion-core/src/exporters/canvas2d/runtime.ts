@@ -139,6 +139,40 @@ function evaluateController(c, time, duration) {
   }
 }
 
+class _SpringSim {
+  constructor() { this._s = {}; }
+  reset() { this._s = {}; }
+  update(id, len, ph, px, py, pa, rx, ry, dt) {
+    const dtc = Math.min(dt, 0.05);
+    let s = this._s[id];
+    if (!s) {
+      s = { tx: rx, ty: ry, vx: 0, vy: 0 };
+      this._s[id] = s;
+      return Math.atan2(ry - py, rx - px) * (180 / Math.PI) - pa;
+    }
+    const fx = (rx - s.tx) * ph.stiffness - s.vx * ph.damping;
+    const fy = (ry - s.ty) * ph.stiffness - s.vy * ph.damping + ph.gravity;
+    s.vx += fx * dtc; s.vy += fy * dtc;
+    s.tx += s.vx * dtc; s.ty += s.vy * dtc;
+    const tdx = s.tx - px, tdy = s.ty - py;
+    const dist = Math.sqrt(tdx * tdx + tdy * tdy) || 1;
+    const sc = len / dist;
+    s.tx = px + tdx * sc; s.ty = py + tdy * sc;
+    let worldA = Math.atan2(s.ty - py, s.tx - px) * (180 / Math.PI);
+    let localA = worldA - pa;
+    if (ph.maxAngle != null) {
+      const nwA = Math.atan2(ry - py, rx - px) * (180 / Math.PI);
+      const nL = nwA - pa;
+      let diff = ((localA - nL + 180) % 360 + 360) % 360 - 180;
+      diff = Math.max(-ph.maxAngle, Math.min(ph.maxAngle, diff));
+      localA = nL + diff;
+      const cwa = (localA + pa) * Math.PI / 180;
+      s.tx = px + Math.cos(cwa) * len; s.ty = py + Math.sin(cwa) * len;
+    }
+    return localA;
+  }
+}
+
 class NStepPlayer {
   constructor(canvas, projectData, options = {}) {
     this.canvas = canvas;
@@ -154,6 +188,8 @@ class NStepPlayer {
     this._blend = null;
     this._xfade = null;
     this._activeSkinId = projectData.activeSkinId || null;
+    this._spring = new _SpringSim();
+    this._springDt = 0;
     this._preloadImages();
   }
 
@@ -171,11 +207,11 @@ class NStepPlayer {
   }
 
   start() { this.playing = true; this._loop(performance.now()); return this; }
-  stop()  { this.playing = false; if (this._raf) cancelAnimationFrame(this._raf); this._blend = null; this._xfade = null; return this; }
-  pause() { this.playing = false; return this; }
+  stop()  { this.playing = false; if (this._raf) cancelAnimationFrame(this._raf); this._blend = null; this._xfade = null; this._spring.reset(); this._springDt = 0; return this; }
+  pause() { this.playing = false; this._springDt = 0; return this; }
   resume(){ this.playing = true; this._lastT = null; this._loop(performance.now()); return this; }
   seekTo(t) { this.time = t; this.render(); return this; }
-  setAnim(idx) { this.animIndex = idx; this.time = 0; this._blend = null; this._xfade = null; return this; }
+  setAnim(idx) { this.animIndex = idx; this.time = 0; this._blend = null; this._xfade = null; this._spring.reset(); this._springDt = 0; return this; }
 
   /**
    * Switch the active skin by name.
@@ -247,6 +283,7 @@ class NStepPlayer {
     if (!this.playing) return;
     if (this._lastT !== null) {
       const dt = (now - this._lastT) / 1000 * this.speedMult;
+      this._springDt = dt;
       // Advance crossfade timer
       if (this._xfade) {
         this._xfade.elapsed += dt;
@@ -261,6 +298,7 @@ class NStepPlayer {
         } else if (this.time > dur) {
           this.time = dur;
           this.playing = false;
+          this._springDt = 0;
         }
       }
     }
@@ -379,6 +417,23 @@ class NStepPlayer {
       (childrenMap[id] || []).forEach(k => computeMatrix(k, m));
     }
     roots.forEach(r => computeMatrix(r, rootMat));
+
+    // Spring physics pass (only during playback)
+    if (this._springDt > 0 && project.parts.some(p => p.physics)) {
+      project.parts.forEach(p => {
+        if (!p.physics) return;
+        const m = matrices[p.id];
+        if (!m) return;
+        const pm = p.parentId ? matrices[p.parentId] : null;
+        const px = pm ? pm.e : 0, py = pm ? pm.f : 0;
+        const pa = pm ? Math.atan2(pm.b, pm.a) * (180 / Math.PI) : 0;
+        const bl = Math.sqrt((p.baseX || 0) ** 2 + (p.baseY || 0) ** 2) || 40;
+        const lr = this._spring.update(p.id, bl, p.physics, px, py, pa, m.e, m.f, this._springDt);
+        if (transforms[p.id]) transforms[p.id].rotation = lr;
+      });
+      Object.keys(matrices).forEach(k => delete matrices[k]);
+      roots.forEach(r => computeMatrix(r, rootMat));
+    }
 
     // Draw parts sorted by animated zIndex
     const sorted = [...project.parts].sort((a, b) =>

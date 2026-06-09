@@ -83,6 +83,17 @@ function normalizeFrameAnimation(fa: any): any {
   return Object.keys(out).length ? out : undefined;
 }
 
+function normalizePhysics(ph: any): any {
+  if (!ph || typeof ph !== 'object') return undefined;
+  const out: any = {
+    stiffness: Math.max(0, Number(ph.stiffness ?? 80)),
+    damping:   Math.max(0, Number(ph.damping   ?? 10)),
+    gravity:   Number(ph.gravity   ?? 200),
+  };
+  if (ph.maxAngle != null) out.maxAngle = Math.max(0, Number(ph.maxAngle));
+  return out;
+}
+
 function normalizePart(p: any): CharacterPart {
   const out: any = {
     id: p.id || 'part-' + Math.random().toString(36).substr(2, 9),
@@ -119,6 +130,8 @@ function normalizePart(p: any): CharacterPart {
   if (conNorm)                        out.constraint           = conNorm;
   const faNorm = normalizeFrameAnimation(p.frameAnimation);
   if (faNorm)                         out.frameAnimation       = faNorm;
+  const phNorm = normalizePhysics(p.physics);
+  if (phNorm)                         out.physics              = phNorm;
 
   return out as CharacterPart;
 }

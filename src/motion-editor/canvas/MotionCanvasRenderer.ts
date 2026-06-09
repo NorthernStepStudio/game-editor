@@ -12,6 +12,7 @@ import { drawPartOverlays, drawSkeleton } from './motionOverlays';
 import { solve2BoneIK, solveFABRIK } from './ikSolver';
 import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
 import { HistoryState } from '../../state/historyState';
+import { SpringBoneSimulator } from './SpringBoneSimulator';
 
 function hexToRgbComponents(hex: string): [number, number, number] | null {
   const h = hex.replace('#', '');
@@ -103,6 +104,12 @@ export class MotionCanvasRenderer {
   private ikHandleDragStartBaseY: number = 0;
   private ikHandleDragParentMatInv: DOMMatrix | null = null;
 
+  // Spring physics
+  private springSimulator = new SpringBoneSimulator();
+  private springDt: number = 0;
+  private _lastPlayingState: boolean = false;
+  private _lastAnimId: string | null = null;
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
@@ -191,6 +198,15 @@ export class MotionCanvasRenderer {
   }
 
   private advance(dt: number) {
+    // Track anim/playback changes to reset spring physics
+    const nowAnimId  = SelectionState.activeAnimId;
+    const nowPlaying = PlaybackState.playing;
+    if ((this._lastPlayingState && !nowPlaying) || this._lastAnimId !== nowAnimId) {
+      this.springSimulator.reset();
+    }
+    this._lastPlayingState = nowPlaying;
+    this._lastAnimId = nowAnimId;
+
     // Advance crossfade timer
     if (PlaybackState.crossfade) {
       PlaybackState.crossfade.elapsed += dt * PlaybackState.speedMult;
@@ -211,6 +227,9 @@ export class MotionCanvasRenderer {
           PlaybackState.playing = false;
         }
       }
+      this.springDt = dt;
+    } else {
+      this.springDt = 0;
     }
 
     // Locomotion preview — runs independently of playback
@@ -483,6 +502,42 @@ export class MotionCanvasRenderer {
     });
   }
 
+  // ── Spring physics ────────────────────────────────────────────────────────
+
+  private applySpringPhysics(
+    project: CharacterProject,
+    tforms: Map<string, any>,
+    matrices: Map<string, DOMMatrix>,
+    dt: number,
+  ) {
+    project.parts.forEach((part: any) => {
+      const physics = part.physics;
+      if (!physics) return;
+      const mat = matrices.get(part.id);
+      if (!mat) return;
+      const parentMat = part.parentId ? matrices.get(part.parentId) : null;
+      const parentX = parentMat ? parentMat.e : 0;
+      const parentY = parentMat ? parentMat.f : 0;
+      const parentAngle = parentMat
+        ? Math.atan2(parentMat.b, parentMat.a) * (180 / Math.PI)
+        : 0;
+      const boneLength = Math.sqrt((part.baseX ?? 0) ** 2 + (part.baseY ?? 0) ** 2) || 40;
+      const newLocalRot = this.springSimulator.update(
+        part.id,
+        boneLength,
+        physics,
+        parentX,
+        parentY,
+        parentAngle,
+        mat.e,
+        mat.f,
+        dt,
+      );
+      const tform = tforms.get(part.id);
+      if (tform) tform.rotation = newLocalRot;
+    });
+  }
+
   // ── Frame animation ───────────────────────────────────────────────────────
 
   private getFrameSourceRect(part: any, time: number): { x: number; y: number; width: number; height: number } | null {
@@ -633,6 +688,12 @@ export class MotionCanvasRenderer {
 
     // Rebuild matrices after IK + constraints
     matrices = this.buildMatrices(tforms);
+
+    // Spring physics pass (only during playback)
+    if (this.springDt > 0) {
+      this.applySpringPhysics(project, tforms, matrices, this.springDt);
+      matrices = this.buildMatrices(tforms);
+    }
 
     const sortedParts = [...project.parts].sort((a: any, b: any) =>
       (tforms.get(a.id)?.zIndex ?? Number(a.zIndex) ?? 0) -

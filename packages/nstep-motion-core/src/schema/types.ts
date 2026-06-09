@@ -97,6 +97,13 @@ export interface IKChain {
   pinnedWorldY?: number;
 }
 
+export interface PhysicsConfig {
+  stiffness: number;
+  damping: number;
+  gravity: number;
+  maxAngle?: number;
+}
+
 export interface CharacterPart {
   id: string;
   name: string;
@@ -124,6 +131,7 @@ export interface CharacterPart {
   ikChain?: IKChain;
   frameAnimation?: FrameAnimation;
   fkOverride?: boolean;
+  physics?: PhysicsConfig;
 }
 
 export interface SlotOverride {

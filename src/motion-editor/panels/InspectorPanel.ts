@@ -5,6 +5,7 @@ import { AppState } from '../../state/appState';
 import { trimToAlphaBounds } from '../utils/assetUtils';
 import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
 import { HistoryState } from '../../state/historyState';
+import { bakePhysics } from '../canvas/bakePhysics';
 
 function esc(s: string): string {
   return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -236,6 +237,31 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
         </div>`}` : ''}
       </div>
 
+      <!-- Spring Physics -->
+      <div class="inspector-section">
+        <div class="inspector-section-title" style="display:flex; justify-content:space-between; align-items:center;">
+          Spring Physics
+          <label style="display:flex; align-items:center; gap:4px; font-size:0.68rem; color:var(--text-muted); cursor:pointer; font-weight:400;">
+            <input type="checkbox" id="pi-phys-enabled" ${(part as any).physics ? 'checked' : ''}> Enable
+          </label>
+        </div>
+        ${(part as any).physics ? `
+        <div class="form-row" style="margin-bottom:5px;">
+          <div class="form-group"><label>Stiffness</label>
+            <input type="number" id="pi-phys-stiffness" value="${(part as any).physics.stiffness ?? 80}" min="0" step="5" ${locked ? 'disabled' : ''}></div>
+          <div class="form-group"><label>Damping</label>
+            <input type="number" id="pi-phys-damping" value="${(part as any).physics.damping ?? 10}" min="0" step="1" ${locked ? 'disabled' : ''}></div>
+        </div>
+        <div class="form-row" style="margin-bottom:5px;">
+          <div class="form-group"><label>Gravity</label>
+            <input type="number" id="pi-phys-gravity" value="${(part as any).physics.gravity ?? 200}" step="10" ${locked ? 'disabled' : ''}></div>
+          <div class="form-group"><label>Max Angle °</label>
+            <input type="number" id="pi-phys-maxangle" value="${(part as any).physics.maxAngle ?? ''}" min="0" max="180" step="5" placeholder="∞" ${locked ? 'disabled' : ''}></div>
+        </div>
+        <button id="pi-phys-bake" style="width:100%; font-size:0.7rem; padding:4px 0; margin-top:2px;" ${locked ? 'disabled' : ''}>⬇ Bake Physics to Keyframes…</button>
+        ` : `<div style="font-size:0.68rem; color:var(--text-muted); padding:4px 0;">Enable to add spring lag and secondary motion to this bone.</div>`}
+      </div>
+
       <!-- Flags -->
       <div class="inspector-section">
         <div class="inspector-section-title">Flags</div>
@@ -442,6 +468,82 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
     (part as any).ikChain.pinnedWorldX = undefined;
     (part as any).ikChain.pinnedWorldY = undefined;
     DirtyState.markDirty(); onUpdate(true, false);
+  };
+
+  // Spring Physics
+  const physEnable = container.querySelector('#pi-phys-enabled') as HTMLInputElement;
+  if (physEnable) physEnable.onchange = () => {
+    if (physEnable.checked) {
+      (part as any).physics = { stiffness: 80, damping: 10, gravity: 200 };
+    } else {
+      (part as any).physics = undefined;
+    }
+    DirtyState.markDirty(); onUpdate();
+  };
+
+  const bindPhys = (id: string, key: string) => {
+    const el = container.querySelector('#' + id) as HTMLInputElement;
+    if (!el) return;
+    el.oninput = () => {
+      if (!(part as any).physics) return;
+      const v = parseFloat(el.value);
+      if (!isNaN(v)) { (part as any).physics[key] = v; DirtyState.markDirty(); onUpdate(true, false); }
+    };
+  };
+  bindPhys('pi-phys-stiffness', 'stiffness');
+  bindPhys('pi-phys-damping',   'damping');
+  bindPhys('pi-phys-gravity',   'gravity');
+
+  const maxAngleEl = container.querySelector('#pi-phys-maxangle') as HTMLInputElement;
+  if (maxAngleEl) maxAngleEl.oninput = () => {
+    if (!(part as any).physics) return;
+    const v = parseFloat(maxAngleEl.value);
+    if (!isNaN(v) && v >= 0) {
+      (part as any).physics.maxAngle = v;
+    } else {
+      delete (part as any).physics.maxAngle;
+    }
+    DirtyState.markDirty(); onUpdate(true, false);
+  };
+
+  const bakeBtn = container.querySelector('#pi-phys-bake') as HTMLElement;
+  if (bakeBtn) bakeBtn.onclick = () => {
+    const animId = SelectionState.activeAnimId;
+    if (!animId) { alert('Select an animation first.'); return; }
+    const anim = project.animations.find((a: any) => a.id === animId);
+    if (!anim) { alert('Active animation not found.'); return; }
+    if (!(part as any).physics) { alert('Enable spring physics on this bone first.'); return; }
+
+    const kfData = bakePhysics(project, animId, part.id);
+    if (!kfData.length) { alert('Bake produced no keyframes.'); return; }
+
+    if (!confirm(`Bake spring physics to ${kfData.length} keyframes on "${part.name}"?\nThis will replace any existing rotation controller for this bone.`)) return;
+
+    HistoryState.push();
+    const kfId = () => 'kf-' + Math.random().toString(36).slice(2, 11);
+    const newKeyframes = kfData.map(k => ({ id: kfId(), time: k.time, value: k.value - (part.baseRotation ?? 0), easing: 'linear' as const }));
+
+    let rotCtrl = anim.controllers.find((c: any) => c.targetPartId === part.id && c.property === 'rotation');
+    if (!rotCtrl) {
+      rotCtrl = {
+        id: 'ctrl-' + Math.random().toString(36).slice(2, 11),
+        targetPartId: part.id,
+        property: 'rotation',
+        formulaPreset: 'sine',
+        enabled: true,
+        params: { speed: 1, amplitude: 0, phase: 0, offset: 0, min: 0, max: 0 },
+        mode: 'keyframe',
+        keyframes: newKeyframes,
+      };
+      anim.controllers.push(rotCtrl);
+    } else {
+      rotCtrl.mode = 'keyframe';
+      rotCtrl.keyframes = newKeyframes;
+    }
+
+    DirtyState.markDirty();
+    onUpdate();
+    alert(`Baked ${kfData.length} rotation keyframes onto "${part.name}".`);
   };
 
   // Constraint

@@ -6,7 +6,7 @@ import { HistoryState } from '../../state/historyState';
 import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
 import { MotionCanvasRenderer } from './MotionCanvasRenderer';
 
-type RendererWithPrivateState = MotionCanvasRenderer & {
+type RendererWithPrivateState = {
   canvas: HTMLCanvasElement;
   zoom: number;
   isPanning: boolean;

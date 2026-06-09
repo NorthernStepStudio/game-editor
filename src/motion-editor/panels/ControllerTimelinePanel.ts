@@ -383,6 +383,12 @@ export function renderControllerTimeline(
       ctrl.property = propSel.value as any; DirtyState.markDirty(); onUpdate(true, false);
     };
 
+    const tintSwatch = card.querySelector('.ctrl-tint-swatch') as HTMLInputElement | null;
+    if (tintSwatch) tintSwatch.oninput = () => {
+      const part = ProjectState.project.parts.find((p: any) => p.id === ctrl.targetPartId) as any;
+      if (part) { part.tintColor = tintSwatch.value; DirtyState.markDirty(); onUpdate(true, false); }
+    };
+
     const presetSel = card.querySelector('.ctrl-preset-select') as HTMLSelectElement;
     if (presetSel) presetSel.onchange = () => {
       ctrl.formulaPreset = presetSel.value; DirtyState.markDirty(); onUpdate();
@@ -450,8 +456,12 @@ function renderCard(c: any, _dur: number): string {
         </select>
         <span style="color:var(--text-muted); font-size:0.68rem;">→</span>
         <select class="ctrl-prop-select" style="font-size:0.68rem; padding:2px 4px; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text-main); border-radius:var(--r-sm);">
-          ${['x','y','rotation','scaleX','scaleY','opacity'].map(p => `<option value="${p}" ${c.property === p ? 'selected' : ''}>${p}</option>`).join('')}
+          ${['x','y','rotation','scaleX','scaleY','opacity','zIndex','color'].map(p => `<option value="${p}" ${c.property === p ? 'selected' : ''}>${p}</option>`).join('')}
         </select>
+        ${c.property === 'color' ? (() => {
+          const targetPart = ProjectState.project.parts.find((p: any) => p.id === c.targetPartId) as any;
+          return `<input type="color" class="ctrl-tint-swatch" value="${targetPart?.tintColor || '#ff0000'}" title="Tint target colour" style="width:24px; height:22px; padding:1px 2px; border:1px solid var(--border); border-radius:3px; cursor:pointer; background:none;">`;
+        })() : ''}
         <button class="ctrl-mode-btn ${isKf ? 'active' : ''}" title="${isKf ? 'Switch to formula mode' : 'Switch to keyframe mode'}">${isKf ? `🔑 ${kfCount}kf` : '〜 Formula'}</button>
         <button class="ctrl-del-btn" title="Remove">✕</button>
       </div>

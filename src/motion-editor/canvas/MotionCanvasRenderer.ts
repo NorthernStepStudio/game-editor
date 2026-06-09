@@ -12,6 +12,22 @@ import { solve2BoneIK } from './ikSolver';
 import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
 import { HistoryState } from '../../state/historyState';
 
+function hexToRgbComponents(hex: string): [number, number, number] | null {
+  const h = hex.replace('#', '');
+  if (h.length !== 6) return null;
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+function blendHexColors(c1: string, c2: string, t: number): string {
+  const a = hexToRgbComponents(c1);
+  const b = hexToRgbComponents(c2);
+  if (!a || !b) return c1;
+  const r = Math.round(a[0] + (b[0] - a[0]) * t);
+  const g = Math.round(a[1] + (b[1] - a[1]) * t);
+  const bl = Math.round(a[2] + (b[2] - a[2]) * t);
+  return `rgb(${r},${g},${bl})`;
+}
+
 export class MotionCanvasRenderer {
   private ctx: CanvasRenderingContext2D;
   private canvas: HTMLCanvasElement;
@@ -184,6 +200,8 @@ export class MotionCanvasRenderer {
         scaleX:   p.baseScaleX  ?? 1,
         scaleY:   p.baseScaleY  ?? 1,
         opacity:  p.opacity     ?? 1,
+        zIndex:   p.zIndex      ?? 0,
+        color:    0,
       });
     });
 
@@ -202,6 +220,12 @@ export class MotionCanvasRenderer {
         tform[c.property] = targetVal;
       });
     }
+
+    // Post-process special properties
+    tforms.forEach((tform) => {
+      tform.zIndex = Math.round(tform.zIndex);
+      tform.color  = Math.max(0, Math.min(1, tform.color));
+    });
 
     return tforms;
   }
@@ -454,7 +478,8 @@ export class MotionCanvasRenderer {
     matrices = this.buildMatrices(tforms);
 
     const sortedParts = [...project.parts].sort((a: any, b: any) =>
-      (Number(a.zIndex) || 0) - (Number(b.zIndex) || 0)
+      (tforms.get(a.id)?.zIndex ?? Number(a.zIndex) ?? 0) -
+      (tforms.get(b.id)?.zIndex ?? Number(b.zIndex) ?? 0)
     );
 
     // Draw parts
@@ -519,8 +544,27 @@ export class MotionCanvasRenderer {
           ctx.fillText('Loading…', width / 2, height / 2 + 4);
         }
       } else {
-        ctx.fillStyle = part.color || '#4c8ef5';
+        const colorInfluence = tform?.color ?? 0;
+        const tintColor = part.tintColor as string | undefined;
+        if (colorInfluence > 0.001 && tintColor) {
+          ctx.fillStyle = blendHexColors(part.color || '#4c8ef5', tintColor, colorInfluence);
+        } else {
+          ctx.fillStyle = part.color || '#4c8ef5';
+        }
         drawShape(ctx, part, width, height);
+      }
+
+      // Apply tint overlay for image-mode parts
+      const colorInfluence = tform?.color ?? 0;
+      const tintColor = part.tintColor as string | undefined;
+      if (colorInfluence > 0.001 && tintColor && part.renderMode === 'image') {
+        const tc = hexToRgbComponents(tintColor);
+        if (tc) {
+          ctx.globalCompositeOperation = 'source-atop';
+          ctx.fillStyle = `rgba(${tc[0]},${tc[1]},${tc[2]},${colorInfluence})`;
+          ctx.fillRect(0, 0, width, height);
+          ctx.globalCompositeOperation = 'source-over';
+        }
       }
 
       ctx.restore();

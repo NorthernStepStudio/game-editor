@@ -212,6 +212,8 @@ class NStepPlayer {
         rotation: p.baseRotation ?? 0,
         scaleX: p.baseScaleX ?? 1, scaleY: p.baseScaleY ?? 1,
         opacity: p.opacity ?? 1,
+        zIndex: p.zIndex ?? 0,
+        color: 0,
       };
     });
     (anim.controllers || []).forEach(c => {
@@ -220,6 +222,11 @@ class NStepPlayer {
       if (!tf) return;
       const val = evaluateController(c, t, dur);
       tf[c.property] = (tf[c.property] ?? 0) + val;
+    });
+    // Post-process special properties
+    Object.values(transforms).forEach(tf => {
+      tf.zIndex = Math.round(tf.zIndex);
+      tf.color  = Math.max(0, Math.min(1, tf.color));
     });
 
     // Build hierarchy
@@ -247,8 +254,10 @@ class NStepPlayer {
     }
     roots.forEach(r => computeMatrix(r, rootMat));
 
-    // Draw parts sorted by zIndex
-    const sorted = [...project.parts].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+    // Draw parts sorted by animated zIndex
+    const sorted = [...project.parts].sort((a, b) =>
+      ((transforms[a.id]?.zIndex) ?? (a.zIndex || 0)) - ((transforms[b.id]?.zIndex) ?? (b.zIndex || 0))
+    );
     sorted.forEach(part => {
       if (part.visible === false) return;
       const m = matrices[part.id];
@@ -273,6 +282,8 @@ class NStepPlayer {
 
       const ox = part.origin?.x ?? 0;
       const oy = part.origin?.y ?? 0;
+      const colorInfluence = Math.max(0, Math.min(1, tf.color ?? 0));
+      const tintColor = part.tintColor;
 
       if (part.renderMode === 'image' && asset) {
         const img = this._images[asset.id];
@@ -286,11 +297,24 @@ class NStepPlayer {
           ctx.fillStyle = part.color || '#4c8ef5';
           ctx.fillRect(0, 0, w, h);
         }
+        // Tint overlay for image parts
+        if (colorInfluence > 0.001 && tintColor) {
+          const tc = _hexToRgb(tintColor);
+          if (tc) {
+            ctx.globalCompositeOperation = 'source-atop';
+            ctx.fillStyle = 'rgba(' + tc[0] + ',' + tc[1] + ',' + tc[2] + ',' + colorInfluence + ')';
+            ctx.fillRect(0, 0, w, h);
+            ctx.globalCompositeOperation = 'source-over';
+          }
+        }
       } else {
         const w = (part.origin?.x ?? 20) * 2 || 40;
         const h = (part.origin?.y ?? 20) * 2 || 40;
         ctx.translate(-ox, -oy);
-        ctx.fillStyle = part.color || '#4c8ef5';
+        const baseColor = part.color || '#4c8ef5';
+        ctx.fillStyle = (colorInfluence > 0.001 && tintColor)
+          ? _blendHex(baseColor, tintColor, colorInfluence)
+          : baseColor;
         ctx.beginPath();
         if (part.shapeType === 'circle' || part.shapeType === 'ellipse') {
           ctx.ellipse(w/2, h/2, w/2, h/2, 0, 0, Math.PI * 2);
@@ -303,6 +327,18 @@ class NStepPlayer {
       ctx.restore();
     });
   }
+}
+
+function _hexToRgb(hex) {
+  const h = hex.replace('#', '');
+  if (h.length !== 6) return null;
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+
+function _blendHex(c1, c2, t) {
+  const a = _hexToRgb(c1), b = _hexToRgb(c2);
+  if (!a || !b) return c1;
+  return 'rgb(' + Math.round(a[0]+(b[0]-a[0])*t) + ',' + Math.round(a[1]+(b[1]-a[1])*t) + ',' + Math.round(a[2]+(b[2]-a[2])*t) + ')';
 }
 
 // ─── Exports ──────────────────────────────────────────────────────────────────

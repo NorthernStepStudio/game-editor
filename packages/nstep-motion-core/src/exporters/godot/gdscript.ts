@@ -236,6 +236,8 @@ export function exportToGDScript(project: CharacterProject): string {
           c.property === 'rotation'? (part.baseRotation ?? 0) :
           c.property === 'scaleX'  ? (part.baseScaleX ?? 1) :
           c.property === 'scaleY'  ? (part.baseScaleY ?? 1) :
+          c.property === 'zIndex'  ? (part.zIndex ?? 0) :
+          c.property === 'color'   ? 0 :
           /* opacity */               (part.opacity ?? 1)
         ).toFixed(4);
 
@@ -246,6 +248,16 @@ export function exportToGDScript(project: CharacterProject): string {
           case 'scaleX':   lines.push(`\t\t${pv}.scale.x = ${base} + (${expr})`); break;
           case 'scaleY':   lines.push(`\t\t${pv}.scale.y = ${base} + (${expr})`); break;
           case 'opacity':  lines.push(`\t\t${pv}.modulate.a = clamp(${base} + (${expr}), 0.0, 1.0)`); break;
+          case 'zIndex':   lines.push(`\t\t${pv}.z_index = roundi(${base} + (${expr}))`); break;
+          case 'color': {
+            const tc = (part as any).tintColor || '#ff0000';
+            const hex = tc.replace('#', '');
+            const r = (parseInt(hex.slice(0,2),16)/255).toFixed(3);
+            const g = (parseInt(hex.slice(2,4),16)/255).toFixed(3);
+            const b = (parseInt(hex.slice(4,6),16)/255).toFixed(3);
+            lines.push(`\t\t${pv}.modulate = lerp(${pv}.modulate, Color(${r}, ${g}, ${b}, 1.0), clamp(${expr}, 0.0, 1.0))`);
+            break;
+          }
         }
       });
 

@@ -118,7 +118,16 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
         <div class="form-group">
           <label>Fill Color</label>
           <input type="color" id="pi-color" value="${part.color || '#4c8ef5'}" ${locked ? 'disabled' : ''}>
+        </div>
+        <div class="form-group">
+          <label>Tint Color <span style="font-size:0.65rem; color:var(--text-muted);">(animated target)</span></label>
+          <input type="color" id="pi-tint-color" value="${(part as any).tintColor || '#ff0000'}" ${locked ? 'disabled' : ''}>
         </div>` : `
+        <div class="form-group">
+          <label>Tint Color <span style="font-size:0.65rem; color:var(--text-muted);">(animated target)</span></label>
+          <input type="color" id="pi-tint-color" value="${(part as any).tintColor || '#ff0000'}" ${locked ? 'disabled' : ''}>
+        </div>`}
+        ${part.renderMode !== 'image' ? `` : `
         <div class="form-group">
           <label>Asset</label>
           <select id="pi-asset" ${locked ? 'disabled' : ''}>
@@ -325,6 +334,10 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
   // Color
   const colorIn = container.querySelector('#pi-color') as HTMLInputElement;
   if (colorIn) colorIn.oninput = () => { part.color = colorIn.value; DirtyState.markDirty(); onUpdate(true, false); };
+
+  // Tint Color
+  const tintColorIn = container.querySelector('#pi-tint-color') as HTMLInputElement;
+  if (tintColorIn) tintColorIn.oninput = () => { (part as any).tintColor = tintColorIn.value; DirtyState.markDirty(); onUpdate(true, false); };
 
   // Asset
   const assetSel = container.querySelector('#pi-asset') as HTMLSelectElement;

@@ -36,7 +36,7 @@ export interface ControllerParams {
 export interface AnimationController {
   id: string;
   targetPartId: string;
-  property: 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY' | 'opacity';
+  property: 'x' | 'y' | 'rotation' | 'scaleX' | 'scaleY' | 'opacity' | 'zIndex' | 'color';
   formulaPreset: string;
   enabled: boolean;
   params: ControllerParams;
@@ -97,6 +97,7 @@ export interface CharacterPart {
   origin: Origin;
   zIndex: number;
   color?: string;
+  tintColor?: string;
   renderMode?: 'image' | 'shape';
   shapeType?: string;
   imageAssetId?: string;

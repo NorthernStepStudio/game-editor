@@ -1,0 +1,63 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">NStep Game Editor overview page preview</title>
+  <desc id="desc">A dark professional landing screen for NStep Game Editor with product copy, action buttons, feature cards, and a stylized editor preview.</desc>
+  <rect width="1440" height="900" fill="#0B0D14"/>
+  <circle cx="180" cy="80" r="320" fill="#4C8EF5" opacity="0.18"/>
+  <circle cx="1090" cy="130" r="260" fill="#3ECF8E" opacity="0.1"/>
+  <text x="82" y="116" fill="#3ECF8E" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="800" letter-spacing="4">NORTHERN STEP STUDIO · 2D ANIMATION TOOLING</text>
+  <text x="82" y="190" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="800">Build, rig, preview,</text>
+  <text x="82" y="272" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="800">and export 2D</text>
+  <text x="82" y="354" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="800">game motion.</text>
+  <text x="84" y="418" fill="#B8C5E0" font-family="Inter, Arial, sans-serif" font-size="26">A focused browser-based editor for preparing 2D characters,</text>
+  <text x="84" y="456" fill="#B8C5E0" font-family="Inter, Arial, sans-serif" font-size="26">organizing sprite assets, testing motion cycles, and exporting</text>
+  <text x="84" y="494" fill="#B8C5E0" font-family="Inter, Arial, sans-serif" font-size="26">runtime-friendly animation data.</text>
+  <rect x="84" y="548" width="170" height="54" rx="12" fill="#4C8EF5"/>
+  <text x="124" y="583" fill="white" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Open Editor</text>
+  <rect x="270" y="548" width="174" height="54" rx="12" fill="#1E2438" stroke="rgba(255,255,255,0.14)"/>
+  <text x="309" y="583" fill="#B8C5E0" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700">Start Rigging</text>
+
+  <rect x="720" y="86" width="638" height="520" rx="30" fill="#111520" stroke="#2E3A55"/>
+  <rect x="720" y="86" width="638" height="58" rx="30" fill="#0F1320"/>
+  <circle cx="754" cy="116" r="8" fill="#4D5B78"/>
+  <circle cx="780" cy="116" r="8" fill="#4D5B78"/>
+  <circle cx="806" cy="116" r="8" fill="#4D5B78"/>
+  <text x="838" y="123" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="800" letter-spacing="2">NSTEP GAME EDITOR</text>
+  <rect x="748" y="174" width="150" height="326" rx="16" fill="#181D2E" stroke="#252D45"/>
+  <text x="772" y="208" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="800">Rig Hierarchy</text>
+  <g fill="#252D45"><rect x="772" y="232" width="100" height="28" rx="8"/><rect x="772" y="272" width="74" height="28" rx="8"/><rect x="772" y="312" width="88" height="28" rx="8"/><rect x="772" y="352" width="86" height="28" rx="8"/><rect x="772" y="392" width="70" height="28" rx="8"/></g>
+  <rect x="922" y="174" width="260" height="326" rx="16" fill="#0B0D14" stroke="#252D45"/>
+  <path d="M922 226H1182M922 278H1182M922 330H1182M922 382H1182M974 174V500M1026 174V500M1078 174V500M1130 174V500" stroke="white" opacity="0.05"/>
+  <circle cx="1052" cy="270" r="42" fill="#6FA8FF" stroke="white" stroke-opacity="0.28"/>
+  <rect x="1018" y="322" width="68" height="104" rx="30" fill="#8B7CF6" stroke="white" stroke-opacity="0.28"/>
+  <rect x="982" y="332" width="24" height="98" rx="12" fill="#6FA8FF" transform="rotate(16 982 332)"/>
+  <rect x="1100" y="339" width="24" height="98" rx="12" fill="#6FA8FF" transform="rotate(-16 1100 339)"/>
+  <rect x="1026" y="414" width="26" height="86" rx="13" fill="#6FA8FF" transform="rotate(6 1026 414)"/>
+  <rect x="1064" y="414" width="26" height="86" rx="13" fill="#6FA8FF" transform="rotate(-6 1064 414)"/>
+  <rect x="940" y="454" width="62" height="26" rx="13" fill="#1A2540" stroke="#4C8EF5"/>
+  <text x="958" y="472" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">Grid</text>
+  <rect x="1012" y="454" width="66" height="26" rx="13" fill="#1A2540" stroke="#4C8EF5"/>
+  <text x="1028" y="472" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">Bones</text>
+  <rect x="1088" y="454" width="66" height="26" rx="13" fill="#1A2540" stroke="#4C8EF5"/>
+  <text x="1105" y="472" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">Onion</text>
+  <rect x="1206" y="174" width="124" height="326" rx="16" fill="#181D2E" stroke="#252D45"/>
+  <text x="1224" y="208" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="800">Properties</text>
+  <g fill="#252D45"><rect x="1224" y="232" width="80" height="24" rx="7"/><rect x="1224" y="268" width="62" height="24" rx="7"/><rect x="1224" y="304" width="70" height="24" rx="7"/></g>
+  <text x="1224" y="370" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="800">Assets</text>
+  <g fill="#252D45"><rect x="1224" y="394" width="82" height="24" rx="7"/><rect x="1224" y="430" width="72" height="24" rx="7"/></g>
+
+  <g transform="translate(84 678)">
+    <rect width="380" height="104" rx="18" fill="#111520" stroke="#252D45"/>
+    <text x="24" y="48" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800">3</text>
+    <text x="24" y="78" fill="#4D5B78" font-family="Inter, Arial, sans-serif" font-size="17">Core workspaces</text>
+  </g>
+  <g transform="translate(494 678)">
+    <rect width="380" height="104" rx="18" fill="#111520" stroke="#252D45"/>
+    <text x="24" y="48" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800">JSON</text>
+    <text x="24" y="78" fill="#4D5B78" font-family="Inter, Arial, sans-serif" font-size="17">Save, load, and export</text>
+  </g>
+  <g transform="translate(904 678)">
+    <rect width="380" height="104" rx="18" fill="#111520" stroke="#252D45"/>
+    <text x="24" y="48" fill="#EDF2FF" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800">2D</text>
+    <text x="24" y="78" fill="#4D5B78" font-family="Inter, Arial, sans-serif" font-size="17">Game character animation</text>
+  </g>
+</svg>

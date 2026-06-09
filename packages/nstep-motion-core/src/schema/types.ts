@@ -125,6 +125,16 @@ export interface PartMesh {
   boneWeights: Record<string, number>[];
 }
 
+export interface PartRestPose {
+  x: number;
+  y: number;
+  rotation: number;
+  scaleX: number;
+  scaleY: number;
+  originX: number;
+  originY: number;
+}
+
 export interface CharacterPart {
   id: string;
   name: string;
@@ -136,6 +146,7 @@ export interface CharacterPart {
   baseScaleY: number;
   origin: Origin;
   zIndex: number;
+  restPose?: PartRestPose;
   color?: string;
   tintColor?: string;
   renderMode?: 'image' | 'shape';
@@ -152,6 +163,7 @@ export interface CharacterPart {
   ikChain?: IKChain;
   frameAnimation?: FrameAnimation;
   fkOverride?: boolean;
+  editChildrenTogether?: boolean;
   physics?: PhysicsConfig;
   mesh?: PartMesh;
 }
@@ -169,6 +181,7 @@ export interface Skin {
 }
 
 export interface CharacterProject {
+  schemaVersion?: number;
   id: string;
   name: string;
   assets: CharacterAsset[];

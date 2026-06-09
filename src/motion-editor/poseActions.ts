@@ -1,6 +1,6 @@
 import { evaluateController } from '@nstep-core/runtime/evaluateController';
 import { ProjectState } from '../state/projectState';
-import { ClipboardState, Pose, PoseTransform } from '../state/clipboardState';
+import { ClipboardState, Pose } from '../state/clipboardState';
 import { DirtyState } from '../state/dirtyState';
 
 const POSE_PROPS = ['x', 'y', 'rotation', 'scaleX', 'scaleY'] as const;
@@ -109,45 +109,29 @@ export function mirrorPose(pose: Pose, parts: { id: string; name: string }[]): P
   const nameToId: Record<string, string> = {};
   parts.forEach(p => { nameToId[p.name] = p.id; });
 
-  const processed = new Set<string>();
+  // Step 1: negate X and rotation for EVERY part — this is the horizontal flip.
+  // Center/unpaired bones (spine, torso, head) get their offsets mirrored here.
   const result: Pose = {};
-
-  // Copy all entries first
   for (const [partId, t] of Object.entries(pose)) {
-    result[partId] = { ...t };
+    result[partId] = { ...t, x: -t.x, rotation: -t.rotation };
   }
 
+  // Step 2: swap L/R pairs (the entries are already negated from step 1).
+  // No additional sign change is needed — just exchange the two slots.
+  const swapped = new Set<string>();
   for (const part of parts) {
-    if (processed.has(part.id)) continue;
-
+    if (swapped.has(part.id)) continue;
     const mirrorName = mirrorSuffix(part.name);
     if (!mirrorName) continue;
-
     const mirrorId = nameToId[mirrorName];
-    if (!mirrorId) continue;
+    if (!mirrorId || swapped.has(mirrorId)) continue;
 
-    processed.add(part.id);
-    processed.add(mirrorId);
+    swapped.add(part.id);
+    swapped.add(mirrorId);
 
-    const aEntry = pose[part.id];
-    const bEntry = pose[mirrorId];
-
-    const flipTransform = (t: PoseTransform): PoseTransform => ({
-      ...t,
-      x:        -t.x,
-      rotation: -t.rotation,
-    });
-
-    if (aEntry && bEntry) {
-      result[part.id]  = flipTransform(bEntry);
-      result[mirrorId] = flipTransform(aEntry);
-    } else if (aEntry) {
-      result[mirrorId] = flipTransform(aEntry);
-      result[part.id]  = flipTransform(aEntry);
-    } else if (bEntry) {
-      result[part.id]  = flipTransform(bEntry);
-      result[mirrorId] = flipTransform(bEntry);
-    }
+    const tmp          = result[part.id];
+    result[part.id]    = result[mirrorId] ?? { x: 0, y: 0, rotation: 0, scaleX: 0, scaleY: 0 };
+    result[mirrorId]   = tmp              ?? { x: 0, y: 0, rotation: 0, scaleX: 0, scaleY: 0 };
   }
 
   return result;

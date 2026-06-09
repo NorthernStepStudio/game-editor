@@ -478,8 +478,16 @@ export function renderControllerTimeline(
   // ── Pose buttons ────────────────────────────────────────────────────────────
   const currentTime = getPlaybackTimeForAnimation(anim);
 
-  (container.querySelector('#btn-copy-pose') as HTMLElement).onclick = () => {
+  const copyBtn = container.querySelector('#btn-copy-pose') as HTMLElement;
+  copyBtn.onclick = () => {
     copyPoseToClipboard(anim.id, currentTime);
+    const prev = copyBtn.textContent;
+    copyBtn.textContent = '✓ Copied!';
+    copyBtn.style.color = 'var(--accent-green, #4ade80)';
+    setTimeout(() => {
+      copyBtn.textContent = prev;
+      copyBtn.style.color = '';
+    }, 1400);
     onUpdate(false, true);
   };
 

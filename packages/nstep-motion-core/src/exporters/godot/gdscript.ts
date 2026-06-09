@@ -280,7 +280,7 @@ export function exportToGDScript(project: CharacterProject): string {
     lines.push(`var ${vn}_playing: bool = ${anim.loop ? 'true' : 'false'}`);
     const events: any[] = (anim as any).events ?? [];
     if (events.length > 0) {
-      lines.push(`var _${vn}_prev_time: float = -1.0`);
+      lines.push(`var _${vn}_prev_time: float = 0.0`);
     }
   });
   lines.push('');
@@ -308,9 +308,10 @@ export function exportToGDScript(project: CharacterProject): string {
   // Play helpers for one-shot anims
   project.animations.filter(a => !a.loop).forEach(anim => {
     const vn = animVarName(anim.name);
+    const hasEvents = ((anim as any).events ?? []).length > 0;
     lines.push(`func play_${vn}() -> void:`);
     lines.push(`\t${vn}_time = 0.0`);
-    lines.push(`\t_${vn}_prev_time = -1.0`);
+    if (hasEvents) lines.push(`\t_${vn}_prev_time = 0.0`);
     lines.push(`\t${vn}_playing = true`);
     lines.push('');
   });
@@ -337,18 +338,17 @@ export function exportToGDScript(project: CharacterProject): string {
     // Emit signals for events crossed this frame
     if (animEvents.length > 0) {
       lines.push(`\t# Timeline events`);
-      lines.push(`\tif _${vn}_prev_time >= 0.0:`);
       animEvents.forEach((ev: any) => {
         const sigName = ev.name.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^(\d)/, '_$1') || 'event';
         const sv = JSON.stringify(ev.stringValue ?? '');
         const iv = Math.round(ev.intValue ?? 0);
         const fv = (ev.floatValue ?? 0).toFixed(4);
         if (anim.loop) {
-          lines.push(`\t\tif (_${vn}_prev_time < ${ev.time.toFixed(4)} and t >= ${ev.time.toFixed(4)}) or (_${vn}_prev_time > t and (t >= ${ev.time.toFixed(4)} or _${vn}_prev_time < ${ev.time.toFixed(4)})):`);
+          lines.push(`\tif (_${vn}_prev_time < ${ev.time.toFixed(4)} and t >= ${ev.time.toFixed(4)}) or (_${vn}_prev_time > t and (t >= ${ev.time.toFixed(4)} or _${vn}_prev_time < ${ev.time.toFixed(4)})):`);
         } else {
-          lines.push(`\t\tif _${vn}_prev_time < ${ev.time.toFixed(4)} and t >= ${ev.time.toFixed(4)}:`);
+          lines.push(`\tif _${vn}_prev_time < ${ev.time.toFixed(4)} and t >= ${ev.time.toFixed(4)}:`);
         }
-        lines.push(`\t\t\temit_signal("${sigName}", "${ev.name}", ${sv}, ${iv}, ${fv})`);
+        lines.push(`\t\temit_signal("${sigName}", "${ev.name}", ${sv}, ${iv}, ${fv})`);
       });
       lines.push(`\t_${vn}_prev_time = t`);
       lines.push('');

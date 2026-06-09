@@ -303,7 +303,7 @@ export class DopesheetPanel {
     events.forEach((ev: any) => {
       const cxPx = LWpx + (ev.time / this.dur) * cPxW;
       const sel  = ev.id === this.selectedEventId;
-      this._drawFlag(cxPx, evRowTopPx + evRowHPx * 0.85 * dpr, ev.name, sel);
+      this._drawFlag(cxPx, evRowTopPx + evRowHPx * 0.85, ev.name, sel);
     });
 
     // ── Lane rows ──

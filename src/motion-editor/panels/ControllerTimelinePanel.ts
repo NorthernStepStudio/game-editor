@@ -343,8 +343,9 @@ export function renderControllerTimeline(
     weightRange.oninput = () => {
       bc.weight = parseFloat(weightRange.value);
       weightLabel.textContent = bc.weight.toFixed(2);
-      if (PlaybackState.activeBlend?.animAId === bc.animAId && PlaybackState.activeBlend?.animBId === bc.animBId) {
-        PlaybackState.activeBlend.weight = bc.weight;
+      const ab = PlaybackState.activeBlend;
+      if (ab && ab.animAId === bc.animAId && ab.animBId === bc.animBId) {
+        ab.weight = bc.weight;
       }
       DirtyState.markDirty();
     };

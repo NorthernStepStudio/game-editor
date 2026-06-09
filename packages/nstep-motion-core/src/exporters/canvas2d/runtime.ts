@@ -177,18 +177,27 @@ class NStepPlayer {
   setAnim(idx) { this.animIndex = idx; this.time = 0; this._blend = null; this._xfade = null; return this; }
 
   /**
-   * Preview a weighted blend between two animations by index.
+   * Preview a weighted blend between two named animations.
    * weight=0 shows animA, weight=1 shows animB.
+   * @param animAName  Name of the first animation (or index for backwards compat)
+   * @param animBName  Name of the second animation (or index for backwards compat)
+   * @param weight     Blend weight: 0 = full A, 1 = full B
    */
-  playWithBlend(animAIdx, animBIdx, weight) {
-    this._blend = { animAIdx, animBIdx, weight: Math.max(0, Math.min(1, weight)) };
+  playWithBlend(animAName, animBName, weight) {
+    const idxA = typeof animAName === 'number' ? animAName
+      : this.project.animations.findIndex(a => a.name === animAName);
+    const idxB = typeof animBName === 'number' ? animBName
+      : this.project.animations.findIndex(a => a.name === animBName);
+    if (idxA === -1) { console.warn('NStepPlayer.playWithBlend: animation "' + animAName + '" not found'); return this; }
+    if (idxB === -1) { console.warn('NStepPlayer.playWithBlend: animation "' + animBName + '" not found'); return this; }
+    this._blend = { animAIdx: idxA, animBIdx: idxB, weight: Math.max(0, Math.min(1, weight)) };
     this._xfade = null;
     if (!this.playing) this.resume();
     return this;
   }
 
   /**
-   * Set the blend weight when playWithBlend is active.
+   * Set the blend weight when playWithBlend is active (0 = full A, 1 = full B).
    */
   setBlendWeight(weight) {
     if (this._blend) this._blend.weight = Math.max(0, Math.min(1, weight));

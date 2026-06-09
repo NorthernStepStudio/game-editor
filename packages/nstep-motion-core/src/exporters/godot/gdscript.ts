@@ -135,61 +135,113 @@ function keyframesToGD(keyframes: any[], tVar: string): string {
   return `_kf_lerp([${arr}], ${tVar})`;
 }
 
-// ── Animation Tree helper (BlendSpace1D) ─────────────────────────────────────
+// ── Animation Tree helper (BlendSpace1D + crossfade) ─────────────────────────
 
 function emitAnimationTree(project: CharacterProject, lines: string[]): void {
-  if (!project.blendConfigs?.length) return;
+  const hasBlends    = !!project.blendConfigs?.length;
+  const hasCrossfade = project.animations.some(a => (a as any).crossfadeDuration > 0);
+  if (!hasBlends && !hasCrossfade) return;
 
-  lines.push(`# ──────────────────────────────────────────────────────────────────────`);
-  lines.push(`# AnimationTree / BlendSpace1D configuration`);
-  lines.push(`# This script assumes you have an AnimationPlayer node with all animations.`);
-  lines.push(`# For each blend config below, create an AnimationTree node as a sibling of`);
-  lines.push(`# the AnimationPlayer and set up a BlendSpace1D (or AnimationNodeBlend2).`);
-  lines.push(`# See: https://docs.godotengine.org/en/stable/tutorials/animation/animation_tree.html`);
-  lines.push(`#`);
-  project.blendConfigs.forEach((bc) => {
-    const animA = project.animations.find(a => a.id === bc.animAId);
-    const animB = project.animations.find(a => a.id === bc.animBId);
-    const nameA = animA ? animVarName(animA.name) : 'unknown_a';
-    const nameB = animB ? animVarName(animB.name) : 'unknown_b';
-    const label = bc.name ? bc.name.replace(/\s+/g, '_') : `blend_${nameA}_${nameB}`;
-    lines.push(`# Blend: "${label}" — A:"${animA?.name}" ↔ B:"${animB?.name}" (default weight: ${bc.weight.toFixed(2)})`);
-  });
-  lines.push(`#`);
+  lines.push(``);
+  lines.push(`# ══════════════════════════════════════════════════════════════════════`);
+  lines.push(`# AnimationTree — Blending & Crossfade`);
+  lines.push(`# Requires: AnimationPlayer node named "AnimationPlayer" as sibling.`);
+  lines.push(`# ══════════════════════════════════════════════════════════════════════`);
   lines.push(``);
 
-  // Emit @export var for each blend weight so the designer can control it at runtime
-  project.blendConfigs.forEach((bc) => {
-    const animA = project.animations.find(a => a.id === bc.animAId);
-    const animB = project.animations.find(a => a.id === bc.animBId);
-    const nameA = animA ? animVarName(animA.name) : 'unknown_a';
-    const nameB = animB ? animVarName(animB.name) : 'unknown_b';
-    const varName = `blend_weight_${nameA}_${nameB}`;
-    lines.push(`@export_range(0.0, 1.0, 0.01) var ${varName}: float = ${bc.weight.toFixed(2)}`);
-    lines.push(`# Set $AnimationTree["parameters/BlendSpace1D/blend_position"] = ${varName}`);
-  });
-  lines.push(``);
-
-  // Crossfade helper function
-  const hasCrossfade = project.animations.some(a => (a as any).crossfadeDuration != null);
-  if (hasCrossfade) {
-    lines.push(`# ── Crossfade helpers ──────────────────────────────────────────────────`);
-    lines.push(`# Call crossfade_to(anim_name, duration) to smoothly transition between animations`);
-    lines.push(`# using AnimationTree with a OneShot + Blend2 setup:`);
-    lines.push(`#`);
-    lines.push(`#   func crossfade_to(anim_name: String, duration: float) -> void:`);
-    lines.push(`#       $AnimationTree["parameters/Transition/transition_request"] = anim_name`);
-    lines.push(`#       $AnimationTree["parameters/BlendAmount/blend_amount"] = 0.0`);
-    lines.push(`#       var tween := create_tween()`);
-    lines.push(`#       tween.tween_property($AnimationTree, "parameters/BlendAmount/blend_amount", 1.0, duration)`);
-    lines.push(`#`);
-    project.animations.forEach(a => {
-      const xf = (a as any).crossfadeDuration;
-      if (xf != null && xf > 0) {
-        lines.push(`# "${a.name}" has crossfadeDuration = ${xf}s`);
-      }
+  // ── Export vars for each blend weight ──────────────────────────────────────
+  if (hasBlends) {
+    project.blendConfigs!.forEach((bc) => {
+      const animA = project.animations.find(a => a.id === bc.animAId);
+      const animB = project.animations.find(a => a.id === bc.animBId);
+      const nameA = animA ? animVarName(animA.name) : 'unknown_a';
+      const nameB = animB ? animVarName(animB.name) : 'unknown_b';
+      const varName = `blend_weight_${nameA}_${nameB}`;
+      lines.push(`@export_range(0.0, 1.0, 0.01) var ${varName}: float = ${bc.weight.toFixed(2)}`);
     });
     lines.push(``);
+  }
+
+  // ── @onready refs ───────────────────────────────────────────────────────────
+  lines.push(`@onready var _anim_player: AnimationPlayer = $AnimationPlayer`);
+  if (hasBlends) {
+    project.blendConfigs!.forEach((_bc, i) => {
+      lines.push(`@onready var _anim_tree_${i}: AnimationTree = _setup_blend_tree_${i}()`);
+    });
+  }
+  if (hasCrossfade) {
+    lines.push(`var _xfade_tween: Tween = null`);
+  }
+  lines.push(``);
+
+  // ── _setup_blend_tree_N functions ───────────────────────────────────────────
+  if (hasBlends) {
+    project.blendConfigs!.forEach((bc, i) => {
+      const animA = project.animations.find(a => a.id === bc.animAId);
+      const animB = project.animations.find(a => a.id === bc.animBId);
+      const nameA = animA ? animVarName(animA.name) : 'unknown_a';
+      const nameB = animB ? animVarName(animB.name) : 'unknown_b';
+      const varName = `blend_weight_${nameA}_${nameB}`;
+
+      lines.push(`func _setup_blend_tree_${i}() -> AnimationTree:`);
+      lines.push(`\tvar tree := AnimationTree.new()`);
+      lines.push(`\ttree.anim_player = tree.get_path_to(_anim_player)`);
+      lines.push(`\tvar space := AnimationNodeBlendSpace1D.new()`);
+      lines.push(`\tvar node_a := AnimationNodeAnimation.new()`);
+      lines.push(`\tvar node_b := AnimationNodeAnimation.new()`);
+      lines.push(`\tnode_a.animation = "${animA?.name ?? nameA}"`);
+      lines.push(`\tnode_b.animation = "${animB?.name ?? nameB}"`);
+      lines.push(`\tspace.add_blend_point(node_a, 0.0)`);
+      lines.push(`\tspace.add_blend_point(node_b, 1.0)`);
+      lines.push(`\ttree.tree_root = space`);
+      lines.push(`\ttree.active = true`);
+      lines.push(`\tadd_child(tree)`);
+      lines.push(`\treturn tree`);
+      lines.push(``);
+
+      // Setter helper for runtime blend control
+      lines.push(`func set_blend_${nameA}_${nameB}(w: float) -> void:`);
+      lines.push(`\t${varName} = clamp(w, 0.0, 1.0)`);
+      lines.push(`\t_anim_tree_${i}["parameters/BlendSpace1D/blend_position"] = ${varName}`);
+      lines.push(``);
+
+      // _process integration
+      lines.push(`# In _process, apply the blend position (call this or inline it):`);
+      lines.push(`# _anim_tree_${i}["parameters/BlendSpace1D/blend_position"] = ${varName}`);
+      lines.push(``);
+    });
+  }
+
+  // ── Crossfade helper ────────────────────────────────────────────────────────
+  if (hasCrossfade) {
+    lines.push(`# crossfade_to: smoothly transitions to a named animation over 'duration' seconds.`);
+    lines.push(`# Requires an AnimationNodeStateMachine or AnimationNodeBlend2 named "Crossfader"`);
+    lines.push(`# connected in an AnimationTree.`);
+    lines.push(`func crossfade_to(anim_name: String, duration: float) -> void:`);
+    lines.push(`\tif _xfade_tween:`);
+    lines.push(`\t\t_xfade_tween.kill()`);
+    lines.push(`\t_anim_player.play(anim_name)`);
+    lines.push(`\tvar crossfader_path := NodePath("Crossfader")`);
+    lines.push(`\tvar has_tree := has_node("AnimationTree")`);
+    lines.push(`\tif has_tree:`);
+    lines.push(`\t\tvar anim_tree: AnimationTree = get_node("AnimationTree")`);
+    lines.push(`\t\tanim_tree["parameters/Transition/transition_request"] = anim_name`);
+    lines.push(`\t\tanim_tree["parameters/BlendAmount/blend_amount"] = 0.0`);
+    lines.push(`\t\t_xfade_tween = create_tween()`);
+    lines.push(`\t\t_xfade_tween.tween_property(`);
+    lines.push(`\t\t\tanim_tree, "parameters/BlendAmount/blend_amount", 1.0, duration`);
+    lines.push(`\t\t)`);
+    lines.push(``);
+
+    // Per-animation crossfade convenience calls
+    project.animations.forEach(a => {
+      const xf = (a as any).crossfadeDuration;
+      if (!xf || xf <= 0) return;
+      const vn = animVarName(a.name);
+      lines.push(`func crossfade_to_${vn}() -> void:`);
+      lines.push(`\tcrossfade_to("${a.name}", ${(xf as number).toFixed(3)})`);
+      lines.push(``);
+    });
   }
 }
 

@@ -1,8 +1,11 @@
 import type { CharacterProject, CharacterPart, AnimationController } from './types.js';
+import { CURRENT_PROJECT_SCHEMA_VERSION } from './version.js';
+import { capturePartRestPose } from './restPose.js';
 
 export function createDefaultProject(): CharacterProject {
   const id = 'proj-' + Math.random().toString(36).substr(2, 9);
   return {
+    schemaVersion: CURRENT_PROJECT_SCHEMA_VERSION,
     id,
     name: 'New Project',
     assets: [],
@@ -22,7 +25,7 @@ export function createDefaultProject(): CharacterProject {
 }
 
 export function createDefaultPart(id: string, name: string): CharacterPart {
-  return {
+  const part: CharacterPart = {
     id,
     name,
     parentId: null,
@@ -35,8 +38,11 @@ export function createDefaultPart(id: string, name: string): CharacterPart {
     zIndex: 10,
     color: '#4b5563',
     renderMode: 'shape',
-    shapeType: 'roundedRect'
+    shapeType: 'roundedRect',
+    editChildrenTogether: true,
   };
+  capturePartRestPose(part);
+  return part;
 }
 
 export function createDefaultController(targetPartId: string): AnimationController {

@@ -1,7 +1,7 @@
 import { ProjectState } from '../../state/projectState';
 import { HistoryState } from '../../state/historyState';
 import { SelectionState } from '../../state/selectionState';
-import { PlaybackState, getPlaybackTimeForAnimation } from '../../state/playbackState';
+import { PlaybackState, getPlaybackTimeForAnimation, startCrossfade } from '../../state/playbackState';
 import { DirtyState } from '../../state/dirtyState';
 import { FORMULA_PRESETS } from '@nstep-core/formulas/presets';
 import { evaluateController } from '@nstep-core/runtime/evaluateController';
@@ -130,6 +130,13 @@ export function renderControllerTimeline(
           color:var(--text-main); border-radius:4px; font-size:0.68rem; font-family:'JetBrains Mono',monospace;">s
       </label>
 
+      <label style="display:flex; align-items:center; gap:4px; font-size:0.68rem; color:var(--text-muted); cursor:pointer; flex-shrink:0;" title="Auto-crossfade duration when switching to this animation">
+        Xfade
+        <input type="number" id="tl-crossfade" value="${(anim.crossfadeDuration ?? 0).toFixed(2)}" min="0" max="10" step="0.05"
+          style="width:44px; padding:2px 4px; background:rgba(0,0,0,0.3); border:1px solid var(--border);
+          color:var(--text-main); border-radius:4px; font-size:0.68rem; font-family:'JetBrains Mono',monospace;">s
+      </label>
+
       <div class="timeline-toolbar-right">
         <button class="filter-tab ${activeFilter==='all'?'active':''}" data-filter="all">All</button>
         <button class="filter-tab ${activeFilter==='selected'?'active':''}" data-filter="selected">Selected</button>
@@ -149,6 +156,40 @@ export function renderControllerTimeline(
         <button id="btn-tmpl-hit"       class="tmpl-btn" style="color:var(--warning);">💥 Hit</button>
         <button id="btn-tmpl-death"     class="tmpl-btn" style="color:var(--danger);">💀 Death</button>
       </div>
+    </div>
+
+    <div class="blend-panel">
+      <div class="blend-panel-header">
+        <span style="font-size:0.7rem; font-weight:600; color:var(--text-main);">⟷ Blend Configs</span>
+        <button id="btn-add-blend" class="icon-btn" title="Add blend config" style="font-size:0.68rem; padding:2px 8px;">+ Blend</button>
+      </div>
+      ${(project.blendConfigs || []).length === 0
+        ? `<span style="font-size:0.65rem; color:var(--text-muted); padding:4px 8px; display:block;">No blend configs — click + Blend to add one.</span>`
+        : (project.blendConfigs || []).map((bc: any) => {
+            const isActive = PlaybackState.activeBlend?.animAId === bc.animAId &&
+                             PlaybackState.activeBlend?.animBId === bc.animBId;
+            const w = bc.weight ?? 0.5;
+            const animAName = (project.animations.find((a: any) => a.id === bc.animAId) as any)?.name ?? '?';
+            const animBName = (project.animations.find((a: any) => a.id === bc.animBId) as any)?.name ?? '?';
+            return `
+            <div class="blend-row ${isActive ? 'blend-row-active' : ''}" data-blend-id="${bc.id}">
+              <select class="blend-anim-a" style="font-size:0.65rem; padding:2px 4px; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text-main); border-radius:3px; max-width:80px;">
+                ${project.animations.map((a: any) => `<option value="${a.id}" ${a.id === bc.animAId ? 'selected' : ''}>${a.name}</option>`).join('')}
+              </select>
+              <span style="font-size:0.65rem; color:var(--text-muted);">↔</span>
+              <select class="blend-anim-b" style="font-size:0.65rem; padding:2px 4px; background:rgba(0,0,0,0.3); border:1px solid var(--border); color:var(--text-main); border-radius:3px; max-width:80px;">
+                ${project.animations.map((a: any) => `<option value="${a.id}" ${a.id === bc.animBId ? 'selected' : ''}>${a.name}</option>`).join('')}
+              </select>
+              <span style="font-size:0.62rem; color:var(--text-muted); flex-shrink:0;">${animAName.slice(0,6)}</span>
+              <input type="range" class="blend-weight-range" min="0" max="1" step="0.01" value="${w.toFixed(2)}"
+                style="width:80px; accent-color:var(--accent);" title="Blend weight (0=A, 1=B)">
+              <span class="blend-weight-label" style="font-size:0.62rem; font-family:monospace; min-width:32px;">${w.toFixed(2)}</span>
+              <span style="font-size:0.62rem; color:var(--text-muted); flex-shrink:0;">${animBName.slice(0,6)}</span>
+              <button class="blend-preview-btn icon-btn" title="${isActive ? 'Stop preview' : 'Preview blend in canvas'}" style="font-size:0.62rem; padding:1px 6px;">${isActive ? '⏹' : '▶'}</button>
+              <button class="blend-del-btn icon-btn" title="Delete blend config" style="font-size:0.62rem; color:var(--danger);">✕</button>
+            </div>`;
+          }).join('')
+      }
     </div>
 
     <div class="ds-mount"></div>
@@ -218,8 +259,17 @@ export function renderControllerTimeline(
     (btn as HTMLElement).onclick = () => {
       const id = (btn as HTMLElement).getAttribute('data-anim-id')!;
       if (id !== SelectionState.activeAnimId) {
+        const newAnim = project.animations.find((a: any) => a.id === id) as any;
+        const xfadeDur = newAnim?.crossfadeDuration ?? 0;
+        if (xfadeDur > 0 && SelectionState.activeAnimId) {
+          startCrossfade(SelectionState.activeAnimId, PlaybackState.time, xfadeDur);
+          PlaybackState.time = 0;
+        } else {
+          PlaybackState.crossfade = null;
+          PlaybackState.time = 0;
+        }
+        PlaybackState.activeBlend = null;
         SelectionState.activeAnimId = id;
-        PlaybackState.time = 0;
         SelectionState.selectedKeyframeIds.clear();
         SelectionState.selectedLaneCtrlId = null;
         onUpdate();
@@ -252,6 +302,74 @@ export function renderControllerTimeline(
   (container.querySelector('#btn-add-anim') as HTMLElement).onclick = () => {
     addBlankAnimation(project); onUpdate();
   };
+
+  // ── Blend panel bindings ────────────────────────────────────────────────────
+
+  (container.querySelector('#btn-add-blend') as HTMLElement).onclick = () => {
+    if (project.animations.length < 2) { alert('Add at least two animations first.'); return; }
+    if (!project.blendConfigs) project.blendConfigs = [];
+    project.blendConfigs.push({
+      id: 'blend-' + Math.random().toString(36).slice(2, 11),
+      animAId: project.animations[0].id,
+      animBId: project.animations[1].id,
+      weight: 0.5,
+    });
+    DirtyState.markDirty(); onUpdate();
+  };
+
+  container.querySelectorAll('.blend-row[data-blend-id]').forEach(row => {
+    const blendId = (row as HTMLElement).getAttribute('data-blend-id')!;
+    const bc = (project.blendConfigs || []).find((b: any) => b.id === blendId) as any;
+    if (!bc) return;
+
+    (row.querySelector('.blend-anim-a') as HTMLSelectElement).onchange = (e) => {
+      bc.animAId = (e.target as HTMLSelectElement).value;
+      if (PlaybackState.activeBlend?.animAId === bc.animAId) {
+        PlaybackState.activeBlend = { animAId: bc.animAId, animBId: bc.animBId, weight: bc.weight };
+      }
+      DirtyState.markDirty(); onUpdate();
+    };
+
+    (row.querySelector('.blend-anim-b') as HTMLSelectElement).onchange = (e) => {
+      bc.animBId = (e.target as HTMLSelectElement).value;
+      if (PlaybackState.activeBlend?.animBId === bc.animBId) {
+        PlaybackState.activeBlend = { animAId: bc.animAId, animBId: bc.animBId, weight: bc.weight };
+      }
+      DirtyState.markDirty(); onUpdate();
+    };
+
+    const weightRange = row.querySelector('.blend-weight-range') as HTMLInputElement;
+    const weightLabel = row.querySelector('.blend-weight-label') as HTMLElement;
+    weightRange.oninput = () => {
+      bc.weight = parseFloat(weightRange.value);
+      weightLabel.textContent = bc.weight.toFixed(2);
+      if (PlaybackState.activeBlend?.animAId === bc.animAId && PlaybackState.activeBlend?.animBId === bc.animBId) {
+        PlaybackState.activeBlend.weight = bc.weight;
+      }
+      DirtyState.markDirty();
+    };
+
+    (row.querySelector('.blend-preview-btn') as HTMLElement).onclick = () => {
+      const isActive = PlaybackState.activeBlend?.animAId === bc.animAId &&
+                       PlaybackState.activeBlend?.animBId === bc.animBId;
+      if (isActive) {
+        PlaybackState.activeBlend = null;
+      } else {
+        PlaybackState.crossfade = null;
+        PlaybackState.activeBlend = { animAId: bc.animAId, animBId: bc.animBId, weight: bc.weight };
+      }
+      onUpdate();
+    };
+
+    (row.querySelector('.blend-del-btn') as HTMLElement).onclick = () => {
+      project.blendConfigs = (project.blendConfigs || []).filter((b: any) => b.id !== blendId);
+      if (PlaybackState.activeBlend?.animAId === bc.animAId &&
+          PlaybackState.activeBlend?.animBId === bc.animBId) {
+        PlaybackState.activeBlend = null;
+      }
+      DirtyState.markDirty(); onUpdate();
+    };
+  });
 
   (container.querySelector('#btn-tl-play') as HTMLButtonElement).onclick = () => {
     PlaybackState.playing = !PlaybackState.playing; onUpdate(false, true);
@@ -302,6 +420,15 @@ export function renderControllerTimeline(
   (container.querySelector('#tl-duration') as HTMLInputElement).onchange = (e) => {
     const v = parseFloat((e.target as HTMLInputElement).value);
     if (!isNaN(v) && v > 0) { anim.duration = v; DirtyState.markDirty(); onUpdate(); }
+  };
+
+  (container.querySelector('#tl-crossfade') as HTMLInputElement).onchange = (e) => {
+    const v = parseFloat((e.target as HTMLInputElement).value);
+    if (!isNaN(v) && v >= 0) {
+      if (v === 0) delete (anim as any).crossfadeDuration;
+      else anim.crossfadeDuration = v;
+      DirtyState.markDirty();
+    }
   };
 
   container.querySelectorAll('.filter-tab[data-filter]').forEach(btn => {

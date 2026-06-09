@@ -50,6 +50,15 @@ export interface CharacterAnimation {
   duration: number;
   loop: boolean;
   controllers: AnimationController[];
+  crossfadeDuration?: number;
+}
+
+export interface BlendConfig {
+  id: string;
+  name?: string;
+  animAId: string;
+  animBId: string;
+  weight: number;
 }
 
 export interface CharacterAsset {
@@ -126,6 +135,7 @@ export interface CharacterProject {
   renderQuality?: 'pixel' | 'smooth';
   lastSelectedAnimId?: string;
   lastSelectedPartId?: string;
+  blendConfigs?: BlendConfig[];
 }
 
 export interface SpriteSheetSource {

@@ -1,5 +1,6 @@
 import { CharacterProject, CharacterPart } from '@nstep-core/schema/types';
 import { evaluateController } from '@nstep-core/runtime/evaluateController';
+import { blendAnimations } from '@nstep-core/runtime/blendAnimations';
 import { ProjectState } from '../../state/projectState';
 import { SelectionState } from '../../state/selectionState';
 import { PlaybackState, getPlaybackTimeForAnimation } from '../../state/playbackState';
@@ -190,6 +191,14 @@ export class MotionCanvasRenderer {
   }
 
   private advance(dt: number) {
+    // Advance crossfade timer
+    if (PlaybackState.crossfade) {
+      PlaybackState.crossfade.elapsed += dt * PlaybackState.speedMult;
+      if (PlaybackState.crossfade.elapsed >= PlaybackState.crossfade.duration) {
+        PlaybackState.crossfade = null;
+      }
+    }
+
     if (PlaybackState.playing) {
       const anim = ProjectState.project.animations.find((a: any) => a.id === SelectionState.activeAnimId);
       if (anim) {
@@ -584,8 +593,34 @@ export class MotionCanvasRenderer {
       this.renderOnionSkin(project, anim, playbackTime + step,     'rgba(255,50,50,0.5)', 0.15);
     }
 
-    // Main frame
-    const tforms = this.computeTransformsAtTime(project, anim, playbackTime);
+    // Main frame — check for blend / crossfade
+    let tforms: Map<string, any>;
+    const crossfade = PlaybackState.crossfade;
+    const activeBlend = PlaybackState.activeBlend;
+
+    if (crossfade && anim) {
+      const fromAnim = (project.animations as any[]).find((a: any) => a.id === crossfade.fromAnimId);
+      if (fromAnim) {
+        const w = Math.min(crossfade.elapsed / crossfade.duration, 1);
+        tforms = blendAnimations(project, fromAnim, anim, w, crossfade.fromTimeSnapshot, playbackTime);
+      } else {
+        tforms = this.computeTransformsAtTime(project, anim, playbackTime);
+      }
+    } else if (activeBlend) {
+      const animA = (project.animations as any[]).find((a: any) => a.id === activeBlend.animAId);
+      const animB = (project.animations as any[]).find((a: any) => a.id === activeBlend.animBId);
+      if (animA && animB) {
+        const durA = animA.duration || 1;
+        const durB = animB.duration || 1;
+        const tA = animA.loop ? ((playbackTime % durA) + durA) % durA : Math.max(0, Math.min(durA, playbackTime));
+        const tB = animB.loop ? ((playbackTime % durB) + durB) % durB : Math.max(0, Math.min(durB, playbackTime));
+        tforms = blendAnimations(project, animA, animB, activeBlend.weight, tA, tB);
+      } else {
+        tforms = this.computeTransformsAtTime(project, anim, playbackTime);
+      }
+    } else {
+      tforms = this.computeTransformsAtTime(project, anim, playbackTime);
+    }
 
     // First matrix pass
     let matrices = this.buildMatrices(tforms);

@@ -151,6 +151,8 @@ class NStepPlayer {
     this._raf = null;
     this._lastT = null;
     this._images = {};
+    this._blend = null;
+    this._xfade = null;
     this._preloadImages();
   }
 
@@ -168,16 +170,62 @@ class NStepPlayer {
   }
 
   start() { this.playing = true; this._loop(performance.now()); return this; }
-  stop()  { this.playing = false; if (this._raf) cancelAnimationFrame(this._raf); return this; }
+  stop()  { this.playing = false; if (this._raf) cancelAnimationFrame(this._raf); this._blend = null; this._xfade = null; return this; }
   pause() { this.playing = false; return this; }
   resume(){ this.playing = true; this._lastT = null; this._loop(performance.now()); return this; }
   seekTo(t) { this.time = t; this.render(); return this; }
-  setAnim(idx) { this.animIndex = idx; this.time = 0; return this; }
+  setAnim(idx) { this.animIndex = idx; this.time = 0; this._blend = null; this._xfade = null; return this; }
+
+  /**
+   * Preview a weighted blend between two animations by index.
+   * weight=0 shows animA, weight=1 shows animB.
+   */
+  playWithBlend(animAIdx, animBIdx, weight) {
+    this._blend = { animAIdx, animBIdx, weight: Math.max(0, Math.min(1, weight)) };
+    this._xfade = null;
+    if (!this.playing) this.resume();
+    return this;
+  }
+
+  /**
+   * Set the blend weight when playWithBlend is active.
+   */
+  setBlendWeight(weight) {
+    if (this._blend) this._blend.weight = Math.max(0, Math.min(1, weight));
+    return this;
+  }
+
+  /**
+   * Crossfade from the currently playing animation to the named animation.
+   * @param animName  The name of the target animation.
+   * @param duration  Crossfade duration in seconds.
+   */
+  crossfadeTo(animName, duration) {
+    const idx = this.project.animations.findIndex(a => a.name === animName);
+    if (idx === -1) { console.warn('NStepPlayer: animation "' + animName + '" not found'); return this; }
+    this._xfade = {
+      fromIdx: this.animIndex,
+      fromTimeSnapshot: this.time,
+      toIdx: idx,
+      elapsed: 0,
+      duration: Math.max(0.001, duration),
+    };
+    this._blend = null;
+    this.animIndex = idx;
+    this.time = 0;
+    if (!this.playing) this.resume();
+    return this;
+  }
 
   _loop(now) {
     if (!this.playing) return;
     if (this._lastT !== null) {
       const dt = (now - this._lastT) / 1000 * this.speedMult;
+      // Advance crossfade timer
+      if (this._xfade) {
+        this._xfade.elapsed += dt;
+        if (this._xfade.elapsed >= this._xfade.duration) this._xfade = null;
+      }
       const anim = this.anim;
       if (anim) {
         this.time += dt;
@@ -195,6 +243,34 @@ class NStepPlayer {
     this._raf = requestAnimationFrame(t => this._loop(t));
   }
 
+  _computeTransforms(anim, time) {
+    const tforms = {};
+    const project = this.project;
+    project.parts.forEach(p => {
+      tforms[p.id] = {
+        x: p.baseX ?? 0, y: p.baseY ?? 0,
+        rotation: p.baseRotation ?? 0,
+        scaleX: p.baseScaleX ?? 1, scaleY: p.baseScaleY ?? 1,
+        opacity: p.opacity ?? 1,
+        zIndex: p.zIndex ?? 0,
+        color: 0,
+      };
+    });
+    const dur = anim.duration || 1;
+    (anim.controllers || []).forEach(c => {
+      if (!c.enabled) return;
+      const tf = tforms[c.targetPartId];
+      if (!tf) return;
+      const val = evaluateController(c, time, dur);
+      tf[c.property] = (tf[c.property] ?? 0) + val;
+    });
+    Object.values(tforms).forEach(tf => {
+      tf.zIndex = Math.round(tf.zIndex);
+      tf.color = Math.max(0, Math.min(1, tf.color));
+    });
+    return tforms;
+  }
+
   render() {
     const { ctx, canvas, project } = this;
     const anim = this.anim;
@@ -204,30 +280,54 @@ class NStepPlayer {
     const dur = anim.duration || 1;
     const t = anim.loop ? ((this.time % dur) + dur) % dur : Math.max(0, Math.min(dur, this.time));
 
-    // Compute transforms
-    const transforms = {};
-    project.parts.forEach(p => {
-      transforms[p.id] = {
-        x: p.baseX ?? 0, y: p.baseY ?? 0,
-        rotation: p.baseRotation ?? 0,
-        scaleX: p.baseScaleX ?? 1, scaleY: p.baseScaleY ?? 1,
-        opacity: p.opacity ?? 1,
-        zIndex: p.zIndex ?? 0,
-        color: 0,
-      };
-    });
-    (anim.controllers || []).forEach(c => {
-      if (!c.enabled) return;
-      const tf = transforms[c.targetPartId];
-      if (!tf) return;
-      const val = evaluateController(c, t, dur);
-      tf[c.property] = (tf[c.property] ?? 0) + val;
-    });
-    // Post-process special properties
-    Object.values(transforms).forEach(tf => {
-      tf.zIndex = Math.round(tf.zIndex);
-      tf.color  = Math.max(0, Math.min(1, tf.color));
-    });
+    // Compute transforms — with blend / crossfade support
+    let transforms;
+    const BLEND_PROPS = ['x','y','rotation','scaleX','scaleY','opacity','zIndex','color'];
+
+    if (this._xfade) {
+      const fromAnim = project.animations[this._xfade.fromIdx];
+      const w = Math.min(this._xfade.elapsed / this._xfade.duration, 1);
+      if (fromAnim) {
+        const tA = this._computeTransforms(fromAnim, this._xfade.fromTimeSnapshot);
+        const tB = this._computeTransforms(anim, t);
+        transforms = {};
+        project.parts.forEach(p => {
+          const a = tA[p.id], b = tB[p.id];
+          if (!a && !b) return;
+          const out = {};
+          BLEND_PROPS.forEach(k => { out[k] = (a?.[k] ?? 0) + ((b?.[k] ?? 0) - (a?.[k] ?? 0)) * w; });
+          out.zIndex = Math.round(out.zIndex);
+          transforms[p.id] = out;
+        });
+      } else {
+        transforms = this._computeTransforms(anim, t);
+      }
+    } else if (this._blend) {
+      const animA = project.animations[this._blend.animAIdx];
+      const animB = project.animations[this._blend.animBIdx];
+      const w = this._blend.weight;
+      if (animA && animB) {
+        const durA = animA.duration || 1;
+        const durB = animB.duration || 1;
+        const tA = animA.loop ? ((this.time % durA) + durA) % durA : Math.max(0, Math.min(durA, this.time));
+        const tB = animB.loop ? ((this.time % durB) + durB) % durB : Math.max(0, Math.min(durB, this.time));
+        const tfA = this._computeTransforms(animA, tA);
+        const tfB = this._computeTransforms(animB, tB);
+        transforms = {};
+        project.parts.forEach(p => {
+          const a = tfA[p.id], b = tfB[p.id];
+          if (!a && !b) return;
+          const out = {};
+          BLEND_PROPS.forEach(k => { out[k] = (a?.[k] ?? 0) + ((b?.[k] ?? 0) - (a?.[k] ?? 0)) * w; });
+          out.zIndex = Math.round(out.zIndex);
+          transforms[p.id] = out;
+        });
+      } else {
+        transforms = this._computeTransforms(anim, t);
+      }
+    } else {
+      transforms = this._computeTransforms(anim, t);
+    }
 
     // Build hierarchy
     const partsMap = {}, childrenMap = {}, roots = [];

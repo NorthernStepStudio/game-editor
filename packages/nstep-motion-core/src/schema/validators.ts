@@ -33,13 +33,15 @@ function normalizeController(c: any): AnimationController {
 }
 
 function normalizeAnimation(a: any): CharacterAnimation {
-  return {
+  const out: CharacterAnimation = {
     id: a.id || 'anim-' + Math.random().toString(36).substr(2, 9),
     name: a.name || 'Animation',
     duration: Number(a.duration ?? 1),
     loop: a.loop !== undefined ? !!a.loop : true,
     controllers: Array.isArray(a.controllers) ? a.controllers.map(normalizeController) : []
   };
+  if (a.crossfadeDuration != null) out.crossfadeDuration = Math.max(0, Number(a.crossfadeDuration));
+  return out;
 }
 
 function normalizeIKChain(ik: any): any {
@@ -121,11 +123,23 @@ function normalizePart(p: any): CharacterPart {
   return out as CharacterPart;
 }
 
+function normalizeBlendConfig(b: any): any {
+  if (!b || typeof b !== 'object') return null;
+  if (!b.animAId || !b.animBId) return null;
+  return {
+    id:      b.id || 'blend-' + Math.random().toString(36).substr(2, 9),
+    name:    b.name || undefined,
+    animAId: String(b.animAId),
+    animBId: String(b.animBId),
+    weight:  Math.max(0, Math.min(1, Number(b.weight ?? 0.5))),
+  };
+}
+
 export function normalizeProject(p: any): CharacterProject {
   if (!p || typeof p !== 'object') {
     throw new Error('Invalid project data');
   }
-  return {
+  const out: CharacterProject = {
     id: p.id || 'proj-' + Math.random().toString(36).substr(2, 9),
     name: p.name || 'Untitled',
     assets: Array.isArray(p.assets) ? p.assets : [],
@@ -135,4 +149,9 @@ export function normalizeProject(p: any): CharacterProject {
     lastSelectedAnimId: p.lastSelectedAnimId,
     lastSelectedPartId: p.lastSelectedPartId
   };
+  if (Array.isArray(p.blendConfigs)) {
+    const configs = p.blendConfigs.map(normalizeBlendConfig).filter(Boolean);
+    if (configs.length) out.blendConfigs = configs;
+  }
+  return out;
 }

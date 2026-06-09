@@ -182,6 +182,13 @@ ${controllerEntries}
             {
                 if (!deltas.TryGetValue(c.partName, out PartDelta d)) continue;
                 float val = EvaluateController(c, time, dur);
+
+                // Apply per-controller min/max clamp on the delta, matching web evaluator:
+                //   tv = base + val; if (min != max) tv = clamp(base + min, base + max, tv)
+                //   → val itself is clamped to [minDelta, maxDelta] when constrained.
+                bool constrained = !Mathf.Approximately(c.minDelta, c.maxDelta);
+                if (constrained) val = Mathf.Clamp(val, c.minDelta, c.maxDelta);
+
                 // val is a delta — add it onto whatever the current accumulated value is,
                 // matching the web evaluator: tform[property] = currentValue + evaluatedDelta
                 switch (c.property)
@@ -391,18 +398,22 @@ ${controllerEntries}
                 float by = CubicBezier1D(bt, 0f, kfs[lo].cp1y, kfs[lo].cp2y, 1f);
                 return kfs[lo].value + (kfs[hi].value - kfs[lo].value) * by;
             }
-            return kfs[lo].easing switch
+            switch (kfs[lo].easing)
             {
-                "step"      => t < 1f ? kfs[lo].value : kfs[hi].value,
-                "easeInOut" => Mathf.Lerp(kfs[lo].value, kfs[hi].value, EaseInOut(t)),
-                "spring"    =>
+                case "step":
+                    return t < 1f ? kfs[lo].value : kfs[hi].value;
+                case "easeInOut":
+                    return Mathf.Lerp(kfs[lo].value, kfs[hi].value, EaseInOut(t));
+                case "spring":
                 {
-                    float s = kfs[lo].value + (kfs[hi].value - kfs[lo].value) * t;
-                    float bounce = Mathf.Sin(t * Mathf.PI * 3f) * Mathf.Exp(-t * 4f) * (kfs[hi].value - kfs[lo].value) * 0.15f;
+                    float s      = kfs[lo].value + (kfs[hi].value - kfs[lo].value) * t;
+                    float bounce = Mathf.Sin(t * Mathf.PI * 3f) * Mathf.Exp(-t * 4f)
+                                   * (kfs[hi].value - kfs[lo].value) * 0.15f;
                     return s + bounce;
-                },
-                _           => Mathf.Lerp(kfs[lo].value, kfs[hi].value, t),
-            };
+                }
+                default:
+                    return Mathf.Lerp(kfs[lo].value, kfs[hi].value, t);
+            }
         }
 
         private static float CubicBezier1D(float t, float p0, float p1, float p2, float p3)
@@ -455,6 +466,7 @@ ${controllerEntries}
             public string           property;
             public string           preset;
             public float            speed, amplitude, phase, offset;
+            public float            minDelta, maxDelta;   // == c.params.min / c.params.max (0 = unconstrained when equal)
             public ControllerMode   mode;
             public KeyframeData[]   keyframes;
         }
@@ -489,5 +501,7 @@ function buildControllerEntry(c: any, partIdToName: Map<string, string>): string
         return `new KeyframeData { time=${(k.time as number).toFixed(4)}f, value=${(k.value as number).toFixed(4)}f, easing="${k.easing}", hasTangents=${hasTangents ? 'true' : 'false'}, cp1x=${cp1x}f, cp1y=${cp1y}f, cp2x=${cp2x}f, cp2y=${cp2y}f }`;
       }).join(', ')} }`
     : 'null';
-  return `new ControllerData { partName="${partName}", property="${c.property}", preset="${c.formulaPreset}", speed=${(c.params.speed??1).toFixed(4)}f, amplitude=${(c.params.amplitude??0).toFixed(4)}f, phase=${(c.params.phase??0).toFixed(4)}f, offset=${(c.params.offset??0).toFixed(4)}f, mode=${mode}, keyframes=${kfs} }`;
+  const minD = (c.params.min ?? 0).toFixed(4);
+  const maxD = (c.params.max ?? 0).toFixed(4);
+  return `new ControllerData { partName="${partName}", property="${c.property}", preset="${c.formulaPreset}", speed=${(c.params.speed??1).toFixed(4)}f, amplitude=${(c.params.amplitude??0).toFixed(4)}f, phase=${(c.params.phase??0).toFixed(4)}f, offset=${(c.params.offset??0).toFixed(4)}f, minDelta=${minD}f, maxDelta=${maxD}f, mode=${mode}, keyframes=${kfs} }`;
 }

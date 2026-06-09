@@ -953,10 +953,13 @@ export class MotionCanvasRenderer {
       const prevId = SelectionState.activePartId;
       SelectionState.activePartId = picked ? picked.id : null;
 
-      // Sync single-selection into the set so move-drag never moves stale group members
+      // Sync selection set: collapse to singleton only when clicking a non-selected part;
+      // preserve the existing set when dragging a part already in it (enables group move).
       if (picked) {
-        SelectionState.selectedPartIds.clear();
-        SelectionState.selectedPartIds.add(picked.id);
+        if (!SelectionState.selectedPartIds.has(picked.id)) {
+          SelectionState.selectedPartIds.clear();
+          SelectionState.selectedPartIds.add(picked.id);
+        }
       }
 
       if (picked && !picked.locked) {

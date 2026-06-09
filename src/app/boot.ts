@@ -15,8 +15,10 @@ import { setupRiggingUI, renderRiggingUI, setRiggingActive } from '../rigging/ri
 import { AppState } from '../state/appState';
 import { MAIN_LAYOUT } from './layout';
 
+type AppPage = 'overview' | 'editor' | 'cutter' | 'rigging';
+
 export function bootApp() {
-  console.log('NStep Code Motion Editor: Booting...');
+  console.log('NStep Game Editor: Booting...');
 
   // 0. Inject Layout
   const appRoot = document.getElementById('app');
@@ -61,7 +63,7 @@ export function bootApp() {
   renderer.onUpdate = () => refreshRenderer();
 
   // Keep exactly one renderer loop driving shared global state at a time.
-  const applyPageActivation = (page: string) => {
+  const applyPageActivation = (page: AppPage) => {
     renderer.setActive(page === 'editor');
     setRiggingActive(page === 'rigging');
   };
@@ -75,9 +77,10 @@ export function bootApp() {
 
   setupUI(refreshRenderer);
   setupCutterUI((page) => {
-    AppState.currentPage = page as any;
-    navigate(page);
-    applyPageActivation(page);
+    const nextPage = page as AppPage;
+    AppState.currentPage = nextPage;
+    navigate(nextPage);
+    applyPageActivation(nextPage);
     refreshRenderer();
   });
   setupRiggingUI(
@@ -96,11 +99,14 @@ export function bootApp() {
     navigate(page);
     applyPageActivation(page);
     if (page === 'rigging') renderRiggingUI();
+    else if (page === 'overview') renderUI(true, true);
     else refreshRenderer();
   });
 
   // Initial Render
+  navigate(AppState.currentPage);
+  applyPageActivation(AppState.currentPage);
   refreshRenderer();
 
-  console.log('NStep Code Motion Editor: Boot Complete.');
+  console.log('NStep Game Editor: Boot Complete.');
 }

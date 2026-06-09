@@ -9,6 +9,8 @@ import { createDefaultController } from '@nstep-core/schema/defaults';
 import { applyTemplate, addControllerSafe } from '../animationTemplates';
 import { DopesheetPanel } from './DopesheetPanel';
 import { CurveEditorPanel } from './CurveEditorPanel';
+import { ClipboardState } from '../../state/clipboardState';
+import { copyPoseToClipboard, pastePose, mirrorPose, resetPoseAtTime } from '../poseActions';
 
 let activeFilter: 'all' | 'selected' | 'moving' = 'all';
 
@@ -145,6 +147,11 @@ export function renderControllerTimeline(
         <button id="btn-add-ctrl">+ Controller</button>
         ${presetSelect('sine', 'sel-global-preset')}
         <button id="btn-apply-preset">Apply to Part</button>
+        <div class="tl-sep"></div>
+        <button id="btn-copy-pose"    class="icon-btn pose-btn" title="Copy pose at playhead (Ctrl+C)" style="font-size:0.68rem; padding:2px 7px;">⎘ Copy</button>
+        <button id="btn-paste-pose"   class="icon-btn pose-btn ${ClipboardState.copiedPose ? '' : 'pose-btn-dim'}" title="Paste copied pose at playhead (Ctrl+V)" style="font-size:0.68rem; padding:2px 7px;">⎗ Paste</button>
+        <button id="btn-paste-mirror" class="icon-btn pose-btn ${ClipboardState.copiedPose ? '' : 'pose-btn-dim'}" title="Paste mirrored pose at playhead" style="font-size:0.68rem; padding:2px 7px;">↔ Mirror</button>
+        <button id="btn-reset-pose"   class="icon-btn pose-btn" title="Remove all keyframes at the playhead time" style="font-size:0.68rem; padding:2px 7px;">↺ Reset</button>
         <div class="tl-sep"></div>
         <span style="font-size:0.65rem; color:var(--text-muted); flex-shrink:0;">Templates:</span>
         <button id="btn-tmpl-idle"      class="tmpl-btn">😶 Idle</button>
@@ -467,6 +474,35 @@ export function renderControllerTimeline(
   (container.querySelector('#btn-tmpl-jump')      as HTMLElement).onclick = () => tmpl('jump');
   (container.querySelector('#btn-tmpl-hit')       as HTMLElement).onclick = () => tmpl('hit');
   (container.querySelector('#btn-tmpl-death')     as HTMLElement).onclick = () => tmpl('death');
+
+  // ── Pose buttons ────────────────────────────────────────────────────────────
+  const currentTime = getPlaybackTimeForAnimation(anim);
+
+  (container.querySelector('#btn-copy-pose') as HTMLElement).onclick = () => {
+    copyPoseToClipboard(anim.id, currentTime);
+    onUpdate(false, true);
+  };
+
+  (container.querySelector('#btn-paste-pose') as HTMLElement).onclick = () => {
+    if (!ClipboardState.copiedPose) return;
+    HistoryState.push();
+    pastePose(anim.id, currentTime, ClipboardState.copiedPose);
+    onUpdate();
+  };
+
+  (container.querySelector('#btn-paste-mirror') as HTMLElement).onclick = () => {
+    if (!ClipboardState.copiedPose) return;
+    HistoryState.push();
+    const mirrored = mirrorPose(ClipboardState.copiedPose, project.parts as any[]);
+    pastePose(anim.id, currentTime, mirrored);
+    onUpdate();
+  };
+
+  (container.querySelector('#btn-reset-pose') as HTMLElement).onclick = () => {
+    HistoryState.push();
+    resetPoseAtTime(anim.id, currentTime);
+    onUpdate();
+  };
 
   // ── Controller card bindings ────────────────────────────────────────────────
   container.querySelectorAll('.controller-card[data-id]').forEach(card => {

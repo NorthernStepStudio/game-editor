@@ -8,6 +8,8 @@ import { ProjectState } from '../state/projectState';
 import { SelectionState } from '../state/selectionState';
 import { getPlaybackTimeForAnimation } from '../state/playbackState';
 import { DirtyState } from '../state/dirtyState';
+import { ClipboardState } from '../state/clipboardState';
+import { copyPoseToClipboard, pastePose, mirrorPose } from './poseActions';
 import { HERO_RIGS, DOOMED_RIGS } from './samples';
 import { SaveManager } from '../persistence/saveManager';
 import { exportJSON, exportGodot, exportCanvasRuntime } from '../exporters/exportActions';
@@ -182,6 +184,30 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
       if (e.key === 'r' || e.key === 'R') { SelectionState.gizmoMode = 'scale';  refreshGizmoButtons(); }
     }
     if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveProject(); }
+
+    // ── Pose copy / paste shortcuts ──────────────────────────────────────────
+    if (e.ctrlKey && e.key === 'c') {
+      const animId = SelectionState.activeAnimId;
+      if (!animId) return;
+      const anim = ProjectState.project.animations.find((a: any) => a.id === animId);
+      if (!anim) return;
+      e.preventDefault();
+      copyPoseToClipboard(animId, getPlaybackTimeForAnimation(anim));
+      _onUpdate(false, true);
+    }
+    if (e.ctrlKey && e.key === 'v') {
+      if (!ClipboardState.copiedPose) return;
+      const animId = SelectionState.activeAnimId;
+      if (!animId) return;
+      const anim = ProjectState.project.animations.find((a: any) => a.id === animId);
+      if (!anim) return;
+      e.preventDefault();
+      const pose = e.shiftKey
+        ? mirrorPose(ClipboardState.copiedPose, ProjectState.project.parts as any[])
+        : ClipboardState.copiedPose;
+      pastePose(animId, getPlaybackTimeForAnimation(anim), pose);
+      _onUpdate();
+    }
   });
 }
 

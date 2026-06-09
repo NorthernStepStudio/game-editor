@@ -4,6 +4,11 @@ import { SelectionState } from '../../state/selectionState';
 import { DirtyState } from '../../state/dirtyState';
 import { evaluateController } from '@nstep-core/runtime/evaluateController';
 
+// ── Stable keyframe ID generator ──────────────────────────────────────────────
+function genKfId(): string {
+  return 'kf-' + Math.random().toString(36).slice(2, 11);
+}
+
 // ── Layout constants (CSS pixels) ─────────────────────────────────────────────
 const RULER_H = 22;
 const ROW_H   = 28;
@@ -48,8 +53,8 @@ export class DopesheetPanel {
   private dragMode:         DragMode = null;
   private dragKf:           KfHit | null = null;
   private dragKfOrigTime:   number = 0;
-  // kfRef → original time at drag start, for all selected keyframes (bulk move)
-  private dragSelOrigTimes: Map<any, number> = new Map();
+  // id → { kfRef, origTime } for all selected keyframes at drag start (bulk move)
+  private dragSelOrigTimes: Map<string, { kfRef: any; origTime: number }> = new Map();
   private boxStartCss:      { x: number; y: number } | null = null;
   private boxCurCss:        { x: number; y: number } | null = null;
 
@@ -176,8 +181,20 @@ export class DopesheetPanel {
     return RULER_H + i * ROW_H;
   }
 
-  private _selKeys(): Set<string> {
-    return (SelectionState as any).selectedKfKeys as Set<string>;
+  private _selIds(): Set<string> {
+    return (SelectionState as any).selectedKeyframeIds as Set<string>;
+  }
+
+  /** Find a keyframe by its stable ID; returns null if not found. */
+  private _findKfById(id: string): { kfRef: any; ctrl: any; ctrlIdx: number; kfIdx: number } | null {
+    const ctrls = this._ctrls();
+    for (let ci = 0; ci < ctrls.length; ci++) {
+      const kfs: any[] = ctrls[ci].keyframes ?? [];
+      for (let ki = 0; ki < kfs.length; ki++) {
+        if (kfs[ki].id === id) return { kfRef: kfs[ki], ctrl: ctrls[ci], ctrlIdx: ci, kfIdx: ki };
+      }
+    }
+    return null;
   }
 
   private _tickInterval(pxPerSec: number): number {
@@ -296,16 +313,16 @@ export class DopesheetPanel {
     });
 
     // ── Keyframe diamonds ──
-    const selKeys = this._selKeys();
+    const selIds = this._selIds();
     ctrls.forEach((c: any, i: number) => {
       if (c.mode !== 'keyframe') return;
       const kfs: any[] = c.keyframes ?? [];
       const cyCss = this._rowTopCss(i) + ROW_H / 2;
       const cyPx  = cyCss * dpr;
 
-      kfs.forEach((kf: any, ki: number) => {
+      kfs.forEach((kf: any) => {
         const cxPx  = LWpx + (kf.time / this.dur) * cPxW;
-        const sel   = selKeys.has(`${i}:${ki}`);
+        const sel   = selIds.has(kf.id);
         this._drawDiamond(cxPx, cyPx, D_SIZE * dpr, sel, c.enabled !== false);
       });
     });
@@ -426,28 +443,26 @@ export class DopesheetPanel {
     // ── Hit-test keyframes ──
     const hit = this._hitKf(x, y);
     if (hit) {
-      const key    = `${hit.ctrlIdx}:${hit.kfIdx}`;
-      const selSet = this._selKeys();
+      const kfId   = hit.kfRef.id as string;
+      const selSet = this._selIds();
       if (e.shiftKey) {
-        if (selSet.has(key)) selSet.delete(key);
-        else selSet.add(key);
-      } else if (!selSet.has(key)) {
+        if (selSet.has(kfId)) selSet.delete(kfId);
+        else selSet.add(kfId);
+      } else if (!selSet.has(kfId)) {
         selSet.clear();
-        selSet.add(key);
+        selSet.add(kfId);
       }
       this.dragMode       = 'kf';
       this.dragKf         = hit;
       this.dragKfOrigTime = hit.kfRef.time;
-      // Snapshot original times of ALL selected kfs (including the dragged one)
+      // Snapshot original times of ALL selected kfs by stable ID
       this.dragSelOrigTimes.clear();
-      const ctrls = this._ctrls();
-      this._selKeys().forEach(key => {
-        const [ci, ki] = key.split(':').map(Number);
-        const kf = ctrls[ci]?.keyframes?.[ki];
-        if (kf) this.dragSelOrigTimes.set(kf, kf.time);
+      this._selIds().forEach(id => {
+        const found = this._findKfById(id);
+        if (found) this.dragSelOrigTimes.set(id, { kfRef: found.kfRef, origTime: found.kfRef.time });
       });
-      // Ensure the dragged kf itself is in the map
-      this.dragSelOrigTimes.set(hit.kfRef, hit.kfRef.time);
+      // Ensure the dragged kf is in the map even if not yet in selection
+      this.dragSelOrigTimes.set(kfId, { kfRef: hit.kfRef, origTime: hit.kfRef.time });
       this.canvas.setPointerCapture(e.pointerId);
       (SelectionState as any).selectedLaneCtrlId = hit.ctrl.id;
       this._needsDraw = true;
@@ -464,7 +479,8 @@ export class DopesheetPanel {
           c.mode = 'keyframe';
           if (!c.keyframes || c.keyframes.length === 0) {
             c.keyframes = [0, 0.25, 0.5, 0.75, 1.0].map((f: number) => ({
-              time: +(f * this.dur).toFixed(3),
+              id:    genKfId(),
+              time:  +(f * this.dur).toFixed(3),
               value: +evaluateController(c, f * this.dur, this.dur).toFixed(3),
               easing: 'easeInOut' as const,
             }));
@@ -475,8 +491,9 @@ export class DopesheetPanel {
         const existing = c.keyframes.findIndex((k: any) => Math.abs(k.time - kfTime) < 0.02);
         if (existing < 0) {
           c.keyframes.push({
-            time:   kfTime,
-            value:  +evaluateController(c, kfTime, this.dur).toFixed(3),
+            id:    genKfId(),
+            time:  kfTime,
+            value: +evaluateController(c, kfTime, this.dur).toFixed(3),
             easing: 'easeInOut' as const,
           });
           c.keyframes.sort((a: any, b: any) => a.time - b.time);
@@ -491,7 +508,7 @@ export class DopesheetPanel {
     this.dragMode    = 'box';
     this.boxStartCss = { x, y };
     this.boxCurCss   = { x, y };
-    if (!e.shiftKey) this._selKeys().clear();
+    if (!e.shiftKey) this._selIds().clear();
     this.canvas.setPointerCapture(e.pointerId);
     this._needsDraw = true;
   }
@@ -507,23 +524,20 @@ export class DopesheetPanel {
     }
 
     if (this.dragMode === 'kf' && this.dragKf) {
-      const rawTime = this._xToTime(x);
-      const delta   = rawTime - this.dragKfOrigTime;
+      const rawTime       = this._xToTime(x);
+      const delta         = rawTime - this.dragKfOrigTime;
+      const affectedCtrls = new Set<any>();
+      const ctrls         = this._ctrls();
 
-      // Apply delta to ALL selected keyframes using their snapshotted original times
-      const ctrls          = this._ctrls();
-      const affectedCtrls  = new Set<any>();
-      this.dragSelOrigTimes.forEach((origTime, kfRef) => {
+      // Apply delta to ALL selected keyframes using snapshotted original times (by stable ID)
+      this.dragSelOrigTimes.forEach(({ kfRef, origTime }) => {
         kfRef.time = +(Math.max(0, Math.min(this.dur, origTime + delta))).toFixed(3);
-        // Find which ctrl owns this kfRef
         for (const c of ctrls) {
           if (c.keyframes?.includes(kfRef)) { affectedCtrls.add(c); break; }
         }
       });
-      // Re-sort affected controllers
-      affectedCtrls.forEach(c => {
-        c.keyframes.sort((a: any, b: any) => a.time - b.time);
-      });
+      // Re-sort affected controllers (IDs remain stable through sort)
+      affectedCtrls.forEach(c => c.keyframes.sort((a: any, b: any) => a.time - b.time));
 
       DirtyState.markDirty();
       this.onUpdate(true, true);
@@ -541,8 +555,7 @@ export class DopesheetPanel {
     if (this.dragMode === 'box') {
       this._finalizeBox();
     } else if (this.dragMode === 'kf') {
-      // Rebuild sel keys by stable kfRef lookup (sort may have shifted indices)
-      this._rebuildSelAfterDrag();
+      // IDs are stable through sort — no rebuild needed
       this.dragSelOrigTimes.clear();
       this.onUpdate(true, false);
     }
@@ -554,23 +567,6 @@ export class DopesheetPanel {
     this._needsDraw  = true;
   }
 
-  /** After sorting, ctrlIdx:kfIdx keys may be stale. Re-derive them from object references. */
-  private _rebuildSelAfterDrag() {
-    const ctrls   = this._ctrls();
-    const rebuilt = new Set<string>();
-    this.dragSelOrigTimes.forEach((_origTime, kfRef) => {
-      for (let ci = 0; ci < ctrls.length; ci++) {
-        const kfs = ctrls[ci].keyframes;
-        if (!kfs) continue;
-        const ki = kfs.indexOf(kfRef);
-        if (ki !== -1) { rebuilt.add(`${ci}:${ki}`); break; }
-      }
-    });
-    const selSet = this._selKeys();
-    selSet.clear();
-    rebuilt.forEach(k => selSet.add(k));
-  }
-
   private _finalizeBox() {
     if (!this.boxStartCss || !this.boxCurCss) return;
     const x1 = Math.min(this.boxStartCss.x, this.boxCurCss.x);
@@ -579,15 +575,15 @@ export class DopesheetPanel {
     const y2 = Math.max(this.boxStartCss.y, this.boxCurCss.y);
 
     const ctrls  = this._ctrls();
-    const selSet = this._selKeys();
+    const selSet = this._selIds();
     ctrls.forEach((c: any, i: number) => {
       if (c.mode !== 'keyframe') return;
       const cy = this._rowTopCss(i) + ROW_H / 2;
       if (cy < y1 || cy > y2) return;
       const kfs: any[] = c.keyframes ?? [];
-      kfs.forEach((_: any, ki: number) => {
-        const kx = this._timeToX(kfs[ki].time);
-        if (kx >= x1 && kx <= x2) selSet.add(`${i}:${ki}`);
+      kfs.forEach((kf: any) => {
+        const kx = this._timeToX(kf.time);
+        if (kx >= x1 && kx <= x2) selSet.add(kf.id);
       });
     });
     this._needsDraw = true;
@@ -598,19 +594,10 @@ export class DopesheetPanel {
     const { x, y } = this._cssFromEvent(e);
     const hit = this._hitKf(x, y);
     if (hit && hit.ctrl.keyframes) {
+      const deletedId = hit.kfRef.id as string;
       hit.ctrl.keyframes.splice(hit.kfIdx, 1);
-
-      // Reindex selection for this controller
-      const selSet = this._selKeys();
-      const rebuilt = new Set<string>();
-      selSet.forEach((k) => {
-        const [ci, ki] = k.split(':').map(Number);
-        if (ci !== hit.ctrlIdx) { rebuilt.add(k); return; }
-        if (ki < hit.kfIdx)  rebuilt.add(k);
-        else if (ki > hit.kfIdx) rebuilt.add(`${ci}:${ki - 1}`);
-      });
-      (SelectionState as any).selectedKfKeys = rebuilt;
-
+      // Remove deleted kf from selection (IDs are stable — no reindexing needed)
+      this._selIds().delete(deletedId);
       DirtyState.markDirty();
       this.onUpdate();
     }
@@ -619,24 +606,17 @@ export class DopesheetPanel {
   private onKeyDown(e: KeyboardEvent) {
     if (e.key !== 'Delete' && e.key !== 'Backspace') return;
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-    const selSet = this._selKeys();
-    if (selSet.size === 0) return;
+    const selIds = this._selIds();
+    if (selIds.size === 0) return;
 
-    const ctrls    = this._ctrls();
-    const toDelete = new Map<number, Set<number>>();
-    selSet.forEach((k) => {
-      const [ci, ki] = k.split(':').map(Number);
-      if (!toDelete.has(ci)) toDelete.set(ci, new Set());
-      toDelete.get(ci)!.add(ki);
-    });
-
-    toDelete.forEach((indices, ci) => {
-      const c = ctrls[ci];
+    // Delete all keyframes whose ID is in the selection set
+    const ctrls = this._ctrls();
+    ctrls.forEach((c: any) => {
       if (!c?.keyframes) return;
-      c.keyframes = c.keyframes.filter((_: any, idx: number) => !indices.has(idx));
+      c.keyframes = c.keyframes.filter((kf: any) => !selIds.has(kf.id));
     });
 
-    selSet.clear();
+    selIds.clear();
     DirtyState.markDirty();
     this.onUpdate();
   }

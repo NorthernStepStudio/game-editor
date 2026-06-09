@@ -11,7 +11,7 @@ export interface Origin {
 }
 
 export interface Keyframe {
-  id?:    string;
+  id:     string;
   time:   number;
   value:  number;
   easing: 'linear' | 'easeInOut' | 'step' | 'spring';

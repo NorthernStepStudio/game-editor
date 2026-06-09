@@ -180,7 +180,7 @@ export function renderControllerTimeline(
       if (id !== SelectionState.activeAnimId) {
         SelectionState.activeAnimId = id;
         PlaybackState.time = 0;
-        SelectionState.selectedKfKeys.clear();
+        SelectionState.selectedKeyframeIds.clear();
         SelectionState.selectedLaneCtrlId = null;
         onUpdate();
       }
@@ -322,8 +322,9 @@ export function renderControllerTimeline(
       ctrl.mode = ctrl.mode === 'keyframe' ? 'formula' : 'keyframe';
       if (ctrl.mode === 'keyframe' && (!ctrl.keyframes || ctrl.keyframes.length === 0)) {
         ctrl.keyframes = [0, 0.25, 0.5, 0.75, 1.0].map((f: number) => ({
-          time:   f * dur,
-          value:  evaluateController(ctrl, f * dur, dur),
+          id:    'kf-' + Math.random().toString(36).slice(2, 11),
+          time:  f * dur,
+          value: evaluateController(ctrl, f * dur, dur),
           easing: 'easeInOut' as const,
         }));
       }

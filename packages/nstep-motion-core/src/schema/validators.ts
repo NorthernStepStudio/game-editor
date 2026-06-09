@@ -1,5 +1,14 @@
 import type { CharacterProject, CharacterPart, CharacterAnimation, AnimationController } from './types.js';
 
+function normalizeKeyframe(k: any): any {
+  return {
+    id:     k.id || 'kf-' + Math.random().toString(36).substr(2, 9),
+    time:   Number(k.time ?? 0),
+    value:  Number(k.value ?? 0),
+    easing: k.easing || 'easeInOut',
+  };
+}
+
 function normalizeController(c: any): AnimationController {
   return {
     id: c.id || 'ctrl-' + Math.random().toString(36).substr(2, 9),
@@ -14,7 +23,9 @@ function normalizeController(c: any): AnimationController {
       offset: Number(c.params?.offset ?? 0),
       min: Number(c.params?.min ?? 0),
       max: Number(c.params?.max ?? 0)
-    }
+    },
+    ...(c.mode !== undefined       ? { mode:      c.mode      } : {}),
+    ...(Array.isArray(c.keyframes) ? { keyframes: c.keyframes.map(normalizeKeyframe) } : { keyframes: [] }),
   };
 }
 

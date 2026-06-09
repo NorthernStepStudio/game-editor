@@ -155,7 +155,7 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
     }
     if (e.key === 'Delete' || e.key === 'Backspace') {
       // Let the dopesheet own Delete when it has selected keyframes
-      if ((SelectionState as any).selectedKfKeys?.size > 0) return;
+      if ((SelectionState as any).selectedKeyframeIds?.size > 0) return;
       // Only if canvas is focused (no text input active)
       if (document.activeElement === document.body && SelectionState.activePartId) {
         const part = ProjectState.project.parts.find(p => p.id === SelectionState.activePartId);

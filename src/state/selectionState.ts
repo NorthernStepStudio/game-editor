@@ -5,5 +5,5 @@ export const SelectionState = {
   isEditingPivot: false,
   showDebugBounds: false,
   selectedLaneCtrlId: null as string | null,
-  selectedKfKeys: new Set<string>(),
+  selectedKeyframeIds: new Set<string>(),
 };

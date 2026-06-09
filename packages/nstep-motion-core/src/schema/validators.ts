@@ -42,8 +42,40 @@ function normalizeAnimation(a: any): CharacterAnimation {
   };
 }
 
+function normalizeIKChain(ik: any): any {
+  if (!ik || typeof ik !== 'object') return undefined;
+  const out: any = {};
+  if (ik.targetPartId)    out.targetPartId    = String(ik.targetPartId);
+  if (ik.chainLength != null) out.chainLength = Math.max(2, Math.min(20, parseInt(ik.chainLength) || 2));
+  if (ik.bendDirection != null) out.bendDirection = Number(ik.bendDirection) >= 0 ? 1 : -1;
+  if (ik.pin != null)     out.pin             = !!ik.pin;
+  if (ik.pinnedWorldX != null) out.pinnedWorldX = Number(ik.pinnedWorldX);
+  if (ik.pinnedWorldY != null) out.pinnedWorldY = Number(ik.pinnedWorldY);
+  if (ik.poleTargetPartId) out.poleTargetPartId = String(ik.poleTargetPartId);
+  return Object.keys(out).length ? out : undefined;
+}
+
+function normalizeConstraint(c: any): any {
+  if (!c || typeof c !== 'object' || !c.type || c.type === 'none') return undefined;
+  const out: any = { type: String(c.type) };
+  if (c.targetPartId) out.targetPartId = String(c.targetPartId);
+  if (c.offset != null) out.offset = Number(c.offset);
+  return out;
+}
+
+function normalizeFrameAnimation(fa: any): any {
+  if (!fa || typeof fa !== 'object') return undefined;
+  const out: any = {};
+  if (fa.columns != null) out.columns = parseInt(fa.columns) || 1;
+  if (fa.rows    != null) out.rows    = parseInt(fa.rows)    || 1;
+  if (fa.frameCount != null) out.frameCount = parseInt(fa.frameCount) || 1;
+  if (fa.fps     != null) out.fps     = Number(fa.fps)     || 12;
+  if (fa.enabled != null) out.enabled = !!fa.enabled;
+  return Object.keys(out).length ? out : undefined;
+}
+
 function normalizePart(p: any): CharacterPart {
-  return {
+  const out: any = {
     id: p.id || 'part-' + Math.random().toString(36).substr(2, 9),
     name: p.name || 'Part',
     parentId: p.parentId ?? null,
@@ -67,6 +99,19 @@ function normalizePart(p: any): CharacterPart {
     flipY: p.flipY,
     inheritTransform: p.inheritTransform
   };
+
+  // Preserve optional extended fields — omit entirely when not present so
+  // JSON serialization stays lean and round-trips without spurious undefined keys.
+  if (p.fkOverride != null)           out.fkOverride           = !!p.fkOverride;
+  if (p.editChildrenTogether != null) out.editChildrenTogether = !!p.editChildrenTogether;
+  const ikNorm = normalizeIKChain(p.ikChain);
+  if (ikNorm)                         out.ikChain              = ikNorm;
+  const conNorm = normalizeConstraint(p.constraint);
+  if (conNorm)                        out.constraint           = conNorm;
+  const faNorm = normalizeFrameAnimation(p.frameAnimation);
+  if (faNorm)                         out.frameAnimation       = faNorm;
+
+  return out as CharacterPart;
 }
 
 export function normalizeProject(p: any): CharacterProject {

@@ -93,6 +93,15 @@ export class MotionCanvasRenderer {
   private boxEndX: number = 0;
   private boxEndY: number = 0;
 
+  // IK handle drag (separate from bone pick drag — world-space movement)
+  private isIKHandleDrag: boolean = false;
+  private ikHandleDragTargetId: string | null = null;
+  private ikHandleDragStartMouseX: number = 0;
+  private ikHandleDragStartMouseY: number = 0;
+  private ikHandleDragStartBaseX: number = 0;
+  private ikHandleDragStartBaseY: number = 0;
+  private ikHandleDragParentMatInv: DOMMatrix | null = null;
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
@@ -367,6 +376,12 @@ export class MotionCanvasRenderer {
       }
       joints.push({x: targetWorldX, y: targetWorldY});
 
+      // Build set of fixed joint indices for FK-overridden mid-chain bones
+      const fixedJointIndices = new Set<number>();
+      for (let i = 1; i < N; i++) {
+        if ((this.partsMap.get(chainParts[i]) as any)?.fkOverride) fixedJointIndices.add(i);
+      }
+
       // Bone lengths: inter-part distances from local baseX/Y offsets
       const lengths: number[] = [];
       for (let i = 0; i < N; i++) {
@@ -387,7 +402,7 @@ export class MotionCanvasRenderer {
         }
       }
 
-      const newPos = solveFABRIK(joints, lengths, targetWorldX, targetWorldY);
+      const newPos = solveFABRIK(joints, lengths, targetWorldX, targetWorldY, 10, 0.5, fixedJointIndices);
 
       // Convert FABRIK output positions → local rotations
       for (let i = 0; i < N; i++) {
@@ -720,8 +735,12 @@ export class MotionCanvasRenderer {
     this.syncPlaybackReadout(anim);
   }
 
+  /** Radius used both for drawing and hit-testing IK circular handles */
+  static readonly IK_HANDLE_RADIUS = 9;
+
   private drawIKIndicators(project: CharacterProject, matrices: Map<string, DOMMatrix>) {
     const { ctx } = this;
+    const R = MotionCanvasRenderer.IK_HANDLE_RADIUS;
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
@@ -729,21 +748,12 @@ export class MotionCanvasRenderer {
       if (!part.ikChain?.targetPartId) return;
       const targetMat = matrices.get(part.ikChain.targetPartId);
       if (!targetMat) return;
-      // Draw IK target as a diamond
       const tx = targetMat.e;
       const ty = targetMat.f;
-      ctx.save();
-      ctx.translate(tx, ty);
-      ctx.rotate(Math.PI / 4);
-      ctx.strokeStyle = 'rgba(255, 160, 0, 0.85)';
-      ctx.fillStyle   = 'rgba(255, 160, 0, 0.15)';
-      ctx.lineWidth = 1.5;
-      const s = 7;
-      ctx.fillRect(-s/2, -s/2, s, s);
-      ctx.strokeRect(-s/2, -s/2, s, s);
-      ctx.restore();
+      const isPinned = !!(part.ikChain.pin);
+      const isDragging = this.isIKHandleDrag && this.ikHandleDragTargetId === part.ikChain.targetPartId;
 
-      // Draw line from root to target
+      // ── Dashed line from IK root to handle ─────────────────────────────────
       const rootMat = matrices.get(part.id);
       if (rootMat) {
         ctx.strokeStyle = 'rgba(255, 160, 0, 0.25)';
@@ -755,9 +765,54 @@ export class MotionCanvasRenderer {
         ctx.stroke();
         ctx.setLineDash([]);
       }
+
+      // ── Circular handle ────────────────────────────────────────────────────
+      ctx.beginPath();
+      ctx.arc(tx, ty, R, 0, Math.PI * 2);
+      ctx.fillStyle = isDragging
+        ? 'rgba(255, 200, 0, 0.55)'
+        : isPinned
+          ? 'rgba(255, 100, 50, 0.35)'
+          : 'rgba(255, 160, 0, 0.18)';
+      ctx.fill();
+      ctx.strokeStyle = isPinned ? 'rgba(255, 100, 50, 0.9)' : 'rgba(255, 160, 0, 0.9)';
+      ctx.lineWidth = isDragging ? 2.5 : 1.5;
+      ctx.stroke();
+
+      // ── Cross-hair inside the circle ───────────────────────────────────────
+      ctx.strokeStyle = isPinned ? 'rgba(255,100,50,0.7)' : 'rgba(255,160,0,0.7)';
+      ctx.lineWidth = 1;
+      const cx = 5;
+      ctx.beginPath();
+      ctx.moveTo(tx - cx, ty); ctx.lineTo(tx + cx, ty);
+      ctx.moveTo(tx, ty - cx); ctx.lineTo(tx, ty + cx);
+      ctx.stroke();
+
+      // ── Pin indicator (small dot) when pinned ──────────────────────────────
+      if (isPinned) {
+        ctx.beginPath();
+        ctx.arc(tx, ty, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,100,50,0.9)';
+        ctx.fill();
+      }
     });
 
     ctx.restore();
+  }
+
+  /** Returns the IK target part ID at (mx,my) if within IK_HANDLE_RADIUS, else null */
+  private hitTestIKHandle(mx: number, my: number): string | null {
+    const R = MotionCanvasRenderer.IK_HANDLE_RADIUS + 4; // slightly generous hit area
+    const project = ProjectState.project;
+    for (const part of project.parts) {
+      const ik = (part as any).ikChain;
+      if (!ik?.targetPartId) continue;
+      const m = this.latestMatrices.get(ik.targetPartId);
+      if (!m) continue;
+      const dx = mx - m.e, dy = my - m.f;
+      if (dx * dx + dy * dy <= R * R) return ik.targetPartId as string;
+    }
+    return null;
   }
 
   private drawGrid() {
@@ -930,6 +985,35 @@ export class MotionCanvasRenderer {
       const { mx, my } = this.getMouse(e);
       const project = ProjectState.project;
       const activePart = project.parts.find((p: any) => p.id === SelectionState.activePartId);
+
+      // ── IK handle drag — checked before everything else ───────────────────
+      {
+        const ikTargetId = this.hitTestIKHandle(mx, my);
+        if (ikTargetId) {
+          const targetPart = project.parts.find((p: any) => p.id === ikTargetId);
+          if (targetPart && !targetPart.locked) {
+            HistoryState.push();
+            this.isIKHandleDrag = true;
+            this.ikHandleDragTargetId = ikTargetId;
+            this.ikHandleDragStartMouseX = mx;
+            this.ikHandleDragStartMouseY = my;
+            this.ikHandleDragStartBaseX = (targetPart as any).baseX ?? 0;
+            this.ikHandleDragStartBaseY = (targetPart as any).baseY ?? 0;
+            // Capture parent's inverse world matrix so we can convert world-space
+            // mouse delta → local-space offset (independent of parent rotation/scale)
+            const parentId = (targetPart as any).parentId;
+            if (parentId) {
+              const pm = this.latestMatrices.get(parentId);
+              try { this.ikHandleDragParentMatInv = pm ? pm.inverse() : null; }
+              catch { this.ikHandleDragParentMatInv = null; }
+            } else {
+              this.ikHandleDragParentMatInv = null;
+            }
+            this.canvas.style.cursor = 'move';
+            return;
+          }
+        }
+      }
 
       // ── Pivot edit mode ───────────────────────────────────────────────────
       if (SelectionState.isEditingPivot && activePart && !activePart.locked) {
@@ -1148,6 +1232,28 @@ export class MotionCanvasRenderer {
         return;
       }
 
+      // ── IK handle world-space drag ────────────────────────────────────────
+      if (this.isIKHandleDrag && this.ikHandleDragTargetId) {
+        const targetPart = project.parts.find((p: any) => p.id === this.ikHandleDragTargetId);
+        if (targetPart && !targetPart.locked) {
+          const wdx = (mx - this.ikHandleDragStartMouseX) / this.zoom;
+          const wdy = (my - this.ikHandleDragStartMouseY) / this.zoom;
+          if (this.ikHandleDragParentMatInv) {
+            // Convert the world delta through the parent's inverse matrix to get local delta
+            const p0 = this.ikHandleDragParentMatInv.transformPoint(new DOMPoint(0, 0));
+            const p1 = this.ikHandleDragParentMatInv.transformPoint(new DOMPoint(wdx, wdy));
+            (targetPart as any).baseX = this.ikHandleDragStartBaseX + (p1.x - p0.x);
+            (targetPart as any).baseY = this.ikHandleDragStartBaseY + (p1.y - p0.y);
+          } else {
+            (targetPart as any).baseX = this.ikHandleDragStartBaseX + wdx;
+            (targetPart as any).baseY = this.ikHandleDragStartBaseY + wdy;
+          }
+          DirtyState.markDirty();
+          if (this.onUpdate) (this.onUpdate as any)(true, false);
+        }
+        return;
+      }
+
       // ── Move drag ─────────────────────────────────────────────────────────
       if (!this.isDraggingPart) return;
       const part = project.parts.find((p: any) => p.id === SelectionState.activePartId);
@@ -1176,6 +1282,15 @@ export class MotionCanvasRenderer {
 
     window.addEventListener('mouseup', (e) => {
       if (e.button !== 0) return;
+
+      // ── IK handle drag end ────────────────────────────────────────────────
+      if (this.isIKHandleDrag) {
+        this.isIKHandleDrag = false;
+        this.ikHandleDragTargetId = null;
+        this.ikHandleDragParentMatInv = null;
+        this.canvas.style.cursor = '';
+        return;
+      }
 
       // ── Commit box selection ──────────────────────────────────────────────
       if (this.isBoxSelecting) {
@@ -1244,21 +1359,6 @@ export class MotionCanvasRenderer {
 
   private pickPart(mx: number, my: number): CharacterPart | null {
     const project = ProjectState.project;
-
-    // IK target indicators: check orange diamond hit area first
-    for (const part of project.parts) {
-      const ik = (part as any).ikChain;
-      if (!ik?.targetPartId) continue;
-      const targetMat = this.latestMatrices.get(ik.targetPartId);
-      if (!targetMat) continue;
-      const dx = mx - targetMat.e;
-      const dy = my - targetMat.f;
-      if (Math.sqrt(dx * dx + dy * dy) <= 14) {
-        const targetPart = project.parts.find((p: any) => p.id === ik.targetPartId);
-        if (targetPart && !targetPart.locked) return targetPart;
-      }
-    }
-
     const sorted = [...project.parts].sort(
       (a: any, b: any) => (Number(b.zIndex) || 0) - (Number(a.zIndex) || 0)
     );

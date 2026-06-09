@@ -73,16 +73,21 @@ export function solveFABRIK(
   targetX: number,
   targetY: number,
   maxIter = 10,
-  tolerance = 0.5
+  tolerance = 0.5,
+  fixedIndices: ReadonlySet<number> = new Set()
 ): Array<{x: number; y: number}> {
   const n = joints.length;
   const pos = joints.map(j => ({x: j.x, y: j.y}));
   const root = {x: pos[0].x, y: pos[0].y};
+  // Snapshot positions for FK-overridden joints so we can restore them each pass
+  const fixed = new Map<number, {x: number; y: number}>();
+  fixedIndices.forEach(i => { if (i > 0 && i < n - 1) fixed.set(i, {x: pos[i].x, y: pos[i].y}); });
 
   for (let iter = 0; iter < maxIter; iter++) {
     // ── Forward pass: move end to target, cascade backward ──────────────────
     pos[n - 1] = {x: targetX, y: targetY};
     for (let i = n - 2; i >= 0; i--) {
+      if (fixed.has(i)) { pos[i] = {x: fixed.get(i)!.x, y: fixed.get(i)!.y}; continue; }
       const dx = pos[i].x - pos[i + 1].x;
       const dy = pos[i].y - pos[i + 1].y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
@@ -92,6 +97,7 @@ export function solveFABRIK(
     // ── Backward pass: pin root, cascade forward ─────────────────────────────
     pos[0] = root;
     for (let i = 0; i < n - 1; i++) {
+      if (fixed.has(i + 1)) { pos[i + 1] = {x: fixed.get(i + 1)!.x, y: fixed.get(i + 1)!.y}; continue; }
       const dx = pos[i + 1].x - pos[i].x;
       const dy = pos[i + 1].y - pos[i].y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;

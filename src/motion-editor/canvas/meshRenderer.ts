@@ -48,37 +48,43 @@ export function computeDeformedVertices(
 ): DOMPoint[] {
   const ox = part.origin?.x ?? 0;
   const oy = part.origin?.y ?? 0;
+  // Mirror matches the normal render path: ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1)
+  const fx = part.flipX ? -1 : 1;
+  const fy = part.flipY ? -1 : 1;
   const partCurr = matrices.get(part.id);
   const partRest = restMatrices.get(part.id);
 
   return mesh.vertices.map((v: Vertex2D, vi: number) => {
-    if (!partCurr) return new DOMPoint(v.x - ox, v.y - oy);
+    // Apply flip to local pivot-relative coordinates before any world transform
+    const lx = (v.x - ox) * fx;
+    const ly = (v.y - oy) * fy;
+
+    if (!partCurr) return new DOMPoint(lx, ly);
 
     const bw = mesh.boneWeights[vi] ?? {};
     const entries = Object.entries(bw).filter(([, w]) => (w as number) > 0);
 
     if (entries.length === 0 || !partRest) {
-      return partCurr.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+      return partCurr.transformPoint(new DOMPoint(lx, ly));
     }
 
-    const restWorld = partRest.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+    const restWorld = partRest.transformPoint(new DOMPoint(lx, ly));
     let totalW = 0, defX = 0, defY = 0;
 
     for (const [boneId, w] of entries) {
       const boneCurr = matrices.get(boneId);
       const boneRest = restMatrices.get(boneId);
       if (!boneCurr || !boneRest) continue;
-      try {
-        const boneRestInv = boneRest.inverse();
-        const inBone = boneRestInv.transformPoint(restWorld);
-        const deformed = boneCurr.transformPoint(inBone);
-        defX += (w as number) * deformed.x;
-        defY += (w as number) * deformed.y;
-        totalW += w as number;
-      } catch { /* singular matrix — skip */ }
+      let boneRestInv: DOMMatrix;
+      try { boneRestInv = boneRest.inverse(); } catch { continue; }
+      const inBone = boneRestInv.transformPoint(restWorld);
+      const deformed = boneCurr.transformPoint(inBone);
+      defX += (w as number) * deformed.x;
+      defY += (w as number) * deformed.y;
+      totalW += w as number;
     }
 
-    if (totalW <= 0) return partCurr.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+    if (totalW <= 0) return partCurr.transformPoint(new DOMPoint(lx, ly));
     return new DOMPoint(defX / totalW, defY / totalW);
   });
 }

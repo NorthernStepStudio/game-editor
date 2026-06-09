@@ -641,30 +641,34 @@ function _buildRestMatrices(project, canvas) {
 
 function _deformMesh(mesh, part, matrices, restMats) {
   const ox = part.origin?.x ?? 0, oy = part.origin?.y ?? 0;
+  // Apply flip to match the normal render path (ctx.scale(flipX?-1:1, flipY?-1:1))
+  const fx = part.flipX ? -1 : 1;
+  const fy = part.flipY ? -1 : 1;
   const partCurr = matrices[part.id];
   const partRest = restMats[part.id];
   return mesh.vertices.map((v, vi) => {
-    if (!partCurr) return { x: v.x - ox, y: v.y - oy };
+    const lx = (v.x - ox) * fx;
+    const ly = (v.y - oy) * fy;
+    if (!partCurr) return { x: lx, y: ly };
     const bw = mesh.boneWeights[vi] || {};
     const entries = Object.entries(bw).filter(([,w]) => w > 0);
     if (entries.length === 0 || !partRest) {
-      const wp = partCurr.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+      const wp = partCurr.transformPoint(new DOMPoint(lx, ly));
       return { x: wp.x, y: wp.y };
     }
-    const restWorld = partRest.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+    const restWorld = partRest.transformPoint(new DOMPoint(lx, ly));
     let totalW = 0, dx = 0, dy = 0;
     for (const [boneId, w] of entries) {
       const bc = matrices[boneId], br = restMats[boneId];
       if (!bc || !br) continue;
-      try {
-        const brInv = br.inverse();
-        const inB = brInv.transformPoint(restWorld);
-        const def = bc.transformPoint(inB);
-        dx += w * def.x; dy += w * def.y; totalW += w;
-      } catch {}
+      let brInv;
+      try { brInv = br.inverse(); } catch { continue; }
+      const inB = brInv.transformPoint(restWorld);
+      const def = bc.transformPoint(inB);
+      dx += w * def.x; dy += w * def.y; totalW += w;
     }
     if (totalW <= 0) {
-      const wp = partCurr.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+      const wp = partCurr.transformPoint(new DOMPoint(lx, ly));
       return { x: wp.x, y: wp.y };
     }
     return { x: dx / totalW, y: dy / totalW };

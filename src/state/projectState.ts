@@ -1,5 +1,5 @@
-import { CharacterProject } from '../../../../packages/nstep-motion-core/src/schema/types';
-import { createDefaultProject } from '../../../../packages/nstep-motion-core/src/schema/defaults';
+import { CharacterProject } from '@nstep-core/schema/types';
+import { createDefaultProject } from '@nstep-core/schema/defaults';
 import { SelectionState } from './selectionState';
 import { DirtyState } from './dirtyState';
 

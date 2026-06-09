@@ -1,5 +1,5 @@
-import { CharacterProject, CharacterPart } from '../../../../../packages/nstep-motion-core/src/schema/types';
-import { evaluateController } from '../../../../../packages/nstep-motion-core/src/runtime/evaluateController';
+import { CharacterProject, CharacterPart } from '@nstep-core/schema/types';
+import { evaluateController } from '@nstep-core/runtime/evaluateController';
 import { ProjectState } from '../../state/projectState';
 import { SelectionState } from '../../state/selectionState';
 import { PlaybackState, getPlaybackTimeForAnimation } from '../../state/playbackState';
@@ -48,12 +48,6 @@ export class MotionCanvasRenderer {
   // while only the dragged bone's local position changes.
   private dragBoneOnly: boolean = false;
   private dragStartWorldMatrices: Map<string, DOMMatrix> = new Map();
-  // Click-cycling: clicking the same spot repeatedly cycles through all
-  // overlapping bones (topmost → … → root), so buried parts are reachable.
-  private lastCycleX: number = -1e9;
-  private lastCycleY: number = -1e9;
-  private lastCycleParts: CharacterPart[] = [];
-  private lastCycleIdx: number = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -841,58 +835,6 @@ export class MotionCanvasRenderer {
       } catch {}
     }
     return null;
-  }
-
-  /** Returns ALL visible, unlocked parts that the cursor overlaps, sorted so that
-   *  bones whose pivot anchor (m.e / m.f in screen space) is within ANCHOR_R pixels
-   *  come FIRST (by descending z-index), followed by bones that only hit via their
-   *  image/shape bounding box (also by descending z-index).
-   *  This means clicking near a bone's small circle indicator always beats clicking
-   *  on the large image of a different bone that happens to overlap the same area. */
-  private getAllPartsAtPoint(mx: number, my: number): CharacterPart[] {
-    const ANCHOR_R = 24; // screen-space pixels around the bone anchor circle
-    const project = ProjectState.project;
-    const sorted = [...project.parts].sort(
-      (a: any, b: any) => (Number(b.zIndex) || 0) - (Number(a.zIndex) || 0)
-    );
-    const anchorHits: CharacterPart[] = [];
-    const bboxHits:   CharacterPart[] = [];
-
-    for (const part of sorted) {
-      if (part.visible === false || part.locked === true) continue;
-      const m = this.latestMatrices.get(part.id);
-      if (!m) continue;
-
-      // ── Anchor-proximity check (screen space) ────────────────────────────
-      const adx = mx - m.e, ady = my - m.f;
-      if (adx * adx + ady * ady <= ANCHOR_R * ANCHOR_R) {
-        anchorHits.push(part);
-        continue; // don't also add to bboxHits
-      }
-
-      // ── Bounding-box check (local space) ─────────────────────────────────
-      try {
-        const inv = m.inverse();
-        const lp  = inv.transformPoint(new DOMPoint(mx, my));
-        const lx = lp.x, ly = lp.y;
-        const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
-        let w = 40, h = 40;
-        if (part.renderMode === 'image' && asset) {
-          w = part.sourceRect ? part.sourceRect.width  : asset.width;
-          h = part.sourceRect ? part.sourceRect.height : asset.height;
-        } else {
-          w = (part.origin?.x ?? 20) * 2 || 40;
-          h = (part.origin?.y ?? 20) * 2 || 40;
-        }
-        const ox = part.origin?.x ?? 0;
-        const oy = part.origin?.y ?? 0;
-        if (lx >= -ox && lx <= -ox + w && ly >= -oy && ly <= -oy + h) {
-          bboxHits.push(part);
-        }
-      } catch {}
-    }
-    // Anchor hits first, then bounding-box hits (both groups sorted by z desc already)
-    return [...anchorHits, ...bboxHits];
   }
 
   private setupViewportGestures() {

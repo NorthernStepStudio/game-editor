@@ -3,9 +3,9 @@ import { HistoryState } from '../../state/historyState';
 import { SelectionState } from '../../state/selectionState';
 import { PlaybackState, getPlaybackTimeForAnimation } from '../../state/playbackState';
 import { DirtyState } from '../../state/dirtyState';
-import { FORMULA_PRESETS } from '../../../../../packages/nstep-motion-core/src/formulas/presets';
-import { evaluateController } from '../../../../../packages/nstep-motion-core/src/runtime/evaluateController';
-import { createDefaultController } from '../../../../../packages/nstep-motion-core/src/schema/defaults';
+import { FORMULA_PRESETS } from '@nstep-core/formulas/presets';
+import { evaluateController } from '@nstep-core/runtime/evaluateController';
+import { createDefaultController } from '@nstep-core/schema/defaults';
 import { applyTemplate, addControllerSafe } from '../animationTemplates';
 import { initKfDragListeners, wasKfDragActive, resetKfDragActive, setKfDrag } from '../keyframeDrag';
 

@@ -1,8 +1,8 @@
 import { ProjectState } from '../state/projectState';
-import { exportToGDScript } from '../../../../packages/nstep-motion-core/src/exporters/godot/gdscript';
-import { exportToCanvas2D, exportStandaloneHTML } from '../../../../packages/nstep-motion-core/src/exporters/canvas2d/runtime';
+import { exportToGDScript } from '@nstep-core/exporters/godot/gdscript';
+import { exportToCanvas2D, exportStandaloneHTML } from '@nstep-core/exporters/canvas2d/runtime';
 import { downloadFile } from '../shared/fileUtils';
-import { normalizeProject } from '../../../../packages/nstep-motion-core/src/schema/validators';
+import { normalizeProject } from '@nstep-core/schema/validators';
 
 export function exportJSON() {
   const { project } = ProjectState;

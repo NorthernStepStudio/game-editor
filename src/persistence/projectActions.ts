@@ -1,5 +1,5 @@
-import { createDefaultProject } from '../../../../packages/nstep-motion-core/src/schema/defaults';
-import { normalizeProject } from '../../../../packages/nstep-motion-core/src/schema/validators';
+import { createDefaultProject } from '@nstep-core/schema/defaults';
+import { normalizeProject } from '@nstep-core/schema/validators';
 import { SaveManager } from './saveManager';
 import { ProjectState } from '../state/projectState';
 import { DirtyState } from '../state/dirtyState';

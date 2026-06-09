@@ -1,4 +1,4 @@
-import { SpriteSheetSource, ExtractedSpritePart } from '../../../../packages/nstep-motion-core/src/schema/types';
+import { SpriteSheetSource, ExtractedSpritePart } from '@nstep-core/schema/types';
 
 export interface CutterState {
   currentPage: 'editor' | 'cutter';

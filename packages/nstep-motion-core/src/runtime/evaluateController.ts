@@ -23,7 +23,7 @@ function springDecay(t: number, freq: number, decay: number): number {
 }
 
 // ── Keyframe interpolation ────────────────────────────────────────────────────
-function interpolateKeyframes(keyframes: Keyframe[], time: number, duration: number): number {
+function interpolateKeyframes(keyframes: Keyframe[], time: number, _duration: number): number {
   if (!keyframes || keyframes.length === 0) return 0;
   const sorted = [...keyframes].sort((a, b) => a.time - b.time);
   if (time <= sorted[0].time) return sorted[0].value;

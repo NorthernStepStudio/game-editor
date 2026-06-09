@@ -1,5 +1,5 @@
-import { CharacterProject } from '../../../../packages/nstep-motion-core/src/schema/types';
-import { normalizeProject } from '../../../../packages/nstep-motion-core/src/schema/validators';
+import { CharacterProject } from '@nstep-core/schema/types';
+import { normalizeProject } from '@nstep-core/schema/validators';
 import { STORAGE_KEYS } from './storageKeys';
 import { SelectionState } from '../state/selectionState';
 import { DirtyState } from '../state/dirtyState';

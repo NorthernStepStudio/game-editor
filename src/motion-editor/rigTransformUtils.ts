@@ -1,4 +1,4 @@
-import { CharacterPart } from '../../../../packages/nstep-motion-core/src/schema/types';
+import { CharacterPart } from '@nstep-core/schema/types';
 
 export function getChildrenMap(parts: CharacterPart[]): Map<string, string[]> {
   const map = new Map<string, string[]>();

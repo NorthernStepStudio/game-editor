@@ -1,7 +1,7 @@
 import { ProjectState } from '../state/projectState';
 import { SelectionState } from '../state/selectionState';
 import { DirtyState } from '../state/dirtyState';
-import { createDefaultPart } from '../../../../packages/nstep-motion-core/src/schema/defaults';
+import { createDefaultPart } from '@nstep-core/schema/defaults';
 
 export interface BoneDef {
   localId: string;

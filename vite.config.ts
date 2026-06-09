@@ -5,8 +5,7 @@ export default defineConfig({
   root: ".",
   resolve: {
     alias: {
-      "../../../../packages/nstep-motion-core/src": resolve(__dirname, "packages/nstep-motion-core/src"),
-      "../../../../../packages/nstep-motion-core/src": resolve(__dirname, "packages/nstep-motion-core/src")
+      "@nstep-core": resolve(__dirname, "packages/nstep-motion-core/src")
     }
   },
   server: {

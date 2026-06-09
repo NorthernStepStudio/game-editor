@@ -1,4 +1,4 @@
-import { CharacterPart } from '../../../../../packages/nstep-motion-core/src/schema/types';
+import { CharacterPart } from '@nstep-core/schema/types';
 
 export function drawShape(ctx: CanvasRenderingContext2D, part: CharacterPart, width: number, height: number) {
   const st = part.shapeType || 'roundedRect';

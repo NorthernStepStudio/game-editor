@@ -1,4 +1,4 @@
-import { ExtractedSpritePart, CharacterPart } from '../../../../packages/nstep-motion-core/src/schema/types';
+import { ExtractedSpritePart, CharacterPart } from '@nstep-core/schema/types';
 import { CutterAppState } from './spriteCutterState';
 import { ProjectState } from '../state/projectState';
 import { DirtyState } from '../state/dirtyState';

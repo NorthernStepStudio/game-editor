@@ -97,7 +97,6 @@ export function setupCutterUI(onNavigate: (page: string) => void) {
       reader.onload = (re) => {
         const dataUrl = re.target?.result as string;
         CutterAppState.source = {
-          id: 'sheet-' + Date.now(),
           name: file.name,
           dataUrl,
           width: 0, height: 0,

@@ -1,4 +1,4 @@
-import { CharacterPart } from '../../../../../packages/nstep-motion-core/src/schema/types';
+import { CharacterPart } from '@nstep-core/schema/types';
 import { AppState } from '../../state/appState';
 
 export function drawPartOverlays(

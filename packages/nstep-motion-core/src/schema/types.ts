@@ -116,6 +116,7 @@ export interface CharacterProject {
 }
 
 export interface SpriteSheetSource {
+  name?: string;
   dataUrl: string;
   width: number;
   height: number;

@@ -15,9 +15,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
     "paths": {
-      "../../../../packages/nstep-motion-core/src/*": ["./packages/nstep-motion-core/src/*"],
-      "../../../../../packages/nstep-motion-core/src/*": ["./packages/nstep-motion-core/src/*"]
+      "@nstep-core/*": ["packages/nstep-motion-core/src/*"]
     }
   },
   "include": ["src", "packages/nstep-motion-core/src"]

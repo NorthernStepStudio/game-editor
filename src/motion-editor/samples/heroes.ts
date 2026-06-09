@@ -1,4 +1,4 @@
-import { CharacterProject } from '../../../../../packages/nstep-motion-core/src/schema/types';
+import { CharacterProject } from '@nstep-core/schema/types';
 
 export const HERO_RIGS: Record<string, CharacterProject> = {
   assassin: {

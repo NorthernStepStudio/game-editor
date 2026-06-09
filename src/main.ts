@@ -11,7 +11,6 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   });
 }
 
-import './motion-editor/canvas/patchRootBoneDragging';
 import { bootApp } from './app/boot';
 
 // Entry point for the NStep Game Editor

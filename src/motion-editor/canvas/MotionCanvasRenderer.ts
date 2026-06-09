@@ -932,22 +932,27 @@ export class MotionCanvasRenderer {
       const activeUnlocked = (activePart && !activePart.locked) ? activePart as CharacterPart : undefined;
       let picked: CharacterPart | null = null;
 
+      // Pre-compute bbox pick once (used in multiple branches below)
+      const bboxPick = this.pickPart(mx, my);
+
       if (activeUnlocked) {
         const selM = this.latestMatrices.get(activeUnlocked.id);
         const selAnchorNear = selM
           ? ((mx - selM.e) ** 2 + (my - selM.f) ** 2 <= ANCHOR_R * ANCHOR_R)
           : false;
+        // Also keep selected part when clicking on its own body image
+        const activeBodyHit = bboxPick?.id === activeUnlocked.id;
         const differentAnchor = anchorHits.find(p => p.id !== activeUnlocked.id) ?? null;
-        if (selAnchorNear) {
+        if (selAnchorNear || activeBodyHit) {
           picked = activeUnlocked;
         } else if (differentAnchor) {
           picked = differentAnchor;
         } else {
-          // No anchor near cursor — bbox-pick (returns null on empty canvas → box-select)
-          picked = this.pickPart(mx, my);
+          // No anchor or body hit — fallback to any other bbox part, or null → box-select
+          picked = bboxPick;
         }
       } else {
-        picked = anchorHits[0] ?? this.pickPart(mx, my);
+        picked = anchorHits[0] ?? bboxPick;
       }
 
       const prevId = SelectionState.activePartId;

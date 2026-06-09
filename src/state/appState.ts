@@ -9,4 +9,9 @@ export const AppState = {
   showTrails: false,
 
   controllerFilter: 'all' as 'all' | 'selected' | 'animation',
+
+  meshEditMode:       false,
+  meshWeightMode:     false,
+  meshWeightBoneId:   null as string | null,
+  meshSelectedVertIdx: -1,
 };

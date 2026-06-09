@@ -467,6 +467,10 @@ class NStepPlayer {
       roots.forEach(r => computeMatrix(r, rootMat));
     }
 
+    // Compute rest matrices for SSD mesh skinning (lazy — only when needed)
+    const _hasMesh = project.parts.some(p => p.mesh && p.mesh.vertices && p.mesh.vertices.length >= 3);
+    const _restMats = _hasMesh ? _buildRestMatrices(project, canvas) : null;
+
     // Draw parts sorted by animated zIndex
     const sorted = [...project.parts].sort((a, b) =>
       ((transforms[a.id]?.zIndex) ?? (a.zIndex || 0)) - ((transforms[b.id]?.zIndex) ?? (b.zIndex || 0))
@@ -484,11 +488,6 @@ class NStepPlayer {
       const effSrcRect = (_sSlot && _sSlot.sourceRect)   || null;
       const asset = (project.assets || []).find(a => a.id === effImgId);
 
-      ctx.save();
-      ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
-      ctx.globalAlpha = Math.max(0, Math.min(1, tf.opacity ?? 1));
-      if (part.flipX || part.flipY) ctx.scale(part.flipX ? -1 : 1, part.flipY ? -1 : 1);
-
       // Frame animation
       let srcRect = effSrcRect || part.sourceRect || null;
       const fa = part.frameAnimation;
@@ -501,6 +500,40 @@ class NStepPlayer {
 
       const ox = part.origin?.x ?? 0;
       const oy = part.origin?.y ?? 0;
+      const opacity = Math.max(0, Math.min(1, tf.opacity ?? 1));
+
+      // ── Mesh deformation rendering ─────────────────────────────────────────
+      const mesh = part.mesh;
+      if (mesh && mesh.vertices && mesh.vertices.length >= 3 && mesh.triangles && mesh.triangles.length > 0
+          && part.renderMode === 'image' && asset && _restMats) {
+        const img = this._images[asset.id];
+        const w = srcRect ? srcRect.width : asset.width;
+        const h = srcRect ? srcRect.height : asset.height;
+        if (img && img.complete && img.naturalWidth > 0) {
+          const deformed = _deformMesh(mesh, part, matrices, _restMats);
+          ctx.save();
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          for (const tri of mesh.triangles) {
+            if (tri.length < 3) continue;
+            const v0 = mesh.vertices[tri[0]], v1 = mesh.vertices[tri[1]], v2 = mesh.vertices[tri[2]];
+            const d0 = deformed[tri[0]], d1 = deformed[tri[1]], d2 = deformed[tri[2]];
+            if (!v0 || !v1 || !v2 || !d0 || !d1 || !d2) continue;
+            _drawTri(ctx, img, srcRect, w, h,
+              [v0.x, v0.y, v1.x, v1.y, v2.x, v2.y],
+              [d0.x, d0.y, d1.x, d1.y, d2.x, d2.y],
+              opacity);
+          }
+          ctx.restore();
+          return; // Skip normal rendering
+        }
+      }
+
+      // ── Normal rendering ───────────────────────────────────────────────────
+      ctx.save();
+      ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
+      ctx.globalAlpha = opacity;
+      if (part.flipX || part.flipY) ctx.scale(part.flipX ? -1 : 1, part.flipY ? -1 : 1);
+
       const colorInfluence = Math.max(0, Math.min(1, tf.color ?? 0));
       const tintColor = part.tintColor;
 
@@ -558,6 +591,84 @@ function _blendHex(c1, c2, t) {
   const a = _hexToRgb(c1), b = _hexToRgb(c2);
   if (!a || !b) return c1;
   return 'rgb(' + Math.round(a[0]+(b[0]-a[0])*t) + ',' + Math.round(a[1]+(b[1]-a[1])*t) + ',' + Math.round(a[2]+(b[2]-a[2])*t) + ')';
+}
+
+function _drawTri(ctx, img, srcRect, dispW, dispH, sx, dstPts, opacity) {
+  const [x0,y0,x1,y1,x2,y2] = sx;
+  const [dx0,dy0,dx1,dy1,dx2,dy2] = dstPts;
+  const det = (x0-x2)*(y1-y2) - (x1-x2)*(y0-y2);
+  if (Math.abs(det) < 0.01) return;
+  const a = ((dx0-dx2)*(y1-y2) - (dx1-dx2)*(y0-y2)) / det;
+  const b = ((dx1-dx2)*(x0-x2) - (dx0-dx2)*(x1-x2)) / det;
+  const c = dx0 - a*x0 - b*y0;
+  const d = ((dy0-dy2)*(y1-y2) - (dy1-dy2)*(y0-y2)) / det;
+  const ef = ((dy1-dy2)*(x0-x2) - (dy0-dy2)*(x1-x2)) / det;
+  const f = dy0 - d*x0 - ef*y0;
+  ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
+  ctx.beginPath();
+  ctx.moveTo(dx0,dy0); ctx.lineTo(dx1,dy1); ctx.lineTo(dx2,dy2);
+  ctx.closePath(); ctx.clip();
+  ctx.transform(a, d, b, ef, c, f);
+  if (srcRect) ctx.drawImage(img, srcRect.x, srcRect.y, srcRect.width, srcRect.height, 0, 0, dispW, dispH);
+  else ctx.drawImage(img, 0, 0, dispW, dispH);
+  ctx.restore();
+}
+
+function _buildRestMatrices(project, canvas) {
+  const partsMap = {}, childrenMap = {}, roots = [];
+  project.parts.forEach(p => {
+    partsMap[p.id] = p;
+    if (!p.parentId) roots.push(p.id);
+    else { (childrenMap[p.parentId] = childrenMap[p.parentId] || []).push(p.id); }
+  });
+  const mats = {};
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  const rootMat = new DOMMatrix().translate(cx, cy);
+  function compute(id, parent) {
+    const p = partsMap[id];
+    if (!p) return;
+    const m = DOMMatrix.fromMatrix(parent);
+    m.translateSelf(p.baseX ?? 0, p.baseY ?? 0);
+    m.rotateSelf(p.baseRotation ?? 0);
+    m.scaleSelf(p.baseScaleX ?? 1, p.baseScaleY ?? 1);
+    mats[id] = m;
+    (childrenMap[id] || []).forEach(k => compute(k, m));
+  }
+  roots.forEach(r => compute(r, rootMat));
+  return mats;
+}
+
+function _deformMesh(mesh, part, matrices, restMats) {
+  const ox = part.origin?.x ?? 0, oy = part.origin?.y ?? 0;
+  const partCurr = matrices[part.id];
+  const partRest = restMats[part.id];
+  return mesh.vertices.map((v, vi) => {
+    if (!partCurr) return { x: v.x - ox, y: v.y - oy };
+    const bw = mesh.boneWeights[vi] || {};
+    const entries = Object.entries(bw).filter(([,w]) => w > 0);
+    if (entries.length === 0 || !partRest) {
+      const wp = partCurr.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+      return { x: wp.x, y: wp.y };
+    }
+    const restWorld = partRest.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+    let totalW = 0, dx = 0, dy = 0;
+    for (const [boneId, w] of entries) {
+      const bc = matrices[boneId], br = restMats[boneId];
+      if (!bc || !br) continue;
+      try {
+        const brInv = br.inverse();
+        const inB = brInv.transformPoint(restWorld);
+        const def = bc.transformPoint(inB);
+        dx += w * def.x; dy += w * def.y; totalW += w;
+      } catch {}
+    }
+    if (totalW <= 0) {
+      const wp = partCurr.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+      return { x: wp.x, y: wp.y };
+    }
+    return { x: dx / totalW, y: dy / totalW };
+  });
 }
 
 // ─── Exports ──────────────────────────────────────────────────────────────────

@@ -114,6 +114,17 @@ export interface PhysicsConfig {
   maxAngle?: number;
 }
 
+export interface Vertex2D {
+  x: number;
+  y: number;
+}
+
+export interface PartMesh {
+  vertices:    Vertex2D[];
+  triangles:   number[][];
+  boneWeights: Record<string, number>[];
+}
+
 export interface CharacterPart {
   id: string;
   name: string;
@@ -142,6 +153,7 @@ export interface CharacterPart {
   frameAnimation?: FrameAnimation;
   fkOverride?: boolean;
   physics?: PhysicsConfig;
+  mesh?: PartMesh;
 }
 
 export interface SlotOverride {

@@ -147,6 +147,15 @@ function normalizePart(p: any): CharacterPart {
   if (faNorm)                         out.frameAnimation       = faNorm;
   const phNorm = normalizePhysics(p.physics);
   if (phNorm)                         out.physics              = phNorm;
+  if (p.mesh && Array.isArray(p.mesh.vertices) && Array.isArray(p.mesh.triangles)) {
+    out.mesh = {
+      vertices:    p.mesh.vertices.map((v: any) => ({ x: Number(v.x ?? 0), y: Number(v.y ?? 0) })),
+      triangles:   p.mesh.triangles.map((t: any) => (Array.isArray(t) ? t.map(Number) : [])),
+      boneWeights: Array.isArray(p.mesh.boneWeights)
+        ? p.mesh.boneWeights.map((bw: any) => (bw && typeof bw === 'object' ? { ...bw } : {}))
+        : p.mesh.vertices.map(() => ({})),
+    };
+  }
 
   return out as CharacterPart;
 }

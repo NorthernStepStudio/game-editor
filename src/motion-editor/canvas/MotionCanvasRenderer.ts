@@ -13,6 +13,8 @@ import { solve2BoneIK, solveFABRIK } from './ikSolver';
 import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
 import { HistoryState } from '../../state/historyState';
 import { SpringBoneSimulator } from './SpringBoneSimulator';
+import { delaunayTriangulate } from './meshTriangulation';
+import { computeDeformedVertices, drawTexturedTriangle, drawMeshEditOverlay } from './meshRenderer';
 
 function hexToRgbComponents(hex: string): [number, number, number] | null {
   const h = hex.replace('#', '');
@@ -109,6 +111,10 @@ export class MotionCanvasRenderer {
   private springDt: number = 0;
   private _lastPlayingState: boolean = false;
   private _lastAnimId: string | null = null;
+
+  // Mesh edit state
+  private meshEditDragging: boolean = false;
+  private meshEditVertIdx: number = -1;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -715,6 +721,22 @@ export class MotionCanvasRenderer {
       (tforms.get(b.id)?.zIndex ?? Number(b.zIndex) ?? 0)
     );
 
+    // Compute rest matrices for SSD mesh skinning (only when a meshed part exists)
+    const hasMesh = project.parts.some((p: any) => (p as any).mesh?.vertices?.length >= 3);
+    let restMatrices: Map<string, DOMMatrix> | null = null;
+    if (hasMesh) {
+      const restTforms = new Map<string, any>();
+      project.parts.forEach((p: any) => {
+        restTforms.set(p.id, {
+          x: p.baseX ?? 0, y: p.baseY ?? 0,
+          rotation: p.baseRotation ?? 0,
+          scaleX: p.baseScaleX ?? 1, scaleY: p.baseScaleY ?? 1,
+          opacity: 1, zIndex: p.zIndex ?? 0, color: 0,
+        });
+      });
+      restMatrices = this.buildMatrices(restTforms);
+    }
+
     // Draw parts
     sortedParts.forEach((part: any) => {
       if (part.visible === false) return;
@@ -728,23 +750,7 @@ export class MotionCanvasRenderer {
       const effectiveSourceRect   = _skinSlot?.sourceRect   ?? part.sourceRect;
       const asset = project.assets?.find((a: any) => a.id === effectiveImageAssetId);
       const tform = tforms.get(part.id);
-
-      ctx.save();
-      ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
-      ctx.imageSmoothingEnabled = project.renderQuality !== 'pixel';
-      if (ctx.imageSmoothingEnabled) ctx.imageSmoothingQuality = 'high';
-
-      const isSelected = part.id === SelectionState.activePartId;
-      if (!isSelected) {
-        ctx.shadowColor = 'rgba(0,0,0,0.3)';
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetY = 3;
-      }
-
-      const opacity = tform?.opacity ?? (part.opacity ?? 1);
-      ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
-
-      if (part.flipX || part.flipY) ctx.scale(part.flipX ? -1 : 1, part.flipY ? -1 : 1);
+      const opacity = Math.max(0, Math.min(1, tform?.opacity ?? (part.opacity ?? 1)));
 
       // Frame animation: compute dynamic sourceRect
       const dynamicSrc = (part.renderMode === 'image' && part.frameAnimation)
@@ -760,6 +766,51 @@ export class MotionCanvasRenderer {
         width  = (part.origin?.x ?? 20) * 2 || 40;
         height = (part.origin?.y ?? 20) * 2 || 40;
       }
+
+      // ── Mesh deformation rendering ──────────────────────────────────────────
+      const partMesh = (part as any).mesh;
+      if (partMesh?.vertices?.length >= 3 && partMesh.triangles?.length > 0
+          && part.renderMode === 'image' && effectiveImageAssetId && restMatrices) {
+        const img = imageCache.get(effectiveImageAssetId);
+        if (img && img.complete && img.naturalWidth > 0) {
+          const deformedPts = computeDeformedVertices(partMesh, part, matrices, restMatrices);
+          ctx.save();
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.imageSmoothingEnabled = project.renderQuality !== 'pixel';
+          if (ctx.imageSmoothingEnabled) ctx.imageSmoothingQuality = 'high';
+          for (const tri of partMesh.triangles) {
+            if (tri.length < 3) continue;
+            const v0 = partMesh.vertices[tri[0]], v1 = partMesh.vertices[tri[1]], v2 = partMesh.vertices[tri[2]];
+            const d0 = deformedPts[tri[0]], d1 = deformedPts[tri[1]], d2 = deformedPts[tri[2]];
+            if (!v0 || !v1 || !v2 || !d0 || !d1 || !d2) continue;
+            drawTexturedTriangle(
+              ctx, img, activeSrc, width, height,
+              [v0.x, v0.y, v1.x, v1.y, v2.x, v2.y],
+              [d0.x, d0.y, d1.x, d1.y, d2.x, d2.y],
+              opacity
+            );
+          }
+          ctx.restore();
+          return; // Skip normal rendering for this part
+        }
+      }
+
+      // ── Normal rendering ────────────────────────────────────────────────────
+      ctx.save();
+      ctx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
+      ctx.imageSmoothingEnabled = project.renderQuality !== 'pixel';
+      if (ctx.imageSmoothingEnabled) ctx.imageSmoothingQuality = 'high';
+
+      const isSelected = part.id === SelectionState.activePartId;
+      if (!isSelected) {
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 3;
+      }
+
+      ctx.globalAlpha = opacity;
+
+      if (part.flipX || part.flipY) ctx.scale(part.flipX ? -1 : 1, part.flipY ? -1 : 1);
 
       ctx.translate(-(part.origin?.x ?? 0), -(part.origin?.y ?? 0));
 
@@ -808,6 +859,16 @@ export class MotionCanvasRenderer {
 
       ctx.restore();
     });
+
+    // Mesh edit / weight overlay (drawn after all parts so it sits on top)
+    if (AppState.meshEditMode || AppState.meshWeightMode) {
+      const activeMeshPart = project.parts.find((p: any) => p.id === SelectionState.activePartId);
+      const activeMesh = activeMeshPart && (activeMeshPart as any).mesh;
+      if (activeMeshPart && activeMesh?.vertices?.length >= 3) {
+        drawMeshEditOverlay(ctx, activeMesh, matrices, activeMeshPart,
+          AppState.meshSelectedVertIdx, AppState.meshWeightMode, AppState.meshWeightBoneId);
+      }
+    }
 
     // Draw IK target indicators
     this.drawIKIndicators(project, matrices);
@@ -1109,6 +1170,46 @@ export class MotionCanvasRenderer {
       const project = ProjectState.project;
       const activePart = project.parts.find((p: any) => p.id === SelectionState.activePartId);
 
+      // ── Mesh vertex edit — checked before bone picking ────────────────────
+      if ((AppState.meshEditMode || AppState.meshWeightMode) && activePart && !activePart.locked) {
+        const partMesh = (activePart as any).mesh;
+        if (partMesh?.vertices) {
+          const m = this.latestMatrices.get(activePart.id);
+          const ox = (activePart as any).origin?.x ?? 0;
+          const oy = (activePart as any).origin?.y ?? 0;
+          let hitIdx = -1;
+          let minD = 100; // px² threshold
+          if (m) {
+            partMesh.vertices.forEach((v: any, vi: number) => {
+              const wp = m.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+              const d2 = (mx - wp.x) ** 2 + (my - wp.y) ** 2;
+              if (d2 < minD) { minD = d2; hitIdx = vi; }
+            });
+          }
+          if (hitIdx >= 0) {
+            AppState.meshSelectedVertIdx = hitIdx;
+            if (AppState.meshEditMode) {
+              this.meshEditDragging = true;
+              this.meshEditVertIdx = hitIdx;
+            }
+          } else if (AppState.meshEditMode && m) {
+            // Add vertex on empty-space click
+            try {
+              const inv = m.inverse();
+              const lp = inv.transformPoint(new DOMPoint(mx, my));
+              HistoryState.push();
+              partMesh.vertices.push({ x: lp.x + ox, y: lp.y + oy });
+              partMesh.boneWeights.push({});
+              partMesh.triangles = delaunayTriangulate(partMesh.vertices);
+              AppState.meshSelectedVertIdx = partMesh.vertices.length - 1;
+              DirtyState.markDirty();
+            } catch {}
+          }
+          if (this.onUpdate) this.onUpdate();
+          return;
+        }
+      }
+
       // ── IK handle drag — checked before everything else ───────────────────
       {
         const ikTargetId = this.hitTestIKHandle(mx, my);
@@ -1348,6 +1449,28 @@ export class MotionCanvasRenderer {
         return;
       }
 
+      // ── Mesh vertex drag ─────────────────────────────────────────────────
+      if (this.meshEditDragging && AppState.meshEditMode) {
+        const activeMeshPart = project.parts.find((p: any) => p.id === SelectionState.activePartId);
+        const partMesh = activeMeshPart && (activeMeshPart as any).mesh;
+        if (activeMeshPart && partMesh && this.meshEditVertIdx >= 0) {
+          const m = this.latestMatrices.get(activeMeshPart.id);
+          if (m) {
+            try {
+              const inv = m.inverse();
+              const lp = inv.transformPoint(new DOMPoint(mx, my));
+              const ox = (activeMeshPart as any).origin?.x ?? 0;
+              const oy = (activeMeshPart as any).origin?.y ?? 0;
+              partMesh.vertices[this.meshEditVertIdx] = { x: lp.x + ox, y: lp.y + oy };
+              partMesh.triangles = delaunayTriangulate(partMesh.vertices);
+              DirtyState.markDirty();
+              if (this.onUpdate) (this.onUpdate as any)(true, false);
+            } catch {}
+          }
+        }
+        return;
+      }
+
       // ── Box selection rect update ─────────────────────────────────────────
       if (this.isBoxSelecting) {
         this.boxEndX = mx;
@@ -1405,6 +1528,13 @@ export class MotionCanvasRenderer {
 
     window.addEventListener('mouseup', (e) => {
       if (e.button !== 0) return;
+
+      // ── Mesh vertex drag end ──────────────────────────────────────────────
+      if (this.meshEditDragging) {
+        this.meshEditDragging = false;
+        this.meshEditVertIdx = -1;
+        return;
+      }
 
       // ── IK handle drag end ────────────────────────────────────────────────
       if (this.isIKHandleDrag) {
@@ -1552,7 +1682,34 @@ export class MotionCanvasRenderer {
       }
     });
 
-    this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+    this.canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      if (!AppState.meshEditMode) return;
+      const { mx, my } = this.getMouse(e);
+      const project = ProjectState.project;
+      const activePart = project.parts.find((p: any) => p.id === SelectionState.activePartId);
+      const partMesh = activePart && (activePart as any).mesh;
+      if (!activePart || !partMesh?.vertices || activePart.locked) return;
+      const m = this.latestMatrices.get(activePart.id);
+      if (!m) return;
+      const ox = (activePart as any).origin?.x ?? 0;
+      const oy = (activePart as any).origin?.y ?? 0;
+      let minD = 100, hitIdx = -1;
+      partMesh.vertices.forEach((v: any, vi: number) => {
+        const wp = m.transformPoint(new DOMPoint(v.x - ox, v.y - oy));
+        const d2 = (mx - wp.x) ** 2 + (my - wp.y) ** 2;
+        if (d2 < minD) { minD = d2; hitIdx = vi; }
+      });
+      if (hitIdx < 0 || partMesh.vertices.length <= 3) return;
+      HistoryState.push();
+      partMesh.vertices.splice(hitIdx, 1);
+      partMesh.boneWeights.splice(hitIdx, 1);
+      partMesh.triangles = delaunayTriangulate(partMesh.vertices);
+      if (AppState.meshSelectedVertIdx === hitIdx) AppState.meshSelectedVertIdx = -1;
+      else if (AppState.meshSelectedVertIdx > hitIdx) AppState.meshSelectedVertIdx--;
+      DirtyState.markDirty();
+      if (this.onUpdate) this.onUpdate();
+    });
 
     window.addEventListener('keydown', (e) => {
       const tag = (e.target as HTMLElement).tagName;

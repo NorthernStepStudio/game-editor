@@ -6,6 +6,7 @@ import { trimToAlphaBounds } from '../utils/assetUtils';
 import { computeAllWorldMatrices, preserveDescendantWorldTransforms } from '../rigTransformUtils';
 import { HistoryState } from '../../state/historyState';
 import { bakePhysics } from '../canvas/bakePhysics';
+import { createDefaultMesh } from '../canvas/meshTriangulation';
 
 function esc(s: string): string {
   return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -31,6 +32,7 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
   const ik = (part as any).ikChain || {};
   const con = (part as any).constraint || {};
   const fa = (part as any).frameAnimation || {};
+  const mesh = (part as any).mesh;
   const otherParts = project.parts.filter((p: any) => p.id !== part.id);
 
   container.innerHTML = `
@@ -260,6 +262,45 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
         </div>
         <button id="pi-phys-bake" style="width:100%; font-size:0.7rem; padding:4px 0; margin-top:2px;" ${locked ? 'disabled' : ''}>⬇ Bake Physics to Keyframes…</button>
         ` : `<div style="font-size:0.68rem; color:var(--text-muted); padding:4px 0;">Enable to add spring lag and secondary motion to this bone.</div>`}
+      </div>
+
+      <!-- Mesh Deformation -->
+      <div class="inspector-section">
+        <div class="inspector-section-title" style="display:flex; justify-content:space-between; align-items:center;">
+          Mesh Deformation
+          <label style="display:flex; align-items:center; gap:4px; font-size:0.68rem; color:var(--text-muted); cursor:pointer; font-weight:400;">
+            <input type="checkbox" id="pi-mesh-enabled" ${mesh ? 'checked' : ''}> Enable
+          </label>
+        </div>
+        ${mesh ? `
+        <div style="font-size:0.68rem; color:var(--text-muted); margin-bottom:6px;">${mesh.vertices.length} verts · ${mesh.triangles.length} tris</div>
+        <div class="insp-action-row" style="margin-bottom:6px;">
+          <button id="pi-mesh-edit" class="${AppState.meshEditMode ? 'primary' : ''}" ${locked ? 'disabled' : ''}>✏ Edit Mesh</button>
+          <button id="pi-mesh-weights" class="${AppState.meshWeightMode ? 'primary' : ''}" ${locked ? 'disabled' : ''}>⚖ Weights</button>
+          <button id="pi-mesh-reset" ${locked ? 'disabled' : ''}>↺ Reset</button>
+        </div>
+        ${AppState.meshWeightMode ? `
+        <div class="form-group" style="margin-bottom:5px;">
+          <label>Paint Bone</label>
+          <select id="pi-mesh-weight-bone">
+            <option value="">— select bone —</option>
+            ${otherParts.map((p: any) => `<option value="${p.id}" ${AppState.meshWeightBoneId === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+          </select>
+        </div>
+        ${AppState.meshSelectedVertIdx >= 0 && AppState.meshWeightBoneId ? `
+        <div class="form-group" style="margin-top:4px;">
+          <label>Vertex ${AppState.meshSelectedVertIdx} weight</label>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <input type="range" id="pi-mesh-vert-weight" min="0" max="1" step="0.05"
+              value="${(mesh.boneWeights[AppState.meshSelectedVertIdx]?.[AppState.meshWeightBoneId] ?? 0).toFixed(2)}"
+              style="flex:1;">
+            <span id="pi-mesh-vert-wlabel" style="font-size:0.65rem; color:var(--text-muted); min-width:30px; text-align:right;">
+              ${(mesh.boneWeights[AppState.meshSelectedVertIdx]?.[AppState.meshWeightBoneId] ?? 0).toFixed(2)}
+            </span>
+          </div>
+        </div>` : `<div style="font-size:0.67rem; color:var(--text-muted);">Select a vertex on the canvas to set its weight.</div>`}
+        ` : `<div style="font-size:0.67rem; color:var(--text-muted);">${AppState.meshEditMode ? 'Click canvas to add/drag vertices. Right-click a vertex to delete it.' : 'Use Edit Mesh to adjust vertex positions, Weights to paint bone influence.'}</div>`}
+        ` : `<div style="font-size:0.68rem; color:var(--text-muted); padding:4px 0;">Enable to add a deformable mesh to this part for bone-driven bending.</div>`}
       </div>
 
       <!-- Flags -->
@@ -616,6 +657,71 @@ export function renderInspectorPanel(container: HTMLElement, onUpdate: (skipInsp
     DirtyState.markDirty();
     onUpdate();
   };
+
+  // Mesh bindings
+  const meshEnableChk = container.querySelector('#pi-mesh-enabled') as HTMLInputElement;
+  if (meshEnableChk) meshEnableChk.onchange = () => {
+    if (meshEnableChk.checked) {
+      const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
+      const w = asset ? asset.width : Math.max(1, (part.origin?.x ?? 20) * 2);
+      const h = asset ? asset.height : Math.max(1, (part.origin?.y ?? 20) * 2);
+      (part as any).mesh = createDefaultMesh(w, h);
+    } else {
+      (part as any).mesh = undefined;
+      AppState.meshEditMode = false;
+      AppState.meshWeightMode = false;
+      AppState.meshSelectedVertIdx = -1;
+    }
+    DirtyState.markDirty(); onUpdate();
+  };
+
+  const meshEditBtn = container.querySelector('#pi-mesh-edit') as HTMLElement;
+  if (meshEditBtn) meshEditBtn.onclick = () => {
+    AppState.meshEditMode = !AppState.meshEditMode;
+    if (AppState.meshEditMode) AppState.meshWeightMode = false;
+    onUpdate();
+  };
+
+  const meshWeightsBtn = container.querySelector('#pi-mesh-weights') as HTMLElement;
+  if (meshWeightsBtn) meshWeightsBtn.onclick = () => {
+    AppState.meshWeightMode = !AppState.meshWeightMode;
+    if (AppState.meshWeightMode) AppState.meshEditMode = false;
+    onUpdate();
+  };
+
+  const meshResetBtn = container.querySelector('#pi-mesh-reset') as HTMLElement;
+  if (meshResetBtn) meshResetBtn.onclick = () => {
+    if (!confirm('Reset mesh to default? All vertex positions and weights will be lost.')) return;
+    HistoryState.push();
+    const asset = project.assets?.find((a: any) => a.id === part.imageAssetId);
+    const w = asset ? asset.width : Math.max(1, (part.origin?.x ?? 20) * 2);
+    const h = asset ? asset.height : Math.max(1, (part.origin?.y ?? 20) * 2);
+    (part as any).mesh = createDefaultMesh(w, h);
+    AppState.meshSelectedVertIdx = -1;
+    DirtyState.markDirty(); onUpdate();
+  };
+
+  const meshBoneSel = container.querySelector('#pi-mesh-weight-bone') as HTMLSelectElement;
+  if (meshBoneSel) meshBoneSel.onchange = () => {
+    AppState.meshWeightBoneId = meshBoneSel.value || null;
+    AppState.meshSelectedVertIdx = -1;
+    onUpdate();
+  };
+
+  const meshVertWeightEl = container.querySelector('#pi-mesh-vert-weight') as HTMLInputElement;
+  const meshVertWLabel   = container.querySelector('#pi-mesh-vert-wlabel') as HTMLElement;
+  if (meshVertWeightEl && mesh && AppState.meshSelectedVertIdx >= 0 && AppState.meshWeightBoneId) {
+    meshVertWeightEl.oninput = () => {
+      const vi     = AppState.meshSelectedVertIdx;
+      const boneId = AppState.meshWeightBoneId!;
+      if (!mesh.boneWeights[vi]) mesh.boneWeights[vi] = {};
+      const w = parseFloat(meshVertWeightEl.value);
+      if (w > 0) mesh.boneWeights[vi][boneId] = w;
+      else delete mesh.boneWeights[vi][boneId];
+      if (meshVertWLabel) meshVertWLabel.textContent = w.toFixed(2);
+      DirtyState.markDirty(); onUpdate(true, false);
+    };
+  }
 
   // Checkbox flags
   const chk = (id: string, fn: (v: boolean) => void) => {

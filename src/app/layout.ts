@@ -1,9 +1,16 @@
+import { PROFESSIONAL_VIEW } from './professionalView';
+
 export const MAIN_LAYOUT = `
-  <div id="editor-page" class="app-page">
+  <div id="overview-page" class="app-page" style="display:block;">
+    ${PROFESSIONAL_VIEW}
+  </div>
+
+  <div id="editor-page" class="app-page" style="display:none;">
     <header class="header">
       <div class="logo">N<span>Step</span></div>
       <nav class="main-nav">
-        <button id="btn-nav-editor" class="nav-btn active">Editor</button>
+        <button id="btn-nav-overview" class="nav-btn active">Overview</button>
+        <button id="btn-nav-editor" class="nav-btn">Editor</button>
         <button id="btn-nav-rigging" class="nav-btn">Rigging</button>
         <button id="btn-nav-cutter" class="nav-btn">Cutter</button>
       </nav>

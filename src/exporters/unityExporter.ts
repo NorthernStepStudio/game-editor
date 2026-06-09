@@ -215,54 +215,65 @@ ${controllerEntries}
             }
         }
 
-        // ── Formula evaluator ──────────────────────────────────────────────────
+        // ── Formula evaluator — parity with evaluateController.ts ─────────────
         private static float EvaluateController(ControllerData c, float time, float dur)
         {
             if (c.mode == ControllerMode.Keyframe && c.keyframes != null && c.keyframes.Length > 0)
                 return InterpolateKeyframes(c.keyframes, time, dur);
 
-            float t  = time * c.speed + c.phase;
-            float n  = ((t % 1f) + 1f) % 1f;
+            float t   = time * c.speed + c.phase;
+            float n   = ((t % 1f) + 1f) % 1f;
             float TAU = Mathf.PI * 2f;
 
             switch (c.preset)
             {
-                case "sine":           return Mathf.Sin(t * TAU) * c.amplitude + c.offset;
-                case "breathingY":     return Mathf.Sin(t * TAU) * c.amplitude + c.offset;
+                case "sine":
+                case "breathingY":
+                case "swayRotation":
+                case "tailWag":        return Mathf.Sin(t * TAU) * c.amplitude + c.offset;
+
                 case "hoverFloat":
                 {
                     float up = (Mathf.Sin(t * TAU) + 1f) / 2f;
-                    float eased = EaseInOut(up);
-                    return (eased * 2f - 1f) * c.amplitude + c.offset;
+                    return (EaseInOut(up) * 2f - 1f) * c.amplitude + c.offset;
                 }
                 case "bobPosition":    return (Mathf.Abs(Mathf.Sin(t * Mathf.PI)) * 2f - 1f) * c.amplitude + c.offset;
-                case "swayRotation":   return Mathf.Sin(t * TAU) * c.amplitude + c.offset;
+
                 case "walkCycle":      return Mathf.Sin(t * TAU) * c.amplitude + c.offset;
                 case "runCycle":
                 {
                     float s = Mathf.Sin(t * TAU);
-                    float snap = Mathf.Sign(s) * Mathf.Pow(Mathf.Abs(s), 0.7f);
-                    return snap * c.amplitude + c.offset;
+                    return Mathf.Sign(s) * Mathf.Pow(Mathf.Abs(s), 0.7f) * c.amplitude + c.offset;
                 }
-                case "legCycle":
-                {
-                    float leg = Mathf.Sin(t * TAU) - 0.15f * Mathf.Sin(t * TAU * 2f);
-                    return leg * c.amplitude + c.offset;
-                }
+                case "runLean":        return (c.offset == 0f ? c.amplitude * 0.12f : c.offset);
+                case "legCycle":       return (Mathf.Sin(t * TAU) - 0.15f * Mathf.Sin(t * TAU * 2f)) * c.amplitude + c.offset;
                 case "armSwing":       return -Mathf.Sin(t * TAU) * c.amplitude + c.offset;
+
+                case "weaponSwing":
+                {
+                    if (n < 0.3f) return -c.amplitude + c.amplitude * 2f * (n / 0.3f) + c.offset;
+                    if (n < 0.5f) return c.amplitude - c.amplitude * ((n - 0.3f) / 0.2f) + c.offset;
+                    return -c.amplitude * 0.5f + c.amplitude * 0.5f * ((n - 0.5f) / 0.5f) + c.offset;
+                }
+                case "capeLag":        return Mathf.Sin(t * TAU - 0.6f) * c.amplitude + c.offset;
+                case "staffSway":      return (Mathf.Sin(t * TAU) * 0.7f + Mathf.Sin(t * TAU * 1.3f + 0.5f) * 0.3f) * c.amplitude + c.offset;
+
                 case "headBob":        return -Mathf.Abs(Mathf.Sin(t * TAU)) * c.amplitude + c.offset;
-                case "tailWag":        return Mathf.Sin(t * TAU) * c.amplitude + c.offset;
+                case "clawTwitch":
+                {
+                    if (n < 0.08f) return c.offset + c.amplitude * (n / 0.08f);
+                    if (n < 0.20f) return c.offset + c.amplitude * (1f - (n - 0.08f) / 0.12f);
+                    if (n < 0.28f) return c.offset + c.amplitude * 0.4f * ((n - 0.20f) / 0.08f);
+                    if (n < 0.36f) return c.offset + c.amplitude * 0.4f * (1f - (n - 0.28f) / 0.08f);
+                    return c.offset;
+                }
                 case "squashStretch":  return 1f + Mathf.Sin(t * TAU) * c.amplitude + c.offset;
                 case "breathScale":    return 1f + ((Mathf.Sin(t * TAU) + 1f) / 2f) * c.amplitude + c.offset;
-                case "noise":
+                case "blinkScale":
                 {
-                    float nv = (Mathf.Sin(t * 1.3f) * 43758.5453f) % 1f;
-                    return (nv * 2f - 1f) * c.amplitude + c.offset;
-                }
-                case "jumpArc":
-                {
-                    float arc = 4f * n * (1f - n);
-                    return -arc * c.amplitude + c.offset;
+                    if (n > 0.9f && n < 0.93f)  return 0f;
+                    if (n >= 0.93f && n < 0.96f) return (n - 0.93f) / 0.03f;
+                    return 1f;
                 }
                 case "recoil":
                 {
@@ -270,26 +281,93 @@ ${controllerEntries}
                     if (n < 0.45f) return -c.amplitude * (1f - Smoothstep((n - 0.12f) / 0.33f)) + c.offset;
                     return c.offset;
                 }
-                case "hitStagger":
+                case "impactShake":    return Mathf.Sin(t * TAU * 7f) * c.amplitude * Mathf.Exp(-n * 5f) + c.offset;
+                case "shieldBrace":    return c.offset != 0f ? c.offset : c.amplitude;
+                case "deathFall":
                 {
-                    float decay = Mathf.Exp(-n * 4f);
-                    return Mathf.Sin(t * TAU * 5f) * c.amplitude * decay + c.offset;
+                    float nf = Mathf.Min(n * 1.5f, 1f);
+                    return (1f - Mathf.Pow(1f - nf, 3f)) * c.amplitude + c.offset;
                 }
-                case "deathSlump":
+                case "pulse":
                 {
-                    float sl = EaseInOut(Mathf.Min(n * 2f, 1f));
-                    return sl * c.amplitude + c.offset;
+                    float p = (Mathf.Sin(t * TAU) + 1f) / 2f;
+                    return (1f - c.amplitude) + p * c.amplitude + c.offset;
                 }
-                case "deathFade":      return (1f - Smoothstep(n)) * c.amplitude + c.offset;
-                case "pulse":          return (1f - c.amplitude) + ((Mathf.Sin(t * TAU) + 1f) / 2f) * c.amplitude + c.offset;
                 case "easeInOut":
                 {
                     float cycle = (Mathf.Sin(t * TAU) + 1f) / 2f;
                     return (EaseInOut(cycle) * 2f - 1f) * c.amplitude + c.offset;
                 }
+                case "spring":
+                {
+                    float decay = Mathf.Exp(-n * 3f);
+                    float osc   = Mathf.Cos(t * TAU * 2f);
+                    return osc * c.amplitude * (1f - decay * 0.5f) + c.offset;
+                }
+                case "noise":
+                {
+                    float s1 = Mathf.Sin(t * 0.65f + 0f)      * 43758.5453f;
+                    float s2 = Mathf.Sin(t * 1.35f + 22.173f) * 17341.9274f;
+                    float s3 = Mathf.Sin(t * 0.45f + 80.5f)   * 28496.2847f;
+                    float nv = ((s1 - Mathf.Floor(s1)) + (s2 - Mathf.Floor(s2)) + (s3 - Mathf.Floor(s3))) / 3f;
+                    return (nv * 2f - 1f) * c.amplitude + c.offset;
+                }
+                case "jumpArc":        return -(4f * n * (1f - n)) * c.amplitude + c.offset;
+                case "jumpRise":
+                {
+                    if (n < 0.35f) { return -Smoothstep(n / 0.35f) * c.amplitude + c.offset; }
+                    return -(1f - Smoothstep((n - 0.35f) / 0.65f)) * c.amplitude + c.offset;
+                }
+                case "landSquash":
+                {
+                    if (n < 0.08f) return 1f - c.amplitude * Smoothstep(n / 0.08f) + c.offset;
+                    if (n < 0.20f) return 1f - c.amplitude * (1f - Smoothstep((n - 0.08f) / 0.12f)) + c.offset;
+                    if (n < 0.30f) return 1f + c.amplitude * 0.5f * Mathf.Sin((n - 0.2f) / 0.1f * Mathf.PI) + c.offset;
+                    return 1f + c.offset;
+                }
+                case "jumpLegExtend":
+                {
+                    if (n < 0.5f) return c.amplitude * Smoothstep(n / 0.5f) + c.offset;
+                    return c.amplitude * (1f - Mathf.Sin((n - 0.5f) / 0.5f * Mathf.PI)) + c.offset;
+                }
+                case "hitKnockback":
+                {
+                    float kick = Mathf.Exp(-n * 6f);
+                    return Mathf.Sin(n * TAU * 0.5f) * c.amplitude * kick + c.offset;
+                }
+                case "hitFlash":
+                {
+                    float dim = Mathf.Max(0f, 1f - c.amplitude);
+                    if (n < 0.10f) return 1f + c.offset;
+                    if (n < 0.18f) return dim + c.offset;
+                    if (n < 0.26f) return 1f + c.offset;
+                    if (n < 0.34f) return dim + c.offset;
+                    return 1f + c.offset;
+                }
+                case "hitStagger":     return Mathf.Sin(t * TAU * 5f) * c.amplitude * Mathf.Exp(-n * 4f) + c.offset;
+                case "hitRebound":     return SpringDecay(n, 2f, 5f) * c.amplitude + c.offset;
+
+                case "deathSlump":     return EaseInOut(Mathf.Min(n * 2f, 1f)) * c.amplitude + c.offset;
+                case "deathDrop":      return n * n * c.amplitude + c.offset;
+                case "deathFade":      return (1f - Smoothstep(n)) * c.amplitude + c.offset;
+                case "deathTwitch":
+                {
+                    if (n > 0.6f) return c.offset;
+                    return Mathf.Sin(t * TAU * 8f) * Mathf.Exp(-n * 5f) * c.amplitude + c.offset;
+                }
+                case "idleShift":
+                {
+                    float shift = Mathf.Sin(t * TAU) * 0.4f + Mathf.Sin(t * TAU * 0.37f + 1.1f) * 0.6f;
+                    return shift * c.amplitude + c.offset;
+                }
+                case "wobbleOut":      return SpringDecay(n * 2f, 3f, 4f) * c.amplitude + c.offset;
+
                 default:               return Mathf.Sin(t * TAU) * c.amplitude + c.offset;
             }
         }
+
+        private static float SpringDecay(float t, float freq, float decay) =>
+            Mathf.Exp(-t * decay) * Mathf.Cos(t * Mathf.PI * 2f * freq);
 
         private static float InterpolateKeyframes(KeyframeData[] kfs, float time, float dur)
         {
@@ -305,12 +383,43 @@ ${controllerEntries}
             float span = kfs[hi].time - kfs[lo].time;
             if (span <= 0f) return kfs[lo].value;
             float t = (time - kfs[lo].time) / span;
+
+            // Bezier easing
+            if (kfs[lo].easing == "bezier" && kfs[lo].hasTangents)
+            {
+                float bt = SolveBezierT(kfs[lo].cp1x, kfs[lo].cp2x, t);
+                float by = CubicBezier1D(bt, 0f, kfs[lo].cp1y, kfs[lo].cp2y, 1f);
+                return kfs[lo].value + (kfs[hi].value - kfs[lo].value) * by;
+            }
             return kfs[lo].easing switch
             {
                 "step"      => t < 1f ? kfs[lo].value : kfs[hi].value,
                 "easeInOut" => Mathf.Lerp(kfs[lo].value, kfs[hi].value, EaseInOut(t)),
+                "spring"    =>
+                {
+                    float s = kfs[lo].value + (kfs[hi].value - kfs[lo].value) * t;
+                    float bounce = Mathf.Sin(t * Mathf.PI * 3f) * Mathf.Exp(-t * 4f) * (kfs[hi].value - kfs[lo].value) * 0.15f;
+                    return s + bounce;
+                },
                 _           => Mathf.Lerp(kfs[lo].value, kfs[hi].value, t),
             };
+        }
+
+        private static float CubicBezier1D(float t, float p0, float p1, float p2, float p3)
+        {
+            float u = 1f - t;
+            return u*u*u*p0 + 3f*u*u*t*p1 + 3f*u*t*t*p2 + t*t*t*p3;
+        }
+
+        private static float SolveBezierT(float cp1x, float cp2x, float targetX)
+        {
+            float lo = 0f, hi = 1f;
+            for (int i = 0; i < 24; i++)
+            {
+                float mid = (lo + hi) * 0.5f;
+                if (CubicBezier1D(mid, 0f, cp1x, cp2x, 1f) < targetX) lo = mid; else hi = mid;
+            }
+            return (lo + hi) * 0.5f;
         }
 
         private static float EaseInOut(float t) => t < 0.5f ? 2f * t * t : -1f + (4f - 2f * t) * t;
@@ -333,8 +442,10 @@ ${controllerEntries}
         [Serializable]
         private struct KeyframeData
         {
-            public float time, value;
+            public float  time, value;
             public string easing;
+            public bool   hasTangents;
+            public float  cp1x, cp1y, cp2x, cp2y;
         }
 
         [Serializable]
@@ -369,7 +480,14 @@ function buildControllerEntry(c: any, partIdToName: Map<string, string>): string
   const partName = partIdToName.get(c.targetPartId) ?? c.targetPartId;
   const mode = (c.mode === 'keyframe' && c.keyframes?.length > 0) ? 'ControllerMode.Keyframe' : 'ControllerMode.Formula';
   const kfs  = (c.mode === 'keyframe' && c.keyframes?.length > 0)
-    ? `new KeyframeData[] { ${c.keyframes.map((k: any) => `new KeyframeData { time=${k.time.toFixed(4)}f, value=${k.value.toFixed(4)}f, easing="${k.easing}" }`).join(', ')} }`
+    ? `new KeyframeData[] { ${c.keyframes.map((k: any) => {
+        const hasTangents = k.easing === 'bezier' && k.tangentOut && k.tangentIn;
+        const cp1x = hasTangents ? (k.tangentOut.x as number).toFixed(4) : '0';
+        const cp1y = hasTangents ? (k.tangentOut.y as number).toFixed(4) : '0';
+        const cp2x = hasTangents ? (k.tangentIn.x  as number).toFixed(4) : '0';
+        const cp2y = hasTangents ? (k.tangentIn.y  as number).toFixed(4) : '0';
+        return `new KeyframeData { time=${(k.time as number).toFixed(4)}f, value=${(k.value as number).toFixed(4)}f, easing="${k.easing}", hasTangents=${hasTangents ? 'true' : 'false'}, cp1x=${cp1x}f, cp1y=${cp1y}f, cp2x=${cp2x}f, cp2y=${cp2y}f }`;
+      }).join(', ')} }`
     : 'null';
   return `new ControllerData { partName="${partName}", property="${c.property}", preset="${c.formulaPreset}", speed=${(c.params.speed??1).toFixed(4)}f, amplitude=${(c.params.amplitude??0).toFixed(4)}f, phase=${(c.params.phase??0).toFixed(4)}f, offset=${(c.params.offset??0).toFixed(4)}f, mode=${mode}, keyframes=${kfs} }`;
 }

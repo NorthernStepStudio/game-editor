@@ -185,7 +185,15 @@ export const MAIN_LAYOUT = `
           <option value="#1a1a2e">Dark</option>
         </select>
       </label>
-      <div></div>
+      <label style="display:flex; flex-direction:column; gap:4px; font-size:0.78rem; font-weight:600; color:var(--text-muted);">
+        Scale
+        <select id="exp-scale" style="font-size:0.82rem;">
+          <option value="0.5">0.5× (256 px base)</option>
+          <option value="1" selected>1× (512 px base)</option>
+          <option value="2">2× (1024 px base)</option>
+          <option value="custom">Custom</option>
+        </select>
+      </label>
     </div>
 
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
@@ -196,7 +204,7 @@ export const MAIN_LAYOUT = `
         🎞️ Animated GIF — single animated file
       </button>
       <button id="btn-exp-unity" style="text-align:left; padding:10px 14px;">
-        🎮 Unity C# Runtime — NStepAnimator MonoBehaviour
+        🎮 Copy Unity C# — NStepAnimator MonoBehaviour
       </button>
       <button id="btn-exp-demo-html" style="text-align:left; padding:10px 14px;">
         🌐 Demo HTML — standalone browser preview

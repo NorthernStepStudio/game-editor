@@ -125,9 +125,24 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
     const expWidthIn   = document.getElementById('exp-width')        as HTMLInputElement;
     const expHeightIn  = document.getElementById('exp-height')       as HTMLInputElement;
     const expBgSel     = document.getElementById('exp-bg')           as HTMLSelectElement;
+    const expScaleSel  = document.getElementById('exp-scale')        as HTMLSelectElement;
     const expProgress  = document.getElementById('exp-progress')!;
     const expProgBar   = document.getElementById('exp-progress-bar') as HTMLProgressElement;
     const expProgLabel = document.getElementById('exp-progress-label')!;
+
+    // Scale preset → update width/height inputs (unless "custom" is chosen)
+    expScaleSel?.addEventListener('change', () => {
+      const sv = expScaleSel.value;
+      if (sv === 'custom') return;
+      const s = parseFloat(sv);
+      const base = Math.round(512 * s);
+      expWidthIn.value  = String(base);
+      expHeightIn.value = String(base);
+    });
+    // Manual w/h edits switch scale selector to "custom"
+    const markCustom = () => { expScaleSel.value = 'custom'; };
+    expWidthIn.addEventListener('input',  markCustom);
+    expHeightIn.addEventListener('input', markCustom);
 
     document.getElementById('btn-export-panel')!.onclick = () => {
       const anims = ProjectState.project.animations as any[];
@@ -175,7 +190,27 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
     document.getElementById('btn-exp-gif')!.onclick = () =>
       withProgress('Encoding GIF…', exportGIF);
 
-    document.getElementById('btn-exp-unity')!.onclick = () => { exportUnityCSharp(); };
+    document.getElementById('btn-exp-unity')!.onclick = async () => {
+      const btn = document.getElementById('btn-exp-unity') as HTMLButtonElement;
+      const origText = btn.textContent || '';
+      const code = exportUnityCSharp();
+      if (!code) return;
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.textContent = '✓ Copied to clipboard!';
+      } catch {
+        // Clipboard API unavailable — fall back to file download
+        const blob = new Blob([code], { type: 'text/plain' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = 'NStepAnimator.cs';
+        a.click();
+        URL.revokeObjectURL(url);
+        btn.textContent = '✓ Downloaded NStepAnimator.cs';
+      }
+      setTimeout(() => { btn.textContent = origText; }, 2500);
+    };
 
     document.getElementById('btn-exp-demo-html')!.onclick = () => { exportDemoHTML(); };
   }

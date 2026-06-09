@@ -156,9 +156,8 @@ export async function exportGIF(opts: SequenceExportOptions) {
 
 // ── Unity C# runtime ───────────────────────────────────────────────────────────
 
-export function exportUnityCSharp() {
+export function exportUnityCSharp(): string | null {
   const { project } = ProjectState;
-  const code     = exportToUnityCSharp(project);
-  const filename = project.name.replace(/[^a-zA-Z0-9_]/g, '_') + 'Animator.cs';
-  downloadFile(filename, code, 'text/plain');
+  if (!project) return null;
+  return exportToUnityCSharp(project);
 }

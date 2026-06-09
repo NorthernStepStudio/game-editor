@@ -328,10 +328,33 @@ export function renderFrameToCanvas(
     if (part.renderMode === 'image' && effectiveAssetId) {
       const img = imageCache.get(effectiveAssetId);
       if (img && img.complete && img.naturalWidth > 0) {
-        if (activeSrc) {
-          ctx.drawImage(img, activeSrc.x, activeSrc.y, activeSrc.width, activeSrc.height, 0, 0, width, height);
+        // Resolve dynamic frame-animation source rect (matches MotionCanvasRenderer behaviour)
+        let drawSrc = activeSrc;
+        const fa = part.frameAnimation;
+        if (fa?.frames?.length > 0) {
+          const faDur    = fa.duration   || 1;
+          const faFps    = fa.fps        || 12;
+          const faCycle  = fa.loop !== false ? ((clampedTime % faDur) + faDur) % faDur : Math.max(0, Math.min(faDur, clampedTime));
+          const frameIdx = Math.min(Math.floor(faCycle * faFps), fa.frames.length - 1);
+          const frame    = fa.frames[frameIdx];
+          if (frame) drawSrc = frame;
+        }
+
+        if (drawSrc) {
+          ctx.drawImage(img, drawSrc.x, drawSrc.y, drawSrc.width, drawSrc.height, 0, 0, width, height);
         } else {
           ctx.drawImage(img, 0, 0, width, height);
+        }
+
+        // Tint / color influence overlay (matches MotionCanvasRenderer composite)
+        const colorInfluence = part.colorInfluence ?? 0;
+        if (colorInfluence > 0 && effectiveColor && effectiveColor !== 'none') {
+          ctx.save();
+          ctx.globalAlpha    = opacity * colorInfluence;
+          ctx.globalCompositeOperation = 'source-atop';
+          ctx.fillStyle      = effectiveColor;
+          ctx.fillRect(0, 0, width, height);
+          ctx.restore();
         }
       }
     } else {

@@ -196,6 +196,16 @@ export const MAIN_LAYOUT = `
       </label>
     </div>
 
+    <div style="margin-bottom:14px;">
+      <div style="font-size:0.78rem; font-weight:600; color:var(--text-muted); margin-bottom:6px; display:flex; align-items:center; justify-content:space-between;">
+        <span>Frame Preview</span>
+        <button id="btn-exp-preview-now" style="font-size:0.72rem; padding:3px 8px;">Preview at current time</button>
+      </div>
+      <div style="display:flex; align-items:center; justify-content:center; background:var(--bg-surface); border:1px solid var(--border); border-radius:var(--r-sm); overflow:hidden; min-height:120px;">
+        <canvas id="exp-preview" style="max-width:100%; max-height:200px; display:block; image-rendering:pixelated;"></canvas>
+      </div>
+    </div>
+
     <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
       <button id="btn-exp-imgseq" class="primary" style="text-align:left; padding:10px 14px;">
         📦 Image Sequence (.zip) — one PNG per frame

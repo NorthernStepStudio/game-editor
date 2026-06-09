@@ -7,6 +7,7 @@ import { renderSkinsPanel } from './panels/SkinsPanel';
 import { ProjectState } from '../state/projectState';
 import { SelectionState } from '../state/selectionState';
 import { getPlaybackTimeForAnimation } from '../state/playbackState';
+import { renderFrameToCanvas } from '../exporters/frameRenderer';
 import { DirtyState } from '../state/dirtyState';
 import { ClipboardState } from '../state/clipboardState';
 import { copyPoseToClipboard, pastePose, mirrorPose } from './poseActions';
@@ -138,11 +139,48 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
       const base = Math.round(512 * s);
       expWidthIn.value  = String(base);
       expHeightIn.value = String(base);
+      schedulePreview();
     });
     // Manual w/h edits switch scale selector to "custom"
     const markCustom = () => { expScaleSel.value = 'custom'; };
     expWidthIn.addEventListener('input',  markCustom);
     expHeightIn.addEventListener('input', markCustom);
+
+    const expPreviewCanvas = document.getElementById('exp-preview') as HTMLCanvasElement;
+
+    let previewDebounceTimer = 0;
+
+    const renderPreview = (time: number) => {
+      if (!expPreviewCanvas) return;
+      const animId = expAnimSel.value;
+      if (!animId) return;
+      const width  = Math.max(64, Math.min(2048, parseInt(expWidthIn.value,  10) || 512));
+      const height = Math.max(64, Math.min(2048, parseInt(expHeightIn.value, 10) || 512));
+      const bgColor = expBgSel.value === 'transparent' ? null : expBgSel.value;
+      try {
+        const frame = renderFrameToCanvas(ProjectState.project, animId, time, { width, height, bgColor });
+        expPreviewCanvas.width  = frame.width;
+        expPreviewCanvas.height = frame.height;
+        const ctx = expPreviewCanvas.getContext('2d')!;
+        if (!bgColor) {
+          ctx.clearRect(0, 0, frame.width, frame.height);
+        }
+        ctx.drawImage(frame, 0, 0);
+      } catch (_) {}
+    };
+
+    const schedulePreview = (time?: number) => {
+      clearTimeout(previewDebounceTimer);
+      previewDebounceTimer = window.setTimeout(() => {
+        const t = time ?? 0;
+        renderPreview(t);
+      }, 300);
+    };
+
+    expAnimSel.addEventListener('change',  () => schedulePreview());
+    expBgSel.addEventListener('change',    () => schedulePreview());
+    expWidthIn.addEventListener('input',   () => schedulePreview());
+    expHeightIn.addEventListener('input',  () => schedulePreview());
 
     document.getElementById('btn-export-panel')!.onclick = () => {
       const anims = ProjectState.project.animations as any[];
@@ -150,8 +188,19 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
         `<option value="${a.id}">${a.name}</option>`
       ).join('');
       dlgExport.showModal();
+      schedulePreview();
     };
     document.getElementById('btn-close-export')!.onclick = () => dlgExport.close();
+
+    document.getElementById('btn-exp-preview-now')!.onclick = () => {
+      const animId = expAnimSel.value;
+      const anim = animId
+        ? (ProjectState.project.animations as any[]).find(a => a.id === animId)
+        : null;
+      const t = getPlaybackTimeForAnimation(anim);
+      clearTimeout(previewDebounceTimer);
+      renderPreview(t);
+    };
 
     const getOpts = () => ({
       animId:  expAnimSel.value,

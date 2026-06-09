@@ -45,10 +45,13 @@ export class DopesheetPanel {
   private _needsDraw:  boolean = false;
 
   // Drag state
-  private dragMode:      DragMode = null;
-  private dragKf:        KfHit | null = null;
-  private boxStartCss:   { x: number; y: number } | null = null;
-  private boxCurCss:     { x: number; y: number } | null = null;
+  private dragMode:         DragMode = null;
+  private dragKf:           KfHit | null = null;
+  private dragKfOrigTime:   number = 0;
+  // kfRef → original time at drag start, for all selected keyframes (bulk move)
+  private dragSelOrigTimes: Map<any, number> = new Map();
+  private boxStartCss:      { x: number; y: number } | null = null;
+  private boxCurCss:        { x: number; y: number } | null = null;
 
   // Bound handlers (kept for proper removal)
   private _onPDown: (e: PointerEvent) => void;
@@ -191,8 +194,6 @@ export class DopesheetPanel {
     const dpr   = this.dpr;
     const W     = this.canvas.width;
     const H     = this.canvas.height;
-    const cssW  = W / dpr;
-
     const LWpx  = LABEL_W * dpr;
     const RHpx  = RULER_H * dpr;
     const cPxW  = W - LWpx;
@@ -434,8 +435,19 @@ export class DopesheetPanel {
         selSet.clear();
         selSet.add(key);
       }
-      this.dragMode = 'kf';
-      this.dragKf   = hit;
+      this.dragMode       = 'kf';
+      this.dragKf         = hit;
+      this.dragKfOrigTime = hit.kfRef.time;
+      // Snapshot original times of ALL selected kfs (including the dragged one)
+      this.dragSelOrigTimes.clear();
+      const ctrls = this._ctrls();
+      this._selKeys().forEach(key => {
+        const [ci, ki] = key.split(':').map(Number);
+        const kf = ctrls[ci]?.keyframes?.[ki];
+        if (kf) this.dragSelOrigTimes.set(kf, kf.time);
+      });
+      // Ensure the dragged kf itself is in the map
+      this.dragSelOrigTimes.set(hit.kfRef, hit.kfRef.time);
       this.canvas.setPointerCapture(e.pointerId);
       (SelectionState as any).selectedLaneCtrlId = hit.ctrl.id;
       this._needsDraw = true;
@@ -495,20 +507,24 @@ export class DopesheetPanel {
     }
 
     if (this.dragMode === 'kf' && this.dragKf) {
-      const newTime = +(Math.max(0, Math.min(this.dur, this._xToTime(x)))).toFixed(3);
-      const c       = this.dragKf.ctrl;
-      const kf      = this.dragKf.kfRef;
-      kf.time = newTime;
-      if (c.keyframes) {
-        c.keyframes.sort((a: any, b: any) => a.time - b.time);
-        const newIdx = c.keyframes.indexOf(kf);
-        if (newIdx !== this.dragKf.kfIdx) {
-          const selSet = this._selKeys();
-          selSet.delete(`${this.dragKf.ctrlIdx}:${this.dragKf.kfIdx}`);
-          this.dragKf.kfIdx = newIdx;
-          selSet.add(`${this.dragKf.ctrlIdx}:${newIdx}`);
+      const rawTime = this._xToTime(x);
+      const delta   = rawTime - this.dragKfOrigTime;
+
+      // Apply delta to ALL selected keyframes using their snapshotted original times
+      const ctrls          = this._ctrls();
+      const affectedCtrls  = new Set<any>();
+      this.dragSelOrigTimes.forEach((origTime, kfRef) => {
+        kfRef.time = +(Math.max(0, Math.min(this.dur, origTime + delta))).toFixed(3);
+        // Find which ctrl owns this kfRef
+        for (const c of ctrls) {
+          if (c.keyframes?.includes(kfRef)) { affectedCtrls.add(c); break; }
         }
-      }
+      });
+      // Re-sort affected controllers
+      affectedCtrls.forEach(c => {
+        c.keyframes.sort((a: any, b: any) => a.time - b.time);
+      });
+
       DirtyState.markDirty();
       this.onUpdate(true, true);
       return;
@@ -522,14 +538,37 @@ export class DopesheetPanel {
   }
 
   private onPointerUp(_e: PointerEvent) {
-    if (this.dragMode === 'box')      this._finalizeBox();
-    else if (this.dragMode === 'kf')  this.onUpdate(true, false);
+    if (this.dragMode === 'box') {
+      this._finalizeBox();
+    } else if (this.dragMode === 'kf') {
+      // Rebuild sel keys by stable kfRef lookup (sort may have shifted indices)
+      this._rebuildSelAfterDrag();
+      this.dragSelOrigTimes.clear();
+      this.onUpdate(true, false);
+    }
 
     this.dragMode    = null;
     this.dragKf      = null;
     this.boxStartCss = null;
     this.boxCurCss   = null;
     this._needsDraw  = true;
+  }
+
+  /** After sorting, ctrlIdx:kfIdx keys may be stale. Re-derive them from object references. */
+  private _rebuildSelAfterDrag() {
+    const ctrls   = this._ctrls();
+    const rebuilt = new Set<string>();
+    this.dragSelOrigTimes.forEach((_origTime, kfRef) => {
+      for (let ci = 0; ci < ctrls.length; ci++) {
+        const kfs = ctrls[ci].keyframes;
+        if (!kfs) continue;
+        const ki = kfs.indexOf(kfRef);
+        if (ki !== -1) { rebuilt.add(`${ci}:${ki}`); break; }
+      }
+    });
+    const selSet = this._selKeys();
+    selSet.clear();
+    rebuilt.forEach(k => selSet.add(k));
   }
 
   private _finalizeBox() {

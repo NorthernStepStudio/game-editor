@@ -107,7 +107,9 @@ export function renderControllerTimeline(
       <button id="btn-tl-stop" class="icon-btn" title="Stop &amp; rewind">⏹</button>
 
       <div id="tl-time-display" class="tl-time-display">${t.toFixed(2)}s / ${dur.toFixed(2)}s</div>
-      <div class="tl-frame-display" title="${fps}fps">F${frame}</div>
+      <input type="number" id="tl-frame-input" class="tl-frame-display tl-frame-input"
+        value="${frame}" min="0" max="${Math.round(dur * fps)}" step="1"
+        title="Frame number (${fps}fps) — edit to jump">
 
       <label style="display:flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--text-muted); flex-shrink:0;">
         Speed
@@ -228,6 +230,21 @@ export function renderControllerTimeline(
     PlaybackState.time    = Math.min(anim.duration, PlaybackState.time + frameDur);
     PlaybackState.playing = false;
     onUpdate(true, true);
+  };
+
+  const frameInput = container.querySelector('#tl-frame-input') as HTMLInputElement;
+  frameInput.onchange = () => {
+    const f = parseInt(frameInput.value, 10);
+    if (!isNaN(f)) {
+      PlaybackState.time    = Math.max(0, Math.min(anim.duration, f / PlaybackState.fps));
+      PlaybackState.playing = false;
+      onUpdate(true, true);
+    }
+  };
+  frameInput.onkeydown = (e) => {
+    if (e.key === 'Enter') { frameInput.blur(); e.preventDefault(); }
+    // Prevent comma/period shortcuts from firing while editing frame number
+    if (e.key === ',' || e.key === '.') e.stopPropagation();
   };
 
   const speedRange = container.querySelector('#tl-speed') as HTMLInputElement;
@@ -378,7 +395,7 @@ export function renderControllerTimeline(
 }
 
 // ── Controller card HTML ────────────────────────────────────────────────────
-function renderCard(c: any, dur: number): string {
+function renderCard(c: any, _dur: number): string {
   const parts      = ProjectState.project.parts;
   const isKf       = c.mode === 'keyframe';
   const kfCount    = (c.keyframes || []).length;

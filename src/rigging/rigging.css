@@ -1,0 +1,60 @@
+/* ─── RIGGING WORKSHOP ─── */
+.rigging-layout { display: flex; flex-direction: column; height: 100vh; }
+.rigging-header {
+  height: var(--header-h);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+.rigging-title { font-weight: 700; font-size: 0.95rem; color: var(--accent); letter-spacing: 0.02em; }
+.rigging-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--panel-w-left) 1fr var(--panel-w-right);
+  gap: 1px;
+  background: var(--border);
+  overflow: hidden;
+  min-height: 0;
+}
+.rigging-left, .rigging-right { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.rigging-canvas-wrap { position: relative; background: var(--bg-canvas, #0e1116); overflow: hidden; }
+.rigging-canvas-wrap canvas { display: block; width: 100%; height: 100%; }
+.rigging-hint {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.55);
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ─── SKELETON LIBRARY CARDS ─── */
+.skeleton-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 9px 10px; margin-bottom: 8px; }
+.skeleton-card-head  { display: flex; align-items: center; gap: 7px; }
+.skeleton-card-icon  { font-size: 1.05rem; }
+.skeleton-card-name  { font-weight: 700; font-size: 0.8rem; color: var(--text-bright); flex: 1; }
+.skeleton-card-count { font-size: 0.6rem; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+.skeleton-card-desc  { font-size: 0.68rem; color: var(--text-muted); margin: 6px 0 8px; line-height: 1.4; }
+.skeleton-install-btn {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 6px 0;
+  font-weight: 600;
+  font-size: 0.72rem;
+  cursor: var(--cursor-hand);
+  transition: filter 0.15s ease;
+}
+.skeleton-install-btn:hover { filter: brightness(1.12); }

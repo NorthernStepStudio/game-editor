@@ -1,3 +1,4 @@
+import './rigging.css';
 import { ProjectState } from '../state/projectState';
 import { AppState } from '../state/appState';
 import { DirtyState } from '../state/dirtyState';

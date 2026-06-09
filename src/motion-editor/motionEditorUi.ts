@@ -1,17 +1,19 @@
+import './editor.css';
 import { renderPartsPanel } from './panels/PartsPanel';
 import { renderInspectorPanel } from './panels/InspectorPanel';
 import { renderControllerTimeline } from './panels/ControllerTimelinePanel';
 import { renderAssetsPanel } from './panels/AssetsPanel';
 import { ProjectState } from '../state/projectState';
 import { SelectionState } from '../state/selectionState';
-import { AppState } from '../state/appState';
-import { PlaybackState, getPlaybackTimeForAnimation } from '../state/playbackState';
+import { getPlaybackTimeForAnimation } from '../state/playbackState';
 import { DirtyState } from '../state/dirtyState';
 import { HERO_RIGS, DOOMED_RIGS } from './samples';
 import { SaveManager } from '../persistence/saveManager';
 import { exportJSON, exportGodot, exportCanvasRuntime } from '../exporters/exportActions';
 import { preloadAssets } from './canvas/imageCache';
 import { newProject, loadProject, saveProject, importProject } from '../persistence/projectActions';
+import { setupCanvasToolbar } from './canvasToolbar';
+import { setupLocomotionControls } from './locomotionControls';
 
 let _onUpdate: (skipInspector?: boolean, skipTimeline?: boolean) => void = () => {};
 let _renderer: any = null;
@@ -131,106 +133,9 @@ export function setupUI(onUpdate: (skipInspector?: boolean, skipTimeline?: boole
     sampleSelect.value = '';
   });
 
-  // ── Canvas toolbar ──────────────────────────────────────────────────────
-  const btnGrid = document.getElementById('btn-toggle-grid');
-  const btnBones = document.getElementById('btn-toggle-skeleton');
-  const btnNames = document.getElementById('btn-toggle-names');
-  const btnReset = document.getElementById('btn-reset-view');
-
-  if (btnGrid) {
-    btnGrid.classList.toggle('active', AppState.showGrid);
-    btnGrid.onclick = () => {
-      AppState.showGrid = !AppState.showGrid;
-      btnGrid.classList.toggle('active', AppState.showGrid);
-    };
-  }
-
-  if (btnBones) {
-    btnBones.classList.toggle('active', AppState.showSkeleton);
-    btnBones.onclick = () => {
-      AppState.showSkeleton = !AppState.showSkeleton;
-      btnBones.classList.toggle('active', AppState.showSkeleton);
-      _onUpdate(true, false);
-    };
-  }
-
-  if (btnNames) {
-    btnNames.classList.toggle('active', AppState.showNames);
-    btnNames.onclick = () => {
-      AppState.showNames = !AppState.showNames;
-      btnNames.classList.toggle('active', AppState.showNames);
-      _onUpdate(true, false);
-    };
-  }
-
-  if (btnReset) {
-    btnReset.onclick = () => {
-      if (_renderer) _renderer.resetView();
-    };
-  }
-
-  const btnZoomIn  = document.getElementById('btn-zoom-in');
-  const btnZoomOut = document.getElementById('btn-zoom-out');
-  if (btnZoomIn)  btnZoomIn.onclick  = () => { if (_renderer) _renderer.zoomIn(); };
-  if (btnZoomOut) btnZoomOut.onclick = () => { if (_renderer) _renderer.zoomOut(); };
-
-  // ── Locomotion d-pad ───────────────────────────────────────────────────────
-  let locoSpeed = 80; // walk default
-  const locoAllBtns = () => document.querySelectorAll('.loco-btn');
-  const locoSetActive = (id: string) => {
-    locoAllBtns().forEach(b => b.classList.remove('active'));
-    document.getElementById(id)?.classList.add('active');
-  };
-  const locoGo = (dir: 'left' | 'right' | 'up' | 'down') => {
-    if (!_renderer) return;
-    _renderer.setLocomotion(dir, locoSpeed);
-    locoSetActive('loco-' + dir);
-    // Auto-play the animation so motion is visible
-    if (!PlaybackState.playing) {
-      PlaybackState.playing = true;
-      document.getElementById('btn-tl-play')?.classList.add('playing');
-    }
-  };
-  document.getElementById('loco-left')?.addEventListener('click',  () => locoGo('left'));
-  document.getElementById('loco-right')?.addEventListener('click', () => locoGo('right'));
-  document.getElementById('loco-up')?.addEventListener('click',    () => locoGo('up'));
-  document.getElementById('loco-down')?.addEventListener('click',  () => locoGo('down'));
-  document.getElementById('loco-stop')?.addEventListener('click',  () => {
-    if (_renderer) _renderer.setLocomotion('none');
-    locoSetActive('loco-stop');
-  });
-  document.getElementById('loco-walk')?.addEventListener('click', () => {
-    locoSpeed = 80;
-    document.querySelectorAll('.loco-speed-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('loco-walk')?.classList.add('active');
-    if (_renderer && _renderer.getLocomotionDir() !== 'none') {
-      _renderer.setLocomotion(_renderer.getLocomotionDir(), locoSpeed);
-    }
-  });
-  document.getElementById('loco-run')?.addEventListener('click', () => {
-    locoSpeed = 160;
-    document.querySelectorAll('.loco-speed-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('loco-run')?.classList.add('active');
-    if (_renderer && _renderer.getLocomotionDir() !== 'none') {
-      _renderer.setLocomotion(_renderer.getLocomotionDir(), locoSpeed);
-    }
-  });
-
-  const btnOnion = document.getElementById('btn-toggle-onion');
-  if (btnOnion) {
-    btnOnion.classList.toggle('active', !!(AppState as any).showOnionSkin);
-    btnOnion.onclick = () => {
-      (AppState as any).showOnionSkin = !(AppState as any).showOnionSkin;
-      btnOnion.classList.toggle('active', !!(AppState as any).showOnionSkin);
-    };
-  }
-
-  const btnFit = document.getElementById('btn-fit-all');
-  if (btnFit) {
-    btnFit.onclick = () => {
-      if (_renderer) (_renderer as any).fitAll();
-    };
-  }
+  // ── Canvas toolbar & locomotion (extracted modules) ──────────────────────
+  setupCanvasToolbar(_renderer, _onUpdate);
+  setupLocomotionControls(_renderer);
 
   // Keyboard shortcuts
   window.addEventListener('keydown', (e) => {

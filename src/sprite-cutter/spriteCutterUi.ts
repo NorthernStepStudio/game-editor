@@ -1,3 +1,4 @@
+import './cutter.css';
 import { CutterAppState } from './spriteCutterState';
 import { loadCutterImage, getFrameCoord, renderCutter } from './spriteCutterRenderer';
 import { extractSelectedPart, sendPartsToEditor, detectFrames, cleanupSelection } from './spriteCutterLogic';

@@ -252,10 +252,13 @@ export function exportToGDScript(project: CharacterProject): string {
           case 'color': {
             const tc = (part as any).tintColor || '#ff0000';
             const hex = tc.replace('#', '');
-            const r = (parseInt(hex.slice(0,2),16)/255).toFixed(3);
-            const g = (parseInt(hex.slice(2,4),16)/255).toFixed(3);
-            const b = (parseInt(hex.slice(4,6),16)/255).toFixed(3);
-            lines.push(`\t\t${pv}.modulate = lerp(${pv}.modulate, Color(${r}, ${g}, ${b}, 1.0), clamp(${expr}, 0.0, 1.0))`);
+            const tr = (parseInt(hex.slice(0,2),16)/255).toFixed(3);
+            const tg = (parseInt(hex.slice(2,4),16)/255).toFixed(3);
+            const tb = (parseInt(hex.slice(4,6),16)/255).toFixed(3);
+            const infl = `clamp(${expr}, 0.0, 1.0)`;
+            lines.push(`\t\t${pv}.modulate.r = lerp(1.0, ${tr}, ${infl})`);
+            lines.push(`\t\t${pv}.modulate.g = lerp(1.0, ${tg}, ${infl})`);
+            lines.push(`\t\t${pv}.modulate.b = lerp(1.0, ${tb}, ${infl})`);
             break;
           }
         }

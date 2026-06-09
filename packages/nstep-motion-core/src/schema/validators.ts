@@ -55,6 +55,7 @@ function normalizePart(p: any): CharacterPart {
     origin: { x: Number(p.origin?.x ?? 20), y: Number(p.origin?.y ?? 20) },
     zIndex: Number(p.zIndex ?? 0),
     color: p.color,
+    tintColor: p.tintColor,
     renderMode: p.renderMode,
     shapeType: p.shapeType,
     imageAssetId: p.imageAssetId,

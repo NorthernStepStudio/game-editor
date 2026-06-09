@@ -1,3 +1,16 @@
+// ── Timeline event bus ────────────────────────────────────────────────────────
+
+export type EventCallback = (name: string, payload: { stringValue?: string; intValue?: number; floatValue?: number }, time: number) => void;
+
+export const EventBus = {
+  _listeners: [] as EventCallback[],
+  on(cb: EventCallback) { this._listeners.push(cb); },
+  off(cb: EventCallback) { this._listeners = this._listeners.filter(l => l !== cb); },
+  fire(name: string, payload: { stringValue?: string; intValue?: number; floatValue?: number }, time: number) {
+    this._listeners.forEach(l => { try { l(name, payload, time); } catch (_) {} });
+  },
+};
+
 export interface CrossfadeState {
   fromAnimId: string;
   fromTimeSnapshot: number;

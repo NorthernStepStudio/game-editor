@@ -32,6 +32,18 @@ function normalizeController(c: any): AnimationController {
   };
 }
 
+function normalizeTimelineEvent(e: any): any {
+  const out: any = {
+    id:   e.id   || 'ev-' + Math.random().toString(36).substr(2, 9),
+    time: Number(e.time ?? 0),
+    name: String(e.name || 'event'),
+  };
+  if (e.stringValue != null) out.stringValue = String(e.stringValue);
+  if (e.intValue    != null) out.intValue    = Math.round(Number(e.intValue));
+  if (e.floatValue  != null) out.floatValue  = Number(e.floatValue);
+  return out;
+}
+
 function normalizeAnimation(a: any): CharacterAnimation {
   const out: CharacterAnimation = {
     id: a.id || 'anim-' + Math.random().toString(36).substr(2, 9),
@@ -41,6 +53,9 @@ function normalizeAnimation(a: any): CharacterAnimation {
     controllers: Array.isArray(a.controllers) ? a.controllers.map(normalizeController) : []
   };
   if (a.crossfadeDuration != null) out.crossfadeDuration = Math.max(0, Number(a.crossfadeDuration));
+  if (Array.isArray(a.events) && a.events.length > 0) {
+    out.events = a.events.map(normalizeTimelineEvent);
+  }
   return out;
 }
 

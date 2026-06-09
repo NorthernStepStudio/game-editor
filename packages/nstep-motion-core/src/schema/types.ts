@@ -44,6 +44,15 @@ export interface AnimationController {
   keyframes?: Keyframe[];
 }
 
+export interface TimelineEvent {
+  id: string;
+  time: number;
+  name: string;
+  stringValue?: string;
+  intValue?: number;
+  floatValue?: number;
+}
+
 export interface CharacterAnimation {
   id: string;
   name: string;
@@ -51,6 +60,7 @@ export interface CharacterAnimation {
   loop: boolean;
   controllers: AnimationController[];
   crossfadeDuration?: number;
+  events?: TimelineEvent[];
 }
 
 export interface BlendConfig {

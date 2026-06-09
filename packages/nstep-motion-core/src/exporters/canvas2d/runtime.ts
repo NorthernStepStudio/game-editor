@@ -190,7 +190,36 @@ class NStepPlayer {
     this._activeSkinId = projectData.activeSkinId || null;
     this._spring = new _SpringSim();
     this._springDt = 0;
+    this._eventCbs = [];
     this._preloadImages();
+  }
+
+  /**
+   * Register a callback fired when an animation event marker is crossed.
+   * Callback signature: (name, payload, time) where payload has optional
+   * stringValue, intValue, floatValue fields.
+   * Returns this for chaining.
+   */
+  onEvent(cb) {
+    if (typeof cb === 'function') this._eventCbs.push(cb);
+    return this;
+  }
+
+  _fireEvents(prevTime, newTime, anim, wrapped) {
+    const events = anim.events;
+    if (!events || events.length === 0) return;
+    events.forEach(ev => {
+      const crossed = wrapped
+        ? (ev.time > prevTime || ev.time <= newTime)
+        : (prevTime < ev.time && newTime >= ev.time);
+      if (crossed) {
+        const payload = {};
+        if (ev.stringValue !== undefined) payload.stringValue = ev.stringValue;
+        if (ev.intValue    !== undefined) payload.intValue    = ev.intValue;
+        if (ev.floatValue  !== undefined) payload.floatValue  = ev.floatValue;
+        this._eventCbs.forEach(cb => { try { cb(ev.name, payload, ev.time); } catch (_) {} });
+      }
+    });
   }
 
   _preloadImages() {
@@ -291,15 +320,18 @@ class NStepPlayer {
       }
       const anim = this.anim;
       if (anim) {
+        const prevTime = this.time;
         this.time += dt;
         const dur = anim.duration || 1;
+        let wrapped = false;
         if (anim.loop) {
-          if (this.time > dur) this.time = this.time % dur;
+          if (this.time > dur) { this.time = this.time % dur; wrapped = true; }
         } else if (this.time > dur) {
           this.time = dur;
           this.playing = false;
           this._springDt = 0;
         }
+        this._fireEvents(prevTime, this.time, anim, wrapped);
       }
     }
     this._lastT = now;

@@ -10,10 +10,13 @@ function genKfId(): string {
 }
 
 // ── Layout constants (CSS pixels) ─────────────────────────────────────────────
-const RULER_H = 22;
-const ROW_H   = 28;
-const LABEL_W = 148;
-const D_SIZE  = 5;
+const RULER_H      = 22;
+const ROW_H        = 28;
+const EVENTS_ROW_H = ROW_H;
+const LABEL_W      = 148;
+const D_SIZE       = 5;
+const FLAG_W       = 8;
+const FLAG_H       = 12;
 
 // ── Property colours ──────────────────────────────────────────────────────────
 const PROP_COLOR: Record<string, string> = {
@@ -25,7 +28,7 @@ const PROP_COLOR: Record<string, string> = {
   opacity:  '#c084fc',
 };
 
-type DragMode = 'playhead' | 'kf' | 'box' | null;
+type DragMode = 'playhead' | 'kf' | 'box' | 'event' | null;
 
 interface KfHit {
   ctrlIdx: number;
@@ -57,6 +60,11 @@ export class DopesheetPanel {
   private dragSelOrigTimes: Map<string, { kfRef: any; origTime: number }> = new Map();
   private boxStartCss:      { x: number; y: number } | null = null;
   private boxCurCss:        { x: number; y: number } | null = null;
+
+  // Event track state
+  private selectedEventId:    string | null = null;
+  private dragEventRef:       any | null = null;
+  private _popupEl:           HTMLElement | null = null;
 
   // Bound handlers (kept for proper removal)
   private _onPDown: (e: PointerEvent) => void;
@@ -116,6 +124,7 @@ export class DopesheetPanel {
     window.removeEventListener('pointermove', this._onPMove);
     window.removeEventListener('pointerup',   this._onPUp);
     window.removeEventListener('keydown',     this._onKDown);
+    this._removePopup();
   }
 
   // ── RAF loop ─────────────────────────────────────────────────────────────────
@@ -142,7 +151,7 @@ export class DopesheetPanel {
   private _resize() {
     const ctrls = this._ctrls();
     const cssW  = this.wrapper.clientWidth  || 600;
-    const cssH  = RULER_H + Math.max(1, ctrls.length) * ROW_H;
+    const cssH  = RULER_H + EVENTS_ROW_H + Math.max(1, ctrls.length) * ROW_H;
 
     const pxW = Math.round(cssW * this.dpr);
     const pxH = Math.round(cssH * this.dpr);
@@ -178,7 +187,15 @@ export class DopesheetPanel {
   }
 
   private _rowTopCss(i: number): number {
-    return RULER_H + i * ROW_H;
+    return RULER_H + EVENTS_ROW_H + i * ROW_H;
+  }
+
+  private _eventsRowTopCss(): number {
+    return RULER_H;
+  }
+
+  private _isEventsRow(cssY: number): boolean {
+    return cssY >= RULER_H && cssY < RULER_H + EVENTS_ROW_H;
   }
 
   private _selIds(): Set<string> {
@@ -254,11 +271,47 @@ export class DopesheetPanel {
       tick = +(tick + tickIv).toFixed(10);
     }
 
+    // ── Events row ──
+    const evRowTopPx = this._eventsRowTopCss() * dpr;
+    const evRowHPx   = EVENTS_ROW_H * dpr;
+    const events: any[] = this.anim?.events ?? [];
+
+    ctx.fillStyle = '#0e0e18';
+    ctx.fillRect(LWpx, evRowTopPx, cPxW, evRowHPx);
+    // Bottom border
+    ctx.fillStyle = '#2a2a3a';
+    ctx.fillRect(LWpx, evRowTopPx + evRowHPx - 1, cPxW, 1);
+
+    // Gridlines at major ticks
+    ctx.fillStyle = '#191926';
+    let evGt = 0;
+    const evMajorIv = this._tickInterval(pxPerSec / dpr) * 5;
+    while (evGt <= this.dur + evMajorIv * 0.4) {
+      const cx2 = LWpx + (evGt / this.dur) * cPxW;
+      ctx.fillRect(cx2 - 0.5, evRowTopPx, 1, evRowHPx);
+      evGt = +(evGt + evMajorIv).toFixed(10);
+    }
+
+    // "Events" label
+    ctx.textAlign    = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.font         = `${9 * dpr}px Inter, sans-serif`;
+    ctx.fillStyle    = '#6060a0';
+    ctx.fillText('Events', 5 * dpr, evRowTopPx + evRowHPx / 2);
+
+    // Draw event flag markers
+    events.forEach((ev: any) => {
+      const cxPx = LWpx + (ev.time / this.dur) * cPxW;
+      const sel  = ev.id === this.selectedEventId;
+      this._drawFlag(cxPx, evRowTopPx + evRowHPx * 0.85 * dpr, ev.name, sel);
+    });
+
     // ── Lane rows ──
     const parts = ProjectState.project.parts;
 
+    const ctrlAreaTopPx = (RULER_H + EVENTS_ROW_H) * dpr;
     ctrls.forEach((c: any, i: number) => {
-      const rowTopPx = RHpx + i * ROW_H * dpr;
+      const rowTopPx = ctrlAreaTopPx + i * ROW_H * dpr;
       const rowHPx   = ROW_H * dpr;
 
       // Row background
@@ -388,7 +441,56 @@ export class DopesheetPanel {
     ctx.restore();
   }
 
+  // ── Flag drawing ──────────────────────────────────────────────────────────────
+
+  private _drawFlag(cxPx: number, basePx: number, label: string, selected: boolean) {
+    const ctx  = this.ctx;
+    const dpr  = this.dpr;
+    const fw   = FLAG_W * dpr;
+    const fh   = FLAG_H * dpr;
+    const stem = fh * 0.55;
+
+    ctx.save();
+    // Stem
+    ctx.strokeStyle = selected ? '#ffe082' : '#a0a0d0';
+    ctx.lineWidth   = 1.5 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(cxPx, basePx);
+    ctx.lineTo(cxPx, basePx - stem - fh * 0.45);
+    ctx.stroke();
+
+    // Flag rectangle
+    ctx.fillStyle = selected ? '#ffe082' : '#7c6af7';
+    ctx.beginPath();
+    ctx.moveTo(cxPx,      basePx - stem - fh * 0.45);
+    ctx.lineTo(cxPx + fw, basePx - stem - fh * 0.45 + fh * 0.22);
+    ctx.lineTo(cxPx,      basePx - stem - fh * 0.45 + fh * 0.44);
+    ctx.closePath();
+    ctx.fill();
+
+    // Label
+    ctx.font         = `${7.5 * dpr}px Inter, sans-serif`;
+    ctx.fillStyle    = selected ? '#ffe082' : '#b0b0e0';
+    ctx.textAlign    = 'left';
+    ctx.textBaseline = 'bottom';
+    const short = label.length > 10 ? label.slice(0, 9) + '…' : label;
+    ctx.fillText(short, cxPx + fw + 1.5 * dpr, basePx - stem + 1 * dpr);
+
+    ctx.restore();
+  }
+
   // ── Hit testing ───────────────────────────────────────────────────────────────
+
+  private _hitEvent(cssX: number, cssY: number): any | null {
+    if (!this._isEventsRow(cssY)) return null;
+    const events: any[] = this.anim?.events ?? [];
+    const hitZone = FLAG_W + 4;
+    for (const ev of events) {
+      const ex = this._timeToX(ev.time);
+      if (Math.abs(cssX - ex) <= hitZone) return ev;
+    }
+    return null;
+  }
 
   private _hitKf(cssX: number, cssY: number): KfHit | null {
     const ctrls   = this._ctrls();
@@ -411,7 +513,8 @@ export class DopesheetPanel {
 
   private _rowAt(cssY: number): number {
     if (cssY < RULER_H) return -1;
-    return Math.floor((cssY - RULER_H) / ROW_H);
+    if (cssY < RULER_H + EVENTS_ROW_H) return -2;
+    return Math.floor((cssY - RULER_H - EVENTS_ROW_H) / ROW_H);
   }
 
   // ── Pointer events ────────────────────────────────────────────────────────────
@@ -426,6 +529,48 @@ export class DopesheetPanel {
       PlaybackState.playing = false;
       PlaybackState.time    = this._xToTime(x);
       this.onUpdate(true, true);
+      return;
+    }
+
+    // ── Events row ──
+    if (this._isEventsRow(y) && x >= LABEL_W) {
+      this._removePopup();
+      const hitEv = this._hitEvent(x, y);
+
+      if (hitEv) {
+        // Double-click on marker → open popup editor
+        if (e.detail === 2) {
+          this.selectedEventId = hitEv.id;
+          this._needsDraw      = true;
+          this._showEventPopup(hitEv, x, y);
+          return;
+        }
+        // Single click → select + start drag
+        this.selectedEventId  = hitEv.id;
+        this.dragMode         = 'event';
+        this.dragEventRef     = hitEv;
+        this.canvas.setPointerCapture(e.pointerId);
+        this._needsDraw = true;
+        return;
+      }
+
+      // No hit — single click on empty area → add event
+      if (e.detail !== 2 && this.anim) {
+        const evTime = +(this._xToTime(x)).toFixed(3);
+        if (!this.anim.events) this.anim.events = [];
+        const newEv: any = {
+          id:   'ev-' + Math.random().toString(36).slice(2, 11),
+          time: evTime,
+          name: 'event',
+        };
+        this.anim.events.push(newEv);
+        this.anim.events.sort((a: any, b: any) => a.time - b.time);
+        this.selectedEventId = newEv.id;
+        DirtyState.markDirty();
+        this._needsDraw = true;
+        this._showEventPopup(newEv, x, y);
+        this.onUpdate(false, false);
+      }
       return;
     }
 
@@ -523,6 +668,15 @@ export class DopesheetPanel {
       return;
     }
 
+    if (this.dragMode === 'event' && this.dragEventRef) {
+      this.dragEventRef.time = +(Math.max(0, Math.min(this.dur, this._xToTime(x)))).toFixed(3);
+      if (this.anim?.events) this.anim.events.sort((a: any, b: any) => a.time - b.time);
+      DirtyState.markDirty();
+      this._needsDraw = true;
+      this.onUpdate(false, false);
+      return;
+    }
+
     if (this.dragMode === 'kf' && this.dragKf) {
       const rawTime       = this._xToTime(x);
       const delta         = rawTime - this.dragKfOrigTime;
@@ -558,6 +712,10 @@ export class DopesheetPanel {
       // IDs are stable through sort — no rebuild needed
       this.dragSelOrigTimes.clear();
       this.onUpdate(true, false);
+    } else if (this.dragMode === 'event') {
+      this.dragEventRef = null;
+      DirtyState.markDirty();
+      this.onUpdate(false, false);
     }
 
     this.dragMode    = null;
@@ -592,6 +750,18 @@ export class DopesheetPanel {
   private onContextMenu(e: MouseEvent) {
     e.preventDefault();
     const { x, y } = this._cssFromEvent(e);
+
+    // Right-click on event marker → delete it
+    const hitEv = this._hitEvent(x, y);
+    if (hitEv && this.anim?.events) {
+      this._removePopup();
+      this.anim.events = this.anim.events.filter((ev: any) => ev.id !== hitEv.id);
+      if (this.selectedEventId === hitEv.id) this.selectedEventId = null;
+      DirtyState.markDirty();
+      this.onUpdate();
+      return;
+    }
+
     const hit = this._hitKf(x, y);
     if (hit && hit.ctrl.keyframes) {
       const deletedId = hit.kfRef.id as string;
@@ -606,6 +776,18 @@ export class DopesheetPanel {
   private onKeyDown(e: KeyboardEvent) {
     if (e.key !== 'Delete' && e.key !== 'Backspace') return;
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+    // Delete selected event
+    if (this.selectedEventId && this.anim?.events) {
+      this._removePopup();
+      this.anim.events = this.anim.events.filter((ev: any) => ev.id !== this.selectedEventId);
+      this.selectedEventId = null;
+      DirtyState.markDirty();
+      this._needsDraw = true;
+      this.onUpdate();
+      return;
+    }
+
     const selIds = this._selIds();
     if (selIds.size === 0) return;
 
@@ -619,5 +801,117 @@ export class DopesheetPanel {
     selIds.clear();
     DirtyState.markDirty();
     this.onUpdate();
+  }
+
+  // ── Event popup ───────────────────────────────────────────────────────────────
+
+  private _showEventPopup(ev: any, cssX: number, cssY: number) {
+    this._removePopup();
+
+    const popup = document.createElement('div');
+    popup.className = 'ds-event-popup';
+    popup.style.cssText = `
+      position: absolute;
+      left: ${Math.max(4, cssX - 10)}px;
+      top: ${cssY + 8}px;
+      background: #1a1a28;
+      border: 1px solid #3a3a5a;
+      border-radius: 6px;
+      padding: 8px 10px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-width: 190px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+      font-size: 0.72rem;
+      color: #c0c0cc;
+    `;
+
+    const fieldRow = (label: string, inputEl: HTMLElement) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; align-items:center; gap:6px;';
+      const lbl = document.createElement('label');
+      lbl.textContent = label;
+      lbl.style.cssText = 'min-width:44px; color:#7070a0; font-size:0.68rem;';
+      row.appendChild(lbl);
+      row.appendChild(inputEl);
+      return row;
+    };
+
+    const inputStyle = 'flex:1; padding:2px 5px; background:rgba(0,0,0,0.35); border:1px solid #3a3a5a; color:#c0c0e8; border-radius:4px; font-size:0.7rem;';
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.value = ev.name;
+    nameInput.placeholder = 'event name';
+    nameInput.style.cssText = inputStyle;
+
+    const strInput = document.createElement('input');
+    strInput.type = 'text';
+    strInput.value = ev.stringValue ?? '';
+    strInput.placeholder = 'string (optional)';
+    strInput.style.cssText = inputStyle;
+
+    const intInput = document.createElement('input');
+    intInput.type = 'number';
+    intInput.value = ev.intValue ?? '';
+    intInput.placeholder = 'int (optional)';
+    intInput.style.cssText = inputStyle + ' width:70px;';
+
+    const floatInput = document.createElement('input');
+    floatInput.type = 'number';
+    floatInput.value = ev.floatValue ?? '';
+    floatInput.placeholder = 'float (optional)';
+    floatInput.style.cssText = inputStyle + ' width:70px;';
+
+    const commitChanges = () => {
+      ev.name = nameInput.value.trim() || 'event';
+      if (strInput.value.trim()) ev.stringValue = strInput.value;
+      else delete ev.stringValue;
+      const iv = parseInt(intInput.value, 10);
+      if (!isNaN(iv)) ev.intValue = iv; else delete ev.intValue;
+      const fv = parseFloat(floatInput.value);
+      if (!isNaN(fv)) ev.floatValue = fv; else delete ev.floatValue;
+      DirtyState.markDirty();
+      this._needsDraw = true;
+      this.onUpdate(false, false);
+    };
+
+    const closeRow = document.createElement('div');
+    closeRow.style.cssText = 'display:flex; justify-content:flex-end; margin-top:2px;';
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Done';
+    closeBtn.style.cssText = 'padding:2px 10px; background:rgba(124,106,247,0.2); border:1px solid rgba(124,106,247,0.5); color:#a090ef; border-radius:4px; cursor:pointer; font-size:0.68rem;';
+    closeBtn.onclick = () => { commitChanges(); this._removePopup(); };
+    closeRow.appendChild(closeBtn);
+
+    [nameInput, strInput, intInput, floatInput].forEach(inp => {
+      inp.onkeydown = (e) => {
+        e.stopPropagation();
+        if (e.key === 'Enter') { commitChanges(); this._removePopup(); }
+        if (e.key === 'Escape') this._removePopup();
+      };
+      inp.onchange = commitChanges;
+    });
+
+    popup.appendChild(fieldRow('Name', nameInput));
+    popup.appendChild(fieldRow('String', strInput));
+    popup.appendChild(fieldRow('Int', intInput));
+    popup.appendChild(fieldRow('Float', floatInput));
+    popup.appendChild(closeRow);
+
+    this.wrapper.style.position = 'relative';
+    this.wrapper.appendChild(popup);
+    this._popupEl = popup;
+    nameInput.focus();
+    nameInput.select();
+  }
+
+  private _removePopup() {
+    if (this._popupEl) {
+      this._popupEl.remove();
+      this._popupEl = null;
+    }
   }
 }

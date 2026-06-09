@@ -3,7 +3,7 @@ import { evaluateController } from '@nstep-core/runtime/evaluateController';
 import { blendAnimations } from '@nstep-core/runtime/blendAnimations';
 import { ProjectState } from '../../state/projectState';
 import { SelectionState } from '../../state/selectionState';
-import { PlaybackState, getPlaybackTimeForAnimation } from '../../state/playbackState';
+import { PlaybackState, getPlaybackTimeForAnimation, EventBus } from '../../state/playbackState';
 import { DirtyState } from '../../state/dirtyState';
 import { AppState } from '../../state/appState';
 import { imageCache } from './imageCache';
@@ -218,13 +218,28 @@ export class MotionCanvasRenderer {
     if (PlaybackState.playing) {
       const anim = ProjectState.project.animations.find((a: any) => a.id === SelectionState.activeAnimId);
       if (anim) {
+        const prevTime = PlaybackState.time;
         PlaybackState.time += dt * PlaybackState.speedMult;
         const dur = anim.duration || 1;
+        let wrapped = false;
         if (anim.loop) {
-          if (PlaybackState.time > dur) PlaybackState.time = PlaybackState.time % dur;
+          if (PlaybackState.time > dur) { PlaybackState.time = PlaybackState.time % dur; wrapped = true; }
         } else if (PlaybackState.time > dur) {
           PlaybackState.time = dur;
           PlaybackState.playing = false;
+        }
+        // ── Fire timeline events that were crossed this frame ──
+        const events: any[] = (anim as any).events ?? [];
+        if (events.length > 0) {
+          const newTime = PlaybackState.time;
+          events.forEach((ev: any) => {
+            const crossed = wrapped
+              ? (ev.time > prevTime || ev.time <= newTime)
+              : (prevTime < ev.time && newTime >= ev.time);
+            if (crossed) {
+              EventBus.fire(ev.name, { stringValue: ev.stringValue, intValue: ev.intValue, floatValue: ev.floatValue }, ev.time);
+            }
+          });
         }
       }
       this.springDt = dt;

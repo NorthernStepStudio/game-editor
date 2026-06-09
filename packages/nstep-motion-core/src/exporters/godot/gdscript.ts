@@ -259,11 +259,29 @@ export function exportToGDScript(project: CharacterProject): string {
     ``,
   ];
 
+  // Collect unique event names across all animations for signal declarations
+  const allEventNames = new Set<string>();
+  project.animations.forEach(anim => {
+    ((anim as any).events ?? []).forEach((ev: any) => allEventNames.add(ev.name));
+  });
+  if (allEventNames.size > 0) {
+    lines.push(`# Timeline event signals`);
+    allEventNames.forEach(name => {
+      const sigName = name.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^(\d)/, '_$1') || 'event';
+      lines.push(`signal ${sigName}(name: String, string_value: String, int_value: int, float_value: float)`);
+    });
+    lines.push('');
+  }
+
   // Per-animation timer variables
   project.animations.forEach(anim => {
     const vn = animVarName(anim.name);
     lines.push(`var ${vn}_time: float = 0.0`);
     lines.push(`var ${vn}_playing: bool = ${anim.loop ? 'true' : 'false'}`);
+    const events: any[] = (anim as any).events ?? [];
+    if (events.length > 0) {
+      lines.push(`var _${vn}_prev_time: float = -1.0`);
+    }
   });
   lines.push('');
 
@@ -292,6 +310,7 @@ export function exportToGDScript(project: CharacterProject): string {
     const vn = animVarName(anim.name);
     lines.push(`func play_${vn}() -> void:`);
     lines.push(`\t${vn}_time = 0.0`);
+    lines.push(`\t_${vn}_prev_time = -1.0`);
     lines.push(`\t${vn}_playing = true`);
     lines.push('');
   });
@@ -300,6 +319,8 @@ export function exportToGDScript(project: CharacterProject): string {
   project.animations.forEach(anim => {
     const vn  = animVarName(anim.name);
     const dur = (anim.duration || 1).toFixed(4);
+
+    const animEvents: any[] = (anim as any).events ?? [];
 
     lines.push(`func _apply_${vn}(delta: float) -> void:`);
     if (anim.loop) {
@@ -312,6 +333,26 @@ export function exportToGDScript(project: CharacterProject): string {
     }
     lines.push(`\tvar t: float = ${vn}_time`);
     lines.push('');
+
+    // Emit signals for events crossed this frame
+    if (animEvents.length > 0) {
+      lines.push(`\t# Timeline events`);
+      lines.push(`\tif _${vn}_prev_time >= 0.0:`);
+      animEvents.forEach((ev: any) => {
+        const sigName = ev.name.replace(/[^a-zA-Z0-9_]/g, '_').replace(/^(\d)/, '_$1') || 'event';
+        const sv = JSON.stringify(ev.stringValue ?? '');
+        const iv = Math.round(ev.intValue ?? 0);
+        const fv = (ev.floatValue ?? 0).toFixed(4);
+        if (anim.loop) {
+          lines.push(`\t\tif (_${vn}_prev_time < ${ev.time.toFixed(4)} and t >= ${ev.time.toFixed(4)}) or (_${vn}_prev_time > t and (t >= ${ev.time.toFixed(4)} or _${vn}_prev_time < ${ev.time.toFixed(4)})):`);
+        } else {
+          lines.push(`\t\tif _${vn}_prev_time < ${ev.time.toFixed(4)} and t >= ${ev.time.toFixed(4)}:`);
+        }
+        lines.push(`\t\t\temit_signal("${sigName}", "${ev.name}", ${sv}, ${iv}, ${fv})`);
+      });
+      lines.push(`\t_${vn}_prev_time = t`);
+      lines.push('');
+    }
 
     // Group enabled controllers by part
     const byPart = new Map<string, any[]>();

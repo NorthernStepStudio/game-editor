@@ -15,10 +15,12 @@ export function exportToUnityCSharp(project: CharacterProject): string {
     `            { "${a.name}", ${a.loop ? 'true' : 'false'} },`
   ).join('\n');
 
+  const partIdToName = new Map((project.parts as any[]).map(p => [p.id, p.name]));
+
   const controllerEntries = (project.animations as any[]).map(a => {
     const ctrlLines = a.controllers
       .filter((c: any) => c.enabled)
-      .map((c: any) => buildControllerEntry(c))
+      .map((c: any) => buildControllerEntry(c, partIdToName))
       .join(',\n                ');
     return `            { "${a.name}", new ControllerData[] {\n                ${ctrlLines}\n            } },`;
   }).join('\n');
@@ -180,14 +182,16 @@ ${controllerEntries}
             {
                 if (!deltas.TryGetValue(c.partName, out PartDelta d)) continue;
                 float val = EvaluateController(c, time, dur);
+                // val is a delta — add it onto whatever the current accumulated value is,
+                // matching the web evaluator: tform[property] = currentValue + evaluatedDelta
                 switch (c.property)
                 {
-                    case "x":       d.x       = c.baseVal + val; break;
-                    case "y":       d.y       = c.baseVal + val; break;
-                    case "rotation":d.rot     = c.baseVal + val; break;
-                    case "scaleX":  d.scaleX  = c.baseVal + val; break;
-                    case "scaleY":  d.scaleY  = c.baseVal + val; break;
-                    case "opacity": d.opacity = Mathf.Clamp01(c.baseVal + val); break;
+                    case "x":       d.x       += val; break;
+                    case "y":       d.y       += val; break;
+                    case "rotation":d.rot     += val; break;
+                    case "scaleX":  d.scaleX  += val; break;
+                    case "scaleY":  d.scaleY  += val; break;
+                    case "opacity": d.opacity  = Mathf.Clamp01(d.opacity + val); break;
                 }
                 deltas[c.partName] = d;
             }
@@ -340,7 +344,6 @@ ${controllerEntries}
             public string           property;
             public string           preset;
             public float            speed, amplitude, phase, offset;
-            public float            baseVal;
             public ControllerMode   mode;
             public KeyframeData[]   keyframes;
         }
@@ -362,10 +365,11 @@ function buildPartBases(project: CharacterProject): string {
   }).join('\n');
 }
 
-function buildControllerEntry(c: any): string {
+function buildControllerEntry(c: any, partIdToName: Map<string, string>): string {
+  const partName = partIdToName.get(c.targetPartId) ?? c.targetPartId;
   const mode = (c.mode === 'keyframe' && c.keyframes?.length > 0) ? 'ControllerMode.Keyframe' : 'ControllerMode.Formula';
   const kfs  = (c.mode === 'keyframe' && c.keyframes?.length > 0)
     ? `new KeyframeData[] { ${c.keyframes.map((k: any) => `new KeyframeData { time=${k.time.toFixed(4)}f, value=${k.value.toFixed(4)}f, easing="${k.easing}" }`).join(', ')} }`
     : 'null';
-  return `new ControllerData { partName="${c.targetPartId}", property="${c.property}", preset="${c.formulaPreset}", speed=${(c.params.speed??1).toFixed(4)}f, amplitude=${(c.params.amplitude??0).toFixed(4)}f, phase=${(c.params.phase??0).toFixed(4)}f, offset=${(c.params.offset??0).toFixed(4)}f, baseVal=0f, mode=${mode}, keyframes=${kfs} }`;
+  return `new ControllerData { partName="${partName}", property="${c.property}", preset="${c.formulaPreset}", speed=${(c.params.speed??1).toFixed(4)}f, amplitude=${(c.params.amplitude??0).toFixed(4)}f, phase=${(c.params.phase??0).toFixed(4)}f, offset=${(c.params.offset??0).toFixed(4)}f, mode=${mode}, keyframes=${kfs} }`;
 }

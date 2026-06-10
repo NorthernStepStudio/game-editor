@@ -11,6 +11,8 @@ if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
   });
 }
 
+import './motion-editor/validation/validation.css';
+import './motion-editor/validation/registerValidationPanel';
 import { bootApp } from './app/boot';
 
 // Entry point for the NStep Game Editor

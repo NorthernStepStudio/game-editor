@@ -1,0 +1,37 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Matterhorn Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/extension"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/extension/out/**/*.js"
+      ],
+      "preLaunchTask": "compile:extension"
+    },
+    {
+      "name": "Matterhorn Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/server/out/index.js",
+      "outFiles": [
+        "${workspaceFolder}/server/out/**/*.js"
+      ],
+      "preLaunchTask": "compile:server",
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Matterhorn (Full)",
+      "configurations": [
+        "Matterhorn Server",
+        "Matterhorn Extension"
+      ]
+    }
+  ]
+}

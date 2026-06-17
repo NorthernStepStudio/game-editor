@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "compile:core",
+      "type": "npm",
+      "script": "compile:core",
+      "problemMatcher": "$tsc",
+      "group": "build"
+    },
+    {
+      "label": "compile:server",
+      "type": "npm",
+      "script": "compile:server",
+      "problemMatcher": "$tsc",
+      "group": "build",
+      "dependsOn": "compile:core"
+    },
+    {
+      "label": "compile:extension",
+      "type": "npm",
+      "script": "compile:extension",
+      "problemMatcher": "$tsc",
+      "group": "build"
+    },
+    {
+      "label": "compile:all",
+      "type": "npm",
+      "script": "compile",
+      "problemMatcher": "$tsc",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

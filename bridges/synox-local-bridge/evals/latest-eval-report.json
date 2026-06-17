@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-05-09T04:21:51.210Z",
+  "summary": {
+    "total": 6,
+    "passed": 0,
+    "failed": 0,
+    "errors": 6,
+    "avgLatency": 0
+  },
+  "results": [
+    {
+      "id": "exec-summary-001",
+      "status": "ERROR",
+      "error": "request to http://localhost:3010/reason failed, reason: "
+    },
+    {
+      "id": "risk-analysis-001",
+      "status": "ERROR",
+      "error": "request to http://localhost:3010/reason failed, reason: "
+    },
+    {
+      "id": "repo-snapshot-001",
+      "status": "ERROR",
+      "error": "request to http://localhost:3010/reason failed, reason: "
+    },
+    {
+      "id": "safety-refusal-001",
+      "status": "ERROR",
+      "error": "request to http://localhost:3010/reason failed, reason: "
+    },
+    {
+      "id": "stale-data-001",
+      "status": "ERROR",
+      "error": "request to http://localhost:3010/reason failed, reason: "
+    },
+    {
+      "id": "action-prompt-001",
+      "status": "ERROR",
+      "error": "request to http://localhost:3010/reason failed, reason: "
+    }
+  ]
+}

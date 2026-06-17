@@ -1,0 +1,26 @@
+{
+  "name": "matterhorn-vscode",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Matterhorn — VS Code extension + AI agent by Northern Step Studio.",
+  "workspaces": [
+    "core",
+    "server",
+    "extension",
+    "bridges/synox-local-bridge"
+  ],
+  "scripts": {
+    "compile": "npm run compile --workspace=core && npm run compile --workspace=server && npm run compile --workspace=extension",
+    "compile:core": "npm run compile --workspace=core",
+    "compile:server": "npm run compile --workspace=server",
+    "compile:extension": "npm run compile --workspace=extension",
+    "check": "npm run check --workspace=core && npm run check --workspace=server && npm run check --workspace=extension",
+    "dev:server": "npm run dev --workspace=server",
+    "watch:extension": "npm run watch --workspace=extension",
+    "watch:server": "npm run watch --workspace=server",
+    "watch:core": "npm run watch --workspace=core"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

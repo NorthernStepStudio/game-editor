@@ -1,0 +1,17 @@
+{
+  "name": "@nstep/synox-local-bridge",
+  "version": "0.1.0",
+  "description": "Synox Local Reasoning Bridge for NStep AI",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.1",
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "nss-workspace-ai-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local NSS Workspace AI backend for the VS Code extension.",
+  "main": "./out/index.js",
+  "scripts": {
+    "compile": "npm --prefix ../core run compile && tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "start": "node out/index.js",
+    "dev": "npm run compile && npm run start",
+    "smoke": "node out/test/runSmoke.js",
+    "check": "npm run compile && npm run smoke"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  }
+}

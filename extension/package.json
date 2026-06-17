@@ -1,0 +1,422 @@
+{
+  "name": "nss-workspace-ai",
+  "displayName": "Matterhorn",
+  "description": "VS Code extension app scaffold for Matterhorn in the Northern Step Studio workspace.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "northern-step-studio",
+  "categories": [
+    "Other"
+  ],
+  "main": "./out/extension.js",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "activationEvents": [
+    "onView:nssWorkspaceAi.sidebar",
+    "onStartupFinished"
+  ],
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "smoke": "node out/test/runSmoke.js",
+    "test:extension-host": "node out/test/runExtensionHost.js",
+    "check": "npm run compile && npm run smoke && node --check src/sidebar/webview/main.js",
+    "verify:runtime": "npm run check && npm run test:extension-host"
+  },
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "nssWorkspaceAi",
+          "title": "Matterhorn",
+          "icon": "media/studio-mark.svg"
+        }
+      ]
+    },
+    "views": {
+      "nssWorkspaceAi": [
+        {
+          "type": "webview",
+          "id": "nssWorkspaceAi.sidebar",
+          "name": "Matterhorn",
+          "icon": "media/studio-mark.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "nssWorkspaceAi.askWorkspaceAi",
+        "title": "Matterhorn: Ask Matterhorn",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.explainThisFile",
+        "title": "Matterhorn: Explain This File",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.generateFromSelection",
+        "title": "Matterhorn: Generate From Selection",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.askAboutCurrentFile",
+        "title": "Matterhorn: Ask About Current File",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.explainProjectStructure",
+        "title": "Matterhorn: Explain Project Structure",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.proposeEditForCurrentFile",
+        "title": "Matterhorn: Propose Edit for Current File",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.applyProposedEditToActiveFile",
+        "title": "Matterhorn: Apply Proposed Edit to Active File",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.searchCodebase",
+        "title": "Matterhorn: Search Codebase",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.findRelatedFiles",
+        "title": "Matterhorn: Find Related Files",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.planChange",
+        "title": "Matterhorn: Plan Change",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.insertLatestResponseIntoCurrentFile",
+        "title": "Matterhorn: Insert Latest Response Into Current File",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.createNewFileFromLatestResponse",
+        "title": "Matterhorn: Create New File From Latest Response",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.runWorkspaceTask",
+        "title": "Matterhorn: Run Workspace Task",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.explainLastTaskFailure",
+        "title": "Matterhorn: Explain Last Task Failure",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.suggestFixForLastTaskFailure",
+        "title": "Matterhorn: Suggest Fix For Last Task Failure",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.reRunLastWorkspaceTask",
+        "title": "Matterhorn: Re-run Last Workspace Task",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.findLikelyErrorFiles",
+        "title": "Matterhorn: Find Likely Error Files",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.askAboutErrorFile",
+        "title": "Matterhorn: Ask About This Error File",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.proposeFixForErrorFile",
+        "title": "Matterhorn: Propose Fix For This Error File",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.proposeMultiFileChange",
+        "title": "Matterhorn: Propose Multi-File Change",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.openSidebar",
+        "title": "Matterhorn: Focus Sidebar",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.showQuickStart",
+        "title": "Matterhorn: Show Quick Start",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.showBuildFoundation",
+        "title": "Matterhorn: Show Build Foundation",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.startDiagnosticSession",
+        "title": "Matterhorn: Start Diagnostic Session From Last Failure",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.viewActiveSession",
+        "title": "Matterhorn: View Active Diagnostic Session",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.addNoteToSession",
+        "title": "Matterhorn: Add Note To Diagnostic Session",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.compareLastTwoResults",
+        "title": "Matterhorn: Compare Last Two Task Results",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.resolveSession",
+        "title": "Matterhorn: Mark Diagnostic Session Resolved",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.abandonSession",
+        "title": "Matterhorn: Mark Diagnostic Session Abandoned",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.addProjectRule",
+        "title": "Matterhorn: Add Project Rule",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.saveRepairPattern",
+        "title": "Matterhorn: Save Repair Pattern From Current Session",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.recallSimilarFailure",
+        "title": "Matterhorn: Recall Similar Past Failure Fix",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.clearWorkspaceMemory",
+        "title": "Matterhorn: Clear Workspace Memory",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.switchActiveStudioProject",
+        "title": "Matterhorn: Switch Active Studio Project",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.showStudioDashboard",
+        "title": "Matterhorn: Show Studio Dashboard",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.addRoadmapNote",
+        "title": "Matterhorn: Add Roadmap Note",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.showRoadmapNotesForActiveProject",
+        "title": "Matterhorn: Show Roadmap Notes For Active Project",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.whatShouldIWorkOnNext",
+        "title": "Matterhorn: What Should I Work On Next?",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.showCrossProjectSummary",
+        "title": "Matterhorn: Show Cross-Project Summary",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.suggestStudioProjectForWorkspace",
+        "title": "Matterhorn: Suggest Studio Project For Workspace",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.switchMode",
+        "title": "Matterhorn: Switch Mode",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.showModeDetails",
+        "title": "Matterhorn: Show Current Mode Details",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.runWorkflow",
+        "title": "Matterhorn: Run Workflow",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.nextWorkflowStep",
+        "title": "Matterhorn: Next Workflow Step",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.cancelWorkflow",
+        "title": "Matterhorn: Cancel Active Workflow",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.showWorkflows",
+        "title": "Matterhorn: Show Available Workflows",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.switchPreset",
+        "title": "Matterhorn: Switch Preset",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.showPreset",
+        "title": "Matterhorn: Show Current Preset",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.suggestPreset",
+        "title": "Matterhorn: Suggest Preset For Workspace",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.rebuildKnowledge",
+        "title": "Matterhorn: Rebuild Knowledge Packs",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.showBriefing",
+        "title": "Matterhorn: Show Workspace Briefing",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.searchKnowledge",
+        "title": "Matterhorn: Search Knowledge Packs",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.openReviewCenter",
+        "title": "Matterhorn: Open Review Center",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.previewReviewItem",
+        "title": "Matterhorn: Preview Review Item",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.showDiffForReviewItem",
+        "title": "Matterhorn: Show Diff For Review Item",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.approveReviewItem",
+        "title": "Matterhorn: Approve Review Item",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.rejectReviewItem",
+        "title": "Matterhorn: Reject Review Item",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.applyApprovedItem",
+        "title": "Matterhorn: Apply Approved Review Item",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.applyReviewItemToSelection",
+        "title": "Matterhorn: Apply Review Item To Selection",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.applyReviewItemToFile",
+        "title": "Matterhorn: Apply Review Item To File",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nss.refreshReviewItemAgainstCurrentFile",
+        "title": "Matterhorn: Refresh Review Item Against Current File",
+        "category": "Matterhorn"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "nssWorkspaceAi.explainThisFile",
+          "group": "nss@1",
+          "when": "editorTextFocus"
+        },
+        {
+          "command": "nssWorkspaceAi.askAboutCurrentFile",
+          "group": "nss@2",
+          "when": "editorHasSelection"
+        },
+        {
+          "command": "nssWorkspaceAi.generateFromSelection",
+          "group": "nss@3",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Matterhorn",
+      "properties": {
+        "nssWorkspaceAi.serverUrl": {
+          "type": "string",
+          "default": "http://localhost:3001",
+          "description": "Base URL for the local Matterhorn server."
+        },
+        "nssWorkspaceAi.maxReviewHistory": {
+          "type": "number",
+          "default": 50,
+          "minimum": 10,
+          "description": "Maximum number of review items Matterhorn keeps in memory."
+        },
+        "nssWorkspaceAi.maxDiagnosticSessionHistory": {
+          "type": "number",
+          "default": 10,
+          "minimum": 3,
+          "description": "Maximum number of completed diagnostic sessions Matterhorn keeps in history."
+        },
+        "nssWorkspaceAi.autoSuggestPresetForWorkspace": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically infer a likely Matterhorn preset from the current workspace path when no preset has been chosen yet."
+        },
+        "nssWorkspaceAi.defaultMode": {
+          "type": "string",
+          "default": "coding",
+          "enum": [
+            "coding",
+            "debugging",
+            "product",
+            "marketing",
+            "research"
+          ],
+          "markdownDescription": "Default Matterhorn mode to use before a workspace-specific mode is selected."
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "uuid": "^13.0.0"
+  }
+}

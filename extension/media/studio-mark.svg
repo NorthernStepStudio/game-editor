@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect x="8" y="8" width="112" height="112" fill="none" stroke="currentColor" stroke-width="8"/>
+  <path
+    d="M16 104 L49 58 L66 82 L87 36 L101 58 L111 52 L118 58 L100 108"
+    fill="none"
+    stroke="currentColor"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+    stroke-width="10"
+  />
+</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect x="8" y="8" width="112" height="112" fill="none" stroke="currentColor" stroke-width="8"/>
+  <path
+    d="M16 104 L49 58 L66 82 L87 36 L101 58 L111 52 L118 58 L100 108"
+    fill="none"
+    stroke="currentColor"
+    stroke-linecap="square"
+    stroke-linejoin="miter"
+    stroke-width="10"
+  />
+</svg>

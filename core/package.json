@@ -1,0 +1,18 @@
+{
+  "name": "@nss/m-core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NSS Master Core (M-CORE), the shared AI runtime for Northern Step Studio.",
+  "main": "./out/index.js",
+  "types": "./out/index.d.ts",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "smoke": "node out/test/runSmoke.js",
+    "check": "npm run compile && npm run smoke"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2"
+  }
+}

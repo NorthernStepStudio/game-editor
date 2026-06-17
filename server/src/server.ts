@@ -19,7 +19,7 @@ export async function startNssWorkspaceAiServer(
     ...getServerConfig(),
     ...overrides,
   };
-  const host = "127.0.0.1";
+  const host = process.env.SERVER_HOST ?? "127.0.0.1";
   const portStateFilePath =
     options.portStateFilePath === false ? undefined : options.portStateFilePath ?? resolveDefaultPortStateFilePath();
   const server = http.createServer(async (request, response) => {

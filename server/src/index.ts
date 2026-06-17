@@ -3,7 +3,7 @@ import { startNssWorkspaceAiServer } from "./server.js";
 
 async function main(): Promise<void> {
   const config = getServerConfig();
-  const started = await startNssWorkspaceAiServer(config);
+  const started = await startNssWorkspaceAiServer(config, { portStateFilePath: false });
   const portMessage =
     config.port !== 0 && started.port !== config.port ? ` (requested ${config.port} was busy)` : "";
   console.log(

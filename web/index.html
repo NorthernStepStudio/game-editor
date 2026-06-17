@@ -29,21 +29,6 @@
         </div>
       </header>
 
-      <!-- Agent selector bar -->
-      <div class="agent-bar">
-        <button class="agent-tab is-active" data-agent-id="general" type="button">General</button>
-        <button class="agent-tab" data-agent-id="stack-expert" type="button">Stack Expert</button>
-        <button class="agent-tab" data-agent-id="architect" type="button">Architect</button>
-        <button class="agent-tab" data-agent-id="workspace-ops" type="button">Workspace Ops</button>
-        <button class="tools-trigger" id="tools-trigger" type="button" aria-expanded="false" title="Search codebase">
-          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" width="13" height="13">
-            <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.3"/>
-            <path d="M10 10 14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-          </svg>
-          Search
-        </button>
-      </div>
-
       <!-- Search panel (collapsible) -->
       <div class="search-panel" id="search-panel" hidden>
         <div class="search-inner">
@@ -62,12 +47,57 @@
           </svg>
           <p>Ask Matterhorn anything about your workspace, code, or changes.</p>
         </div>
-        <!-- messages injected here -->
       </div>
 
       <!-- Composer -->
       <div class="composer">
+
+        <!-- Agent menu (renders above composer when open) -->
+        <div class="agent-menu" id="agent-menu" hidden role="listbox" aria-label="Select agent">
+          <div class="agent-menu-label">Switch agent</div>
+          <button class="agent-menu-item is-active" role="option" data-agent-id="general" type="button">
+            <span class="agent-menu-icon">◈</span>
+            <span class="agent-menu-name">General</span>
+            <span class="agent-menu-desc">General-purpose assistant</span>
+          </button>
+          <button class="agent-menu-item" role="option" data-agent-id="stack-expert" type="button">
+            <span class="agent-menu-icon">⚡</span>
+            <span class="agent-menu-name">Stack Expert</span>
+            <span class="agent-menu-desc">Deep knowledge of your tech stack</span>
+          </button>
+          <button class="agent-menu-item" role="option" data-agent-id="architect" type="button">
+            <span class="agent-menu-icon">◻</span>
+            <span class="agent-menu-name">Architect</span>
+            <span class="agent-menu-desc">System design & code structure</span>
+          </button>
+          <button class="agent-menu-item" role="option" data-agent-id="workspace-ops" type="button">
+            <span class="agent-menu-icon">⌘</span>
+            <span class="agent-menu-name">Workspace Ops</span>
+            <span class="agent-menu-desc">File search & project navigation</span>
+          </button>
+          <div class="agent-menu-divider"></div>
+          <button class="agent-menu-item agent-menu-search" role="option" data-action="search" type="button">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" width="13" height="13">
+              <circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M10 10 14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            <span class="agent-menu-name">Search codebase</span>
+            <span class="agent-menu-desc">Semantic workspace search</span>
+          </button>
+        </div>
+
         <div class="composer-inner">
+          <!-- Agent selector pill (left side) -->
+          <button class="agent-selector" id="agent-selector" type="button" aria-haspopup="listbox" aria-expanded="false">
+            <span class="agent-selector-icon" id="agent-selector-icon">◈</span>
+            <span class="agent-selector-label" id="agent-selector-label">General</span>
+            <svg class="agent-selector-caret" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" width="8" height="8">
+              <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <div class="composer-divider"></div>
+
           <textarea
             id="prompt-input"
             class="composer-input"

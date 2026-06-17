@@ -1,29 +1,41 @@
 (() => {
+  const AGENTS = [
+    { id: "general",       label: "General",       icon: "◈" },
+    { id: "stack-expert",  label: "Stack Expert",  icon: "⚡" },
+    { id: "architect",     label: "Architect",     icon: "◻" },
+    { id: "workspace-ops", label: "Workspace Ops", icon: "⌘" },
+  ];
+
   const state = JSON.parse(localStorage.getItem("mtState") || "{}");
   let selectedAgentId = state.selectedAgentId ?? "general";
   let isLoading = false;
+  let menuOpen = false;
 
   // Elements
-  const convo        = document.getElementById("convo");
-  const emptyState   = document.getElementById("empty-state");
-  const promptInput  = document.getElementById("prompt-input");
-  const submitBtn    = document.getElementById("submit-button");
-  const statusDot    = document.getElementById("status-dot");
-  const statusLabel  = document.getElementById("status-label");
-  const modePill     = document.getElementById("mode-pill");
-  const agentTabs    = Array.from(document.querySelectorAll(".agent-tab"));
-  const foundationBtn = document.getElementById("build-foundation-button");
-  const toolsTrigger = document.getElementById("tools-trigger");
-  const searchPanel  = document.getElementById("search-panel");
-  const searchInput  = document.getElementById("search-input");
-  const searchBtn    = document.getElementById("search-btn");
-  const searchResults = document.getElementById("search-results");
+  const convo          = document.getElementById("convo");
+  const emptyState     = document.getElementById("empty-state");
+  const promptInput    = document.getElementById("prompt-input");
+  const submitBtn      = document.getElementById("submit-button");
+  const statusDot      = document.getElementById("status-dot");
+  const statusLabel    = document.getElementById("status-label");
+  const modePill       = document.getElementById("mode-pill");
+  const foundationBtn  = document.getElementById("build-foundation-button");
+  const agentMenu      = document.getElementById("agent-menu");
+  const agentSelector  = document.getElementById("agent-selector");
+  const selectorLabel  = document.getElementById("agent-selector-label");
+  const selectorIcon   = document.getElementById("agent-selector-icon");
+  const searchPanel    = document.getElementById("search-panel");
+  const searchInput    = document.getElementById("search-input");
+  const searchBtn      = document.getElementById("search-btn");
+  const searchResults  = document.getElementById("search-results");
+  const menuItems      = Array.from(document.querySelectorAll(".agent-menu-item[data-agent-id]"));
+  const searchMenuItem = document.querySelector(".agent-menu-item[data-action='search']");
 
-  // ── Init ──────────────────────────────────────────────────────────
-  syncAgentTabs();
+  // ── Init ────────────────────────────────────────────────────────────
+  syncSelectorDisplay();
   checkHealth();
 
-  // ── Health ────────────────────────────────────────────────────────
+  // ── Health ──────────────────────────────────────────────────────────
   async function checkHealth() {
     try {
       const res = await fetch("/health");
@@ -42,29 +54,65 @@
     }
   }
 
-  // ── Agent tabs ────────────────────────────────────────────────────
-  agentTabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      selectedAgentId = tab.dataset.agentId ?? "general";
-      syncAgentTabs();
+  // ── Agent menu ──────────────────────────────────────────────────────
+  agentSelector.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleMenu(!menuOpen);
+  });
+
+  menuItems.forEach(item => {
+    item.addEventListener("click", () => {
+      selectedAgentId = item.dataset.agentId;
+      syncSelectorDisplay();
+      syncMenuActive();
       saveState();
+      toggleMenu(false);
+      promptInput.focus();
     });
   });
 
-  function syncAgentTabs() {
-    agentTabs.forEach(tab => {
-      tab.classList.toggle("is-active", tab.dataset.agentId === selectedAgentId);
-    });
-  }
-
-  // ── Tools / Search ────────────────────────────────────────────────
-  toolsTrigger.addEventListener("click", () => {
+  searchMenuItem?.addEventListener("click", () => {
+    toggleMenu(false);
     const open = searchPanel.hidden;
     searchPanel.hidden = !open;
-    toolsTrigger.setAttribute("aria-expanded", String(open));
     if (open) searchInput.focus();
   });
 
+  // Close menu when clicking outside
+  document.addEventListener("click", (e) => {
+    if (menuOpen && !agentMenu.contains(e.target) && e.target !== agentSelector) {
+      toggleMenu(false);
+    }
+  });
+
+  // Close menu on Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && menuOpen) {
+      toggleMenu(false);
+      promptInput.focus();
+    }
+  });
+
+  function toggleMenu(open) {
+    menuOpen = open;
+    agentMenu.hidden = !open;
+    agentSelector.setAttribute("aria-expanded", String(open));
+  }
+
+  function syncSelectorDisplay() {
+    const agent = AGENTS.find(a => a.id === selectedAgentId) ?? AGENTS[0];
+    selectorLabel.textContent = agent.label;
+    selectorIcon.textContent = agent.icon;
+    syncMenuActive();
+  }
+
+  function syncMenuActive() {
+    menuItems.forEach(item => {
+      item.classList.toggle("is-active", item.dataset.agentId === selectedAgentId);
+    });
+  }
+
+  // ── Search ──────────────────────────────────────────────────────────
   searchBtn.addEventListener("click", doSearch);
   searchInput.addEventListener("keypress", e => { if (e.key === "Enter") doSearch(); });
 
@@ -102,14 +150,14 @@
     }
   }
 
-  // ── Foundation ────────────────────────────────────────────────────
+  // ── Foundation ──────────────────────────────────────────────────────
   foundationBtn.addEventListener("click", () => {
     promptInput.value = "Give me a comprehensive overview of this workspace: its purpose, key files, architecture, and how I should think about making changes.";
     autoResize();
     promptInput.focus();
   });
 
-  // ── Composer ──────────────────────────────────────────────────────
+  // ── Composer ────────────────────────────────────────────────────────
   promptInput.addEventListener("input", autoResize);
 
   promptInput.addEventListener("keydown", e => {
@@ -131,9 +179,10 @@
     const prompt = promptInput.value.trim();
     if (!prompt) { promptInput.focus(); return; }
 
+    if (menuOpen) toggleMenu(false);
+
     isLoading = true;
     setLoadingState(true);
-
     emptyState.hidden = true;
     appendMessage("user", prompt);
     promptInput.value = "";
@@ -173,7 +222,7 @@
     }
   }
 
-  // ── Message rendering ─────────────────────────────────────────────
+  // ── Message rendering ────────────────────────────────────────────────
   function appendMessage(role, text) {
     const msg = document.createElement("div");
     msg.className = `msg msg--${role}`;

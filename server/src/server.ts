@@ -1,9 +1,35 @@
+import * as fs from "node:fs";
 import * as http from "node:http";
+import * as path from "node:path";
 
 import { describeProvider, getServerConfig, type NssWorkspaceAiServerConfig } from "./config/env.js";
 import { resolveDefaultPortStateFilePath, writePortStateFile } from "./config/portState.js";
 import type { NssAskRequestPayload, NssHealthResponse } from "./models/contracts.js";
 import { handleAskRequest } from "./services/askService.js";
+
+const WEB_DIR = path.resolve(process.cwd(), "web");
+
+const MIME_TYPES: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+};
+
+function serveStaticFile(response: http.ServerResponse, filePath: string): boolean {
+  const ext = path.extname(filePath);
+  const mime = MIME_TYPES[ext];
+  if (!mime) return false;
+
+  try {
+    const data = fs.readFileSync(filePath);
+    response.statusCode = 200;
+    response.setHeader("Content-Type", mime);
+    response.end(data);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export interface StartedNssServer {
   readonly server: http.Server;
@@ -36,6 +62,14 @@ export async function startNssWorkspaceAiServer(
         const answer = await handleAskRequest(config, payload);
         await respondJson(response, 200, answer);
         return;
+      }
+
+      if (request.method === "GET") {
+        const urlPath = request.url?.split("?")[0] ?? "/";
+        const filePath = urlPath === "/" ? path.join(WEB_DIR, "index.html") : path.join(WEB_DIR, urlPath);
+        if (serveStaticFile(response, filePath)) {
+          return;
+        }
       }
 
       await respondJson(response, 404, {

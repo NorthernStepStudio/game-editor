@@ -23,20 +23,16 @@ name = "Start application"
 author = "agent"
 
 [workflows.workflow.metadata]
-outputType = "console"
+outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "SERVER_HOST=0.0.0.0 node server/out/index.js"
-waitForPort = 3001
+args = "PORT=5000 SERVER_HOST=0.0.0.0 node server/out/index.js"
+waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 3001
-externalPort = 3001
 
 [deployment]
 deploymentTarget = "autoscale"

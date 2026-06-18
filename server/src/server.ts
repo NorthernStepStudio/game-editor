@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as http from "node:http";
 import * as path from "node:path";
 
-import { describeProvider, getServerConfig, type NssWorkspaceAiServerConfig } from "./config/env.js";
+import { describeProvider, getAvailableProviders, getServerConfig, type NssWorkspaceAiServerConfig } from "./config/env.js";
 import { resolveDefaultPortStateFilePath, writePortStateFile } from "./config/portState.js";
 import type { NssAskRequestPayload, NssHealthResponse } from "./models/contracts.js";
 import { handleAskRequest, streamAskRequest } from "./services/askService.js";
@@ -57,15 +57,25 @@ export async function startNssWorkspaceAiServer(
         return;
       }
 
+      if (request.method === "GET" && request.url === "/providers") {
+        await respondJson(response, 200, getAvailableProviders(config));
+        return;
+      }
+
       if (request.method === "POST" && request.url === "/ask") {
         const acceptHeader = request.headers["accept"] ?? "";
         const wantsStream = acceptHeader.includes("text/event-stream");
-        const payload = (await readJsonBody(request)) as NssAskRequestPayload;
+        const rawBody = await readJsonBody(request);
+        const providerOverride =
+          typeof (rawBody as { _provider?: string })._provider === "string"
+            ? (rawBody as { _provider: string })._provider
+            : undefined;
+        const payload = rawBody as NssAskRequestPayload;
 
         if (wantsStream) {
-          await handleStreamRequest(config, payload, response);
+          await handleStreamRequest(config, payload, response, providerOverride);
         } else {
-          const answer = await handleAskRequest(config, payload);
+          const answer = await handleAskRequest(config, payload, providerOverride);
           await respondJson(response, 200, answer);
         }
         return;
@@ -154,6 +164,7 @@ async function handleStreamRequest(
   config: NssWorkspaceAiServerConfig,
   payload: NssAskRequestPayload,
   response: http.ServerResponse,
+  providerOverride?: string,
 ): Promise<void> {
   response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
   response.setHeader("Cache-Control", "no-cache, no-transform");
@@ -163,7 +174,7 @@ async function handleStreamRequest(
   response.flushHeaders?.();
 
   try {
-    for await (const token of streamAskRequest(config, payload)) {
+    for await (const token of streamAskRequest(config, payload, providerOverride)) {
       response.write(`data: ${JSON.stringify({ token })}\n\n`);
     }
     response.write(`data: ${JSON.stringify({ done: true })}\n\n`);

@@ -86,6 +86,68 @@ export function describeProvider(config: NssWorkspaceAiServerConfig): string {
   return `Synox runtime connected. Synox provider: ${provider}`;
 }
 
+export interface ProviderInfo {
+  readonly id: string;
+  readonly label: string;
+  readonly available: boolean;
+  readonly model: string | null;
+  readonly note: string;
+}
+
+export function getAvailableProviders(config: NssWorkspaceAiServerConfig): {
+  readonly current: string;
+  readonly providers: readonly ProviderInfo[];
+} {
+  const mc = config.mCore;
+  return {
+    current: mc.providerMode,
+    providers: [
+      {
+        id: "mock",
+        label: "Mock",
+        available: true,
+        model: null,
+        note: "Built-in — no API key needed",
+      },
+      {
+        id: "gemini",
+        label: "Gemini",
+        available: Boolean(mc.geminiApiKey),
+        model: mc.geminiModel ?? "gemini-2.5-flash",
+        note: mc.geminiApiKey ? "API key configured" : "Set GEMINI_API_KEY",
+      },
+      {
+        id: "openai",
+        label: "ChatGPT",
+        available: Boolean(mc.openaiApiKey),
+        model: mc.openaiModel ?? "gpt-4o",
+        note: mc.openaiApiKey ? "API key configured" : "Set OPENAI_API_KEY",
+      },
+      {
+        id: "anthropic",
+        label: "Claude",
+        available: Boolean(mc.anthropicApiKey),
+        model: mc.anthropicModel ?? "claude-3-5-sonnet-20241022",
+        note: mc.anthropicApiKey ? "API key configured" : "Set ANTHROPIC_API_KEY",
+      },
+      {
+        id: "ollama",
+        label: "Ollama",
+        available: true,
+        model: mc.ollamaModel ?? "qwen2.5-coder:14b",
+        note: `${mc.ollamaBaseUrl ?? "localhost:11434"} · local`,
+      },
+      {
+        id: "lmstudio",
+        label: "LM Studio",
+        available: true,
+        model: mc.lmstudioModel ?? "local-model",
+        note: `${mc.lmstudioBaseUrl ?? "localhost:1234"} · local`,
+      },
+    ],
+  };
+}
+
 function resolveProviderMode(
   requestedMode: string | undefined,
   geminiApiKey: string | undefined,

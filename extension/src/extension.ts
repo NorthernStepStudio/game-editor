@@ -297,7 +297,7 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
   public async handleSidebarAction(message: NssSidebarActionMessage): Promise<void> {
     switch (message.command) {
       case "nssWorkspaceAi.askWorkspaceAi":
-        await this.askWorkspaceAi(message.prompt, message.agentId);
+        await this.askWorkspaceAi(message.prompt, message.agentId, message.provider);
         break;
       case "nssWorkspaceAi.approveProposedMemory":
         if (message.memory && typeof message.index === "number") {
@@ -355,7 +355,11 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
     await this.sidebar?.reveal();
   }
 
-  public async askWorkspaceAi(promptFromSidebar?: string, preferredAgentId?: NssAgentId): Promise<void> {
+  public async askWorkspaceAi(
+    promptFromSidebar?: string,
+    preferredAgentId?: NssAgentId,
+    providerHint?: string,
+  ): Promise<void> {
     const prompt =
       promptFromSidebar ??
       (await vscode.window.showInputBox({
@@ -374,6 +378,7 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
       responseTitle: "Matterhorn Response",
       responseKind: "answer",
       preferredAgentId,
+      providerHint,
     });
   }
 
@@ -1441,6 +1446,7 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
     readonly responseTitle: string;
     readonly responseKind: NssResponseKind;
     readonly preferredAgentId?: NssAgentId;
+    readonly providerHint?: string;
     readonly activeFile?: ReturnType<typeof buildActiveFileSnapshot>;
     readonly project?: { structureSummary?: string };
     readonly task?: {
@@ -1558,7 +1564,10 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
           });
 
           progress.report({ message: "Consulting AI..." });
-          const response = await postAskRequest(getRuntimeConfig(), request);
+          const requestWithProvider = options.providerHint
+            ? { ...request, _provider: options.providerHint }
+            : request;
+          const response = await postAskRequest(getRuntimeConfig(), requestWithProvider as typeof request);
 
           const record = this.createResponseRecord(
             options.responseTitle,

@@ -8,6 +8,7 @@ export interface NssSidebarActionMessage {
   readonly command: string;
   readonly prompt?: string;
   readonly agentId?: NssAgentId;
+  readonly provider?: string;
   readonly memory?: {
     readonly id?: string;
     readonly content: string;

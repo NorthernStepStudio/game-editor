@@ -7,14 +7,22 @@
   ];
 
   const PROVIDER_LABELS = {
-    gemini: "Gemini", openai: "OpenAI", anthropic: "Claude",
+    gemini: "Gemini", openai: "ChatGPT", anthropic: "Claude",
     ollama: "Ollama", lmstudio: "LM Studio", mock: "Mock", off: "Off",
+  };
+
+  const MODEL_ICONS = {
+    mock: "◌", gemini: "✦", openai: "⊕", anthropic: "◇",
+    ollama: "⊙", lmstudio: "⊞", off: "−",
   };
 
   const state = JSON.parse(localStorage.getItem("mtState") || "{}");
   let selectedAgentId = state.selectedAgentId ?? "general";
+  let selectedProvider = state.selectedProvider ?? null;
   let isLoading = false;
   let menuOpen = false;
+  let modelMenuOpen = false;
+  let providerList = [];
 
   /** Conversation history for multi-turn context. Each entry: {role, content}. */
   let conversationHistory = [];
@@ -38,10 +46,16 @@
   const searchResults  = document.getElementById("search-results");
   const menuItems      = Array.from(document.querySelectorAll(".agent-menu-item[data-agent-id]"));
   const searchMenuItem = document.querySelector(".agent-menu-item[data-action='search']");
+  const modelMenu      = document.getElementById("model-menu");
+  const modelSelector  = document.getElementById("model-selector");
+  const modelSelectorLabel = document.getElementById("model-selector-label");
+  const modelMenuList  = document.getElementById("model-menu-list");
 
   // ── Init ────────────────────────────────────────────────────────────
   syncSelectorDisplay();
+  syncModelSelectorDisplay();
   checkHealth();
+  fetchProviders();
 
   // ── Health ──────────────────────────────────────────────────────────
   async function checkHealth() {
@@ -59,6 +73,91 @@
       statusDot.className = "status-dot is-error";
       statusLabel.textContent = "Offline";
     }
+  }
+
+  // ── Providers ────────────────────────────────────────────────────────
+  async function fetchProviders() {
+    try {
+      const res = await fetch("/providers");
+      if (!res.ok) return;
+      const data = await res.json();
+      providerList = data.providers ?? [];
+      if (!selectedProvider && data.current) {
+        selectedProvider = data.current;
+      }
+      renderModelMenu();
+      syncModelSelectorDisplay();
+    } catch {}
+  }
+
+  function syncModelSelectorDisplay() {
+    const provider = providerList.find(p => p.id === selectedProvider);
+    const label = provider ? provider.label : (PROVIDER_LABELS[selectedProvider] ?? selectedProvider ?? "Model");
+    if (modelSelectorLabel) modelSelectorLabel.textContent = label;
+  }
+
+  function renderModelMenu() {
+    if (!modelMenuList) return;
+    modelMenuList.replaceChildren();
+    for (const provider of providerList) {
+      const btn = document.createElement("button");
+      const isActive = provider.id === selectedProvider;
+      btn.className = ["agent-menu-item",
+        !provider.available ? "model-menu-item--unavailable" : "",
+        isActive ? "model-menu-item--active" : "",
+      ].filter(Boolean).join(" ");
+      btn.type = "button";
+      btn.setAttribute("role", "option");
+      btn.dataset.modelId = provider.id;
+
+      const iconEl = document.createElement("span");
+      iconEl.className = "agent-menu-icon";
+      iconEl.textContent = MODEL_ICONS[provider.id] ?? "◎";
+
+      const nameEl = document.createElement("span");
+      nameEl.className = "agent-menu-name";
+      nameEl.textContent = provider.label;
+
+      btn.appendChild(iconEl);
+      btn.appendChild(nameEl);
+
+      if (provider.model) {
+        const modelEl = document.createElement("span");
+        modelEl.className = "model-menu-model";
+        modelEl.textContent = provider.model;
+        btn.appendChild(modelEl);
+      }
+
+      const badge = document.createElement("span");
+      badge.className = "model-menu-badge " +
+        (provider.available ? "model-menu-badge--available" : "model-menu-badge--unavailable");
+      badge.textContent = provider.available ? "Ready" : "Setup";
+      btn.appendChild(badge);
+
+      btn.addEventListener("click", () => {
+        selectedProvider = provider.id;
+        renderModelMenu();
+        syncModelSelectorDisplay();
+        saveState();
+        toggleModelMenu(false);
+        promptInput.focus();
+      });
+
+      modelMenuList.appendChild(btn);
+    }
+  }
+
+  // ── Model menu ───────────────────────────────────────────────────────
+  modelSelector?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleModelMenu(!modelMenuOpen);
+  });
+
+  function toggleModelMenu(open) {
+    if (open) toggleMenu(false);
+    modelMenuOpen = open;
+    if (modelMenu) modelMenu.hidden = !open;
+    modelSelector?.setAttribute("aria-expanded", String(open));
   }
 
   // ── Agent menu ──────────────────────────────────────────────────────
@@ -85,22 +184,26 @@
     if (open) searchInput.focus();
   });
 
-  // Close menu when clicking outside
+  // Close menus when clicking outside
   document.addEventListener("click", (e) => {
     if (menuOpen && !agentMenu.contains(e.target) && e.target !== agentSelector) {
       toggleMenu(false);
     }
+    if (modelMenuOpen && modelMenu && !modelMenu.contains(e.target) && e.target !== modelSelector) {
+      toggleModelMenu(false);
+    }
   });
 
-  // Close menu on Escape
+  // Close menus on Escape
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && menuOpen) {
-      toggleMenu(false);
-      promptInput.focus();
+    if (e.key === "Escape") {
+      if (menuOpen) { toggleMenu(false); promptInput.focus(); }
+      if (modelMenuOpen) { toggleModelMenu(false); promptInput.focus(); }
     }
   });
 
   function toggleMenu(open) {
+    if (open) toggleModelMenu(false);
     menuOpen = open;
     agentMenu.hidden = !open;
     agentSelector.setAttribute("aria-expanded", String(open));
@@ -213,6 +316,7 @@
           workspace: { name: "Matterhorn" },
           preferredAgentId: selectedAgentId,
           history: historySnapshot,
+          ...(selectedProvider ? { _provider: selectedProvider } : {}),
         }),
       });
 
@@ -370,6 +474,6 @@
   }
 
   function saveState() {
-    localStorage.setItem("mtState", JSON.stringify({ selectedAgentId }));
+    localStorage.setItem("mtState", JSON.stringify({ selectedAgentId, selectedProvider }));
   }
 })();

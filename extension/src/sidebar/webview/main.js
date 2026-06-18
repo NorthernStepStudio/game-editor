@@ -2,14 +2,18 @@
   const vscode = acquireVsCodeApi();
   const savedState = vscode.getState() ?? {};
   let selectedAgentId = savedState.selectedAgentId ?? "general";
+  let selectedProvider = savedState.selectedProvider ?? "mock";
 
   const submitButton = document.getElementById("submit-button");
   const buildFoundationButton = document.getElementById("build-foundation-button");
   const agentButton = document.getElementById("agent-button");
   const agentPopover = document.getElementById("agent-popover");
+  const modelButton = document.getElementById("model-button");
+  const modelPopover = document.getElementById("model-popover");
   const toolsButton = document.getElementById("tools-button");
   const toolsPopover = document.getElementById("tools-popover");
   const agentButtons = Array.from(document.querySelectorAll("[data-agent-choice]"));
+  const modelButtons = Array.from(document.querySelectorAll("[data-model-choice]"));
   const promptInput = document.getElementById("prompt-input");
 
   const actionGrid = document.getElementById("action-grid");
@@ -31,6 +35,7 @@
   let isPrompting = false;
 
   syncAgentSelection();
+  syncModelSelection();
   persistState();
   closeAllPopovers();
 
@@ -54,6 +59,7 @@
           command: "nssWorkspaceAi.askWorkspaceAi",
           prompt,
           agentId: selectedAgentId,
+          provider: selectedProvider,
         });
 
         promptInput.value = "";
@@ -84,6 +90,12 @@
       });
     }
 
+    if (modelButton && modelPopover) {
+      modelButton.addEventListener("click", () => {
+        togglePopover(modelPopover, modelButton, 280);
+      });
+    }
+
     if (toolsButton && toolsPopover) {
       toolsButton.addEventListener("click", () => {
         togglePopover(toolsPopover, toolsButton, 280);
@@ -97,6 +109,17 @@
         persistState();
         if (agentPopover && agentButton) {
           setPopoverOpen(agentPopover, agentButton, false);
+        }
+      });
+    });
+
+    modelButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        selectedProvider = button.dataset.modelId ?? "mock";
+        syncModelSelection();
+        persistState();
+        if (modelPopover && modelButton) {
+          setPopoverOpen(modelPopover, modelButton, false);
         }
       });
     });
@@ -138,6 +161,7 @@
 
       const popovers = [];
       if (agentPopover && agentButton) popovers.push([agentPopover, agentButton]);
+      if (modelPopover && modelButton) popovers.push([modelPopover, modelButton]);
       if (toolsPopover && toolsButton) popovers.push([toolsPopover, toolsButton]);
 
       if (popovers.some(([popover, button]) => popover.contains(target) || button.contains(target))) {
@@ -176,10 +200,13 @@
     
     if (serverModeBadge) {
       const modeLabelMap = {
-        gemini: "Synox provider: Gemini",
-        ollama: "Synox provider: Ollama",
-        mock: "Synox provider: Mock",
-        off: "Synox provider: Off",
+        gemini: "Synox: Gemini",
+        openai: "Synox: ChatGPT",
+        anthropic: "Synox: Claude",
+        ollama: "Synox: Ollama",
+        lmstudio: "Synox: LM Studio",
+        mock: "Synox: Mock",
+        off: "Synox: Off",
       };
       serverModeBadge.textContent = modeLabelMap[payload.serverMode] ?? "";
       serverModeBadge.hidden = payload.serverMode === "unknown" || !payload.serverMode;
@@ -207,21 +234,29 @@
     });
   }
 
+  function syncModelSelection() {
+    modelButtons.forEach((button) => {
+      const isActive = button.dataset.modelId === selectedProvider;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+    });
+  }
+
   function togglePopover(popover, button, width) {
     setPopoverOpen(popover, button, popover.hidden, width);
   }
 
   function setPopoverOpen(popover, button, open, width = 300) {
     const isOpen = Boolean(open);
-    [agentPopover, toolsPopover].forEach((panel) => {
+    [agentPopover, modelPopover, toolsPopover].forEach((panel) => {
       if (panel !== popover) {
         panel.hidden = true;
         panel.style.visibility = "";
       }
     });
-    [agentButton, toolsButton].forEach((toggleButton) => {
+    [agentButton, modelButton, toolsButton].forEach((toggleButton) => {
       if (toggleButton !== button) {
-        toggleButton.setAttribute("aria-expanded", "false");
+        toggleButton?.setAttribute("aria-expanded", "false");
       }
     });
 
@@ -240,6 +275,7 @@
 
   function closeAllPopovers() {
     setPopoverOpen(agentPopover, agentButton, false);
+    setPopoverOpen(modelPopover, modelButton, false);
     setPopoverOpen(toolsPopover, toolsButton, false);
   }
 
@@ -378,7 +414,7 @@
   }
 
   function persistState() {
-    vscode.setState({ ...savedState, selectedAgentId });
+    vscode.setState({ ...savedState, selectedAgentId, selectedProvider });
   }
 
   vscode.postMessage({ type: "ready" });

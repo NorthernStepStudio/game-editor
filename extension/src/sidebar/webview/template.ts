@@ -105,6 +105,19 @@ export function renderSidebarTemplate(webview: vscode.Webview, extensionUri: vsc
               </button>
               <button
                 class="icon-button icon-button--compact"
+                id="model-button"
+                type="button"
+                aria-expanded="false"
+                title="Model"
+                aria-label="Model"
+              >
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" width="12" height="12">
+                  <rect x="2" y="4" width="12" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.22"/>
+                  <path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M5 4V2M8 4V2M11 4V2M5 12v2M8 12v2M11 12v2"/>
+                </svg>
+              </button>
+              <button
+                class="icon-button icon-button--compact"
                 id="tools-button"
                 type="button"
                 aria-expanded="false"
@@ -200,6 +213,74 @@ export function renderSidebarTemplate(webview: vscode.Webview, extensionUri: vsc
           </svg>
           <span class="agent-choice-label">
             <strong>Workspace Ops</strong>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class="popover-panel popover-panel--model" id="model-popover" hidden>
+      <div class="popover-header">
+        <div>
+          <h3>Model</h3>
+          <p class="panel-description">Select the AI provider for this chat.</p>
+        </div>
+      </div>
+      <div class="agent-choice-grid" role="radiogroup" aria-label="Model selection">
+        <button class="agent-choice is-active" type="button" data-model-choice data-model-id="mock" aria-label="Mock">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.08" stroke-dasharray="2 2"/>
+          </svg>
+          <span class="agent-choice-label">
+            <strong>Mock</strong>
+            <small style="display:block;font-size:9px;opacity:.6">Built-in</small>
+          </span>
+        </button>
+        <button class="agent-choice" type="button" data-model-choice data-model-id="gemini" aria-label="Gemini">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path fill="none" stroke="currentColor" stroke-width="1.08" stroke-linejoin="round" d="M8 2l1.5 4.5H14l-3.7 2.7 1.4 4.3L8 11.2l-3.7 2.3 1.4-4.3L2 6.5h4.5Z"/>
+          </svg>
+          <span class="agent-choice-label">
+            <strong>Gemini</strong>
+            <small style="display:block;font-size:9px;opacity:.6">Google · GEMINI_API_KEY</small>
+          </span>
+        </button>
+        <button class="agent-choice" type="button" data-model-choice data-model-id="openai" aria-label="ChatGPT">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.08"/>
+            <circle cx="8" cy="8" r="1.8" fill="currentColor"/>
+          </svg>
+          <span class="agent-choice-label">
+            <strong>ChatGPT</strong>
+            <small style="display:block;font-size:9px;opacity:.6">OpenAI · OPENAI_API_KEY</small>
+          </span>
+        </button>
+        <button class="agent-choice" type="button" data-model-choice data-model-id="anthropic" aria-label="Claude">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path fill="none" stroke="currentColor" stroke-width="1.08" stroke-linejoin="round" d="M8 2.5 13.5 13H2.5Z"/>
+          </svg>
+          <span class="agent-choice-label">
+            <strong>Claude</strong>
+            <small style="display:block;font-size:9px;opacity:.6">Anthropic · ANTHROPIC_API_KEY</small>
+          </span>
+        </button>
+        <button class="agent-choice" type="button" data-model-choice data-model-id="ollama" aria-label="Ollama">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.08"/>
+            <path fill="none" stroke="currentColor" stroke-width="1.08" d="M5 8h6M8 5v6"/>
+          </svg>
+          <span class="agent-choice-label">
+            <strong>Ollama</strong>
+            <small style="display:block;font-size:9px;opacity:.6">Local · localhost:11434</small>
+          </span>
+        </button>
+        <button class="agent-choice" type="button" data-model-choice data-model-id="lmstudio" aria-label="LM Studio">
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.08"/>
+            <path fill="none" stroke="currentColor" stroke-width="1.08" d="M5 5h2v6H5zM9 5h2v6H9z"/>
+          </svg>
+          <span class="agent-choice-label">
+            <strong>LM Studio</strong>
+            <small style="display:block;font-size:9px;opacity:.6">Local · localhost:1234</small>
           </span>
         </button>
       </div>

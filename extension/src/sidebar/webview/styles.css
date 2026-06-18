@@ -544,6 +544,10 @@ h2 {
   width: min(184px, calc(100vw - 16px));
 }
 
+.popover-panel--model {
+  width: min(260px, calc(100vw - 16px));
+}
+
 .popover-panel--tools {
   width: min(240px, calc(100vw - 16px));
 }

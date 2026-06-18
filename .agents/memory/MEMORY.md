@@ -1,0 +1,3 @@
+- [Provider architecture](provider-arch.md) — 7 providers now (mock/off/gemini/openai/anthropic/ollama/lmstudio); all extend ResponseOsProvider with optional generateStream
+- [Streaming design](streaming-design.md) — runtime.stream() falls back to blocking generate() if provider lacks generateStream; server uses Accept: text/event-stream to switch modes
+- [Conversation history](history-design.md) — NssChatMessage[] added to NssAskRequestPayload.history; web UI maintains conversationHistory[] array, sends last 20 turns

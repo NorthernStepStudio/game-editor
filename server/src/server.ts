@@ -5,7 +5,7 @@ import * as path from "node:path";
 import { describeProvider, getServerConfig, type NssWorkspaceAiServerConfig } from "./config/env.js";
 import { resolveDefaultPortStateFilePath, writePortStateFile } from "./config/portState.js";
 import type { NssAskRequestPayload, NssHealthResponse } from "./models/contracts.js";
-import { handleAskRequest } from "./services/askService.js";
+import { handleAskRequest, streamAskRequest } from "./services/askService.js";
 
 const WEB_DIR = path.resolve(process.cwd(), "web");
 
@@ -58,9 +58,16 @@ export async function startNssWorkspaceAiServer(
       }
 
       if (request.method === "POST" && request.url === "/ask") {
+        const acceptHeader = request.headers["accept"] ?? "";
+        const wantsStream = acceptHeader.includes("text/event-stream");
         const payload = (await readJsonBody(request)) as NssAskRequestPayload;
-        const answer = await handleAskRequest(config, payload);
-        await respondJson(response, 200, answer);
+
+        if (wantsStream) {
+          await handleStreamRequest(config, payload, response);
+        } else {
+          const answer = await handleAskRequest(config, payload);
+          await respondJson(response, 200, answer);
+        }
         return;
       }
 
@@ -141,6 +148,31 @@ async function respondJson(response: http.ServerResponse, statusCode: number, pa
   response.statusCode = statusCode;
   response.setHeader("Content-Type", "application/json; charset=utf-8");
   response.end(JSON.stringify(payload));
+}
+
+async function handleStreamRequest(
+  config: NssWorkspaceAiServerConfig,
+  payload: NssAskRequestPayload,
+  response: http.ServerResponse,
+): Promise<void> {
+  response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  response.setHeader("Cache-Control", "no-cache, no-transform");
+  response.setHeader("Connection", "keep-alive");
+  response.setHeader("X-Accel-Buffering", "no");
+  response.statusCode = 200;
+  response.flushHeaders?.();
+
+  try {
+    for await (const token of streamAskRequest(config, payload)) {
+      response.write(`data: ${JSON.stringify({ token })}\n\n`);
+    }
+    response.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Stream failed.";
+    response.write(`data: ${JSON.stringify({ error: message })}\n\n`);
+  } finally {
+    response.end();
+  }
 }
 
 function setCommonHeaders(response: http.ServerResponse): void {

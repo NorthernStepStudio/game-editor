@@ -24,12 +24,26 @@ export function createResponseOsRuntime(config: ResponseOsRuntimeConfig): Respon
         agent: agent.id,
       });
 
-      return provider.generate({
-        request,
-        agent,
-        budget,
-        logger,
+      return provider.generate({ request, agent, budget, logger });
+    },
+    async *stream(request: NssAskRequestPayload): AsyncGenerator<string> {
+      validateAskRequest(request);
+      const agent = resolveAgentForRequest(request);
+      const budget = resolveBudgetForIntent(request.intent);
+
+      logger.debug("M-CORE runtime streaming request.", {
+        intent: request.intent,
+        provider: provider.id,
+        agent: agent.id,
       });
+
+      if (provider.generateStream) {
+        yield* provider.generateStream({ request, agent, budget, logger });
+      } else {
+        // Fallback: run blocking generate and emit entire response as one token
+        const result = await provider.generate({ request, agent, budget, logger });
+        yield result.response;
+      }
     },
   };
 }

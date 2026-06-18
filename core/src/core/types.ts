@@ -33,7 +33,30 @@ export type NssAskIntent =
   | "review-refresh"
   | "workspace-briefing";
 
-export type ResponseOsProviderMode = "off" | "mock" | "gemini";
+/**
+ * All supported AI provider modes.
+ * - "mock"      — deterministic local responses, no external calls
+ * - "gemini"    — Google Gemini cloud API
+ * - "openai"    — OpenAI cloud API (gpt-4o etc.)
+ * - "anthropic" — Anthropic Claude cloud API
+ * - "ollama"    — local Ollama server (llama3, qwen, etc.)
+ * - "lmstudio"  — local LM Studio server (OpenAI-compatible API)
+ * - "off"       — provider is disabled
+ */
+export type ResponseOsProviderMode =
+  | "off"
+  | "mock"
+  | "gemini"
+  | "openai"
+  | "anthropic"
+  | "ollama"
+  | "lmstudio";
+
+/** A single turn in a multi-turn conversation. */
+export interface NssChatMessage {
+  readonly role: "user" | "assistant";
+  readonly content: string;
+}
 
 export interface NssWorkspaceContext {
   readonly name: string;
@@ -149,6 +172,12 @@ export interface NssAskRequestPayload {
   readonly events?: readonly NssEvent[];
   readonly appSnapshot?: NssAppSnapshot;
   readonly build?: NssBuildContext;
+  /**
+   * Prior turns in the conversation, oldest first.
+   * Providers that support multi-turn (Gemini, OpenAI, Anthropic, Ollama, LM Studio)
+   * include these as conversation history in their API calls.
+   */
+  readonly history?: readonly NssChatMessage[];
 }
 
 export interface NssAskResponse {
@@ -192,13 +221,29 @@ export interface ResponseOsProvider {
   readonly id: ResponseOsProviderMode;
   describe(): string;
   generate(input: ResponseOsProviderRequest): Promise<NssAskResponse>;
+  /** Optional token-by-token streaming. Yields raw text chunks as they arrive. */
+  generateStream?(input: ResponseOsProviderRequest): AsyncGenerator<string>;
 }
 
 export interface ResponseOsRuntimeConfig {
   readonly providerMode: ResponseOsProviderMode;
+  /** Gemini cloud */
   readonly geminiApiKey?: string;
   readonly geminiModel?: string;
   readonly geminiBaseUrl?: string;
+  /** OpenAI cloud */
+  readonly openaiApiKey?: string;
+  readonly openaiModel?: string;
+  readonly openaiBaseUrl?: string;
+  /** Anthropic cloud */
+  readonly anthropicApiKey?: string;
+  readonly anthropicModel?: string;
+  /** Ollama local */
+  readonly ollamaBaseUrl?: string;
+  readonly ollamaModel?: string;
+  /** LM Studio local */
+  readonly lmstudioBaseUrl?: string;
+  readonly lmstudioModel?: string;
   readonly requestTimeoutMs: number;
   readonly logger?: ResponseOsLogger;
 }
@@ -207,4 +252,6 @@ export interface ResponseOsRuntime {
   readonly providerMode: ResponseOsProviderMode;
   describeProvider(): string;
   run(request: NssAskRequestPayload): Promise<NssAskResponse>;
+  /** Stream tokens one at a time. Falls back to run() if provider has no generateStream. */
+  stream(request: NssAskRequestPayload): AsyncGenerator<string>;
 }

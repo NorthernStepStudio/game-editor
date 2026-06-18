@@ -25,6 +25,14 @@ export function getServerConfig(env: NodeJS.ProcessEnv = process.env): NssWorksp
     trimOptional(env.NSS_WORKSPACE_AI_MODEL),
     "gemini-2.5-flash",
   );
+  const openaiApiKey = firstDefined(
+    trimOptional(env.OPENAI_API_KEY),
+    trimOptional(env.M_CORE_OPENAI_API_KEY),
+  );
+  const anthropicApiKey = firstDefined(
+    trimOptional(env.ANTHROPIC_API_KEY),
+    trimOptional(env.M_CORE_ANTHROPIC_API_KEY),
+  );
   const requestedMode = firstDefined(
     trimOptional(env.M_CORE_PROVIDER_MODE),
     trimOptional(env.SYNOX_PROVIDER_MODE),
@@ -35,7 +43,7 @@ export function getServerConfig(env: NodeJS.ProcessEnv = process.env): NssWorksp
   return {
     port: parseNumber(env.PORT, 3001),
     mCore: {
-      providerMode: resolveProviderMode(requestedMode, geminiApiKey),
+      providerMode: resolveProviderMode(requestedMode, geminiApiKey, openaiApiKey, anthropicApiKey),
       geminiApiKey,
       geminiModel,
       geminiBaseUrl: firstDefined(
@@ -44,6 +52,22 @@ export function getServerConfig(env: NodeJS.ProcessEnv = process.env): NssWorksp
         trimOptional(env.RESPONSE_OS_GEMINI_BASE_URL),
         "https://generativelanguage.googleapis.com/v1",
       ),
+      openaiApiKey,
+      openaiModel: firstDefined(trimOptional(env.OPENAI_MODEL), trimOptional(env.M_CORE_OPENAI_MODEL), "gpt-4o"),
+      openaiBaseUrl: firstDefined(trimOptional(env.OPENAI_BASE_URL), trimOptional(env.M_CORE_OPENAI_BASE_URL)),
+      anthropicApiKey,
+      anthropicModel: firstDefined(
+        trimOptional(env.ANTHROPIC_MODEL),
+        trimOptional(env.M_CORE_ANTHROPIC_MODEL),
+        "claude-3-5-sonnet-20241022",
+      ),
+      ollamaBaseUrl: firstDefined(trimOptional(env.OLLAMA_BASE_URL), trimOptional(env.M_CORE_OLLAMA_BASE_URL)),
+      ollamaModel: firstDefined(trimOptional(env.OLLAMA_MODEL), trimOptional(env.M_CORE_OLLAMA_MODEL)),
+      lmstudioBaseUrl: firstDefined(
+        trimOptional(env.LMSTUDIO_BASE_URL),
+        trimOptional(env.M_CORE_LMSTUDIO_BASE_URL),
+      ),
+      lmstudioModel: firstDefined(trimOptional(env.LMSTUDIO_MODEL), trimOptional(env.M_CORE_LMSTUDIO_MODEL)),
       requestTimeoutMs: parseNumber(
         firstDefined(
           env.M_CORE_REQUEST_TIMEOUT_MS,
@@ -65,31 +89,35 @@ export function describeProvider(config: NssWorkspaceAiServerConfig): string {
 function resolveProviderMode(
   requestedMode: string | undefined,
   geminiApiKey: string | undefined,
+  openaiApiKey: string | undefined,
+  anthropicApiKey: string | undefined,
 ): SynoxProviderMode {
-  if (requestedMode === "off") {
-    return "off";
-  }
+  if (requestedMode === "off") return "off";
+  if (requestedMode === "mock") return "mock";
 
-  if (requestedMode === "mock") {
-    return "mock";
-  }
+  if (requestedMode === "openai") return openaiApiKey ? "openai" : "mock";
+  if (requestedMode === "anthropic") return anthropicApiKey ? "anthropic" : "mock";
+  if (requestedMode === "ollama") return "ollama";
+  if (requestedMode === "lmstudio") return "lmstudio";
+  if (requestedMode === "gemini") return geminiApiKey ? "gemini" : "mock";
 
-  if (requestedMode === "gemini") {
-    return geminiApiKey ? "gemini" : "mock";
-  }
-
-  return geminiApiKey ? "gemini" : "mock";
+  // Auto-detect: prefer whichever key is set
+  if (geminiApiKey) return "gemini";
+  if (openaiApiKey) return "openai";
+  if (anthropicApiKey) return "anthropic";
+  return "mock";
 }
 
 function resolveProviderLabel(mode: SynoxProviderMode): string {
   switch (mode) {
-    case "gemini":
-      return "Gemini";
-    case "off":
-      return "Off";
+    case "gemini":    return "Gemini";
+    case "openai":    return "OpenAI";
+    case "anthropic": return "Anthropic";
+    case "ollama":    return "Ollama (local)";
+    case "lmstudio":  return "LM Studio (local)";
+    case "off":       return "Off";
     case "mock":
-    default:
-      return "Mock";
+    default:          return "Mock";
   }
 }
 

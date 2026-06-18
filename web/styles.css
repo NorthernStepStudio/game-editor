@@ -346,6 +346,26 @@ body {
   40% { transform: scale(1); opacity: 1; }
 }
 
+/* Streaming bubble — live token rendering */
+.msg--streaming .msg-bubble {
+  position: relative;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.msg--streaming .msg-bubble::after {
+  content: "▍";
+  display: inline-block;
+  color: var(--accent);
+  animation: cursor-blink 1s step-end infinite;
+  margin-left: 1px;
+  font-size: 0.75em;
+  vertical-align: middle;
+}
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
 /* Code blocks inside assistant messages */
 .msg--assistant pre {
   background: rgba(0,0,0,0.4);

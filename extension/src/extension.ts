@@ -107,6 +107,7 @@ import { getServerStatusLabel } from "./state/uiState.js";
 import { getActiveWorkflowStep } from "./state/workflowState.js";
 import { eventTracker } from "./state/eventTracker.js";
 import { generateAppSnapshot } from "./helpers/snapshotHelper.js";
+import { MatterhornInlineCompletionProvider } from "./providers/inlineCompletionProvider.js";
 
 interface BackendCommandResult {
   readonly record: NssResponseRecord;
@@ -2005,6 +2006,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   registerMemoryCommands(context, store);
   registerDebugCommands(context, controller);
   await controller.refreshSidebar();
+
+  context.subscriptions.push(
+    vscode.languages.registerInlineCompletionItemProvider(
+      { pattern: "**" },
+      new MatterhornInlineCompletionProvider(),
+    ),
+  );
 }
 
 export async function deactivate(): Promise<void> {}

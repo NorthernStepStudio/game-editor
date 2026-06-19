@@ -7,11 +7,19 @@ import { buildResponseTitle, normalizeStructuredModelResponse } from "../tools/r
  */
 export function createLMStudioProvider(config: ResponseOsRuntimeConfig): ResponseOsProvider {
   const baseUrl = ensureTrailingSlash(config.lmstudioBaseUrl ?? "http://localhost:1234/v1/");
-  const model = config.lmstudioModel ?? "local-model";
+  const requestedModel = config.lmstudioModel?.trim();
+  const fallbackModel = "local-model";
+  let resolvedModel: string | undefined;
 
   function buildMessages(input: ResponseOsProviderRequest) {
     const history = input.request.history ?? [];
-    const systemMsg = { role: "system" as const, content: input.agent.systemInstruction };
+    const localInstruction = "You are Matterhorn, the local-first AI agent and workspace assistant for Northern Step Studio / NStep. Your name is Matterhorn. You are not NSS Master Core, M-CORE, NSS Workspace AI, or General NSS Studio Agent. Reply directly to the user in plain conversational text. Do not wrap your answer in JSON. Do not include keys like title, response, content, message, or answer. Do not use markdown code fences unless the user specifically asks for code.";
+    
+    let systemInstruction = input.agent.systemInstruction;
+    systemInstruction = systemInstruction.replace(/Respond as JSON with keys[^.\n]*\.?/gi, "");
+    systemInstruction = `${systemInstruction.trim()}\n\n${localInstruction}`;
+
+    const systemMsg = { role: "system" as const, content: systemInstruction };
     const historyMsgs = history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
     const userContent = JSON.stringify(
       {
@@ -33,12 +41,60 @@ export function createLMStudioProvider(config: ResponseOsRuntimeConfig): Respons
     readonly error?: { readonly message?: string };
   }
 
+  interface OpenAICompatModelsResponse {
+    readonly data?: ReadonlyArray<{
+      readonly id?: string;
+    }>;
+  }
+
+  async function resolveModel(): Promise<string> {
+    if (resolvedModel) {
+      return resolvedModel;
+    }
+
+    const availableModels = await listLMStudioModels();
+    if (requestedModel && availableModels.includes(requestedModel)) {
+      resolvedModel = requestedModel;
+      return resolvedModel;
+    }
+
+    if (!requestedModel && availableModels.length > 0) {
+      resolvedModel = availableModels[0];
+      return resolvedModel;
+    }
+
+    if (requestedModel && availableModels.length > 0) {
+      resolvedModel = availableModels[0];
+      return resolvedModel;
+    }
+
+    resolvedModel = requestedModel ?? fallbackModel;
+    return resolvedModel;
+  }
+
+  async function listLMStudioModels(): Promise<string[]> {
+    try {
+      const response = await fetch(new URL("models", baseUrl), {
+        signal: AbortSignal.timeout(Math.min(config.requestTimeoutMs, 3_000)),
+      });
+      if (!response.ok) {
+        return [];
+      }
+
+      const payload = (await response.json()) as OpenAICompatModelsResponse;
+      return payload.data?.map((model) => model.id).filter((id): id is string => Boolean(id?.trim())) ?? [];
+    } catch {
+      return [];
+    }
+  }
+
   return {
     id: "lmstudio",
     describe() {
-      return `M-CORE LM Studio (local) mode using "${model}" at ${baseUrl}.`;
+      return `M-CORE LM Studio (local) mode at ${baseUrl}.`;
     },
     async generate(input: ResponseOsProviderRequest): Promise<NssAskResponse> {
+      const model = await resolveModel();
       const res = await fetch(new URL("chat/completions", baseUrl), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,6 +122,7 @@ export function createLMStudioProvider(config: ResponseOsRuntimeConfig): Respons
       return normalizeStructuredModelResponse(content, buildResponseTitle(input.request));
     },
     async *generateStream(input: ResponseOsProviderRequest): AsyncGenerator<string> {
+      const model = await resolveModel();
       const res = await fetch(new URL("chat/completions", baseUrl), {
         method: "POST",
         headers: { "Content-Type": "application/json" },

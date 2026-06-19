@@ -152,6 +152,16 @@
         "category": "Matterhorn"
       },
       {
+        "command": "nssWorkspaceAi.rememberSelection",
+        "title": "Matterhorn: Remember Selection",
+        "category": "Matterhorn"
+      },
+      {
+        "command": "nssWorkspaceAi.showMemories",
+        "title": "Matterhorn: Show Memories",
+        "category": "Matterhorn"
+      },
+      {
         "command": "nssWorkspaceAi.showQuickStart",
         "title": "Matterhorn: Show Quick Start",
         "category": "Matterhorn"

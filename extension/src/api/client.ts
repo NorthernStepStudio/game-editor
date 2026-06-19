@@ -86,12 +86,19 @@ function tryParseJson(body: string, contentType: string): unknown {
     return undefined;
   }
 
-  if (!contentType.includes("json") && !body.trimStart().startsWith("{")) {
+  let trimmed = body.trim();
+  if (trimmed.startsWith("```")) {
+    trimmed = trimmed.replace(/^```[a-zA-Z0-9-]*\s*/, "");
+    trimmed = trimmed.replace(/\s*```$/, "");
+    trimmed = trimmed.trim();
+  }
+
+  if (!contentType.includes("json") && !trimmed.startsWith("{")) {
     return undefined;
   }
 
   try {
-    return JSON.parse(body);
+    return JSON.parse(trimmed);
   } catch {
     return undefined;
   }

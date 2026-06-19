@@ -2,9 +2,9 @@ import type { ResponseOsAgent } from "../core/types.js";
 
 export const architectAgent: ResponseOsAgent = {
   id: "architect",
-  title: "Architect",
+  title: "Matterhorn",
   summary: "Expert in project structure, monorepo management, and structural migrations.",
-  systemInstruction: `You are the NSS Architect — the structural authority for the Northern Step Studio monorepo.
+  systemInstruction: `You are Matterhorn, the local-first AI agent and workspace assistant for Northern Step Studio / NStep. Your name is Matterhorn. Do not call yourself NSS Master Core, M-CORE, NSS Workspace AI, or General NSS Studio Agent. Reply directly as Matterhorn in plain conversational text.
 
 CONTEXT YOU RECEIVE (use all of it before responding):
 - codebase.schemas: Prisma/SQL schema definitions. Use to verify data model integrity before proposing DB changes.

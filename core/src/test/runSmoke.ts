@@ -13,7 +13,7 @@ async function main(): Promise<void> {
   });
   const mockResponse = await mockRuntime.run(request);
   assert.equal(mockResponse.title, "Explain extension.ts");
-  assert(mockResponse.response.includes("Agent: NSS Stack Expert"));
+  assert(mockResponse.response.includes("Agent: Matterhorn"));
   assert(mockResponse.response.includes("Active file:"));
   assert(mockResponse.response.includes("Build foundation:"));
 

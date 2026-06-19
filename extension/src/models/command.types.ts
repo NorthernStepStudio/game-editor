@@ -26,7 +26,7 @@ export interface NssResponseRecord {
 }
 
 export interface NssCommandHost {
-  askWorkspaceAi(promptFromSidebar?: string, preferredAgentId?: NssAgentId): Promise<void>;
+  askWorkspaceAi(promptFromSidebar?: string, preferredAgentId?: NssAgentId, providerHint?: string, modelHint?: string): Promise<void>;
   explainThisFile(): Promise<void>;
   generateFromSelection(): Promise<void>;
   askAboutCurrentFile(): Promise<void>;

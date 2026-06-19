@@ -6,7 +6,8 @@
       "type": "extensionHost",
       "request": "launch",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}/extension"
+        "--extensionDevelopmentPath=${workspaceFolder}/extension",
+        "${workspaceFolder}"
       ],
       "outFiles": [
         "${workspaceFolder}/extension/out/**/*.js"
@@ -18,11 +19,12 @@
       "type": "node",
       "request": "launch",
       "program": "${workspaceFolder}/server/out/index.js",
+      "cwd": "${workspaceFolder}",
       "outFiles": [
         "${workspaceFolder}/server/out/**/*.js"
       ],
       "preLaunchTask": "compile:server",
-      "console": "integratedTerminal"
+      "console": "internalConsole"
     }
   ],
   "compounds": [

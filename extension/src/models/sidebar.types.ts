@@ -12,10 +12,27 @@ export interface NssSidebarViewModel {
   readonly modeTitle: string;
   readonly presetTitle: string;
   readonly studioProjectTitle: string;
+  readonly workspaceFiles?: readonly string[];
+  readonly responseHistory?: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly body: string;
+    readonly createdAt: string;
+    readonly prompt?: string;
+    readonly kind: string;
+    readonly proposedMemories?: readonly {
+      readonly content: string;
+      readonly tags: readonly string[];
+    }[];
+  }[];
+  readonly localOllamaModels?: readonly string[];
+  readonly localLmStudioModels?: readonly string[];
   readonly currentFilePath?: string;
   readonly currentSelectionPreview?: string;
   readonly latestResponse?: {
+    readonly id: string;
     readonly title: string;
+    readonly body: string;
     readonly excerpt: string;
     readonly createdAt: string;
     readonly kind: string;

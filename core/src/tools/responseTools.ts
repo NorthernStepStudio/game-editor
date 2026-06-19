@@ -23,7 +23,7 @@ export function buildResponseTitle(request: NssAskRequestPayload): string {
     case "knowledge-search":
       return "Knowledge Search";
     default:
-      return "NSS Workspace AI";
+      return "Matterhorn";
   }
 }
 
@@ -219,7 +219,13 @@ function buildNextSteps(request: NssAskRequestPayload): string[] {
 }
 
 function tryParseJson(value: string): unknown {
-  const trimmed = value.trim();
+  let trimmed = value.trim();
+  if (trimmed.startsWith("```")) {
+    trimmed = trimmed.replace(/^```[a-zA-Z0-9-]*\s*/, "");
+    trimmed = trimmed.replace(/\s*```$/, "");
+    trimmed = trimmed.trim();
+  }
+
   if (!trimmed.startsWith("{")) {
     return undefined;
   }

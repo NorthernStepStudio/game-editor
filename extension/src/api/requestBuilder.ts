@@ -11,6 +11,7 @@ import type {
   NssWorkflowContext,
   NssEvent,
   NssAppSnapshot,
+  NssChatMessage,
 } from "../models/api.types.js";
 import type { NssModeId } from "../models/mode.types.js";
 
@@ -34,6 +35,7 @@ export interface BuildAskRequestInput {
   readonly events?: readonly NssEvent[];
   readonly appSnapshot?: NssAppSnapshot;
   readonly build?: NssBuildContext;
+  readonly history?: readonly NssChatMessage[];
 }
 
 export function buildAskRequest(input: BuildAskRequestInput): NssAskRequestPayload {
@@ -58,6 +60,7 @@ export function buildAskRequest(input: BuildAskRequestInput): NssAskRequestPaylo
     events: input.events,
     appSnapshot: input.appSnapshot,
     build: input.build,
+    history: input.history,
   };
 }
 

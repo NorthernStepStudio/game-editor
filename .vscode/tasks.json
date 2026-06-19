@@ -4,14 +4,14 @@
     {
       "label": "compile:core",
       "type": "shell",
-      "command": "npm run compile:core",
+      "command": "npm --prefix \"${workspaceFolder}\" run compile:core",
       "problemMatcher": "$tsc",
       "group": "build"
     },
     {
       "label": "compile:server",
       "type": "shell",
-      "command": "npm run compile:server",
+      "command": "npm --prefix \"${workspaceFolder}\" run compile:server",
       "problemMatcher": "$tsc",
       "group": "build",
       "dependsOn": "compile:core"
@@ -19,14 +19,14 @@
     {
       "label": "compile:extension",
       "type": "shell",
-      "command": "npm run compile:extension",
+      "command": "npm --prefix \"${workspaceFolder}\" run compile:extension",
       "problemMatcher": "$tsc",
       "group": "build"
     },
     {
       "label": "compile:all",
       "type": "shell",
-      "command": "npm run compile",
+      "command": "npm --prefix \"${workspaceFolder}\" run compile",
       "problemMatcher": "$tsc",
       "group": {
         "kind": "build",

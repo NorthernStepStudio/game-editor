@@ -22,291 +22,216 @@ export function renderSidebarTemplate(webview: vscode.Webview, extensionUri: vsc
     <link rel="stylesheet" href="${styleUri}" />
   </head>
   <body>
-    <main class="shell">
-      <section class="panel panel--compact-header">
-        <div class="compact-title-row">
-          <div class="compact-title-copy">
-            <p class="eyebrow">Northern Step Studio</p>
-            <h1 id="workspace-name">Matterhorn</h1>
+    <main class="app">
+      <!-- Left Navigation Column -->
+      <aside class="sidebar-nav">
+        <!-- Brand / Header -->
+        <div class="brand-header">
+          <div class="brand-title">
+            <svg class="brand-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M3 16 10 3l7 13H3Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+              <path d="M10 8v5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            <span class="brand-name">Matterhorn</span>
           </div>
-          <span class="status-chip">
-            <span>Powered by Synox</span><strong id="server-pill">Synox runtime connected</strong>
-            <span class="meta-tag" id="server-mode-badge" style="margin-left: 4px;" hidden></span>
-          </span>
+          <div class="brand-sub">Northern Step Studio</div>
         </div>
-        <p class="compact-meta compact-meta--faint">
+
+        <!-- Workspace Section -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Workspace</div>
+          <div class="sidebar-list">
+            <div class="sidebar-folder-item" id="sidebar-workspace-folder">
+              <span class="sidebar-folder-chevron">&#9662;</span>
+              <span class="sidebar-folder-icon">&#128193;</span>
+              <span class="sidebar-folder-name" id="workspace-folder-name">Matterhorn</span>
+            </div>
+            <div class="sidebar-sub-list" id="sidebar-conversations-list">
+              <!-- Dynamically populated in main.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tools Section -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">Tools</div>
+          <div class="sidebar-list" id="sidebar-tools-list">
+            <button class="sidebar-item" data-tool-command="nssWorkspaceAi.showBuildFoundation" type="button">
+              <span class="sidebar-item-icon">&#10022;</span>
+              <span class="sidebar-item-label">Build Foundation</span>
+            </button>
+            <button class="sidebar-item" data-tool-command="nssWorkspaceAi.explainProjectStructure" type="button">
+              <span class="sidebar-item-icon">&#9635;</span>
+              <span class="sidebar-item-label">Project Structure</span>
+            </button>
+            <button class="sidebar-item" data-tool-command="nssWorkspaceAi.planChange" type="button">
+              <span class="sidebar-item-icon">&#9737;</span>
+              <span class="sidebar-item-label">Plan Change</span>
+            </button>
+            <button class="sidebar-item" data-action="open-search" type="button">
+              <span class="sidebar-item-icon">&#8981;</span>
+              <span class="sidebar-item-label">Search Codebase</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="sidebar-spacer"></div>
+
+        <!-- Status Footer in Left Sidebar -->
+        <div class="sidebar-status" title="Backend status">
+          <span class="status-dot" id="status-dot"></span>
+          <span class="status-label" id="server-pill">Connecting</span>
+          <span class="mode-pill" id="server-mode-badge" hidden></span>
+        </div>
+      </aside>
+
+      <!-- Right Chat Panel -->
+      <section class="chat-panel">
+        <header class="chat-header">
+          <div class="chat-title">
+            <span id="active-agent-title">General</span>
+            <span class="chat-title-dot">&middot;</span>
+            <span class="chat-title-sub">Chat</span>
+          </div>
+        </header>
+
+        <section class="context-strip" id="context-strip" hidden>
           <span id="current-file">None</span>
-          <span class="compact-dot">&middot;</span>
+          <span class="context-dot">&middot;</span>
           <span id="selection-preview">No current selection.</span>
-        </p>
-      </section>
+        </section>
 
-      <section class="panel panel--chat">
-        <div class="chat-scroll">
-          <div class="panel-heading panel-heading--compact">
-            <div>
-              <h2>Chat</h2>
-            </div>
-            <span class="panel-badges">
-              <span class="meta-tag" id="memory-proposal-badge" hidden></span>
-              <span class="meta-tag" id="response-kind">None</span>
-            </span>
+        <section class="search-panel" id="search-panel" hidden>
+          <div class="search-inner">
+            <input type="text" id="search-input" class="search-field" placeholder="Search codebase..." autocomplete="off" />
+            <button id="search-btn" class="search-submit" type="button">Search</button>
+          </div>
+          <div id="search-results-container" class="search-results"></div>
+        </section>
+
+        <section class="convo" id="convo" aria-live="polite">
+          <div class="empty-state" id="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="32" height="32" aria-hidden="true">
+              <path d="M4 19 12 4l8 15H4Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+              <path d="M12 10v5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            <p>Ask Matterhorn anything about your workspace, code, or changes.</p>
+          </div>
+        </section>
+
+        <section class="composer">
+          <!-- Agent selector popup (renders above composer when open) -->
+          <div class="agent-menu" id="agent-menu" hidden role="listbox" aria-label="Select agent">
+            <div class="agent-menu-label">Switch agent</div>
+            <button class="agent-menu-item is-active" role="option" data-agent-id="general" type="button">
+              <span class="agent-menu-icon">&#9671;</span>
+              <span class="agent-menu-name">General</span>
+              <span class="agent-menu-desc">General-purpose assist</span>
+            </button>
+            <button class="agent-menu-item" role="option" data-agent-id="stack-expert" type="button">
+              <span class="agent-menu-icon">&#9889;</span>
+              <span class="agent-menu-name">Stack Expert</span>
+              <span class="agent-menu-desc">Deep repo context</span>
+            </button>
+            <button class="agent-menu-item" role="option" data-agent-id="architect" type="button">
+              <span class="agent-menu-icon">&#9633;</span>
+              <span class="agent-menu-name">Architect</span>
+              <span class="agent-menu-desc">System design</span>
+            </button>
+            <button class="agent-menu-item" role="option" data-agent-id="workspace-ops" type="button">
+              <span class="agent-menu-icon">&#8984;</span>
+              <span class="agent-menu-name">Workspace Ops</span>
+              <span class="agent-menu-desc">File search</span>
+            </button>
           </div>
 
-          <div class="response-block response-block--compact">
-            <div class="response-head">
-              <h2>Latest response</h2>
-              <span class="meta-tag" id="proposal-status">No proposal</span>
+          <!-- Model selector popup (renders above composer when open) -->
+          <div class="agent-menu model-menu" id="model-menu" hidden role="listbox" aria-label="Select model">
+            <div class="agent-menu-label">Select model</div>
+            <div id="model-menu-list">
+              <button class="agent-menu-item" role="option" data-model-id="ollama" data-model-name="Ollama" data-model-detail="Auto local model" type="button">
+                <span class="agent-menu-icon">&#8857;</span>
+                <span class="agent-menu-name">Ollama (Default)</span>
+                <span class="model-menu-model">auto local</span>
+                <span class="model-menu-badge model-menu-badge--available">Local</span>
+              </button>
+              <button class="agent-menu-item custom-model-btn" role="option" data-action="custom-model" data-provider="ollama" type="button">
+                <span class="agent-menu-icon">&#9998;</span>
+                <span class="agent-menu-name">Ollama (Custom...)</span>
+                <span class="model-menu-model">Enter model name</span>
+              </button>
+              <button class="agent-menu-item" role="option" data-model-id="lmstudio" data-model-name="LM Studio" data-model-detail="Loaded model" type="button">
+                <span class="agent-menu-icon">&#8862;</span>
+                <span class="agent-menu-name">LM Studio (Default)</span>
+                <span class="model-menu-model">loaded model</span>
+                <span class="model-menu-badge model-menu-badge--available">Local</span>
+              </button>
+              <button class="agent-menu-item custom-model-btn" role="option" data-action="custom-model" data-provider="lmstudio" type="button">
+                <span class="agent-menu-icon">&#9998;</span>
+                <span class="agent-menu-name">LM Studio (Custom...)</span>
+                <span class="model-menu-model">Enter model name</span>
+              </button>
+              <button class="agent-menu-item" role="option" data-model-id="gemini" data-model-name="Gemini" data-model-detail="GEMINI_API_KEY" type="button">
+                <span class="agent-menu-icon">&#10022;</span>
+                <span class="agent-menu-name">Gemini</span>
+                <span class="model-menu-model">gemini-2.5-flash</span>
+                <span class="model-menu-badge">Cloud</span>
+              </button>
+              <button class="agent-menu-item" role="option" data-model-id="openai" data-model-name="ChatGPT" data-model-detail="OPENAI_API_KEY" type="button">
+                <span class="agent-menu-icon">&#8853;</span>
+                <span class="agent-menu-name">ChatGPT</span>
+                <span class="model-menu-model">gpt-4o</span>
+                <span class="model-menu-badge">Cloud</span>
+              </button>
+              <button class="agent-menu-item" role="option" data-model-id="anthropic" data-model-name="Claude" data-model-detail="ANTHROPIC_API_KEY" type="button">
+                <span class="agent-menu-icon">&#9670;</span>
+                <span class="agent-menu-name">Claude</span>
+                <span class="model-menu-model">claude-3.5</span>
+                <span class="model-menu-badge">Cloud</span>
+              </button>
             </div>
-            <p class="response-title" id="response-title">No response yet.</p>
-            <p class="response-meta" id="response-timestamp">Ready for your first prompt.</p>
-            <pre class="response-body" id="response-preview">Matterhorn ready</pre>
           </div>
-        </div>
 
-        <div class="composer-dock">
-          <div class="composer-toolbar">
-            <div class="composer-actions composer-actions--left">
-              <button
-                class="icon-button icon-button--compact"
-                id="build-foundation-button"
-                type="button"
-                title="Build Foundation"
-                aria-label="Build Foundation"
-              >
-                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" width="12" height="12">
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.22"
-                    stroke-linejoin="round"
-                    d="M8 1.6 9.1 6.9 14.4 8 9.1 9.1 8 14.4 6.9 9.1 1.6 8l5.3-1.1L8 1.6Z"
-                  ></path>
-                </svg>
-              </button>
-              <button
-                class="icon-button icon-button--compact"
-                id="agent-button"
-                type="button"
-                aria-expanded="false"
-                title="Agent"
-                aria-label="Agent"
-              >
-                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" width="12" height="12">
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M8 1.9a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4Zm-4 8.6A4 4 0 0 1 12 10.5v1.1H4v-1.1Zm1 2.5h6a1 1 0 0 1 1 1v1H4v-1a1 1 0 0 1 1-1Z"
-                  ></path>
-                </svg>
-              </button>
-              <button
-                class="icon-button icon-button--compact"
-                id="model-button"
-                type="button"
-                aria-expanded="false"
-                title="Model"
-                aria-label="Model"
-              >
-                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" width="12" height="12">
-                  <rect x="2" y="4" width="12" height="8" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.22"/>
-                  <path fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" d="M5 4V2M8 4V2M11 4V2M5 12v2M8 12v2M11 12v2"/>
-                </svg>
-              </button>
-              <button
-                class="icon-button icon-button--compact"
-                id="tools-button"
-                type="button"
-                aria-expanded="false"
-                title="Tools"
-                aria-label="Tools"
-              >
-                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" width="12" height="12">
-                  <path
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.22"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M10.7 1.9a3.9 3.9 0 0 0-4.2 5.7L2.1 12a1.3 1.3 0 0 0 1.9 1.9l4.4-4.4a3.9 3.9 0 0 0 5.7-4.2l-2.1.9-1.2-1.2.9-2.1Z"
-                  ></path>
-                </svg>
-              </button>
-            </div>
-            <button class="icon-button icon-button--compact icon-button--send" id="submit-button" type="button" title="Ask" aria-label="Ask">
-              <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false" width="12" height="12">
-                <path
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.22"
-                  stroke-linejoin="round"
-                  d="M1.8 8 14.2 1.8 10 14.2 8.1 9.1 1.8 8Zm6.9 1.1 1.1 3.1 2.2-7.3-7.3 2.2 3.1 1.1 1 0.9Z"
-                ></path>
+          <div class="composer-inner">
+            <textarea
+              id="prompt-input"
+              class="composer-input"
+              rows="1"
+              aria-label="Prompt"
+              placeholder="Ask Matterhorn..."
+            ></textarea>
+
+            <button class="composer-send" id="submit-button" type="button" title="Send (Enter)" aria-label="Send">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" width="14" height="14" aria-hidden="true">
+                <path d="M2 8 14 2l-4 12-2-5-6-1Zm7 1 1 3 2-7-7 2 3 1 1 1Z" fill="currentColor"/>
               </svg>
             </button>
           </div>
 
-          <textarea
-            id="prompt-input"
-            rows="3"
-            aria-label="Prompt"
-            placeholder="Ask Matterhorn about this workspace, file, or change..."
-          </textarea>
+          <div class="composer-controls" aria-label="Chat options">
+            <button class="agent-selector" id="agent-selector" type="button" aria-haspopup="listbox" aria-expanded="false" title="Switch agent">
+              <span class="agent-selector-icon" id="agent-selector-icon">&#9671;</span>
+              <span class="agent-selector-label" id="agent-selector-label">General</span>
+              <svg class="agent-selector-caret" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" width="8" height="8" aria-hidden="true">
+                <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
 
+            <button class="agent-selector model-selector" id="model-selector" type="button" aria-haspopup="listbox" aria-expanded="false" title="Select model">
+              <span class="agent-selector-icon" id="model-selector-icon">&#9675;</span>
+              <span class="agent-selector-label" id="model-selector-label">Ollama</span>
+              <svg class="agent-selector-caret" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg" width="8" height="8" aria-hidden="true">
+                <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
           </div>
+
+          <div class="composer-footer">
+            <span class="composer-hint">Enter to send &middot; Shift+Enter for newline</span>
+          </div>
+        </section>
       </section>
     </main>
-
-    <div class="popover-panel popover-panel--agents" id="agent-popover" hidden>
-      <div class="popover-header">
-        <div>
-          <h3>Agent</h3>
-          <p class="panel-description">Pick a thinking style for this request.</p>
-        </div>
-      </div>
-      <div class="agent-choice-grid" role="radiogroup" aria-label="Agent selection">
-        <button class="agent-choice is-active" type="button" data-agent-choice data-agent-id="general" aria-label="General">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.08"></circle>
-            <circle cx="8" cy="8" r="1.18" fill="currentColor"></circle>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>General</strong>
-          </span>
-        </button>
-        <button class="agent-choice" type="button" data-agent-choice data-agent-id="stack-expert" aria-label="Stack Expert">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.08"
-              stroke-linejoin="round"
-              d="M3.2 5.1 8 2.6l4.8 2.5L8 7.6 3.2 5.1Zm0 3.7L8 11.3l4.8-2.5"
-            ></path>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>Stack Expert</strong>
-          </span>
-        </button>
-        <button class="agent-choice" type="button" data-agent-choice data-agent-id="architect" aria-label="Architect">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path fill="none" stroke="currentColor" stroke-width="1.08" stroke-linejoin="round" d="M3 12.8 8 2.8l5 10H3Z"></path>
-            <path fill="none" stroke="currentColor" stroke-width="1.08" stroke-linecap="round" d="M8 6.1v4.5"></path>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>Architect</strong>
-          </span>
-        </button>
-        <button class="agent-choice" type="button" data-agent-choice data-agent-id="workspace-ops" aria-label="Workspace Ops">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.06"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M10.3 1.9 10.7 3.6c.3.1.7.3 1 .5l1.5-.8 1.1 1.9-1.5 1c.1.3.2.7.2 1.1l1.7.4-.4 2.2-1.7-.4c-.2.3-.3.7-.5 1l.9 1.5-1.9 1.1-1-1.5c-.3.1-.7.2-1.1.2l-.4 1.7-2.2-.4.4-1.7c-.3-.2-.7-.3-1-.5l-1.5.9-1.1-1.9 1.5-1c-.1-.3-.2-.7-.2-1.1l-1.7-.4.4-2.2 1.7.4c.2-.3.3-.7.5-1l-.9-1.5 1.9-1.1 1 1.5c.3-.1.7-.2 1.1-.2l.4-1.7 2.2.4ZM8 5.3a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 0 0 0-5.4Z"
-            ></path>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>Workspace Ops</strong>
-          </span>
-        </button>
-      </div>
-    </div>
-
-    <div class="popover-panel popover-panel--model" id="model-popover" hidden>
-      <div class="popover-header">
-        <div>
-          <h3>Model</h3>
-          <p class="panel-description">Select the AI provider for this chat.</p>
-        </div>
-      </div>
-      <div class="agent-choice-grid" role="radiogroup" aria-label="Model selection">
-        <button class="agent-choice is-active" type="button" data-model-choice data-model-id="mock" aria-label="Mock">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.08" stroke-dasharray="2 2"/>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>Mock</strong>
-            <small style="display:block;font-size:9px;opacity:.6">Built-in</small>
-          </span>
-        </button>
-        <button class="agent-choice" type="button" data-model-choice data-model-id="gemini" aria-label="Gemini">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path fill="none" stroke="currentColor" stroke-width="1.08" stroke-linejoin="round" d="M8 2l1.5 4.5H14l-3.7 2.7 1.4 4.3L8 11.2l-3.7 2.3 1.4-4.3L2 6.5h4.5Z"/>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>Gemini</strong>
-            <small style="display:block;font-size:9px;opacity:.6">Google · GEMINI_API_KEY</small>
-          </span>
-        </button>
-        <button class="agent-choice" type="button" data-model-choice data-model-id="openai" aria-label="ChatGPT">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.08"/>
-            <circle cx="8" cy="8" r="1.8" fill="currentColor"/>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>ChatGPT</strong>
-            <small style="display:block;font-size:9px;opacity:.6">OpenAI · OPENAI_API_KEY</small>
-          </span>
-        </button>
-        <button class="agent-choice" type="button" data-model-choice data-model-id="anthropic" aria-label="Claude">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <path fill="none" stroke="currentColor" stroke-width="1.08" stroke-linejoin="round" d="M8 2.5 13.5 13H2.5Z"/>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>Claude</strong>
-            <small style="display:block;font-size:9px;opacity:.6">Anthropic · ANTHROPIC_API_KEY</small>
-          </span>
-        </button>
-        <button class="agent-choice" type="button" data-model-choice data-model-id="ollama" aria-label="Ollama">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.08"/>
-            <path fill="none" stroke="currentColor" stroke-width="1.08" d="M5 8h6M8 5v6"/>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>Ollama</strong>
-            <small style="display:block;font-size:9px;opacity:.6">Local · localhost:11434</small>
-          </span>
-        </button>
-        <button class="agent-choice" type="button" data-model-choice data-model-id="lmstudio" aria-label="LM Studio">
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-            <rect x="2.5" y="2.5" width="11" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.08"/>
-            <path fill="none" stroke="currentColor" stroke-width="1.08" d="M5 5h2v6H5zM9 5h2v6H9z"/>
-          </svg>
-          <span class="agent-choice-label">
-            <strong>LM Studio</strong>
-            <small style="display:block;font-size:9px;opacity:.6">Local · localhost:1234</small>
-          </span>
-        </button>
-      </div>
-    </div>
-
-    <div class="popover-panel popover-panel--tools" id="tools-popover" hidden>
-      <div class="popover-header">
-        <div>
-          <h3>Tools</h3>
-          <p class="panel-description">Quick actions for this chat.</p>
-        </div>
-      </div>
-      <div class="tool-stack">
-        <div class="action-grid" id="action-grid"></div>
-        <details class="drawer drawer--compact drawer--tools">
-          <summary>Search codebase</summary>
-          <div class="drawer-body">
-            <div class="input-group">
-              <input type="text" id="search-input" placeholder="Search codebase..." class="prompt-input prompt-input--compact" />
-              <button id="search-btn" class="send-button send-button--compact" type="button">Search</button>
-            </div>
-            <div id="search-results-container" class="search-results-container"></div>
-          </div>
-        </details>
-      </div>
-    </div>
 
     <script nonce="${nonce}" src="${scriptUri}"></script>
   </body>

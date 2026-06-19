@@ -1,4 +1,5 @@
 import * as path from "node:path";
+import * as http from "node:http";
 import * as vscode from "vscode";
 
 import { postAskRequest } from "./api/client.js";
@@ -16,7 +17,7 @@ import { buildActiveFileSnapshot, readFileSnapshot } from "./helpers/files.js";
 import { openMarkdownPreview } from "./helpers/notifications.js";
 import { toWorkspaceRelativePath } from "./helpers/paths.js";
 import { pickWorkspaceTaskKind } from "./helpers/prompts.js";
-import { extractCodeFence, truncateText } from "./helpers/text.js";
+import { extractCodeFence, truncateText, normalizeAssistantText } from "./helpers/text.js";
 import { formatTimestamp } from "./helpers/time.js";
 import {
   getPrimaryWorkspaceFolder,
@@ -117,6 +118,8 @@ interface BackendCommandResult {
 class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode.Disposable {
   private readonly outputChannel = vscode.window.createOutputChannel("Matterhorn");
   private sidebar?: NssSidebarProvider;
+  private lastSelectedProvider?: string;
+  private lastSelectedModel?: string;
 
   public constructor(
     private readonly store: NssStateStore,
@@ -196,6 +199,21 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
     const activeDiagnostic = this.getActiveDiagnosticSession(state.diagnosticSessions, state.activeDiagnosticSessionId);
     const reviewCounts = getReviewCounts(state.reviewItems);
 
+    const localOllamaModels = await fetchLocalOllamaModels();
+    const localLmStudioModels = await fetchLocalLmStudioModels();
+    const responseHistory = state.responseHistory.map((r) => ({
+      id: r.id,
+      title: r.title,
+      body: r.body,
+      createdAt: formatTimestamp(r.createdAt),
+      prompt: r.prompt,
+      kind: r.kind,
+      proposedMemories: r.proposedMemories?.map((m) => ({
+        content: m.content,
+        tags: m.tags,
+      })),
+    }));
+
     return {
       title: "Matterhorn",
       workspaceName: getWorkspaceName(),
@@ -205,11 +223,16 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
       modeTitle: getModeTitle(state.mode),
       presetTitle: getPresetTitle(state.presetId),
       studioProjectTitle: getStudioProjectTitle(state.studioProjectId),
+      responseHistory,
+      localOllamaModels,
+      localLmStudioModels,
       currentFilePath: editor ? toWorkspaceRelativePath(editor.document.uri) : undefined,
       currentSelectionPreview: selection ? truncateText(selection, 240) : undefined,
       latestResponse: state.latestResponse
         ? {
+            id: state.latestResponse.id,
             title: state.latestResponse.title,
+            body: state.latestResponse.body,
             excerpt: truncateText(state.latestResponse.body, 160),
             createdAt: formatTimestamp(state.latestResponse.createdAt),
             kind: state.latestResponse.kind,
@@ -296,8 +319,12 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
 
   public async handleSidebarAction(message: NssSidebarActionMessage): Promise<void> {
     switch (message.command) {
+      case "nssWorkspaceAi.updateSelectedModel":
+        this.lastSelectedProvider = message.provider;
+        this.lastSelectedModel = message.model;
+        break;
       case "nssWorkspaceAi.askWorkspaceAi":
-        await this.askWorkspaceAi(message.prompt, message.agentId, message.provider);
+        await this.askWorkspaceAi(message.prompt, message.agentId, message.provider, message.model);
         break;
       case "nssWorkspaceAi.approveProposedMemory":
         if (message.memory && typeof message.index === "number") {
@@ -338,6 +365,17 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
           }
         }
         break;
+      case "nssWorkspaceAi.selectCustomModel":
+        if (message.provider) {
+          const modelName = await vscode.window.showInputBox({
+            prompt: `Enter custom model name for ${message.provider === "ollama" ? "Ollama" : "LM Studio"}`,
+            placeHolder: message.provider === "ollama" ? "qwen2.5-coder:7b" : "local-model",
+          });
+          if (modelName) {
+            await this.sidebar?.postCustomModel(message.provider, modelName);
+          }
+        }
+        break;
       case "nss.previewActiveProposal":
         await this.previewActiveProposal();
         break;
@@ -359,6 +397,7 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
     promptFromSidebar?: string,
     preferredAgentId?: NssAgentId,
     providerHint?: string,
+    modelHint?: string,
   ): Promise<void> {
     const prompt =
       promptFromSidebar ??
@@ -379,6 +418,7 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
       responseKind: "answer",
       preferredAgentId,
       providerHint,
+      modelHint,
     });
   }
 
@@ -1447,6 +1487,7 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
     readonly responseKind: NssResponseKind;
     readonly preferredAgentId?: NssAgentId;
     readonly providerHint?: string;
+    readonly modelHint?: string;
     readonly activeFile?: ReturnType<typeof buildActiveFileSnapshot>;
     readonly project?: { structureSummary?: string };
     readonly task?: {
@@ -1564,9 +1605,13 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
           });
 
           progress.report({ message: "Consulting AI..." });
-          const requestWithProvider = options.providerHint
-            ? { ...request, _provider: options.providerHint }
-            : request;
+          const providerHint = options.providerHint ?? this.lastSelectedProvider;
+          const modelHint = options.modelHint ?? this.lastSelectedModel;
+          const requestWithProvider = {
+            ...request,
+            ...(providerHint ? { _provider: providerHint } : {}),
+            ...(modelHint ? { _model: modelHint } : {}),
+          };
           const response = await postAskRequest(getRuntimeConfig(), requestWithProvider as typeof request);
 
           const record = this.createResponseRecord(
@@ -1628,7 +1673,7 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
     return {
       id: `response-${Date.now()}`,
       title: response.title?.trim() || fallbackTitle,
-      body: response.response,
+      body: normalizeAssistantText(response.response),
       kind,
       sourceCommand,
       createdAt: new Date().toISOString(),
@@ -2025,3 +2070,57 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 }
 
 export async function deactivate(): Promise<void> {}
+
+function fetchLocalOllamaModels(): Promise<string[]> {
+  return new Promise<string[]>((resolve) => {
+    const request = http.get("http://127.0.0.1:11434/api/tags", (res) => {
+      if (res.statusCode !== 200) {
+        resolve([]);
+        return;
+      }
+      const chunks: Buffer[] = [];
+      res.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+      res.on("end", () => {
+        try {
+          const body = Buffer.concat(chunks).toString("utf8");
+          const data = JSON.parse(body);
+          if (data && Array.isArray(data.models)) {
+            resolve(data.models.map((m: any) => m.name));
+            return;
+          }
+        } catch {}
+        resolve([]);
+      });
+    });
+    request.on("error", () => resolve([]));
+    request.setTimeout(1000, () => request.destroy());
+    request.end();
+  });
+}
+
+function fetchLocalLmStudioModels(): Promise<string[]> {
+  return new Promise<string[]>((resolve) => {
+    const request = http.get("http://127.0.0.1:1234/v1/models", (res) => {
+      if (res.statusCode !== 200) {
+        resolve([]);
+        return;
+      }
+      const chunks: Buffer[] = [];
+      res.on("data", (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+      res.on("end", () => {
+        try {
+          const body = Buffer.concat(chunks).toString("utf8");
+          const data = JSON.parse(body);
+          if (data && Array.isArray(data.data)) {
+            resolve(data.data.map((m: any) => m.id));
+            return;
+          }
+        } catch {}
+        resolve([]);
+      });
+    });
+    request.on("error", () => resolve([]));
+    request.setTimeout(1000, () => request.destroy());
+    request.end();
+  });
+}

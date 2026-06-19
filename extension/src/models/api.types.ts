@@ -123,6 +123,11 @@ export interface NssWorkflowContext {
   readonly currentStep: string;
 }
 
+export interface NssChatMessage {
+  readonly role: "user" | "assistant";
+  readonly content: string;
+}
+
 export interface NssAskRequestPayload {
   readonly prompt: string;
   readonly intent: NssAskIntent;
@@ -141,6 +146,7 @@ export interface NssAskRequestPayload {
   readonly events?: readonly NssEvent[];
   readonly appSnapshot?: NssAppSnapshot;
   readonly build?: NssBuildContext;
+  readonly history?: readonly NssChatMessage[];
 }
 
 export interface NssAskResponse {
@@ -156,7 +162,7 @@ export interface NssAskResponse {
 
 export interface NssServerHealth {
   readonly status: "offline" | "online" | "unknown";
-  readonly mode?: "gemini" | "mock" | "off";
+  readonly mode?: "gemini" | "openai" | "anthropic" | "ollama" | "lmstudio" | "mock" | "off";
   readonly detail: string;
   readonly checkedAt: string;
 }

@@ -1,6 +1,7 @@
 export * from "./agents/generalAgent.js";
 export * from "./agents/stackExpertAgent.js";
 export * from "./agents/workspaceOpsAgent.js";
+export * from "./agents/architectAgent.js";
 export * from "./agents/router.js";
 export * from "./core/budget.js";
 export * from "./core/logger.js";

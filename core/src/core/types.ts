@@ -120,6 +120,10 @@ export interface NssCodebaseContext {
     readonly path: string;
     readonly summary: string;
   }[];
+  readonly apiRoutes?: readonly {
+    readonly path: string;
+    readonly routes: readonly string[];
+  }[];
 }
 
 export interface NssTemplateSuggestion {

@@ -9,6 +9,7 @@ export interface NssSidebarActionMessage {
   readonly prompt?: string;
   readonly agentId?: NssAgentId;
   readonly provider?: string;
+  readonly model?: string;
   readonly memory?: {
     readonly id?: string;
     readonly content: string;
@@ -70,6 +71,17 @@ export class NssSidebarProvider implements vscode.WebviewViewProvider {
     await this.view.webview.postMessage({
       type: "search-results",
       payload: { results },
+    });
+  }
+
+  public async postCustomModel(provider: string, model: string): Promise<void> {
+    if (!this.view) {
+      return;
+    }
+
+    await this.view.webview.postMessage({
+      type: "set-model",
+      payload: { provider, model },
     });
   }
 

@@ -39,13 +39,36 @@ export async function probeServerHealth(serverUrl: string): Promise<NssServerHea
       request.end();
     });
 
-    const detail =
-      response.statusCode >= 200 && response.statusCode < 300
-        ? response.body || "Backend health endpoint responded."
-        : `Backend responded on /health with status ${response.statusCode}.`;
+    let mode: NssServerHealth["mode"];
+    let detail = "Backend health endpoint responded.";
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (response.body) {
+        try {
+          const parsed = JSON.parse(response.body);
+          if (parsed && typeof parsed === "object") {
+            if (typeof parsed.mode === "string") {
+              mode = parsed.mode as NssServerHealth["mode"];
+            }
+            if (typeof parsed.detail === "string") {
+              detail = parsed.detail;
+            } else {
+              detail = response.body;
+            }
+          } else {
+            detail = response.body;
+          }
+        } catch {
+          detail = response.body;
+        }
+      }
+    } else {
+      detail = `Backend responded on /health with status ${response.statusCode}.`;
+    }
 
     return {
       status: "online",
+      mode,
       detail,
       checkedAt: new Date().toISOString(),
     };

@@ -37,6 +37,7 @@ import refreshReviewItemAgainstCurrentFileCommand from "./refreshReviewItemAgain
 import rejectReviewItemCommand from "./rejectReviewItem.command.js";
 import rerunLastWorkspaceTaskCommand from "./rerunLastWorkspaceTask.command.js";
 import resolveSessionCommand from "./resolveSession.command.js";
+import runSafeTerminalCommand from "./runSafeTerminalCommand.command.js";
 import runWorkflowCommand from "./runWorkflow.command.js";
 import runWorkspaceTaskCommand from "./runWorkspaceTask.command.js";
 import saveRepairPatternCommand from "./saveRepairPattern.command.js";
@@ -76,6 +77,7 @@ export const NSS_COMMANDS: readonly NssCommandDefinition[] = [
   searchCodebaseCommand,
   findRelatedFilesCommand,
   planChangeCommand,
+  runSafeTerminalCommand,
   runWorkspaceTaskCommand,
   explainLastTaskFailureCommand,
   suggestFixForTaskFailureCommand,

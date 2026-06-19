@@ -14,22 +14,47 @@ const VALID_PROVIDER_MODES: ReadonlySet<string> = new Set([
 function applyProviderOverride(
   config: NssWorkspaceAiServerConfig,
   providerOverride?: string,
+  modelOverride?: string,
 ): NssWorkspaceAiServerConfig {
   if (!providerOverride || !VALID_PROVIDER_MODES.has(providerOverride)) {
     return config;
   }
+
+  const modelConfig = modelOverride ? createModelOverride(providerOverride, modelOverride) : {};
   return {
     ...config,
-    mCore: { ...config.mCore, providerMode: providerOverride as ResponseOsProviderMode },
+    mCore: {
+      ...config.mCore,
+      providerMode: providerOverride as ResponseOsProviderMode,
+      ...modelConfig,
+    },
   };
+}
+
+function createModelOverride(providerOverride: string, modelOverride: string): Partial<NssWorkspaceAiServerConfig["mCore"]> {
+  switch (providerOverride) {
+    case "gemini":
+      return { geminiModel: modelOverride };
+    case "openai":
+      return { openaiModel: modelOverride };
+    case "anthropic":
+      return { anthropicModel: modelOverride };
+    case "ollama":
+      return { ollamaModel: modelOverride };
+    case "lmstudio":
+      return { lmstudioModel: modelOverride };
+    default:
+      return {};
+  }
 }
 
 export async function handleAskRequest(
   config: NssWorkspaceAiServerConfig,
   request: NssAskRequestPayload,
   providerOverride?: string,
+  modelOverride?: string,
 ): Promise<NssAskResponse> {
-  const effectiveConfig = applyProviderOverride(config, providerOverride);
+  const effectiveConfig = applyProviderOverride(config, providerOverride, modelOverride);
   const runtime = createMCoreRuntime({
     ...effectiveConfig.mCore,
     logger: createConsoleLogger("m-core"),
@@ -45,8 +70,9 @@ export async function* streamAskRequest(
   config: NssWorkspaceAiServerConfig,
   request: NssAskRequestPayload,
   providerOverride?: string,
+  modelOverride?: string,
 ): AsyncGenerator<string> {
-  const effectiveConfig = applyProviderOverride(config, providerOverride);
+  const effectiveConfig = applyProviderOverride(config, providerOverride, modelOverride);
   const runtime = createMCoreRuntime({
     ...effectiveConfig.mCore,
     logger: createConsoleLogger("m-core"),

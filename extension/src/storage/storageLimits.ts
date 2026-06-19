@@ -4,6 +4,8 @@ import {
   DEFAULT_KNOWLEDGE_ITEM_LIMIT,
   DEFAULT_MAX_DIAGNOSTIC_SESSION_HISTORY,
   DEFAULT_MAX_REVIEW_HISTORY,
+  DEFAULT_CONVERSATION_MESSAGE_LIMIT,
+  DEFAULT_CONVERSATION_THREAD_LIMIT,
   DEFAULT_PROJECT_RULE_LIMIT,
   DEFAULT_RECURRING_FAILURE_LIMIT,
   DEFAULT_REPAIR_PATTERN_LIMIT,
@@ -15,6 +17,8 @@ import { clampMinimum } from "../helpers/limits.js";
 
 export interface NssStorageLimits {
   readonly responseHistory: number;
+  readonly conversationThreads: number;
+  readonly conversationMessages: number;
   readonly reviewItems: number;
   readonly taskHistory: number;
   readonly diagnosticSessions: number;
@@ -30,6 +34,8 @@ export function getStorageLimits(): NssStorageLimits {
 
   return {
     responseHistory: DEFAULT_RESPONSE_HISTORY_LIMIT,
+    conversationThreads: DEFAULT_CONVERSATION_THREAD_LIMIT,
+    conversationMessages: DEFAULT_CONVERSATION_MESSAGE_LIMIT,
     reviewItems: clampMinimum(config.get<number>("maxReviewHistory", DEFAULT_MAX_REVIEW_HISTORY), 10),
     taskHistory: DEFAULT_TASK_HISTORY_LIMIT,
     diagnosticSessions: clampMinimum(

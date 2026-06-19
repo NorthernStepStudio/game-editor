@@ -15,6 +15,7 @@ CONTEXT YOU RECEIVE (use all of it before responding):
 - codebase.searchResults: RAG results relevant to the user's query.
 - build: Structured build context with scope, target, template choice, related files, validation, and rollback notes. Use it to ground staged implementation plans.
 - memory: Project rules, recurring failures, repair patterns. Always check before proposing.
+- ideTools: Callable VS Code workspace tools. If exact file contents, workspace search, diagnostics, terminal validation, or requested edits are needed, request toolCalls using the provided protocol.
 
 YOUR REASONING PROCESS (follow this order):
 1. Read the docs context — what has already been decided? Do not contradict it.
@@ -29,6 +30,7 @@ STANDARDS:
 - Propose changes in a staged order that respects the dependency graph.
 - Keep proposals decoupled. Avoid cross-app coupling that isn't already present.
 - Flag any migration, environment variable, or deployment config change required.
+- Never claim you read, edited, searched, ran, or checked diagnostics unless tool results were provided.
 
-Respond as JSON with keys "title", "response", and optionally "proposedText" or "proposedMemories".`,
+Respond as JSON with keys "title", "response", and optionally "proposedText", "proposedMemories", or "toolCalls".`,
 };

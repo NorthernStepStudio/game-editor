@@ -25,9 +25,14 @@ import {
   inferPresetIdFromPath,
   inferStudioProjectIdFromPath,
 } from "./helpers/workspace.js";
-import type { NssAskIntent, NssAskResponse, NssCodebaseContext, NssServerHealth } from "./models/api.types.js";
+import {
+  DEFAULT_REQUEST_HISTORY_CHAR_LIMIT,
+  DEFAULT_REQUEST_HISTORY_MESSAGE_LIMIT,
+} from "./config/defaults.js";
+import type { NssAskIntent, NssAskResponse, NssChatMessage, NssCodebaseContext, NssServerHealth } from "./models/api.types.js";
 import type { NssAgentId } from "./models/agent.types.js";
 import type { NssCommandHost, NssResponseKind, NssResponseRecord } from "./models/command.types.js";
+import type { NssConversationMessage, NssConversationThread } from "./models/conversation.types.js";
 import type { NssDebugStateSnapshot } from "./models/debug.types.js";
 import type { NssDiagnosticSession } from "./models/diagnostic.types.js";
 import type { NssKnowledgeItem } from "./models/knowledge.types.js";
@@ -63,6 +68,7 @@ import { searchKnowledgeItems } from "./services/knowledge/knowledgeSearchServic
 import { buildWorkspaceBriefing } from "./services/knowledge/workspaceBriefingService.js";
 import { createBuildFoundationReport } from "./services/foundation/buildFoundationService.js";
 import { createBuildContext } from "./services/foundation/buildContextService.js";
+import { buildIdeToolContext, executeIdeToolCalls } from "./services/ide/ideToolService.js";
 import { createProjectRule, listProjectRulesForProject } from "./services/memory/projectRulesService.js";
 import { createRecurringFailure, recallSimilarFailure } from "./services/memory/recurringFailureService.js";
 import { createRepairPattern } from "./services/memory/repairPatternService.js";
@@ -113,6 +119,197 @@ import { MatterhornInlineCompletionProvider } from "./providers/inlineCompletion
 interface BackendCommandResult {
   readonly record: NssResponseRecord;
   readonly response: NssAskResponse;
+}
+
+const MAX_IDE_TOOL_ROUNDS = 3;
+
+interface ToolAwareAskResponse {
+  readonly response: NssAskResponse;
+  readonly toolTranscript: readonly string[];
+}
+
+function createConversationTitle(value: string | undefined): string {
+  const firstLine = value?.trim().split(/\r?\n/)[0]?.trim();
+  if (!firstLine) {
+    return "New chat";
+  }
+
+  return firstLine.length > 42 ? `${firstLine.slice(0, 39)}...` : firstLine;
+}
+
+function createConversationFromRecord(record: NssResponseRecord): NssConversationThread {
+  return {
+    id: `conversation-${Date.now()}`,
+    title: createConversationTitle(record.prompt ?? record.title),
+    createdAt: record.createdAt,
+    updatedAt: record.createdAt,
+    messages: createMessagesForRecord(record),
+  };
+}
+
+function createBlankConversation(): NssConversationThread {
+  const createdAt = new Date().toISOString();
+  return {
+    id: `conversation-${Date.now()}`,
+    title: "New chat",
+    createdAt,
+    updatedAt: createdAt,
+    messages: [],
+  };
+}
+
+function createMessagesForRecord(record: NssResponseRecord): NssConversationMessage[] {
+  const messages: NssConversationMessage[] = [];
+  if (record.prompt) {
+    messages.push({
+      id: `${record.id}-prompt`,
+      role: "user",
+      content: record.prompt,
+      createdAt: record.createdAt,
+    });
+  }
+
+  messages.push({
+    id: `${record.id}-assistant`,
+    role: "assistant",
+    content: record.body,
+    createdAt: record.createdAt,
+    responseId: record.id,
+  });
+
+  if (record.toolTranscript?.length) {
+    messages.splice(messages.length - 1, 0, {
+      id: `${record.id}-tools`,
+      role: "tool",
+      content: record.toolTranscript.join("\n"),
+      createdAt: record.createdAt,
+    });
+  }
+
+  return messages;
+}
+
+function appendRecordToActiveConversation(
+  threads: readonly NssConversationThread[],
+  activeConversationId: string | undefined,
+  record: NssResponseRecord,
+): { threads: NssConversationThread[]; activeConversationId: string } {
+  const activeThread = activeConversationId
+    ? threads.find((thread) => thread.id === activeConversationId)
+    : undefined;
+
+  if (!activeThread) {
+    const conversation = createConversationFromRecord(record);
+    return {
+      threads: [conversation, ...threads],
+      activeConversationId: conversation.id,
+    };
+  }
+
+  const updatedThread: NssConversationThread = {
+    ...activeThread,
+    title: activeThread.messages.length === 0 ? createConversationTitle(record.prompt ?? record.title) : activeThread.title,
+    updatedAt: record.createdAt,
+    messages: [...activeThread.messages, ...createMessagesForRecord(record)],
+  };
+
+  return {
+    threads: [updatedThread, ...threads.filter((thread) => thread.id !== activeThread.id)],
+    activeConversationId: updatedThread.id,
+  };
+}
+
+function getActiveConversation(
+  threads: readonly NssConversationThread[],
+  activeConversationId: string | undefined,
+): NssConversationThread | undefined {
+  return (
+    (activeConversationId ? threads.find((thread) => thread.id === activeConversationId) : undefined) ??
+    threads[0]
+  );
+}
+
+function buildRequestHistory(
+  threads: readonly NssConversationThread[],
+  activeConversationId: string | undefined,
+): NssChatMessage[] | undefined {
+  const activeThread = getActiveConversation(threads, activeConversationId);
+  if (!activeThread || activeThread.messages.length === 0) {
+    return undefined;
+  }
+
+  const recentMessages = activeThread.messages.slice(-DEFAULT_REQUEST_HISTORY_MESSAGE_LIMIT);
+  const selected: NssChatMessage[] = [];
+  let totalChars = 0;
+
+  for (let i = recentMessages.length - 1; i >= 0; i -= 1) {
+    const message = recentMessages[i];
+    if (message.role === "tool") {
+      continue;
+    }
+
+    const content = message.content.trim();
+    if (!content) {
+      continue;
+    }
+
+    totalChars += content.length;
+    if (totalChars > DEFAULT_REQUEST_HISTORY_CHAR_LIMIT && selected.length > 0) {
+      break;
+    }
+
+    selected.unshift({
+      role: message.role,
+      content,
+    });
+  }
+
+  return selected.length > 0 ? selected : undefined;
+}
+
+function createToolRequestHistoryMessage(toolCalls: NonNullable<NssAskResponse["toolCalls"]>): NssChatMessage {
+  return {
+    role: "assistant",
+    content: JSON.stringify({
+      response: "Requesting IDE tools.",
+      toolCalls,
+    }),
+  };
+}
+
+function createToolResultHistoryMessage(results: Awaited<ReturnType<typeof executeIdeToolCalls>>): NssChatMessage {
+  return {
+    role: "user",
+    content: JSON.stringify({
+      ideToolResults: results,
+      instruction: "Use these IDE tool results to answer the original user request. Request more tools only if still needed.",
+    }),
+  };
+}
+
+function summarizeIdeToolResult(result: Awaited<ReturnType<typeof executeIdeToolCalls>>[number]): string {
+  if (!result.ok) {
+    return `${result.name}: failed (${result.error ?? "unknown error"})`;
+  }
+
+  const payload = result.result as { path?: unknown; count?: unknown; entries?: unknown; results?: unknown; exitCode?: unknown } | undefined;
+  if (typeof payload?.exitCode === "number") {
+    return `${result.name}: exit ${payload.exitCode}`;
+  }
+  if (typeof payload?.count === "number") {
+    return `${result.name}: ${payload.count} result${payload.count === 1 ? "" : "s"}`;
+  }
+  if (Array.isArray(payload?.entries)) {
+    return `${result.name}: ${payload.entries.length} entr${payload.entries.length === 1 ? "y" : "ies"}`;
+  }
+  if (Array.isArray(payload?.results)) {
+    return `${result.name}: ${payload.results.length} result${payload.results.length === 1 ? "" : "s"}`;
+  }
+  if (typeof payload?.path === "string") {
+    return `${result.name}: ${payload.path}`;
+  }
+
+  return `${result.name}: ok`;
 }
 
 class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode.Disposable {
@@ -201,6 +398,17 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
 
     const localOllamaModels = await fetchLocalOllamaModels();
     const localLmStudioModels = await fetchLocalLmStudioModels();
+    const activeConversation = getActiveConversation(state.conversationThreads, state.activeConversationId);
+    const conversations = state.conversationThreads.map((thread) => ({
+      id: thread.id,
+      title: thread.title,
+      updatedAt: formatTimestamp(thread.updatedAt),
+      messageCount: thread.messages.length,
+      excerpt: truncateText(
+        [...thread.messages].reverse().find((message) => message.content.trim().length > 0)?.content ?? "",
+        120,
+      ),
+    }));
     const responseHistory = state.responseHistory.map((r) => ({
       id: r.id,
       title: r.title,
@@ -224,6 +432,22 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
       presetTitle: getPresetTitle(state.presetId),
       studioProjectTitle: getStudioProjectTitle(state.studioProjectId),
       responseHistory,
+      activeConversationId: activeConversation?.id,
+      conversations,
+      activeConversation: activeConversation
+        ? {
+            id: activeConversation.id,
+            title: activeConversation.title,
+            updatedAt: formatTimestamp(activeConversation.updatedAt),
+            messages: activeConversation.messages.map((message) => ({
+              id: message.id,
+              role: message.role,
+              content: message.content,
+              createdAt: formatTimestamp(message.createdAt),
+              responseId: message.responseId,
+            })),
+          }
+        : undefined,
       localOllamaModels,
       localLmStudioModels,
       currentFilePath: editor ? toWorkspaceRelativePath(editor.document.uri) : undefined,
@@ -326,6 +550,14 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
       case "nssWorkspaceAi.askWorkspaceAi":
         await this.askWorkspaceAi(message.prompt, message.agentId, message.provider, message.model);
         break;
+      case "nssWorkspaceAi.selectConversation":
+        if (message.conversationId) {
+          await this.selectConversation(message.conversationId);
+        }
+        break;
+      case "nssWorkspaceAi.newConversation":
+        await this.startNewConversation();
+        break;
       case "nssWorkspaceAi.approveProposedMemory":
         if (message.memory && typeof message.index === "number") {
           await this.approveProposedMemory(message.memory, message.index);
@@ -391,6 +623,32 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
 
   public async openSidebar(): Promise<void> {
     await this.sidebar?.reveal();
+  }
+
+  private async selectConversation(conversationId: string): Promise<void> {
+    await this.store.update((draft) => {
+      if (draft.conversationThreads.some((thread) => thread.id === conversationId)) {
+        draft.activeConversationId = conversationId;
+      }
+    });
+
+    await this.refreshSidebar();
+  }
+
+  private async startNewConversation(): Promise<void> {
+    await this.store.update((draft) => {
+      const activeThread = getActiveConversation(draft.conversationThreads, draft.activeConversationId);
+      if (activeThread && activeThread.messages.length === 0) {
+        draft.activeConversationId = activeThread.id;
+        return;
+      }
+
+      const conversation = createBlankConversation();
+      draft.activeConversationId = conversation.id;
+      draft.conversationThreads = [conversation, ...draft.conversationThreads];
+    });
+
+    await this.refreshSidebar();
   }
 
   public async askWorkspaceAi(
@@ -1602,17 +1860,14 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
               : undefined,
             events: eventTracker.getEvents(),
             appSnapshot: workspaceFolder ? await generateAppSnapshot(workspaceFolder.uri.fsPath) : undefined,
+            history: buildRequestHistory(state.conversationThreads, state.activeConversationId),
+            ideTools: buildIdeToolContext(),
           });
 
           progress.report({ message: "Consulting AI..." });
           const providerHint = options.providerHint ?? this.lastSelectedProvider;
           const modelHint = options.modelHint ?? this.lastSelectedModel;
-          const requestWithProvider = {
-            ...request,
-            ...(providerHint ? { _provider: providerHint } : {}),
-            ...(modelHint ? { _model: modelHint } : {}),
-          };
-          const response = await postAskRequest(getRuntimeConfig(), requestWithProvider as typeof request);
+          const { response, toolTranscript } = await this.postAskRequestWithIdeTools(request, providerHint, modelHint, progress);
 
           const record = this.createResponseRecord(
             options.responseTitle,
@@ -1620,6 +1875,7 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
             options.responseKind,
             options.commandId,
             options.prompt,
+            toolTranscript,
           );
 
           return { record, response };
@@ -1627,8 +1883,15 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
       );
 
       await this.store.update((draft) => {
+        const updatedConversation = appendRecordToActiveConversation(
+          draft.conversationThreads,
+          draft.activeConversationId,
+          record,
+        );
         draft.latestResponse = record;
         draft.responseHistory = [record, ...draft.responseHistory];
+        draft.conversationThreads = updatedConversation.threads;
+        draft.activeConversationId = updatedConversation.activeConversationId;
         draft.serverHealth = this.createServerHealth("online", "Last backend request succeeded.");
       });
 
@@ -1663,12 +1926,69 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
     }
   }
 
+  private async postAskRequestWithIdeTools(
+    request: ReturnType<typeof buildAskRequest>,
+    providerHint: string | undefined,
+    modelHint: string | undefined,
+    progress: vscode.Progress<{ message?: string; increment?: number }>,
+  ): Promise<ToolAwareAskResponse> {
+    let currentRequest = request;
+    let lastToolResponse: NssAskResponse | undefined;
+    const toolTranscript: string[] = [];
+
+    for (let round = 0; round <= MAX_IDE_TOOL_ROUNDS; round += 1) {
+      const requestWithProvider = {
+        ...currentRequest,
+        ...(providerHint ? { _provider: providerHint } : {}),
+        ...(modelHint ? { _model: modelHint } : {}),
+      };
+      const response = await postAskRequest(getRuntimeConfig(), requestWithProvider as typeof currentRequest);
+      const toolCalls = response.toolCalls ?? [];
+      if (toolCalls.length === 0) {
+        return { response, toolTranscript };
+      }
+
+      lastToolResponse = response;
+      if (round === MAX_IDE_TOOL_ROUNDS) {
+        break;
+      }
+
+      progress.report({ message: `Running IDE tools (${round + 1}/${MAX_IDE_TOOL_ROUNDS})...` });
+      const toolResults = await executeIdeToolCalls(toolCalls);
+      this.outputChannel.appendLine(`[Matterhorn tools] round ${round + 1}`);
+      for (const result of toolResults) {
+        const summary = summarizeIdeToolResult(result);
+        this.outputChannel.appendLine(`- ${summary}`);
+        toolTranscript.push(summary);
+      }
+      currentRequest = {
+        ...currentRequest,
+        history: [
+          ...(currentRequest.history ?? []),
+          createToolRequestHistoryMessage(toolCalls),
+          createToolResultHistoryMessage(toolResults),
+        ],
+      };
+      progress.report({ message: "Consulting AI with tool results..." });
+    }
+
+    return {
+      toolTranscript,
+      response: {
+        title: lastToolResponse?.title ?? "IDE Tool Limit Reached",
+        response:
+          "Matterhorn requested more IDE tool calls than the safety limit allows. I stopped before running additional tools.",
+      },
+    };
+  }
+
   private createResponseRecord(
     fallbackTitle: string,
     response: NssAskResponse,
     kind: NssResponseKind,
     sourceCommand: string,
     prompt?: string,
+    toolTranscript: readonly string[] = [],
   ): NssResponseRecord {
     return {
       id: `response-${Date.now()}`,
@@ -1678,6 +1998,7 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
       sourceCommand,
       createdAt: new Date().toISOString(),
       prompt,
+      toolTranscript: toolTranscript.length > 0 ? [...toolTranscript] : undefined,
       proposedText: response.proposedText,
       preview: response.preview,
       proposedMemories: response.proposedMemories?.map((m) => ({
@@ -1818,8 +2139,15 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
 
   private async saveLocalResponse(record: NssResponseRecord): Promise<void> {
     await this.store.update((draft) => {
+      const updatedConversation = appendRecordToActiveConversation(
+        draft.conversationThreads,
+        draft.activeConversationId,
+        record,
+      );
       draft.latestResponse = record;
       draft.responseHistory = [record, ...draft.responseHistory];
+      draft.conversationThreads = updatedConversation.threads;
+      draft.activeConversationId = updatedConversation.activeConversationId;
     });
     await this.openSidebar();
     await this.refreshSidebar();

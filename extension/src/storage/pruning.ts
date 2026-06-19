@@ -6,6 +6,10 @@ export function pruneWorkspaceState(state: NssWorkspaceAiState, limits: NssStora
   return {
     ...state,
     responseHistory: limitItems(state.responseHistory, limits.responseHistory),
+    conversationThreads: limitItems(state.conversationThreads, limits.conversationThreads).map((thread) => ({
+      ...thread,
+      messages: limitItems(thread.messages, limits.conversationMessages),
+    })),
     reviewItems: limitItems(state.reviewItems, limits.reviewItems),
     taskHistory: limitItems(state.taskHistory, limits.taskHistory),
     diagnosticSessions: limitItems(state.diagnosticSessions, limits.diagnosticSessions),

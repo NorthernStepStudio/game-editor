@@ -346,6 +346,10 @@ button {
   align-items: flex-start;
 }
 
+.msg--tool {
+  align-items: flex-start;
+}
+
 .msg-bubble {
   max-width: 88%;
   padding: 9px 11px;
@@ -365,6 +369,13 @@ button {
   border: 1px solid var(--border);
   border-bottom-left-radius: 3px;
   background: var(--surface-hi);
+}
+
+.msg--tool .msg-bubble {
+  border: 1px dashed var(--border-hi);
+  border-bottom-left-radius: 3px;
+  background: var(--surface);
+  color: var(--fg-dim);
 }
 
 .msg-title {
@@ -831,6 +842,14 @@ button {
   margin-bottom: 16px;
 }
 
+.sidebar-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding-right: 2px;
+}
+
 .sidebar-section-title {
   font-size: 9px;
   font-weight: 700;
@@ -838,6 +857,29 @@ button {
   letter-spacing: 0.1em;
   color: var(--fg-dim);
   padding: 0 6px 6px;
+}
+
+.sidebar-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--fg-dim);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sidebar-icon-button:hover {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--fg);
 }
 
 .sidebar-list {
@@ -865,6 +907,11 @@ button {
 .sidebar-item:hover {
   background: var(--surface);
   color: var(--fg);
+}
+
+.sidebar-item.is-active {
+  background: var(--blue-lo);
+  color: var(--blue-text);
 }
 
 .sidebar-item-icon {

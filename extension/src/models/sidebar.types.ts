@@ -25,6 +25,26 @@ export interface NssSidebarViewModel {
       readonly tags: readonly string[];
     }[];
   }[];
+  readonly activeConversationId?: string;
+  readonly conversations?: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly updatedAt: string;
+    readonly messageCount: number;
+    readonly excerpt?: string;
+  }[];
+  readonly activeConversation?: {
+    readonly id: string;
+    readonly title: string;
+    readonly updatedAt: string;
+    readonly messages: readonly {
+      readonly id: string;
+      readonly role: "user" | "assistant" | "tool";
+      readonly content: string;
+      readonly createdAt: string;
+      readonly responseId?: string;
+    }[];
+  };
   readonly localOllamaModels?: readonly string[];
   readonly localLmStudioModels?: readonly string[];
   readonly currentFilePath?: string;

@@ -58,6 +58,31 @@ export interface NssChatMessage {
   readonly content: string;
 }
 
+export type NssIdeToolName =
+  | "list_files"
+  | "read_file"
+  | "write_file"
+  | "edit_file"
+  | "search_files"
+  | "run_terminal"
+  | "get_diagnostics";
+
+export interface NssIdeToolSpec {
+  readonly name: NssIdeToolName;
+  readonly description: string;
+  readonly parameters: Record<string, string>;
+}
+
+export interface NssIdeToolContext {
+  readonly protocol: string;
+  readonly tools: readonly NssIdeToolSpec[];
+}
+
+export interface NssIdeToolCall {
+  readonly name: NssIdeToolName;
+  readonly args?: Record<string, unknown>;
+}
+
 export interface NssWorkspaceContext {
   readonly name: string;
   readonly rootPath?: string;
@@ -176,6 +201,7 @@ export interface NssAskRequestPayload {
   readonly events?: readonly NssEvent[];
   readonly appSnapshot?: NssAppSnapshot;
   readonly build?: NssBuildContext;
+  readonly ideTools?: NssIdeToolContext;
   /**
    * Prior turns in the conversation, oldest first.
    * Providers that support multi-turn (Gemini, OpenAI, Anthropic, Ollama, LM Studio)
@@ -189,6 +215,7 @@ export interface NssAskResponse {
   readonly response: string;
   readonly proposedText?: string;
   readonly preview?: string;
+  readonly toolCalls?: readonly NssIdeToolCall[];
   readonly proposedMemories?: readonly {
     readonly content: string;
     readonly tags: readonly string[];

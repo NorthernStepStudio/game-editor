@@ -1,6 +1,7 @@
 import type { NssModeId } from "./mode.types.js";
 import type { NssAgentId } from "./agent.types.js";
 import type { NssBuildScope, NssTemplateSuggestion, NssWorkspaceKind } from "./foundation.types.js";
+import type { NssIdeToolCall, NssIdeToolContext } from "./ideTool.types.js";
 
 export interface NssEvent {
   readonly type: string;
@@ -147,6 +148,7 @@ export interface NssAskRequestPayload {
   readonly appSnapshot?: NssAppSnapshot;
   readonly build?: NssBuildContext;
   readonly history?: readonly NssChatMessage[];
+  readonly ideTools?: NssIdeToolContext;
 }
 
 export interface NssAskResponse {
@@ -154,6 +156,7 @@ export interface NssAskResponse {
   readonly response: string;
   readonly proposedText?: string;
   readonly preview?: string;
+  readonly toolCalls?: readonly NssIdeToolCall[];
   readonly proposedMemories?: readonly {
     readonly content: string;
     readonly tags: readonly string[];

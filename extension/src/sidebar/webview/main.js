@@ -23,6 +23,7 @@
   let selectedModel = savedState.selectedModel ?? null;
   let lastServerMode = savedState.lastServerMode === "mock" ? "ollama" : savedState.lastServerMode ?? "ollama";
   let lastRenderedResponseKey = savedState.lastRenderedResponseKey ?? null;
+  let activeConversationId = savedState.activeConversationId ?? null;
   let isPrompting = false;
   let loadingBubble = null;
   let localOllamaModels = [];
@@ -66,6 +67,7 @@
 
   const sidebarConversationsList = document.getElementById("sidebar-conversations-list");
   const workspaceFolderName = document.getElementById("workspace-folder-name");
+  const newConversationButton = document.getElementById("new-conversation-button");
   const sidebarToolButtons = Array.from(document.querySelectorAll("#sidebar-tools-list [data-tool-command]"));
   const sidebarToolSearchButton = document.querySelector("#sidebar-tools-list [data-action='open-search']");
   const activeAgentTitle = document.getElementById("active-agent-title");
@@ -146,6 +148,15 @@
 
     sidebarToolSearchButton?.addEventListener("click", () => {
       openSearchPanel();
+    });
+
+    newConversationButton?.addEventListener("click", () => {
+      closeAllMenus();
+      vscode.postMessage({
+        type: "action",
+        command: "nssWorkspaceAi.newConversation",
+      });
+      promptInput?.focus();
     });
 
     const customModelButtons = Array.from(document.querySelectorAll("#model-menu [data-action='custom-model']"));
@@ -327,31 +338,10 @@
     updateServerMode(payload.serverMode);
     updateContext(payload);
     renderActions(payload.quickActions ?? []);
-    renderWorkspaceConversations(payload.responseHistory ?? []);
+    activeConversationId = payload.activeConversationId ?? activeConversationId;
+    renderWorkspaceConversations(payload.conversations ?? []);
     renderModelSelectorList(payload);
-
-    // Reconstruct conversation from responseHistory if convo is empty
-    const hasMessages = convo.querySelectorAll(".msg").length > 0;
-    if (!hasMessages && payload.responseHistory && payload.responseHistory.length > 0) {
-      emptyState.hidden = true;
-      // Iterate from oldest to newest (history is newest to oldest, so reverse order)
-      for (let i = payload.responseHistory.length - 1; i >= 0; i--) {
-        const item = payload.responseHistory[i];
-        if (item.prompt) {
-          appendMessage("user", item.prompt);
-        }
-        appendMessage("assistant", item.body || item.title || "Done.", {
-          id: item.id,
-          title: item.title,
-          kind: item.kind,
-          createdAt: item.createdAt,
-          proposedMemoryCount: item.proposedMemories?.length ?? 0,
-        });
-      }
-      convo.scrollTop = convo.scrollHeight;
-    }
-
-    renderLatestResponse(payload.latestResponse);
+    renderActiveConversation(payload.activeConversation, payload.responseHistory ?? []);
 
     isPrompting = false;
     updateSubmitButtonState();
@@ -457,11 +447,63 @@
     }
   }
 
-  function renderWorkspaceConversations(history) {
+  function renderActiveConversation(activeConversation, fallbackHistory) {
+    if (!convo) return;
+
+    const messages = activeConversation?.messages ?? buildMessagesFromLegacyHistory(fallbackHistory);
+    convo.replaceChildren(emptyState);
+    emptyState.hidden = messages.length > 0;
+
+    if (messages.length === 0) {
+      removeLoadingBubble();
+      lastRenderedResponseKey = null;
+      return;
+    }
+
+    for (const message of messages) {
+      appendMessage(message.role, message.content, {
+        id: message.responseId,
+        createdAt: message.createdAt,
+      });
+      if (message.responseId) {
+        lastRenderedResponseKey = message.responseId;
+      }
+    }
+
+    removeLoadingBubble();
+    convo.scrollTop = convo.scrollHeight;
+  }
+
+  function buildMessagesFromLegacyHistory(history) {
+    if (!history || history.length === 0) {
+      return [];
+    }
+
+    const messages = [];
+    for (let i = history.length - 1; i >= 0; i--) {
+      const item = history[i];
+      if (item.prompt) {
+        messages.push({
+          role: "user",
+          content: item.prompt,
+          createdAt: item.createdAt,
+        });
+      }
+      messages.push({
+        role: "assistant",
+        content: item.body || item.title || "Done.",
+        createdAt: item.createdAt,
+        responseId: item.id,
+      });
+    }
+    return messages;
+  }
+
+  function renderWorkspaceConversations(conversations) {
     if (!sidebarConversationsList) return;
     sidebarConversationsList.replaceChildren();
 
-    if (!history || history.length === 0) {
+    if (!conversations || conversations.length === 0) {
       const empty = document.createElement("div");
       empty.className = "sidebar-empty-msg";
       empty.textContent = "No conversations yet";
@@ -469,12 +511,13 @@
       return;
     }
 
-    history.forEach((convoItem) => {
+    conversations.forEach((convoItem) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "sidebar-item sidebar-item--convo";
       button.title = convoItem.excerpt || convoItem.title;
-      button.dataset.responseId = convoItem.id;
+      button.dataset.conversationId = convoItem.id;
+      button.classList.toggle("is-active", convoItem.id === activeConversationId);
 
       const icon = document.createElement("span");
       icon.className = "sidebar-item-icon";
@@ -482,18 +525,16 @@
 
       const label = document.createElement("span");
       label.className = "sidebar-item-label";
-      label.textContent = convoItem.prompt || convoItem.title || "Chat session";
+      label.textContent = convoItem.title || "Chat session";
 
       button.append(icon, label);
       button.addEventListener("click", () => {
-        const targetMsg = convo.querySelector(`[data-response-id="${convoItem.id}"]`);
-        if (targetMsg) {
-          targetMsg.scrollIntoView({ behavior: "smooth", block: "center" });
-          
-          targetMsg.classList.remove("msg--highlight");
-          void targetMsg.offsetWidth; // trigger reflow
-          targetMsg.classList.add("msg--highlight");
-        }
+        activeConversationId = convoItem.id;
+        vscode.postMessage({
+          type: "action",
+          command: "nssWorkspaceAi.selectConversation",
+          conversationId: convoItem.id,
+        });
       });
 
       sidebarConversationsList.appendChild(button);
@@ -766,7 +807,13 @@
       bubble.appendChild(title);
     }
 
-    if (role === "assistant") {
+    if (role === "assistant" || role === "tool") {
+      if (role === "tool") {
+        const title = document.createElement("div");
+        title.className = "msg-title";
+        title.textContent = "Tool activity";
+        bubble.appendChild(title);
+      }
       const normalized = normalizeAssistantText(text);
       renderMessageBody(bubble, normalized);
     } else {
@@ -1006,6 +1053,7 @@
       selectedModel,
       lastServerMode,
       lastRenderedResponseKey,
+      activeConversationId,
     });
   }
 })();

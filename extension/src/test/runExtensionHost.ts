@@ -147,7 +147,7 @@ async function pathExists(targetPath: string): Promise<boolean> {
 }
 
 async function startBundledServer(extensionRoot: string): Promise<StartedBundledServer> {
-  const serverRoot = path.resolve(extensionRoot, "..", "nstep-workspace-ai-server");
+  const serverRoot = path.resolve(extensionRoot, "..", "server");
   const serverPackage = path.join(serverRoot, "package.json");
   if (!(await pathExists(serverPackage))) {
     throw new Error(`Bundled NStep server is missing at ${serverPackage}.`);

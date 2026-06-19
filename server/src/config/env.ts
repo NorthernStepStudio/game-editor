@@ -75,7 +75,7 @@ export function getServerConfig(env: NodeJS.ProcessEnv = process.env): NssWorksp
           env.RESPONSE_OS_REQUEST_TIMEOUT_MS,
           env.NSS_WORKSPACE_AI_REQUEST_TIMEOUT_MS,
         ),
-        30_000,
+        300_000,
       ),
     },
   };
@@ -144,7 +144,7 @@ export function getAvailableProviders(config: NssWorkspaceAiServerConfig): {
         model: mc.lmstudioModel ?? "local-model",
         note: `${mc.lmstudioBaseUrl ?? "localhost:1234"} · local`,
       },
-    ],
+    ].filter((provider) => provider.id !== "mock"),
   };
 }
 
@@ -155,19 +155,19 @@ function resolveProviderMode(
   anthropicApiKey: string | undefined,
 ): SynoxProviderMode {
   if (requestedMode === "off") return "off";
-  if (requestedMode === "mock") return "mock";
+  if (requestedMode === "mock") return "ollama";
 
-  if (requestedMode === "openai") return openaiApiKey ? "openai" : "mock";
-  if (requestedMode === "anthropic") return anthropicApiKey ? "anthropic" : "mock";
+  if (requestedMode === "openai") return "openai";
+  if (requestedMode === "anthropic") return "anthropic";
   if (requestedMode === "ollama") return "ollama";
   if (requestedMode === "lmstudio") return "lmstudio";
-  if (requestedMode === "gemini") return geminiApiKey ? "gemini" : "mock";
+  if (requestedMode === "gemini") return "gemini";
 
   // Auto-detect: prefer whichever key is set
   if (geminiApiKey) return "gemini";
   if (openaiApiKey) return "openai";
   if (anthropicApiKey) return "anthropic";
-  return "mock";
+  return "ollama";
 }
 
 function resolveProviderLabel(mode: SynoxProviderMode): string {

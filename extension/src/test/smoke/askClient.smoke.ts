@@ -53,6 +53,20 @@ export async function runAskClientSmoke(): Promise<void> {
       }),
     },
     {
+      statusCode: 200,
+      contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({
+        title: "Needs tools",
+        response: "I need to inspect files.",
+        toolCalls: [
+          {
+            name: "list_files",
+            args: { path: "extension/src" },
+          },
+        ],
+      }),
+    },
+    {
       statusCode: 500,
       contentType: "text/plain; charset=utf-8",
       body: "Server exploded.",
@@ -116,6 +130,11 @@ export async function runAskClientSmoke(): Promise<void> {
     assert.equal(previewOnly.title, "Preview only");
     assert.equal(previewOnly.response, "File content came back without a separate response field.");
     assert.equal(previewOnly.proposedText, "const nextValue = true;\n");
+
+    const needsTools = await postAskRequest(config, payload);
+    assert.equal(needsTools.title, "Needs tools");
+    assert.equal(needsTools.toolCalls?.[0]?.name, "list_files");
+    assert.equal(needsTools.toolCalls?.[0]?.args?.path, "extension/src");
 
     await assert.rejects(() => postAskRequest(config, payload), /Backend request failed \(500\): Server exploded\./);
   } finally {

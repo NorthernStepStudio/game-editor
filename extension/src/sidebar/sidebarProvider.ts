@@ -17,6 +17,7 @@ export interface NssSidebarActionMessage {
   };
   readonly index?: number;
   readonly path?: string;
+  readonly conversationId?: string;
 }
 
 export interface NssSidebarHost {

@@ -44,6 +44,16 @@ export function runRequestBuilderSmoke(): void {
     project: {
       structureSummary: "- apps\n- docs",
     },
+    ideTools: {
+      protocol: "Request tools with JSON toolCalls.",
+      tools: [
+        {
+          name: "read_file",
+          description: "Read a file.",
+          parameters: { path: "File path." },
+        },
+      ],
+    },
     codebaseSearchResults: [
       {
         path: "packages/m-core/src/agents/router.ts",
@@ -60,5 +70,6 @@ export function runRequestBuilderSmoke(): void {
   assert.equal(request.build?.template.id, "fullstack-app");
   assert.equal(request.activeFile?.selection, "test");
   assert.equal(request.project?.structureSummary, "- apps\n- docs");
+  assert.equal(request.ideTools?.tools[0]?.name, "read_file");
   assert.equal(request.codebase?.searchResults?.[0]?.path, "packages/m-core/src/agents/router.ts");
 }

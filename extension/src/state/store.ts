@@ -7,6 +7,7 @@ import {
 } from "../config/defaults.js";
 import type { NssServerHealth } from "../models/api.types.js";
 import type { NssResponseRecord } from "../models/command.types.js";
+import type { NssConversationThread } from "../models/conversation.types.js";
 import type { NssDiagnosticSession } from "../models/diagnostic.types.js";
 import type { NssKnowledgeItem } from "../models/knowledge.types.js";
 import type { NssProjectRule, NssRecurringFailure, NssRepairPattern, NssPersistentMemory } from "../models/memory.types.js";
@@ -22,6 +23,8 @@ import { getStorageLimits } from "../storage/storageLimits.js";
 export interface NssWorkspaceAiState {
   responseHistory: NssResponseRecord[];
   latestResponse?: NssResponseRecord;
+  conversationThreads: NssConversationThread[];
+  activeConversationId?: string;
   reviewItems: NssReviewItem[];
   activeReviewId?: string;
   serverHealth: NssServerHealth;
@@ -43,6 +46,7 @@ export interface NssWorkspaceAiState {
 export function createInitialState(): NssWorkspaceAiState {
   return {
     responseHistory: [],
+    conversationThreads: [],
     reviewItems: [],
     serverHealth: {
       status: "unknown",
@@ -112,10 +116,15 @@ function hydrateState(value: Partial<NssWorkspaceAiState> | undefined): NssWorks
     return initialState;
   }
 
+  const responseHistory = [...(value.responseHistory ?? initialState.responseHistory)];
+  const conversationThreads = hydrateConversationThreads(value.conversationThreads, responseHistory);
+
   return {
     ...initialState,
     ...value,
-    responseHistory: [...(value.responseHistory ?? initialState.responseHistory)],
+    responseHistory,
+    conversationThreads,
+    activeConversationId: resolveActiveConversationId(value.activeConversationId, conversationThreads),
     reviewItems: [...(value.reviewItems ?? initialState.reviewItems)],
     taskHistory: [...(value.taskHistory ?? initialState.taskHistory)],
     diagnosticSessions: [...(value.diagnosticSessions ?? initialState.diagnosticSessions)],
@@ -130,4 +139,72 @@ function hydrateState(value: Partial<NssWorkspaceAiState> | undefined): NssWorks
     presetId: value.presetId ?? initialState.presetId,
     studioProjectId: value.studioProjectId ?? initialState.studioProjectId,
   };
+}
+
+function hydrateConversationThreads(
+  value: readonly NssConversationThread[] | undefined,
+  responseHistory: readonly NssResponseRecord[],
+): NssConversationThread[] {
+  if (value && value.length > 0) {
+    return [...value].map((thread) => ({
+      ...thread,
+      messages: [...thread.messages],
+    }));
+  }
+
+  if (responseHistory.length === 0) {
+    return [];
+  }
+
+  const oldestFirst = [...responseHistory].reverse();
+  const firstRecord = oldestFirst[0];
+  const lastRecord = oldestFirst[oldestFirst.length - 1];
+
+  return [
+    {
+      id: "conversation-migrated-default",
+      title: createConversationTitle(firstRecord.prompt ?? firstRecord.title),
+      createdAt: firstRecord.createdAt,
+      updatedAt: lastRecord.createdAt,
+      messages: oldestFirst.flatMap((record) => {
+        const messages = [];
+        if (record.prompt) {
+          messages.push({
+            id: `${record.id}-prompt`,
+            role: "user" as const,
+            content: record.prompt,
+            createdAt: record.createdAt,
+          });
+        }
+        messages.push({
+          id: `${record.id}-assistant`,
+          role: "assistant" as const,
+          content: record.body,
+          createdAt: record.createdAt,
+          responseId: record.id,
+        });
+        return messages;
+      }),
+    },
+  ];
+}
+
+function resolveActiveConversationId(
+  activeConversationId: string | undefined,
+  conversationThreads: readonly NssConversationThread[],
+): string | undefined {
+  if (activeConversationId && conversationThreads.some((thread) => thread.id === activeConversationId)) {
+    return activeConversationId;
+  }
+
+  return conversationThreads[0]?.id;
+}
+
+function createConversationTitle(value: string | undefined): string {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return "New chat";
+  }
+
+  return trimmed.length > 42 ? `${trimmed.slice(0, 39)}...` : trimmed;
 }

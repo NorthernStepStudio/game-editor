@@ -17,6 +17,7 @@ export interface NssResponseRecord {
   readonly sourceCommand: string;
   readonly createdAt: string;
   readonly prompt?: string;
+  readonly toolTranscript?: readonly string[];
   readonly proposedText?: string;
   readonly preview?: string;
   readonly proposedMemories?: readonly {

@@ -149,6 +149,7 @@ export function normalizeStructuredModelResponse(content: string, fallbackTitle:
       response: firstString(record, ["response", "answer", "text", "message", "content", "body"]) ?? content,
       preview: firstString(record, ["preview", "summary"]),
       proposedText: firstString(record, ["proposedText", "fileContent", "updatedFileContent", "replacement", "newFileContent"]),
+      toolCalls: parseToolCalls(record.toolCalls),
     };
   }
 
@@ -156,6 +157,45 @@ export function normalizeStructuredModelResponse(content: string, fallbackTitle:
     title: fallbackTitle,
     response: content,
   };
+}
+
+function parseToolCalls(value: unknown): NssAskResponse["toolCalls"] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const toolCalls: Array<NonNullable<NssAskResponse["toolCalls"]>[number]> = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const record = item as Record<string, unknown>;
+    const name = record.name;
+    if (!isToolName(name)) {
+      continue;
+    }
+
+    const args = record.args && typeof record.args === "object" && !Array.isArray(record.args)
+      ? (record.args as Record<string, unknown>)
+      : undefined;
+
+    toolCalls.push(args ? { name, args } : { name });
+  }
+
+  return toolCalls.length > 0 ? toolCalls : undefined;
+}
+
+function isToolName(value: unknown): value is NonNullable<NssAskResponse["toolCalls"]>[number]["name"] {
+  return (
+    value === "list_files" ||
+    value === "read_file" ||
+    value === "write_file" ||
+    value === "edit_file" ||
+    value === "search_files" ||
+    value === "run_terminal" ||
+    value === "get_diagnostics"
+  );
 }
 
 export function isProposalIntent(intent: NssAskIntent): boolean {

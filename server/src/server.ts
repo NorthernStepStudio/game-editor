@@ -7,7 +7,9 @@ import { resolveDefaultPortStateFilePath, writePortStateFile } from "./config/po
 import type { NssAskRequestPayload, NssHealthResponse } from "./models/contracts.js";
 import { handleAskRequest, streamAskRequest } from "./services/askService.js";
 
-const WEB_DIR = path.resolve(process.cwd(), "web");
+const WEB_DIR = fs.existsSync(path.resolve(__dirname, "../../web"))
+  ? path.resolve(__dirname, "../../web")
+  : path.resolve(process.cwd(), "web");
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -70,12 +72,16 @@ export async function startNssWorkspaceAiServer(
           typeof (rawBody as { _provider?: string })._provider === "string"
             ? (rawBody as { _provider: string })._provider
             : undefined;
+        const modelOverride =
+          typeof (rawBody as { _model?: string })._model === "string"
+            ? (rawBody as { _model: string })._model
+            : undefined;
         const payload = rawBody as NssAskRequestPayload;
 
         if (wantsStream) {
-          await handleStreamRequest(config, payload, response, providerOverride);
+          await handleStreamRequest(config, payload, response, providerOverride, modelOverride);
         } else {
-          const answer = await handleAskRequest(config, payload, providerOverride);
+          const answer = await handleAskRequest(config, payload, providerOverride, modelOverride);
           await respondJson(response, 200, answer);
         }
         return;
@@ -165,6 +171,7 @@ async function handleStreamRequest(
   payload: NssAskRequestPayload,
   response: http.ServerResponse,
   providerOverride?: string,
+  modelOverride?: string,
 ): Promise<void> {
   response.setHeader("Content-Type", "text/event-stream; charset=utf-8");
   response.setHeader("Cache-Control", "no-cache, no-transform");
@@ -174,7 +181,7 @@ async function handleStreamRequest(
   response.flushHeaders?.();
 
   try {
-    for await (const token of streamAskRequest(config, payload, providerOverride)) {
+    for await (const token of streamAskRequest(config, payload, providerOverride, modelOverride)) {
       response.write(`data: ${JSON.stringify({ token })}\n\n`);
     }
     response.write(`data: ${JSON.stringify({ done: true })}\n\n`);

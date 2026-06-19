@@ -13,6 +13,7 @@ import type {
   NssAppSnapshot,
   NssChatMessage,
 } from "../models/api.types.js";
+import type { NssIdeToolContext } from "../models/ideTool.types.js";
 import type { NssModeId } from "../models/mode.types.js";
 
 export interface BuildAskRequestInput {
@@ -36,6 +37,7 @@ export interface BuildAskRequestInput {
   readonly appSnapshot?: NssAppSnapshot;
   readonly build?: NssBuildContext;
   readonly history?: readonly NssChatMessage[];
+  readonly ideTools?: NssIdeToolContext;
 }
 
 export function buildAskRequest(input: BuildAskRequestInput): NssAskRequestPayload {
@@ -61,6 +63,7 @@ export function buildAskRequest(input: BuildAskRequestInput): NssAskRequestPaylo
     appSnapshot: input.appSnapshot,
     build: input.build,
     history: input.history,
+    ideTools: input.ideTools,
   };
 }
 

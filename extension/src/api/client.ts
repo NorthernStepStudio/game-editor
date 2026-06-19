@@ -64,6 +64,7 @@ function normalizeAskResponse(body: string, contentType: string): NssAskResponse
       "newFileContent",
     ]);
     const proposedMemories = parseProposedMemories(record.proposedMemories);
+    const toolCalls = parseToolCalls(record.toolCalls);
     const responseText =
       firstString(record, ["response", "answer", "text", "message", "content", "body", "output", "result"]) ??
       firstString(record, ["preview", "summary"]) ??
@@ -75,10 +76,50 @@ function normalizeAskResponse(body: string, contentType: string): NssAskResponse
       proposedText,
       preview: firstString(record, ["preview", "summary"]),
       proposedMemories,
+      toolCalls,
     };
   }
 
   return { response: body };
+}
+
+function parseToolCalls(value: unknown): NssAskResponse["toolCalls"] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const toolCalls: Array<NonNullable<NssAskResponse["toolCalls"]>[number]> = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+
+    const record = item as Record<string, unknown>;
+    const name = record.name;
+    if (!isToolName(name)) {
+      continue;
+    }
+
+    const args = record.args && typeof record.args === "object" && !Array.isArray(record.args)
+      ? (record.args as Record<string, unknown>)
+      : undefined;
+
+    toolCalls.push(args ? { name, args } : { name });
+  }
+
+  return toolCalls.length > 0 ? toolCalls : undefined;
+}
+
+function isToolName(value: unknown): value is NonNullable<NssAskResponse["toolCalls"]>[number]["name"] {
+  return (
+    value === "list_files" ||
+    value === "read_file" ||
+    value === "write_file" ||
+    value === "edit_file" ||
+    value === "search_files" ||
+    value === "run_terminal" ||
+    value === "get_diagnostics"
+  );
 }
 
 function tryParseJson(body: string, contentType: string): unknown {

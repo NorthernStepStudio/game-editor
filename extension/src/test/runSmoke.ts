@@ -6,6 +6,7 @@ import { runRequestBuilderSmoke } from "./smoke/requestBuilder.smoke.js";
 import { runReviewQueueSmoke } from "./smoke/reviewQueue.smoke.js";
 import { runServerUrlSmoke } from "./smoke/serverUrl.smoke.js";
 import { runWorkflowSmoke } from "./smoke/workflow.smoke.js";
+import { runNormalizeTextSmoke } from "./smoke/normalizeText.smoke.js";
 
 async function main(): Promise<void> {
   runCommandRegistrySmoke();
@@ -15,6 +16,7 @@ async function main(): Promise<void> {
   runReviewQueueSmoke();
   runServerUrlSmoke();
   runWorkflowSmoke();
+  await runNormalizeTextSmoke();
   await runAskClientSmoke();
 }
 

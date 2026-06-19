@@ -39,7 +39,10 @@ export function renderSidebarTemplate(webview: vscode.Webview, extensionUri: vsc
 
         <!-- Workspace Section -->
         <div class="sidebar-section">
-          <div class="sidebar-section-title">Workspace</div>
+          <div class="sidebar-section-heading">
+            <div class="sidebar-section-title">Workspace</div>
+            <button class="sidebar-icon-button" id="new-conversation-button" type="button" title="New chat" aria-label="New chat">+</button>
+          </div>
           <div class="sidebar-list">
             <div class="sidebar-folder-item" id="sidebar-workspace-folder">
               <span class="sidebar-folder-chevron">&#9662;</span>

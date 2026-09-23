@@ -10,7 +10,8 @@ Blender Version: `5.2.1 LTS` (`C:\Program Files\Blender Foundation\Blender 5.2\b
 Phase 3C (`a56b22b92aca86334e2d078c9d33a32cc8d1c781`) added disk-backed Studio history and fail-closed restart reconciliation; GitHub Actions run `35866393474` passed on Ubuntu and Windows. Phase 3D through `695323ccea65bb8a6fc53cd3baa145839154fc7e` added reviewed multi-file transactions, server-configured validation tasks, standalone UI controls, and end-to-end regression coverage; GitHub Actions run `35868076819` passed on Ubuntu and Windows.
 Phase 3E (`c1b4eb9ce964e403e4841b1096c02b5c5fee1e3e`) implemented typed criterion-specific gameplay acceptance validation (`property_equals`, `property_range`, `node_exists`, `movement_position`, `health_damage`, `timed_scenario`, `generic`), fail-closed criterion checking, structured UI rendering, and end-to-end live proof.
 Phase 3F (`d7e9ff2351c7312cc090260b032afe7d0bba155c`) implemented the Blender 3D specialist bootstrap (`BlenderAdapter` for `blender-engine`), headless execution, procedural crate fixture (`crate.blend` / `crate-preview.png` / `crate.glb`), and **direct Godot** import validation (`Matterhorn → BlenderAdapter → Blender → crate.glb → Godot`). That crate slice did **not** invoke Flyrail.
-Phase 3G (this continuation) generalizes Blender into a structured operation pipeline, async execution, artifact confinement, execution manifests, humanoid rig/animation prototype, `YunCharacterContract`, and a real **Matterhorn → Blender → Flyrail → Godot** character validation path.
+Phase 3G generalizes Blender into a structured operation pipeline, async execution, artifact confinement, execution manifests, humanoid rig/animation prototype, `YunCharacterContract`, and a real **Matterhorn → Blender → Flyrail → Godot** character validation path.
+Phase 3H delivers the first Yun production-candidate `yun_player_base` (structured Blender ops, multi-view renders, animated GLB, Flyrail disposable import + YunMiniFigure-compatible wrapper motion probe). Candidate archived at `artifacts/yun-character-candidate/yun_player_base/`. **Production Yun is not modified.**
 
 ## Delivered in this change
 
@@ -26,6 +27,21 @@ Phase 3G (this continuation) generalizes Blender into a structured operation pip
 - Extended Flyrail evidence schema (`EvidenceBundle` & `LoopReport`) to transmit structured `criterionResults`.
 - End-to-end live proof tests (`criterionLive.test.ts`) covering positive completion, measurement mismatches (failure), and missing custom evidence (blocked).
 - Blender specialist generalization: bounded `BlenderOperation` commands, validated `BlenderTaskSpec`, controlled Python compiler (no arbitrary user Python), crate/humanoid fixtures composed from primitives, async child-process lifecycle, `blender-task.json` / `blender-result.json` manifests with execution identity, artifact confinement, character/rig/animation capabilities, `YunCharacterContract`, and Flyrail-owned Godot GLB validation (`validateGlbThroughFlyrail`).
+- Yun character candidate `yun_player_base`: street-sports stylized figure, `MAT_TeamShirt` team-color surface, 18-bone armature, idle/walk/run, multi-view evidence, `npm run test:yun-character-live`, disposable Flyrail/Godot validation. Not production-integrated.
+
+## Yun candidate snapshot (Phase 3H)
+
+| Item | Value |
+| --- | --- |
+| Asset | `yun_player_base` |
+| Archive | `artifacts/yun-character-candidate/yun_player_base/` |
+| Geometry | 1042 vertices, 820 polygons |
+| Materials | `MAT_Skin`, `MAT_TeamShirt` (team), `MAT_Shorts`, `MAT_Shoes`, `MAT_Accent` |
+| Bones | 18 |
+| Animations | `idle`, `walk`, `run` |
+| GLB size | ~269 KB |
+| Wrapper AABB height @1.2 | ~1.74 |
+| Production Yun integration | **NO** (disposable validation only) |
 
 ## Verification performed here
 
@@ -36,7 +52,9 @@ Phase 3G (this continuation) generalizes Blender into a structured operation pip
 | Existing core and server smoke checks | PASS |
 | Controller, persistence, workspace, API, DOM, criterion, Blender, character, negative, Flyrail-slice tests | PASS — `npm run check` (deterministic suite; Flyrail live slice skips cleanly when daemon absent) |
 | Existing Flyrail adapter unit checks | PASS — 28 checks (`node core/out/test/flyrailAdapter.test.js`) |
-| Dedicated live Blender/Flyrail/Godot command | PASS — `npm run test:blender-live` (21/21) with Blender 5.2.1, Godot 4.7.2, Flyrail daemon live |
+| Dedicated live Blender/Flyrail/Godot command | PASS — `npm run test:blender-live` |
+| Dedicated Yun character live command | PASS — `npm run test:yun-character-live` |
+| Yun `yun_player_base` Blender + Flyrail + wrapper motion | PASS — session + Skeleton3D + AnimationPlayer + idle/walk/run + motion sequence |
 | Direct Blender crate fixture | PASS — structured ops → `crate.blend` / preview / `crate.glb` |
 | Direct Godot crate import (not Flyrail) | PASS — `blenderGodotSlice.test.ts` |
 | Humanoid prototype (Blender) | PASS — armature, idle/walk/run, multi-view previews, animated `humanoid.glb` |
@@ -52,7 +70,7 @@ Use the review branch in a separate checkout so existing local edits are preserv
 
 1. Run `npm ci` and `npm run check`. Both must finish successfully.
 2. Start Flyrail using its existing instructions (`flyrail daemon start --live`). Configure `FLYRAIL_REPO_ROOT` (daemon discovery) or `FLYRAIL_DAEMON_URL` plus `FLYRAIL_DAEMON_TOKEN` in Matterhorn's server environment. Do not paste tokens into the browser.
-3. Run `npm run test:live` for the Studio Flyrail gate. Run `npm run test:blender-live` for Blender + Flyrail character pipeline proof. Missing prerequisites must exit nonzero (never a silent pass).
+3. Run `npm run test:live` for the Studio Flyrail gate. Run `npm run test:blender-live` for Blender + Flyrail character pipeline proof. Run `npm run test:yun-character-live` for the Yun candidate. Missing prerequisites must exit nonzero (never a silent pass).
 4. Set `MATTERHORN_PROJECTS` to an array of `{id,name,path}` entries for a disposable local Godot project. Use forward slashes or correctly escaped Windows paths in JSON. Start `npm run dev:server`, then open the printed loopback URL.
 5. Inspect all five screens on your display. Check text, scrolling, keyboard focus, window resizing and readable errors. Chat must show mock mode unless a real provider is configured. Verify a real provider reply when your credentials are available.
 6. Review and run a supported Godot request. For baseline gate validation use the exact criteria `Godot validation passes`, `Scenario checks pass`, and `QA checks pass`. Add `Playtest passes` only when the project has a genuine supported playtest. Read the returned evidence; generic gates do not prove requested gameplay behavior.
@@ -68,7 +86,7 @@ Use the review branch in a separate checkout so existing local edits are preserv
 - Flyrail does not provide active loop cancellation. Matterhorn cannot safely manufacture that capability; it exposes the limitation and blocks unsafe overlapping runs.
 - Studio snapshot/evidence metadata is durable on disk and restart reconciliation is implemented. Matterhorn deliberately does not resume an uncertain mutation. Multi-user service hosting and true remote cancellation remain later work.
 - Existing extension-only workspace editing/review tools are not all migrated into the standalone UI. The extension stays optional as migration reference.
-- Yun production character generation is **not** delivered by Phase 3G; the pipeline foundation and disposable humanoid proof are. Next: Yun character generation vertical slice using the Blender specialist.
+- Yun production character generation is **not** complete: Phase 3H delivers a disposable-validated candidate only. Production `games/yun` assets and `mini_figure.gd` MODELS list are unchanged.
 
 ## Concurrent Phase 3 integration
 

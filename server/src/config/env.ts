@@ -107,7 +107,7 @@ export function getAvailableProviders(config: NssWorkspaceAiServerConfig): {
         label: "Mock",
         available: true,
         model: null,
-        note: "Built-in — no API key needed",
+        note: "Built-in — no API key needed. Mock chat does not execute or validate Studio work.",
       },
       {
         id: "gemini",
@@ -135,16 +135,16 @@ export function getAvailableProviders(config: NssWorkspaceAiServerConfig): {
         label: "Ollama",
         available: true,
         model: mc.ollamaModel ?? "qwen2.5-coder:14b",
-        note: `${mc.ollamaBaseUrl ?? "localhost:11434"} · local`,
+        note: `${mc.ollamaBaseUrl ?? "localhost:11434"} · local — set M_CORE_PROVIDER_MODE=ollama`,
       },
       {
         id: "lmstudio",
         label: "LM Studio",
         available: true,
         model: mc.lmstudioModel ?? "local-model",
-        note: `${mc.lmstudioBaseUrl ?? "localhost:1234"} · local`,
+        note: `${mc.lmstudioBaseUrl ?? "localhost:1234"} · local — set M_CORE_PROVIDER_MODE=lmstudio`,
       },
-    ].filter((provider) => provider.id !== "mock"),
+    ],
   };
 }
 
@@ -155,7 +155,7 @@ function resolveProviderMode(
   anthropicApiKey: string | undefined,
 ): SynoxProviderMode {
   if (requestedMode === "off") return "off";
-  if (requestedMode === "mock") return "ollama";
+  if (requestedMode === "mock") return "mock";
 
   if (requestedMode === "openai") return "openai";
   if (requestedMode === "anthropic") return "anthropic";
@@ -163,11 +163,11 @@ function resolveProviderMode(
   if (requestedMode === "lmstudio") return "lmstudio";
   if (requestedMode === "gemini") return "gemini";
 
-  // Auto-detect: prefer whichever key is set
+  // Auto-detect: prefer whichever key is set. Without credentials, stay in honest mock mode.
   if (geminiApiKey) return "gemini";
   if (openaiApiKey) return "openai";
   if (anthropicApiKey) return "anthropic";
-  return "ollama";
+  return "mock";
 }
 
 function resolveProviderLabel(mode: SynoxProviderMode): string {

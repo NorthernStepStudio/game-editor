@@ -1,5 +1,5 @@
 import { initWorkspace } from './workspace.js';
-import { api, notice } from './api.js';
+import { api, notice, clearNotice } from './api.js';
 import { initStudio, loadProjects, refreshRuns } from './studio.js';
 import { initChat } from './chat.js';
 const pages = ['chat', 'studio', 'projects', 'evidence', 'settings'];
@@ -14,6 +14,7 @@ async function health() {
   const [server, daemon] = await Promise.all([api('/health'), api('/api/studio/health')]);
   document.querySelector('#connection').textContent = `Connected · ${server.mode === 'mock' ? 'mock chat' : server.mode}`;
   document.querySelector('#daemon-detail').textContent = daemon.available ? `Flyrail connected (${daemon.version}). Remote cancellation is currently unsupported.` : 'Flyrail is offline. Start the daemon on this PC and check its server-side configuration.';
+  clearNotice();
 }
 async function providers() {
   const data = await api('/providers'), select = document.querySelector('#provider'); select.replaceChildren();

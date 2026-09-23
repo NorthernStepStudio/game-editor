@@ -2,7 +2,7 @@
   "name": "@nss/m-core",
   "version": "0.1.0",
   "private": true,
-  "description": "NSS Master Core (M-CORE), the shared AI runtime for Northern Step Studio.",
+  "description": "Matterhorn shared AI runtime (M-CORE / @nss/m-core) for Northern Step Studio.",
   "main": "./out/index.js",
   "types": "./out/index.d.ts",
   "scripts": {

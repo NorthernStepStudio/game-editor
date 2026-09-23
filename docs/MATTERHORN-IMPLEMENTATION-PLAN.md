@@ -4,9 +4,9 @@
 
 **Matterhorn is its own standalone AI assistant and Studio application. It is not a VS Code extension product.** All milestones below serve this direction. The primary implementation is `core/`, `server/` and `web/`; VS Code is not a runtime requirement. `extension/` is optional legacy integration retained for migration reference. Do not turn next-step recommendations into extension packaging, Marketplace publishing or VS Code command work unless the user explicitly requests that scope.
 
-The standalone foundation, persistent Studio history/restart recovery, reviewed multi-file change sets, and server-configured validation tasks are delivered on the active draft PR. The next coding milestone is **criterion-specific gameplay proof with inspectable evidence**. PC acceptance is still pending, and Blender remains after that gate. Read [AGENTS.md](../AGENTS.md) for agent handoff guidance.
+The standalone foundation, persistent Studio history/restart recovery, reviewed multi-file change sets, server-configured validation tasks, and typed criterion-specific gameplay acceptance proof are delivered on the active draft PR #2 (`c1b4eb9ce964e403e4841b1096c02b5c5fee1e3e`). The real PC acceptance gate has been verified end-to-end on Windows. Blender remains after this milestone. Read [AGENTS.md](../AGENTS.md) for agent handoff guidance.
 
-Baseline inspected: `c350263afbb371a63ddd421fdb5c7e81054af1c3`, branch `feat/studio-orchestration-foundation`. Canonical repository: NorthernStepStudio/matterhorn. This plan covers the standalone Matterhorn/Flyrail milestone agreed September 23, 2026; unrelated Morning Hub and video-editor work is excluded.
+Latest HEAD SHA: `c1b4eb9ce964e403e4841b1096c02b5c5fee1e3e`, branch `feat/standalone-studio-20260923`. Canonical repository: NorthernStepStudio/matterhorn. Flyrail repository: NorthernStepStudio/flyrail (`feature/playtest-agent-v3-source-repair` @ `08eff88e045ad0cebfa64042316cd11d2979a838`). This plan covers the standalone Matterhorn/Flyrail milestone agreed September 23, 2026; unrelated Morning Hub and video-editor work is excluded.
 
 ## Delivery order and acceptance
 

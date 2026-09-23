@@ -44,7 +44,7 @@ export const STUDIO_SPECIALISTS: readonly NssStudioSpecialist[] = [
     title: "Flyrail",
     role: "Godot execution specialist for game implementation, playtesting, validation, and builds.",
     executionMode: "executor",
-    availability: "integration-pending",
+    availability: "available",
     capabilities: [
       {
         id: "godot.project",
@@ -68,7 +68,7 @@ export const STUDIO_SPECIALISTS: readonly NssStudioSpecialist[] = [
     title: "Blender Engine",
     role: "Blender execution specialist for 3D creation, animation, visual inspection, optimization, and export.",
     executionMode: "executor",
-    availability: "planned",
+    availability: "available",
     capabilities: [
       {
         id: "blender.create",

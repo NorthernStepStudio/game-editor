@@ -51,7 +51,7 @@ export interface NssStudioArtifactRef {
 export interface NssStudioEvidence {
   readonly kind: "log" | "test" | "render" | "screenshot" | "artifact" | "report";
   readonly summary: string;
-  readonly outcome?: "passed" | "failed" | "unknown";
+  readonly outcome?: "passed" | "failed" | "blocked" | "unknown";
   readonly uri?: string;
 }
 
@@ -102,6 +102,29 @@ export interface NssStudioPlanValidation {
   readonly warnings: readonly string[];
 }
 
+export type NssStudioCheckType =
+  | 'property_equals'
+  | 'property_range'
+  | 'node_exists'
+  | 'movement_position'
+  | 'health_damage'
+  | 'timed_scenario'
+  | 'generic';
+
+export interface NssStudioCriterionResult {
+  readonly criterionId?: string;
+  readonly description?: string;
+  readonly checkType?: NssStudioCheckType;
+  readonly target?: string;
+  readonly expected?: unknown;
+  readonly actual?: unknown;
+  readonly outcome: 'passed' | 'failed' | 'blocked' | 'unknown';
+  readonly evidenceUri?: string;
+  readonly executionId?: string;
+  readonly timestamp?: string;
+  readonly criterion?: string;
+}
+
 export interface NssStudioHandoff {
   readonly protocol: "nss.studio-handoff.v1";
   readonly id: string;
@@ -120,6 +143,6 @@ export interface NssStudioExecutionResult {
   readonly summary: string;
   readonly artifacts?: readonly NssStudioArtifactRef[];
   readonly evidence?: readonly NssStudioEvidence[];
-  readonly criterionResults?: readonly { criterion: string; outcome: "passed" | "failed" | "unknown"; evidenceUri?: string }[];
+  readonly criterionResults?: readonly NssStudioCriterionResult[];
 }
 

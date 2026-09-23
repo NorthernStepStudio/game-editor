@@ -58,15 +58,15 @@ test('Projects UI reviews a two-file change set, rolls it back, and runs configu
     await clickFile('other.ts');$('workspace-editor').value='export const other = 2;\n';$('workspace-add-change').click();
     assert.equal($('workspace-stage-transaction').disabled,false);
     $('workspace-stage-transaction').click();
-    await until(()=>!$('workspace-transaction').hidden&&$('workspace-transaction-status').textContent.startsWith('pending'));
+    await until(()=>!$('workspace-transaction').hidden&&$('workspace-transaction-status').textContent.startsWith('pending')&&!$('workspace-transaction-actions').querySelector('button')?.disabled);
     assert.equal(await readFile(join(project,'app.ts'),'utf8'),'export const value = 1;\n');
     assert.equal(await readFile(join(project,'other.ts'),'utf8'),'export const other = 1;\n');
     $('workspace-transaction-actions').querySelector('button').click();
-    await until(()=>$('workspace-transaction-status').textContent.startsWith('applied'));
+    await until(()=>$('workspace-transaction-status').textContent.startsWith('applied')&&!$('workspace-transaction-actions').querySelector('button')?.disabled);
     assert.equal(await readFile(join(project,'app.ts'),'utf8'),'export const value = 2;\n');
     assert.equal(await readFile(join(project,'other.ts'),'utf8'),'export const other = 2;\n');
     $('workspace-transaction-actions').querySelector('button').click();
-    await until(()=>$('workspace-transaction-status').textContent.startsWith('rolled-back'));
+    await until(()=>$('workspace-transaction-status').textContent.startsWith('rolled-back')&&!$('workspace-project').disabled);
     assert.equal(await readFile(join(project,'app.ts'),'utf8'),'export const value = 1;\n');
     assert.equal(await readFile(join(project,'other.ts'),'utf8'),'export const other = 1;\n');
     await until(()=>$('workspace-validations').querySelector('[data-validation-id=quick]'));

@@ -15,6 +15,8 @@ export function initWorkspace() {
     $('workspace-stage-transaction').disabled = busy || changeSet.size < 2;
     for (const button of document.querySelectorAll('[data-assist]')) button.disabled = !file || busy;
     for (const button of document.querySelectorAll('[data-validation-id]')) button.disabled = busy;
+    for (const button of $('workspace-review-actions').querySelectorAll('button')) button.disabled = busy;
+    for (const button of $('workspace-transaction-actions').querySelectorAll('button')) button.disabled = busy;
     $('workspace-project').disabled = busy;
   }
 
@@ -128,6 +130,7 @@ export function initWorkspace() {
       button.onclick = () => actReview(action).catch(showError);
       actions.append(button);
     }
+    controls();
   }
 
   async function actReview(action) {
@@ -209,6 +212,7 @@ export function initWorkspace() {
       button.onclick = () => actTransaction(action).catch(showError);
       actions.append(button);
     }
+    controls();
   }
 
   async function actTransaction(action) {

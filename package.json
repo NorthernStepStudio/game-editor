@@ -19,7 +19,7 @@
     "watch:server": "npm run watch --workspace=server",
     "watch:core": "npm run watch --workspace=core",
     "start": "npm run start --workspace=server",
-    "test:studio": "node --test core/out/test/studioRun.test.js core/out/test/studioRunController.test.js core/out/test/flyrailEvidence.test.js core/out/test/flyrailTransport.test.js server/out/test/studioApi.test.js server/out/test/studioHistory.test.js server/out/test/workspace.test.js tests/web.test.mjs tests/workspace-web.test.mjs",
+    "test:studio": "node --test core/out/test/studioRun.test.js core/out/test/studioRunController.test.js core/out/test/flyrailEvidence.test.js core/out/test/criterionValidator.test.js core/out/test/flyrailTransport.test.js server/out/test/studioApi.test.js server/out/test/studioHistory.test.js server/out/test/workspace.test.js tests/web.test.mjs tests/workspace-web.test.mjs",
     "test:live": "npm run compile && node core/out/test/studioLive.test.js"
   },
   "engines": {

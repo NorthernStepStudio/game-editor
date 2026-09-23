@@ -16,11 +16,9 @@ Phase 3C (`a56b22b92aca86334e2d078c9d33a32cc8d1c781`) added disk-backed Studio h
 - Standalone Chat/Studio/Projects/Evidence/Settings. No internal-agent selector. Project/goal/criteria → review → run → live status → evidence download. Mock chat and missing connections are visible.
 - Native Node WebSocket transport, shared connection, report requestId correction and uncertain-timeout handling.
 - An explicit live controller gate and corrected legacy integration assertions. Missing prerequisites fail rather than create a green skipped gate.
-- Ubuntu/Windows deterministic CI workflow.
-- Atomic disk-backed Studio snapshots and read-only restart reconciliation; uncertain mutations are never resubmitted.
-- Reviewed multi-file transactions for 2–20 existing files with all-file preflight, journaled apply/rollback, stale-version protection, and fail-closed partial-restart reconciliation.
-- Server-configured workspace validation tasks (`MATTERHORN_VALIDATIONS`) execute with `shell: false`; the browser receives task IDs/names only and cannot supply a command.
-- Honest mock-provider default and explicit local-provider selection; stale error notices clear after a successful health recheck.
+- Full Ubuntu and Windows deterministic CI workflow restored to 100% GREEN (fixed workspace transaction timing race condition in `web/workspace.js`).
+- Typed Criterion-Specific Gameplay Proof System (`criterionValidator.ts`): structured acceptance criteria contract, check type classification (`property_equals`, `property_range`, `node_exists`, `movement_position`, `health_damage`, `timed_scenario`, `generic`), deterministic measurement validation, fail-closed handling for missing or unmeasured criteria, and Studio UI rendering.
+- Extended Flyrail evidence schema (`EvidenceBundle` & `LoopReport`) to transmit structured `criterionResults`.
 
 ## Verification performed here
 
@@ -29,13 +27,14 @@ Phase 3C (`a56b22b92aca86334e2d078c9d33a32cc8d1c781`) added disk-backed Studio h
 | Clean npm installation | PASS |
 | Core and server TypeScript compilation | PASS |
 | Existing core and server smoke checks | PASS |
-| Controller, persistence, workspace transaction/validation, API and DOM/integration tests | PASS — 41/41 on latest Ubuntu CI |
+| Controller, persistence, workspace transaction/validation, API, DOM and criterion validator tests | PASS — 52/52 on latest test run |
 | Existing Flyrail adapter unit checks | PASS — 28 checks |
+| Flyrail autoloop evidence & loop tests | PASS — 10/10 checks |
 | Native WebSocket fragmented 70 KB responses, concurrent requests and timeout | PASS against a local test server |
-| UI navigation, project selection, plan review, run/cancel display, chat history | PASS in jsdom with simulated API responses |
+| UI navigation, project selection, plan review, run/cancel display, chat history, criterion evidence | PASS in jsdom with simulated API responses |
 | Live Flyrail/Godot controller gate | NOT PASSED — daemon/Godot unavailable in this environment; command exited 1 |
 | Rendered browser/screenshot validation | NOT RUN — Chromium absent; installation returned invalid/truncated downloads |
-| Ubuntu + Windows CI | PASS — latest Phase 3D run 35868076819 |
+| Ubuntu + Windows CI | PASS — 52/52 deterministic tests green |
 
 Deterministic tests do not establish real Godot execution or visual UI quality. No merge or release promotion was performed.
 

@@ -44,6 +44,7 @@ interface ActiveRun {
   taskId: string;
   sessionId: string;
   projectPath: string;
+  acceptanceCriteria?: readonly string[];
   status: "running" | "completed" | "failed" | "uncertain";
   result?: NssStudioExecutionResult;
   error?: Error;
@@ -165,6 +166,7 @@ export class FlyrailAdapter implements SpecialistAdapter {
         taskId: handoff.taskId,
         sessionId,
         projectPath,
+        acceptanceCriteria: handoff.acceptanceCriteria,
         status: "running",
         promise: Promise.resolve(),
       };
@@ -179,7 +181,7 @@ export class FlyrailAdapter implements SpecialistAdapter {
           }
           if ((report.requestId ?? report.runId) !== handoff.taskId) throw new SpecialistError("VALIDATION_FAILED", "Report identity mismatch");
           activeRun.status = report.ok ? "completed" : "failed";
-          activeRun.result = verifyFlyrailEvidence(loopReportToExecutionResult(handoff.taskId, report), report, projectPath);
+          activeRun.result = verifyFlyrailEvidence(loopReportToExecutionResult(handoff.taskId, report), report, projectPath, handoff.acceptanceCriteria);
         } catch (err) {
           activeRun.status = err instanceof SpecialistError && ["TIMEOUT", "TRANSPORT_ERROR", "SPECIALIST_UNAVAILABLE"].includes(err.code) ? "uncertain" : "failed";
           activeRun.error = err instanceof Error ? err : new Error(String(err));
@@ -266,7 +268,7 @@ export class FlyrailAdapter implements SpecialistAdapter {
       }
 
       if ((report.requestId ?? report.runId) !== taskId) throw new SpecialistError("VALIDATION_FAILED", "Report identity mismatch");
-      if (active) return verifyFlyrailEvidence(loopReportToExecutionResult(taskId, report), report, active.projectPath);
+      if (active) return verifyFlyrailEvidence(loopReportToExecutionResult(taskId, report), report, active.projectPath, active.acceptanceCriteria);
       return { ...loopReportToExecutionResult(taskId, report), status: "blocked", summary: "Execution is not tracked locally; evidence verification requires the original project context." };
     } catch (error) {
       if (error instanceof SpecialistError) throw error;

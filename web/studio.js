@@ -13,7 +13,23 @@ export async function loadProjects() {
 function renderRun(run) {
   const container = document.querySelector('#active-run'); container.replaceChildren(el('h3', run.plan.goal), el('p', run.status, 'badge'));
   if (run.detail) container.append(el('p', run.detail, 'muted'));
-  for (const task of run.tasks) { const node = el('div', undefined, 'task'); node.append(el('strong', task.id), el('p', task.status, 'badge')); if (task.detail) node.append(el('p', task.detail)); container.append(node); }
+  for (const task of run.tasks) {
+    const node = el('div', undefined, 'task'); node.append(el('strong', task.id), el('p', task.status, 'badge'));
+    if (task.detail) node.append(el('p', task.detail));
+    if (task.result?.criterionResults && task.result.criterionResults.length > 0) {
+      const criteriaBox = el('div', undefined, 'criterion-results');
+      criteriaBox.append(el('h4', 'Acceptance Criteria Evidence'));
+      for (const res of task.result.criterionResults) {
+        const item = el('div', undefined, 'criterion-item');
+        const label = res.description ?? res.criterion ?? res.criterionId ?? 'Criterion';
+        const extra = (res.actual !== undefined || res.expected !== undefined) ? ` [expected: ${JSON.stringify(res.expected)}, actual: ${JSON.stringify(res.actual)}]` : '';
+        item.append(el('span', `${label}${extra} · `), el('span', res.outcome, 'badge'));
+        criteriaBox.append(item);
+      }
+      node.append(criteriaBox);
+    }
+    container.append(node);
+  }
   if (!terminal(run)) { const cancel = el('button', 'Request cancellation', 'secondary'); cancel.disabled = run.status === 'cancel-requested'; cancel.onclick = async () => { cancel.disabled = true; try { renderRun(await api(`/api/studio/runs/${run.id}/cancel`, {})); } catch(e) { notice(e); cancel.disabled = false; } }; container.append(cancel); }
   const save = el('button', 'Download run evidence', 'secondary'); save.onclick = () => download(`matterhorn-${run.id}.json`, run); container.append(save);
   if (terminal(run)) { source?.close(); source = null; void refreshRuns().catch(notice); }

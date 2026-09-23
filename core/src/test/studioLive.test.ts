@@ -17,7 +17,8 @@ async function main(): Promise<void> {
     const project = mkdtempSync(join(tmpdir(), 'matterhorn live test '));
     cpSync(resolve(__dirname, '../../src/test/fixtures/disposable-godot-project'), project, { recursive: true });
     for (const args of [['init'], ['add', '.'], ['-c', 'user.name=Matterhorn Test', '-c', 'user.email=matterhorn-test@example.invalid', 'commit', '-m', 'Disposable fixture baseline']]) {
-      const result = spawnSync('git', args, { cwd: project, encoding: 'utf8' }); if (result.status !== 0) throw new Error(`Fixture git setup failed: ${result.stderr}`);
+      const result = spawnSync('git', args, { cwd: project, encoding: 'utf8' });
+      if (result.status !== 0 && !result.stdout?.includes('nothing to commit') && !result.stderr?.includes('nothing to commit')) throw new Error(`Fixture git setup failed (${args.join(' ')}): ${result.stderr || result.stdout || result.error}`);
     }
     const registry = new StudioAdapterRegistry(); registry.register(adapter);
     const controller = new StudioRunController({ registry, taskTimeoutMs: 300000 });

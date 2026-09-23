@@ -140,9 +140,9 @@ test('configured validation tasks execute without exposing or accepting browser 
     assert.equal(passed.status,'passed');assert.match(passed.stdout,/validation-ok/);
     const failed=await validations.run('project','node-fail');
     assert.equal(failed.status,'failed');assert.equal(failed.exitCode,3);
-    await assert.rejects(()=>validations.run('project','missing'),/Unknown configured/);
+    assert.throws(()=>validations.run('project','missing'),/Unknown configured/);
     const blocked=new WorkspaceValidations(f.projects,tasks,()=>{throw new Error('Studio active');});
-    await assert.rejects(()=>blocked.run('project','node-ok'),/Studio active/);
+    assert.throws(()=>blocked.run('project','node-ok'),/Studio active/);
   }finally{f.cleanup();}
 });
 

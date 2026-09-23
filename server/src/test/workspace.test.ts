@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { listWorkspaceFiles, readWorkspaceFile, searchWorkspace } from '../workspace/files.js';
 import { WorkspaceReviews } from '../workspace/reviews.js';
+import { WorkspaceTransactions } from '../workspace/transactions.js';
+import { WorkspaceValidations, configuredValidationTasks } from '../workspace/validations.js';
 import { startNssWorkspaceAiServer } from '../server.js';
 function fixture() {
   const root=mkdtempSync(join(tmpdir(),'matterhorn workspace ')),project=join(root,'project');mkdirSync(project);mkdirSync(join(project,'src'));
@@ -67,4 +69,118 @@ test('workspace HTTP flow browses, explains, stages, applies and restores a real
     await post('restore',{id:review.id});assert.equal(readFileSync(join(f.project,'src/app.ts'),'utf8'),review.before);
     assert.equal((await fetch(base+'/api/workspace/file?projectId=project&path=../escape.ts')).status,400);
   }finally{await server.close();if(previousProjects===undefined)delete process.env.MATTERHORN_PROJECTS;else process.env.MATTERHORN_PROJECTS=previousProjects;if(previousData===undefined)delete process.env.MATTERHORN_DATA_DIR;else process.env.MATTERHORN_DATA_DIR=previousData;f.cleanup();}
+});
+
+
+test('multi-file transaction applies together, persists, and rolls back safely',()=>{
+  const f=fixture();try {
+    writeFileSync(join(f.project,'src/other.ts'),'export const other = 1;\n');
+    const first=readWorkspaceFile(f.project,'src/app.ts'),second=readWorkspaceFile(f.project,'src/other.ts');
+    const store=new WorkspaceTransactions(f.projects,join(f.root,'data'));
+    const transaction=store.stage('project',[
+      {path:first.path,version:first.version,content:'export const value = 2;\n'},
+      {path:second.path,version:second.version,content:'export const other = 2;\n'},
+    ]);
+    assert.equal(readFileSync(join(f.project,first.path),'utf8'),first.content);
+    assert.equal(readFileSync(join(f.project,second.path),'utf8'),second.content);
+    assert.equal(store.act(transaction.id,'apply').status,'applied');
+    assert.match(readFileSync(join(f.project,first.path),'utf8'),/value = 2/);
+    assert.match(readFileSync(join(f.project,second.path),'utf8'),/other = 2/);
+    const restarted=new WorkspaceTransactions(f.projects,join(f.root,'data'));
+    assert.equal(restarted.get(transaction.id).status,'applied');
+    assert.equal(restarted.act(transaction.id,'rollback').status,'rolled-back');
+    assert.equal(readFileSync(join(f.project,first.path),'utf8'),first.content);
+    assert.equal(readFileSync(join(f.project,second.path),'utf8'),second.content);
+  }finally{f.cleanup();}
+});
+
+test('multi-file transaction preflights every file and recovers partial apply fail-closed',()=>{
+  const f=fixture();try {
+    writeFileSync(join(f.project,'src/other.ts'),'export const other = 1;\n');
+    const first=readWorkspaceFile(f.project,'src/app.ts'),second=readWorkspaceFile(f.project,'src/other.ts');
+    const store=new WorkspaceTransactions(f.projects,join(f.root,'data'));
+    const stale=store.stage('project',[
+      {path:first.path,version:first.version,content:'export const value = 2;\n'},
+      {path:second.path,version:second.version,content:'export const other = 2;\n'},
+    ]);
+    writeFileSync(join(f.project,second.path),'external edit\n');
+    assert.throws(()=>store.act(stale.id,'apply'),/changed since review/);
+    assert.equal(readFileSync(join(f.project,first.path),'utf8'),first.content);
+
+    writeFileSync(join(f.project,second.path),second.content);
+    const tx=store.stage('project',[
+      {path:first.path,version:first.version,content:'export const value = 3;\n'},
+      {path:second.path,version:second.version,content:'export const other = 3;\n'},
+    ]);
+    const recordPath=join(f.root,'data/workspace-transactions',`${tx.id}.json`);
+    writeFileSync(recordPath,JSON.stringify({...tx,status:'applying'}));
+    writeFileSync(join(f.project,first.path),tx.files[0].after);
+    const recovered=new WorkspaceTransactions(f.projects,join(f.root,'data')).get(tx.id);
+    assert.equal(recovered.status,'conflict');
+    assert.match(readFileSync(join(f.project,first.path),'utf8'),/value = 3/);
+    assert.equal(readFileSync(join(f.project,second.path),'utf8'),second.content);
+    const repaired=new WorkspaceTransactions(f.projects,join(f.root,'data')).act(tx.id,'rollback');
+    assert.equal(repaired.status,'rolled-back');
+    assert.equal(readFileSync(join(f.project,first.path),'utf8'),first.content);
+    assert.equal(readFileSync(join(f.project,second.path),'utf8'),second.content);
+  }finally{f.cleanup();}
+});
+
+test('configured validation tasks execute without exposing or accepting browser commands',async()=>{
+  const f=fixture();try {
+    const env={MATTERHORN_VALIDATIONS:JSON.stringify([
+      {id:'node-ok',name:'Node validation',projectId:'project',command:process.execPath,args:['-e',"console.log('validation-ok')"],timeoutMs:5000},
+      {id:'node-fail',name:'Failing validation',projectId:'project',command:process.execPath,args:['-e','process.exit(3)'],timeoutMs:5000},
+    ])} as NodeJS.ProcessEnv;
+    const tasks=configuredValidationTasks(f.projects,env),validations=new WorkspaceValidations(f.projects,tasks);
+    const listed=validations.list('project');
+    assert.equal(listed.length,2);
+    assert.equal('command' in listed[0],false);
+    const passed=await validations.run('project','node-ok');
+    assert.equal(passed.status,'passed');assert.match(passed.stdout,/validation-ok/);
+    const failed=await validations.run('project','node-fail');
+    assert.equal(failed.status,'failed');assert.equal(failed.exitCode,3);
+    await assert.rejects(()=>validations.run('project','missing'),/Unknown configured/);
+    const blocked=new WorkspaceValidations(f.projects,tasks,()=>{throw new Error('Studio active');});
+    await assert.rejects(()=>blocked.run('project','node-ok'),/Studio active/);
+  }finally{f.cleanup();}
+});
+
+test('workspace HTTP exposes reviewed transactions and configured validation IDs only',async()=>{
+  const f=fixture();writeFileSync(join(f.project,'src/other.ts'),'export const other = 1;\n');
+  const previousProjects=process.env.MATTERHORN_PROJECTS,previousData=process.env.MATTERHORN_DATA_DIR,previousValidations=process.env.MATTERHORN_VALIDATIONS;
+  process.env.MATTERHORN_PROJECTS=JSON.stringify(f.projects);
+  process.env.MATTERHORN_DATA_DIR=join(f.root,'data');
+  process.env.MATTERHORN_VALIDATIONS=JSON.stringify([{id:'quick',name:'Quick check',projectId:'project',command:process.execPath,args:['-e',"console.log('ok')"],timeoutMs:5000}]);
+  const server=await startNssWorkspaceAiServer({port:0,mCore:{providerMode:'mock',requestTimeoutMs:1000}},{portStateFilePath:false});
+  const base=`http://127.0.0.1:${server.port}`,headers={'Content-Type':'application/json'};
+  try {
+    const first=await (await fetch(base+'/api/workspace/file?projectId=project&path=src/app.ts')).json() as {version:string};
+    const second=await (await fetch(base+'/api/workspace/file?projectId=project&path=src/other.ts')).json() as {version:string};
+    const stage=await fetch(base+'/api/workspace/transaction-stage',{method:'POST',headers,body:JSON.stringify({projectId:'project',files:[
+      {path:'src/app.ts',version:first.version,content:'export const value = 4;\n'},
+      {path:'src/other.ts',version:second.version,content:'export const other = 4;\n'},
+    ]})});
+    assert.equal(stage.status,200,await stage.clone().text());
+    const transaction=await stage.json() as any;assert.equal(transaction.root,undefined);assert.equal(transaction.files.length,2);
+    const apply=await fetch(base+'/api/workspace/transaction-apply',{method:'POST',headers,body:JSON.stringify({id:transaction.id})});
+    assert.equal(apply.status,200,await apply.clone().text());
+    assert.match(readFileSync(join(f.project,'src/app.ts'),'utf8'),/value = 4/);
+    const rollback=await fetch(base+'/api/workspace/transaction-rollback',{method:'POST',headers,body:JSON.stringify({id:transaction.id})});
+    assert.equal(rollback.status,200,await rollback.clone().text());
+    assert.match(readFileSync(join(f.project,'src/app.ts'),'utf8'),/value = 1/);
+
+    const listed=await (await fetch(base+'/api/workspace/validations?projectId=project')).json() as any[];
+    assert.deepEqual(listed.map(item=>item.id),['quick']);assert.equal('command' in listed[0],false);
+    const result=await fetch(base+'/api/workspace/validate',{method:'POST',headers,body:JSON.stringify({projectId:'project',id:'quick'})});
+    assert.equal(result.status,200,await result.clone().text());assert.equal((await result.json() as any).status,'passed');
+    const injection=await fetch(base+'/api/workspace/validate',{method:'POST',headers,body:JSON.stringify({projectId:'project',id:'missing',command:'echo hacked'})});
+    assert.equal(injection.status,400);
+  }finally{
+    await server.close();
+    if(previousProjects===undefined)delete process.env.MATTERHORN_PROJECTS;else process.env.MATTERHORN_PROJECTS=previousProjects;
+    if(previousData===undefined)delete process.env.MATTERHORN_DATA_DIR;else process.env.MATTERHORN_DATA_DIR=previousData;
+    if(previousValidations===undefined)delete process.env.MATTERHORN_VALIDATIONS;else process.env.MATTERHORN_VALIDATIONS=previousValidations;
+    f.cleanup();
+  }
 });

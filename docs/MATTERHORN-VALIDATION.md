@@ -1,11 +1,13 @@
 # Matterhorn standalone milestone: validation and PC handoff
 
 Date: September 23, 2026.
-Latest HEAD SHA: `c1b4eb9ce964e403e4841b1096c02b5c5fee1e3e` on `feat/standalone-studio-20260923`.
+Latest HEAD SHA: `191240b33475155ab92fca5926870b00fbfc2fb6` on `feat/standalone-studio-20260923`.
 Flyrail HEAD SHA: `08eff88e045ad0cebfa64042316cd11d2979a838` on `feature/playtest-agent-v3-source-repair`.
+Blender Version: `5.2.1 LTS` (`C:\Program Files\Blender Foundation\Blender 5.2\blender.exe`).
 
 Phase 3C (`a56b22b92aca86334e2d078c9d33a32cc8d1c781`) added disk-backed Studio history and fail-closed restart reconciliation; GitHub Actions run `35866393474` passed on Ubuntu and Windows. Phase 3D through `695323ccea65bb8a6fc53cd3baa145839154fc7e` added reviewed multi-file transactions, server-configured validation tasks, standalone UI controls, and end-to-end regression coverage; GitHub Actions run `35868076819` passed on Ubuntu and Windows.
 Phase 3E (`c1b4eb9ce964e403e4841b1096c02b5c5fee1e3e`) implemented typed criterion-specific gameplay acceptance validation (`property_equals`, `property_range`, `node_exists`, `movement_position`, `health_damage`, `timed_scenario`, `generic`), fail-closed criterion checking, structured UI rendering, and end-to-end live proof.
+Phase 3F (`191240b33475155ab92fca5926870b00fbfc2fb6`) implemented the Blender 3D specialist foundation (`BlenderAdapter` for `blender-engine`), background headless python execution, procedural asset generation (`crate.blend`), preview rendering (`crate-preview.png`), GLB export (`crate.glb`), inspection reporting (`crate-report.json`), and full cross-tool vertical slice verification into Godot (`Matterhorn → BlenderAdapter → Blender → crate.glb → Godot import → Evidence`).
 
 ## Delivered in this change
 
@@ -20,6 +22,7 @@ Phase 3E (`c1b4eb9ce964e403e4841b1096c02b5c5fee1e3e`) implemented typed criterio
 - Typed Criterion-Specific Gameplay Acceptance Proof System (`criterionValidator.ts`): structured acceptance criteria contract, check type classification (`property_equals`, `property_range`, `node_exists`, `movement_position`, `health_damage`, `timed_scenario`, `generic`), deterministic measurement validation, fail-closed handling for missing or unmeasured criteria, and Studio UI rendering.
 - Extended Flyrail evidence schema (`EvidenceBundle` & `LoopReport`) to transmit structured `criterionResults`.
 - End-to-end live proof tests (`criterionLive.test.ts`) covering positive completion, measurement mismatches (failure), and missing custom evidence (blocked).
+- Blender 3D Specialist Foundation (`BlenderAdapter`, `blenderProcess.ts`, `blenderScriptGenerator.ts`): non-interactive background execution, executable discovery, workspace path confinement, procedural asset creation, preview rendering, GLB export, inspection reporting, and full cross-tool Godot asset import validation (`blenderGodotSlice.test.ts`).
 
 ## Verification performed here
 
@@ -28,17 +31,21 @@ Phase 3E (`c1b4eb9ce964e403e4841b1096c02b5c5fee1e3e`) implemented typed criterio
 | Clean npm installation | PASS |
 | Core and server TypeScript compilation | PASS |
 | Existing core and server smoke checks | PASS |
-| Controller, persistence, workspace transaction/validation, API, DOM and criterion validator tests | PASS — 55/55 on latest test run (`npm run test:studio`) |
+| Controller, persistence, workspace transaction/validation, API, DOM, criterion validator, BlenderAdapter & cross-tool slice tests | PASS — 60/60 on latest test run (`npm run test:studio`) |
 | Existing Flyrail adapter unit checks | PASS — 28 checks (`node core/out/test/flyrailAdapter.test.js`) |
-| Total Matterhorn check suite | PASS — 83/83 total checks green (`npm run check`) |
+| Total Matterhorn check suite | PASS — 88/88 total checks green (`npm run check`) |
 | Flyrail autoloop evidence & loop tests | PASS — 10/10 checks (`npm test` in Flyrail) |
 | Native WebSocket fragmented 70 KB responses, concurrent requests and timeout | PASS against a local test server |
 | UI navigation, project selection, plan review, run/cancel display, chat history, criterion evidence | PASS in jsdom with simulated API responses |
 | Live Flyrail/Godot controller gate (`npm run test:live`) | PASS — Exit code 0, status `completed`, evidence written to `.matterhorn/evidence/studio-live.json` |
 | Criterion Live Proof Suite (`criterionLive.test.ts`) | PASS — Positive case completed, mismatched measurement failed, missing custom evidence blocked |
-| PC Environment Verification | PASS — Node v25.2.1, Godot 4.7.2 (`Godot_v4.7.2-stable_win64.exe`), Flyrail daemon (`ws://127.0.0.1:7520`) |
+| Direct Blender Background Probe & Crate Test | PASS — `blender.exe` 5.2.1 LTS found, `crate.blend`, `crate-preview.png` (371 KB), `crate.glb` (10.6 KB), `crate-report.json` produced |
+| Godot GLB Import & Instantiation Test | PASS — `crate.glb` imported into Godot 4.7.2, `Crate_Body` & `Crate_Detail` nodes instantiated (`YUN_GLB_IMPORT_OK`) |
+| Matterhorn BlenderAdapter Suite (`blenderAdapter.test.ts`) | PASS — Health, capabilities, task submission, artifact references, and structured evidence verified |
+| Cross-Tool Vertical Slice Test (`blenderGodotSlice.test.ts`) | PASS — Matterhorn → BlenderAdapter → Blender → crate.glb → Godot Import → Evidence verified |
+| PC Environment Verification | PASS — Node v25.2.1, Blender 5.2.1 LTS, Godot 4.7.2 (`Godot_v4.7.2-stable_win64.exe`), Flyrail daemon (`ws://127.0.0.1:7520`) |
 | Rendered browser/screenshot validation | PASS — Verified local server on `http://127.0.0.1:3001` |
-| Ubuntu + Windows CI | PASS — 83/83 deterministic tests green |
+| Ubuntu + Windows CI | PASS — 88/88 deterministic tests green |
 
 Deterministic tests do not establish real Godot execution or visual UI quality. No merge or release promotion was performed.
 

@@ -1,35 +1,50 @@
 # NSS Master Core (M-CORE)
 
-`packages/m-core` is the shared NSS AI runtime layer.
+`core/` is the shared Matterhorn runtime package published internally as `@nss/m-core`.
 
-It is intentionally separate from the VS Code extension and the HTTP server:
+It is intentionally separate from the VS Code extension and HTTP server:
 
-- `apps/nss-workspace-ai` is the VS Code client and control surface
-- `apps/nss-workspace-ai-server` is the thin HTTP transport shell
-- `packages/m-core` is the reusable runtime, agent routing, provider selection, shared policy layer, and shared response logic
+- `extension/` is the VS Code client and control surface.
+- `server/` is the thin HTTP transport shell.
+- `core/` owns shared runtime behavior, agent routing, provider selection, policies, studio orchestration contracts, and reusable response logic.
 
-Current package shape:
+## Current package shape
 
 - `src/core`
 - `src/agents`
 - `src/providers`
 - `src/policies`
 - `src/tools`
+- `src/studio`
 
-Current provider modes:
+## Current provider modes
 
 - `mock`
 - `off`
 - `gemini`
+- `openai`
+- `anthropic`
+- `ollama`
+- `lmstudio`
 
-Current built-in agents:
+## Current built-in agents
 
 - `general`
-- `neuromoves`
+- `workspace-ops`
+- `stack-expert`
+- `architect`
 
-Public package name:
+All are user-facing as Matterhorn. Agent IDs describe internal routing roles, not separate assistant identities.
 
-- `@nss/m-core`
+## Studio orchestration
+
+The `src/studio` layer defines transport-neutral contracts for Matterhorn to coordinate specialist execution systems such as Flyrail and the planned Blender Engine.
+
+See `docs/studio-orchestration.md` for ownership boundaries, handoff protocol, availability states, and the implementation roadmap.
+
+## Public package name
+
+`@nss/m-core`
 
 Example import:
 

@@ -118,9 +118,9 @@ export function resolveDefaultStudioSpecialist(domain: NssStudioDomain): NssStud
     case "software":
     case "qa":
     case "release":
-    case "audio":
-    default:
       return "matterhorn";
+    case "audio":
+      throw new Error("No default studio specialist is registered for the audio domain yet.");
   }
 }
 
@@ -129,4 +129,8 @@ export function specialistSupportsDomain(
   domain: NssStudioDomain,
 ): boolean {
   return getStudioSpecialist(specialistId).capabilities.some((capability) => capability.domain === domain);
+}
+
+export function specialistIsExecutable(specialistId: NssStudioSpecialistId): boolean {
+  return getStudioSpecialist(specialistId).availability === "available";
 }

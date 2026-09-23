@@ -1,9 +1,9 @@
 # Matterhorn standalone milestone: validation and PC handoff
 
 Date: September 23, 2026.
-Latest HEAD SHA: `990f3fdf1ac2244e16aac30fee6a96e86e8d3880` on `feat/standalone-studio-20260923` (Phase 3G tip).
+Latest HEAD SHA: record branch tip with `git rev-parse HEAD` on `feat/standalone-studio-20260923` (currently advanced past Phase 3G implementation commits below).
 Previous verified PR #2 head before this continuation: `d7e9ff2351c7312cc090260b032afe7d0bba155c`.
-Phase 3G commits: `8ae1c94` (pipeline), `fe0ce87` (rig/animation foundation), `55abbc5` (Flyrail/Godot tests), `eb39d57` (docs).
+Phase 3G commits: `8ae1c94` (pipeline), `fe0ce87` (rig/animation foundation), `55abbc5` (Flyrail/Godot tests), `990f3fd`/`ecd13c9` (docs + provenance).
 Flyrail HEAD SHA: `08eff88e045ad0cebfa64042316cd11d2979a838` on `feature/playtest-agent-v3-source-repair`.
 Blender Version: `5.2.1 LTS` (`C:\Program Files\Blender Foundation\Blender 5.2\blender.exe`).
 

@@ -6,7 +6,7 @@
 
 The standalone foundation, persistent Studio history/restart recovery, reviewed multi-file change sets, server-configured validation tasks, typed criterion-specific gameplay acceptance proof, the Blender 3D specialist bootstrap, and the Phase 3G generic Blender command / humanoid→Flyrail pipeline are delivered on the active draft PR #2. The real PC acceptance gate (`Matterhorn → Flyrail → Godot`) and Blender live character proof (`npm run test:blender-live`) have been verified on Windows.
 
-Latest HEAD SHA: `990f3fdf1ac2244e16aac30fee6a96e86e8d3880` on `feat/standalone-studio-20260923`. Phase 3G builds on PR #2 bootstrap head `d7e9ff2351c7312cc090260b032afe7d0bba155c` (correcting earlier docs that incorrectly cited `191240b…`). Canonical repository: NorthernStepStudio/matterhorn. Flyrail repository: NorthernStepStudio/flyrail (`feature/playtest-agent-v3-source-repair` @ `08eff88e045ad0cebfa64042316cd11d2979a838`). This plan covers the standalone Matterhorn/Flyrail/Blender milestone agreed September 23, 2026; unrelated Morning Hub and video-editor work is excluded.
+Latest HEAD SHA: use `git rev-parse HEAD` on `feat/standalone-studio-20260923` (Phase 3G implementation through `55abbc5`; docs provenance commits follow). Phase 3G builds on PR #2 bootstrap head `d7e9ff2351c7312cc090260b032afe7d0bba155c` (correcting earlier docs that incorrectly cited `191240b…`). Canonical repository: NorthernStepStudio/matterhorn. Flyrail repository: NorthernStepStudio/flyrail (`feature/playtest-agent-v3-source-repair` @ `08eff88e045ad0cebfa64042316cd11d2979a838`). This plan covers the standalone Matterhorn/Flyrail/Blender milestone agreed September 23, 2026; unrelated Morning Hub and video-editor work is excluded.
 
 ## Delivery order and acceptance
 

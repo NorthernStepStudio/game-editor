@@ -70,8 +70,8 @@ async function main(): Promise<void> {
 
   const specialists = listStudioSpecialists();
   assert.equal(specialists.find((specialist) => specialist.id === "matterhorn")?.availability, "available");
-  assert.equal(specialists.find((specialist) => specialist.id === "flyrail")?.availability, "integration-pending");
-  assert.equal(specialists.find((specialist) => specialist.id === "blender-engine")?.availability, "planned");
+  assert.equal(specialists.find((specialist) => specialist.id === "flyrail")?.availability, "available");
+  assert.equal(specialists.find((specialist) => specialist.id === "blender-engine")?.availability, "available");
 
   const studioPlan = createStudioPlan({
     id: "castle-pipeline",
@@ -101,8 +101,7 @@ async function main(): Promise<void> {
 
   const validation = validateStudioPlan(studioPlan);
   assert.equal(validation.valid, true);
-  assert(validation.warnings.some((warning) => warning.includes("Blender Engine")));
-  assert(validation.warnings.some((warning) => warning.includes("Flyrail")));
+  assert.equal(validation.warnings.length, 0);
 
   const handoff = createStudioHandoff(studioPlan.tasks[0]!);
   assert.equal(handoff.protocol, "nss.studio-handoff.v1");

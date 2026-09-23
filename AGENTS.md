@@ -13,14 +13,14 @@ Matterhorn is Northern Step Studio's **standalone AI assistant and Studio applic
 
 Read `README.md`, `docs/MATTERHORN-IMPLEMENTATION-PLAN.md`, `docs/WORKSPACE-MIGRATION.md` and `docs/MATTERHORN-VALIDATION.md`. Check the current branch and implementation before labeling work complete or pending. Explain next steps in terms of the standalone application.
 
-At this handoff (September 23, 2026), standalone Chat/Studio/Projects/Evidence/Settings, Flyrail orchestration, source browsing/search, reviewed single-file edits, disk-backed Studio run history, and fail-closed restart reconciliation are implemented on draft PR #2. Recovered active/unknown remote work is never resubmitted automatically.
+At this handoff (September 23, 2026), standalone Chat/Studio/Projects/Evidence/Settings, Flyrail orchestration, source browsing/search, reviewed single-file edits, reviewed 2–20 file transactions, server-configured validation tasks, disk-backed Studio run history, and fail-closed restart reconciliation are implemented on draft PR #2. Recovered active/unknown remote work is never resubmitted automatically.
 
 Current continuation order:
 
-1. Multi-file reviewed edits and configured validation tasks.
-2. Criterion-specific gameplay acceptance checks with inspectable evidence.
-3. Real PC acceptance: Matterhorn → Flyrail → Godot, Windows paths, provider setup, failures/cancellation, restart recovery and visual/gameplay checks.
-4. Blender integration after the real Matterhorn/Flyrail/Godot gate passes.
+1. Criterion-specific gameplay acceptance checks with inspectable evidence.
+2. Real PC acceptance: Matterhorn → Flyrail → Godot, Windows paths, provider setup, failures/cancellation, restart recovery and visual/gameplay checks.
+3. Blender integration after the real Matterhorn/Flyrail/Godot gate passes.
+4. Continue broader workspace migration (new files, diagnostic/repair sessions, semantic project context) without making VS Code a dependency.
 
 Broader workspace migrations remain tracked in `docs/WORKSPACE-MIGRATION.md`. Update this handoff and the implementation plan as milestones change, keeping the standalone direction explicit.
 

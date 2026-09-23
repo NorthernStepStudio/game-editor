@@ -5,6 +5,8 @@ Initial inspected baseline: `c350263afbb371a63ddd421fdb5c7e81054af1c3` on `feat/
 
 Integrated the concurrent Phase 3 commit `242de254f92c74f5186e55b97cb35be3724a4afb`; the review branch is based on that newer commit.
 
+Phase 3C (`a56b22b92aca86334e2d078c9d33a32cc8d1c781`) added disk-backed Studio history and fail-closed restart reconciliation; GitHub Actions run `35866393474` passed on Ubuntu and Windows. Phase 3D through `695323ccea65bb8a6fc53cd3baa145839154fc7e` added reviewed multi-file transactions, server-configured validation tasks, standalone UI controls, and end-to-end regression coverage; GitHub Actions run `35868076819` passed on Ubuntu and Windows.
+
 ## Delivered in this change
 
 - Canonical Matterhorn package identity, standalone README/start path and default core/server build. Optional extension retained but excluded from default workspaces.
@@ -15,6 +17,10 @@ Integrated the concurrent Phase 3 commit `242de254f92c74f5186e55b97cb35be3724a4a
 - Native Node WebSocket transport, shared connection, report requestId correction and uncertain-timeout handling.
 - An explicit live controller gate and corrected legacy integration assertions. Missing prerequisites fail rather than create a green skipped gate.
 - Ubuntu/Windows deterministic CI workflow.
+- Atomic disk-backed Studio snapshots and read-only restart reconciliation; uncertain mutations are never resubmitted.
+- Reviewed multi-file transactions for 2–20 existing files with all-file preflight, journaled apply/rollback, stale-version protection, and fail-closed partial-restart reconciliation.
+- Server-configured workspace validation tasks (`MATTERHORN_VALIDATIONS`) execute with `shell: false`; the browser receives task IDs/names only and cannot supply a command.
+- Honest mock-provider default and explicit local-provider selection; stale error notices clear after a successful health recheck.
 
 ## Verification performed here
 
@@ -23,13 +29,13 @@ Integrated the concurrent Phase 3 commit `242de254f92c74f5186e55b97cb35be3724a4a
 | Clean npm installation | PASS |
 | Core and server TypeScript compilation | PASS |
 | Existing core and server smoke checks | PASS |
-| New controller, evidence, transport, API and simulated DOM tests | PASS — 23 tests |
+| Controller, persistence, workspace transaction/validation, API and DOM/integration tests | PASS — 41/41 on latest Ubuntu CI |
 | Existing Flyrail adapter unit checks | PASS — 28 checks |
 | Native WebSocket fragmented 70 KB responses, concurrent requests and timeout | PASS against a local test server |
 | UI navigation, project selection, plan review, run/cancel display, chat history | PASS in jsdom with simulated API responses |
 | Live Flyrail/Godot controller gate | NOT PASSED — daemon/Godot unavailable in this environment; command exited 1 |
 | Rendered browser/screenshot validation | NOT RUN — Chromium absent; installation returned invalid/truncated downloads |
-| Windows CI | Configured, not claimed as executed locally |
+| Ubuntu + Windows CI | PASS — latest Phase 3D run 35868076819 |
 
 Deterministic tests do not establish real Godot execution or visual UI quality. No merge or release promotion was performed.
 
@@ -45,7 +51,7 @@ Use the review branch in a separate checkout so existing local edits are preserv
 6. Review and run a supported Godot request. For baseline gate validation use the exact criteria `Godot validation passes`, `Scenario checks pass`, and `QA checks pass`. Add `Playtest passes` only when the project has a genuine supported playtest. Read the returned evidence; generic gates do not prove requested gameplay behavior.
 7. Confirm failure cases: daemon offline, missing project, unsupported/custom criterion and deliberately failing disposable validation. None may show completed.
 8. Request cancellation mid-run. The UI must state pending cancellation while Flyrail continues; downstream tasks must not start. On unconfirmed timeout the controller must prevent another run. Stop/check remote work before restarting.
-9. Refresh the browser during a run and reopen its activity. Download evidence. Restart Matterhorn and confirm the UI explains that in-memory history is gone; it must not imply resumed execution.
+9. Refresh the browser during a run and reopen its activity. Download evidence. Restart Matterhorn and confirm saved run history returns. If Flyrail still reports recovered work active/unknown, Matterhorn must remain fail-closed and block overlapping work; it must not resubmit the mutation.
 10. Record Matterhorn/Flyrail commit IDs, Godot/Node versions, exact commands, exit codes, screenshots and evidence paths. Do not merge until this gate passes.
 
 ## Explicit limitations and later work
@@ -53,7 +59,7 @@ Use the review branch in a separate checkout so existing local edits are preserv
 - The UI plans one Godot execution task; the core scheduler supports DAGs. An autonomous multi-domain natural-language planner is not implemented by this change.
 - The current Flyrail evidence schema proves four named gate checks only. Arbitrary feature acceptance needs domain-specific tests/evidence and currently stays blocked. This is a capability limitation, not something a PC smoke test removes.
 - Flyrail does not provide active loop cancellation. Matterhorn cannot safely manufacture that capability; it exposes the limitation and blocks unsafe overlapping runs.
-- State is in memory as agreed for this phase. Durable storage, restart reconciliation, remote execution recovery and multi-user service hosting remain later milestones.
+- Studio snapshot/evidence metadata is durable on disk and restart reconciliation is implemented. Matterhorn deliberately does not resume an uncertain mutation. Multi-user service hosting and true remote cancellation remain later work.
 - Existing extension-only workspace editing/review tools are not all migrated into the standalone UI. The extension stays optional as migration reference.
 - Blender control, rendering/visual validation and cross-tool asset import are subsequent milestones after this integration is accepted. This change is not the entire long-term autonomous studio roadmap.
 
@@ -67,6 +73,6 @@ Intentional behavior changes: generic successful summaries cannot prove acceptan
 
 The prior commit `ccad4df440064b42b99fea3bc4bf43c361a697fb` passed GitHub Actions on both Ubuntu and Windows (run 35810822353). This continuation adds standalone file browsing/search, AI file assistance, persistent reviewed edits, safe restore, and interrupted-write reconciliation.
 
-Local verification after the workspace changes: core/server compilation and smoke checks PASS; 30 Node/DOM/integration tests PASS; 28 adapter checks PASS. The new end-to-end workspace test connects the Projects DOM to the real local HTTP server and edits/restores a real disposable file. Cloud provider output is not validated by mock tests. Rendered visual QA and the real Flyrail/Godot gate remain pending PC checks. CI for the new commit must be checked separately.
+Latest CI verification: core/server compilation and smoke checks PASS; 41/41 Node/DOM/integration tests PASS on Ubuntu; the same deterministic workflow passes on Windows; existing Flyrail adapter checks remain part of `npm run check`. End-to-end Projects tests use the real local HTTP server and disposable files to cover single-file review/restore, a two-file reviewed transaction/apply/rollback, and a configured validation process. Cloud provider output is not validated by mock tests. Rendered visual QA and the real Flyrail/Godot gate remain pending PC checks.
 
 Additional PC checks: use a disposable ordinary source project, browse/search a file, create a manual edit, inspect both versions, apply, restart the server, then restore. Change the file externally before apply/restore and verify rejection. Configure a real provider and confirm a returned concrete proposal remains pending until approved. Keep real project directories out of simultaneous editing/running sessions.

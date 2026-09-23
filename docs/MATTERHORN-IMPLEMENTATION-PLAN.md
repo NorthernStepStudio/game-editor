@@ -4,7 +4,7 @@
 
 **Matterhorn is its own standalone AI assistant and Studio application. It is not a VS Code extension product.** All milestones below serve this direction. The primary implementation is `core/`, `server/` and `web/`; VS Code is not a runtime requirement. `extension/` is optional legacy integration retained for migration reference. Do not turn next-step recommendations into extension packaging, Marketplace publishing or VS Code command work unless the user explicitly requests that scope.
 
-The standalone foundation, single-file workspace migration, and **persistent Studio run/evidence history with fail-closed restart recovery** are delivered on the active draft PR. The next coding milestone is **multi-file reviewed edits and configured validation tasks**, followed by criterion-specific gameplay proof. PC acceptance is still pending, and Blender remains after that gate. Read [AGENTS.md](../AGENTS.md) for agent handoff guidance.
+The standalone foundation, persistent Studio history/restart recovery, reviewed multi-file change sets, and server-configured validation tasks are delivered on the active draft PR. The next coding milestone is **criterion-specific gameplay proof with inspectable evidence**. PC acceptance is still pending, and Blender remains after that gate. Read [AGENTS.md](../AGENTS.md) for agent handoff guidance.
 
 Baseline inspected: `c350263afbb371a63ddd421fdb5c7e81054af1c3`, branch `feat/studio-orchestration-foundation`. Canonical repository: NorthernStepStudio/matterhorn. This plan covers the standalone Matterhorn/Flyrail milestone agreed September 23, 2026; unrelated Morning Hub and video-editor work is excluded.
 
@@ -21,7 +21,7 @@ Baseline inspected: `c350263afbb371a63ddd421fdb5c7e81054af1c3`, branch `feat/stu
 
 ## Boundaries
 
-Matterhorn owns intent, plans, scheduling, state, approvals and final validation. Flyrail owns Godot execution/repair/playtesting/export. Browser never receives the daemon token. In-memory run state is acceptable for this phase but restart loss must be visible; durable recovery and resuming remote work require a later state-store migration. No automatic merges, force pushes or release promotion.
+Matterhorn owns intent, plans, scheduling, durable local run state, approvals and final validation. Flyrail owns Godot execution/repair/playtesting/export. Browser never receives the daemon token. Restart reconciliation is read-only for uncertain remote execution; Matterhorn does not automatically resume or resubmit a mutation. No automatic merges, force pushes or release promotion.
 
 ## Definition of done
 
@@ -33,4 +33,4 @@ Implementation rebased on the concurrent Phase 3 commit `242de254f92c74f5186e55b
 
 Delivered on the active draft PR: project browsing, bounded text search, file assistance and reviewed single-file changes in Projects. Backups and proposal state persist independently of Studio run state. Stale files and active known Studio executions block conflicting writes. Track the complete migration boundary in WORKSPACE-MIGRATION.md; keep the optional extension until its remaining features have replacements.
 
-Delivered after the workspace migration: durable Studio history with restart reconciliation. Interrupted execution is queried read-only and remains unconfirmed while remote work is still active; mutations are never automatically resubmitted. Next: multi-file review transactions and configured validation tasks; criterion-specific gameplay proof; then the real PC acceptance gate. Blender remains after that gate.
+Delivered after the initial workspace migration: durable Studio history with read-only restart reconciliation, reviewed multi-file transactions, and server-configured validation tasks. Interrupted remote execution remains unconfirmed while active/unknown and mutations are never automatically resubmitted. Next: criterion-specific gameplay proof; then the real PC acceptance gate. Blender remains after that gate.

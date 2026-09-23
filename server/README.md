@@ -18,6 +18,7 @@ Shared runtime lives in `core/` (`@nss/m-core`). The optional VS Code extension 
 - `POST /api/studio/runs/:id/cancel` — request cancellation
 - `GET /api/studio/runs/:id/events` — SSE run updates
 - `GET /api/studio/runs/:id/evidence` — inspectable task results/evidence refs
+- `/api/workspace/*` — bounded source browsing/search, single-file review, multi-file transaction review/apply/rollback, and configured validation tasks
 
 Security controls: loopback bind, same-origin checks, 64 KiB body limit, static path confinement, CSP, no CORS ACAO, one active Studio run at a time. Unknown projects and malformed plans are rejected. Studio snapshots and evidence metadata persist under `MATTERHORN_DATA_DIR` (default `.matterhorn`) and are reconciled read-only after restart; uncertain mutations are never resubmitted automatically.
 
@@ -47,6 +48,14 @@ FLYRAIL_REPO_ROOT=/absolute/path/to/flyrail
 ```
 
 Or `FLYRAIL_DAEMON_URL` + `FLYRAIL_DAEMON_TOKEN`. Never put the daemon token in browser code.
+
+Optional workspace validation commands are configured server-side only:
+
+```text
+MATTERHORN_VALIDATIONS=[{"id":"tests","name":"Project tests","projectId":"my-game","command":"npm","args":["test"],"timeoutMs":120000}]
+```
+
+Matterhorn passes the executable and argument array directly to the local process API with `shell: false`. The browser can request a configured validation ID but cannot send a command.
 
 ## Checks
 

@@ -8,7 +8,7 @@ Matterhorn is Northern Step Studio's standalone local AI assistant and Studio co
 
 Build the primary experience in `web/`, `server/` and `core/`: Chat, Studio, Projects, Evidence and Settings. The existing `extension/` is optional legacy integration and migration reference. Its age or feature count does not make extension development the project priority. Bring useful capabilities into the standalone app; do not make new core workflows depend on VS Code.
 
-**Current state:** persistent Studio run/evidence history and fail-closed restart recovery are now implemented. **Next engineering milestone:** multi-file reviewed edits and configured validation tasks, followed by criterion-specific gameplay checks. Real PC/Flyrail/Godot and visual acceptance remains outstanding; Blender follows that gate.
+**Current state:** persistent Studio run/evidence history, fail-closed restart recovery, reviewed multi-file change sets, and server-configured validation tasks are implemented. **Next engineering milestone:** criterion-specific gameplay checks with inspectable evidence, followed by the real PC/Flyrail/Godot and visual acceptance gate. Blender follows that gate.
 
 Agents should read [AGENTS.md](AGENTS.md) and the [current implementation plan](docs/MATTERHORN-IMPLEMENTATION-PLAN.md) before proposing next steps. Older extension-oriented material describes legacy context, not the current product direction.
 
@@ -48,7 +48,7 @@ The current Flyrail schema can prove these exact gate criteria from its persiste
 
 Custom acceptance criteria remain **blocked** until the execution system supplies verifiable criterion-specific evidence. Passing generic gates does not prove arbitrary gameplay requirements. Matterhorn checks persisted bundle identity, matching gate values and confinement to the project's evidence directory. Missing evidence never produces a completed Studio run.
 
-Cancellation stops further scheduling. Flyrail currently cannot stop an active `loop.run`; Matterhorn waits for it to settle. On uncertain timeout the run stays cancellation-requested and new runs are blocked. Inspect/stop remote work before restarting the server. Run history is in memory; export evidence before restart.
+Cancellation stops further scheduling. Flyrail currently cannot stop an active `loop.run`; Matterhorn waits for it to settle. On uncertain timeout the run stays cancellation-requested and new runs are blocked. Studio snapshots persist under `MATTERHORN_DATA_DIR`; after restart Matterhorn reconciles remote status/result read-only and never resubmits an uncertain mutation.
 
 ## Providers
 
@@ -80,10 +80,10 @@ Blender remains a subsequent milestone after the Matterhorn/Flyrail live gate pa
 Open **Projects**, choose a configured project, then browse or search source files. Workspace tools support ordinary source projects as well as Godot projects; only Studio execution requires `project.godot`.
 
 - Read a file and use **Explain**, **Plan change**, **Propose edit**, or **Diagnose error**. These actions send the saved file and up to 200 source filenames to the selected chat provider.
-- Edit the text manually, then choose **Review my changes**. Nothing is written until **Approve and apply**.
+- Edit the text manually, then choose **Review this file** for a single-file proposal, or add edits from multiple existing files to a **change set**. Nothing is written until you approve the reviewed proposal or transaction.
 - Review before/after content, reject a proposal, or restore an applied edit. A changed file version blocks apply/restore instead of overwriting newer work.
-- Backups and review status persist in the repository's `.matterhorn/workspace-reviews` directory, independent of launch working directory. Set `MATTERHORN_DATA_DIR` to an absolute path to store them elsewhere.
+- Backups, single-file reviews, multi-file transaction journals, and Studio snapshots persist under `MATTERHORN_DATA_DIR` (default `.matterhorn`). Multi-file apply preflights every file, journals progress, rolls back known partial writes on immediate failure, and becomes `conflict` rather than guessing after an ambiguous restart.
 
-The current workflow handles one existing UTF-8 source file at a time, up to 32 KiB. It excludes hidden/generated paths, linked files and common credential patterns. This is not comprehensive secret detection; review file contents before sending them to a cloud provider. Search is literal and bounded, not a semantic index. AI tool-call output is never executed by these routes. Mock providers produce explanations but no concrete edits.
+The current workflow handles existing UTF-8 source files up to 32 KiB each; a reviewed multi-file transaction supports 2–20 files. New-file creation and delete/rename operations are not exposed yet. Hidden/generated paths, linked files and common credential patterns are excluded. This is not comprehensive secret detection; review file contents before sending them to a cloud provider. Search is literal and bounded, not a semantic index. AI tool-call output is never executed by these routes. Mock providers produce explanations but no concrete edits.
 
-Apply/restore is blocked while a known Studio run is active. Run state is still in memory, so confirm remote Flyrail work has stopped before restarting the server and editing the same project. See `docs/WORKSPACE-MIGRATION.md` for delivered and remaining extension migrations.
+Apply/restore, multi-file transactions, and configured validation tasks are blocked while a known Studio run is active. Validation commands come only from server-side `MATTERHORN_VALIDATIONS` configuration and run without a shell; the browser can select an approved task ID but cannot submit a command. See `docs/WORKSPACE-MIGRATION.md` for delivered and remaining extension migrations.

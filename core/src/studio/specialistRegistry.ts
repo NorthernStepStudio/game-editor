@@ -73,7 +73,37 @@ export const STUDIO_SPECIALISTS: readonly NssStudioSpecialist[] = [
       {
         id: "blender.create",
         domain: "blender",
-        description: "Create and modify Blender scenes, meshes, materials, rigs, animation, lighting, and procedural content.",
+        description: "Create and modify Blender scenes, meshes, materials, lighting, and procedural content via structured operations.",
+      },
+      {
+        id: "blender.rig.create",
+        domain: "blender",
+        description: "Create armatures and named bones for skinned character assets.",
+      },
+      {
+        id: "blender.rig.skin",
+        domain: "blender",
+        description: "Parent meshes to armatures and assign automatic weights.",
+      },
+      {
+        id: "blender.animation.create",
+        domain: "blender",
+        description: "Create animation actions and insert bone keyframes (idle/walk/run foundation).",
+      },
+      {
+        id: "blender.animation.inspect",
+        domain: "blender",
+        description: "Inspect animation actions present in a Blender scene.",
+      },
+      {
+        id: "blender.character.inspect",
+        domain: "blender",
+        description: "Inspect skeleton and character export readiness.",
+      },
+      {
+        id: "blender.export.character_glb",
+        domain: "blender",
+        description: "Export skinned animated character GLB for Godot.",
       },
       {
         id: "blender.art",

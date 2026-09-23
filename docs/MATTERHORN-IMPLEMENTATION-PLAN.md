@@ -4,7 +4,7 @@
 
 **Matterhorn is its own standalone AI assistant and Studio application. It is not a VS Code extension product.** All milestones below serve this direction. The primary implementation is `core/`, `server/` and `web/`; VS Code is not a runtime requirement. `extension/` is optional legacy integration retained for migration reference. Do not turn next-step recommendations into extension packaging, Marketplace publishing or VS Code command work unless the user explicitly requests that scope.
 
-The standalone foundation and single-file workspace migration are delivered on the active draft PR. The next coding milestone is **persistent Studio run/evidence history and safe restart recovery**. Then come multi-file reviewed edits, configured validation tasks and criterion-specific gameplay proof. PC acceptance is still pending, and Blender remains after that gate. Read [AGENTS.md](../AGENTS.md) for agent handoff guidance.
+The standalone foundation, single-file workspace migration, and **persistent Studio run/evidence history with fail-closed restart recovery** are delivered on the active draft PR. The next coding milestone is **multi-file reviewed edits and configured validation tasks**, followed by criterion-specific gameplay proof. PC acceptance is still pending, and Blender remains after that gate. Read [AGENTS.md](../AGENTS.md) for agent handoff guidance.
 
 Baseline inspected: `c350263afbb371a63ddd421fdb5c7e81054af1c3`, branch `feat/studio-orchestration-foundation`. Canonical repository: NorthernStepStudio/matterhorn. This plan covers the standalone Matterhorn/Flyrail milestone agreed September 23, 2026; unrelated Morning Hub and video-editor work is excluded.
 
@@ -33,4 +33,4 @@ Implementation rebased on the concurrent Phase 3 commit `242de254f92c74f5186e55b
 
 Delivered on the active draft PR: project browsing, bounded text search, file assistance and reviewed single-file changes in Projects. Backups and proposal state persist independently of Studio run state. Stale files and active known Studio executions block conflicting writes. Track the complete migration boundary in WORKSPACE-MIGRATION.md; keep the optional extension until its remaining features have replacements.
 
-After this: durable Studio history with restart reconciliation (interrupted execution must remain unconfirmed); multi-file review transactions and configured validation tasks; criterion-specific gameplay proof; then the real PC acceptance gate. Blender remains after that gate.
+Delivered after the workspace migration: durable Studio history with restart reconciliation. Interrupted execution is queried read-only and remains unconfirmed while remote work is still active; mutations are never automatically resubmitted. Next: multi-file review transactions and configured validation tasks; criterion-specific gameplay proof; then the real PC acceptance gate. Blender remains after that gate.

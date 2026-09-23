@@ -8,7 +8,7 @@ Matterhorn is Northern Step Studio's standalone local AI assistant and Studio co
 
 Build the primary experience in `web/`, `server/` and `core/`: Chat, Studio, Projects, Evidence and Settings. The existing `extension/` is optional legacy integration and migration reference. Its age or feature count does not make extension development the project priority. Bring useful capabilities into the standalone app; do not make new core workflows depend on VS Code.
 
-**Next engineering milestone:** persistent Studio run/evidence history and safe restart recovery, followed by multi-file reviewed edits, configured validation tasks and criterion-specific gameplay checks. Real PC/Flyrail/Godot and visual acceptance remains outstanding; Blender follows that gate.
+**Current state:** persistent Studio run/evidence history and fail-closed restart recovery are now implemented. **Next engineering milestone:** multi-file reviewed edits and configured validation tasks, followed by criterion-specific gameplay checks. Real PC/Flyrail/Godot and visual acceptance remains outstanding; Blender follows that gate.
 
 Agents should read [AGENTS.md](AGENTS.md) and the [current implementation plan](docs/MATTERHORN-IMPLEMENTATION-PLAN.md) before proposing next steps. Older extension-oriented material describes legacy context, not the current product direction.
 

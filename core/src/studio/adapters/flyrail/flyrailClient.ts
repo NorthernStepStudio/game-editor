@@ -128,7 +128,7 @@ export class FlyrailClient {
     this.httpBaseUrl = options.httpBaseUrl ?? `http://${host}:${port}`;
 
     this.connectTimeoutMs = options.connectTimeoutMs ?? 10_000;
-    this.requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
+    this.requestTimeoutMs = options.requestTimeoutMs ?? 120_000;
   }
 
   // ── Health (HTTP) ───────────────────────────────────────────────

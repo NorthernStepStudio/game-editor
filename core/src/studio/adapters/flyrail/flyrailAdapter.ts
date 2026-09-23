@@ -205,11 +205,11 @@ export class FlyrailAdapter implements SpecialistAdapter {
 
   async getTaskStatus(taskId: string): Promise<SpecialistTaskStatus> {
     const active = this.activeRuns.get(taskId);
-    if (active && active.status !== "running") {
+    if (active) {
       return {
         taskId,
         specialistId: "flyrail",
-        phase: active.status === "completed" ? "completed" : "failed",
+        phase: active.status === "completed" ? "completed" : active.status === "failed" ? "failed" : "running",
         detail: active.status,
       };
     }

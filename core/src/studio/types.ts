@@ -32,12 +32,14 @@ export interface NssStudioSpecialist {
 export type NssStudioTaskStatus =
   | "planned"
   | "ready"
+  | "accepted"
   | "running"
   | "blocked"
   | "validating"
   | "completed"
   | "failed"
-  | "cancelled";
+  | "cancelled"
+  | "unknown";
 
 export interface NssStudioArtifactRef {
   readonly kind: string;
@@ -61,6 +63,7 @@ export interface NssStudioTask {
   readonly status: NssStudioTaskStatus;
   readonly dependsOn: readonly string[];
   readonly acceptanceCriteria: readonly string[];
+  readonly requiredCapabilities?: readonly string[];
   readonly inputArtifacts?: readonly NssStudioArtifactRef[];
   readonly outputArtifacts?: readonly NssStudioArtifactRef[];
 }
@@ -81,6 +84,7 @@ export interface NssStudioPlanTaskInput {
   readonly specialistId?: NssStudioSpecialistId;
   readonly dependsOn?: readonly string[];
   readonly acceptanceCriteria: readonly string[];
+  readonly requiredCapabilities?: readonly string[];
   readonly inputArtifacts?: readonly NssStudioArtifactRef[];
 }
 

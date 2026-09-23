@@ -27,6 +27,7 @@ export function createStudioPlan(input: NssStudioPlanInput): NssStudioPlan {
     status: "planned",
     dependsOn: (task.dependsOn ?? []).map((dependency) => dependency.trim()),
     acceptanceCriteria: task.acceptanceCriteria.map((criterion) => criterion.trim()),
+    requiredCapabilities: task.requiredCapabilities?.map((cap) => cap.trim()),
     inputArtifacts: task.inputArtifacts,
   }));
 

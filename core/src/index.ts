@@ -13,3 +13,5 @@ export * from "./studio/types.js";
 export * from "./studio/specialistRegistry.js";
 export * from "./studio/orchestrator.js";
 export * from "./studio/adapters/index.js";
+export * from "./studio/run/index.js";
+

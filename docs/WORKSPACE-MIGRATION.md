@@ -1,5 +1,7 @@
 # Standalone workspace migration
 
+**Primary direction: Matterhorn is a standalone AI assistant and Studio application.** This document tracks capabilities moving into the standalone app; it is not a roadmap for expanding the VS Code extension. See [AGENTS.md](../AGENTS.md) and the [implementation plan](MATTERHORN-IMPLEMENTATION-PLAN.md) for current priorities.
+
 ## Delivered
 
 | Extension capability | Standalone replacement |

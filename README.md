@@ -2,6 +2,16 @@
 
 Matterhorn is Northern Step Studio's standalone local AI assistant and Studio coordinator. Use **Chat** to discuss work and **Studio** to review and run Godot tasks through Flyrail. VS Code is not required.
 
+## Main project direction: standalone Matterhorn
+
+**Matterhorn is being built as its own standalone AI assistant and Studio application. It is not a VS Code extension product, and VS Code must not be required to use it.** This direction governs feature work, architecture and recommendations about what to do next.
+
+Build the primary experience in `web/`, `server/` and `core/`: Chat, Studio, Projects, Evidence and Settings. The existing `extension/` is optional legacy integration and migration reference. Its age or feature count does not make extension development the project priority. Bring useful capabilities into the standalone app; do not make new core workflows depend on VS Code.
+
+**Next engineering milestone:** persistent Studio run/evidence history and safe restart recovery, followed by multi-file reviewed edits, configured validation tasks and criterion-specific gameplay checks. Real PC/Flyrail/Godot and visual acceptance remains outstanding; Blender follows that gate.
+
+Agents should read [AGENTS.md](AGENTS.md) and the [current implementation plan](docs/MATTERHORN-IMPLEMENTATION-PLAN.md) before proposing next steps. Older extension-oriented material describes legacy context, not the current product direction.
+
 ## Start
 
 Requires Node.js 22 or newer and npm.

@@ -197,7 +197,7 @@ export function buildHumanoidPrototypeTaskSpec(workingDirectory: string): Blende
       { kind: "png", name: "humanoid-preview.png", required: true, minBytes: 1 },
       { kind: "png", name: "humanoid-view-front.png", required: true, minBytes: 1 },
       { kind: "png", name: "humanoid-view-side.png", required: true, minBytes: 1 },
-      { kind: "png", name: "humanoid-view-three_quarter.png", required: true, minBytes: 1 },
+      { kind: "png", name: "humanoid-view-three-quarter.png", required: true, minBytes: 1 },
       { kind: "glb", name: "humanoid.glb", required: true, minBytes: 1 },
       { kind: "json", name: "blender-report.json", required: true, minBytes: 1 },
     ],

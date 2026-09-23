@@ -1,0 +1,1624 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "t-yun-player-base-flyrail",
+  "executionId": "346b7723-69a9-4672-8d65-79a9a554d7ba",
+  "handoffId": "h-yun-flyrail",
+  "blenderVersion": "5.2.1 LTS",
+  "startedAt": "2026-09-23T20:13:14.635390+00:00",
+  "endedAt": "2026-09-23T20:13:17.662907+00:00",
+  "requestedOperations": [
+    {
+      "op": "scene.new",
+      "sceneName": "YunPlayerBase"
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Skin",
+      "baseColor": [
+        0.78,
+        0.56,
+        0.4,
+        1
+      ],
+      "roughness": 0.55
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_TeamShirt",
+      "baseColor": [
+        0.95,
+        0.72,
+        0.18,
+        1
+      ],
+      "roughness": 0.45
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Shorts",
+      "baseColor": [
+        0.12,
+        0.18,
+        0.32,
+        1
+      ],
+      "roughness": 0.6
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Shoes",
+      "baseColor": [
+        0.92,
+        0.92,
+        0.94,
+        1
+      ],
+      "roughness": 0.4
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Accent",
+      "baseColor": [
+        0.15,
+        0.85,
+        0.55,
+        1
+      ],
+      "roughness": 0.35
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Head",
+      "primitive": "uv_sphere",
+      "radius": 0.16,
+      "location": [
+        0,
+        0,
+        1.58
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Torso",
+      "primitive": "cube",
+      "size": 0.5,
+      "location": [
+        0,
+        0,
+        1.12
+      ],
+      "scale": [
+        0.72,
+        0.38,
+        0.85
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Pelvis",
+      "primitive": "cube",
+      "size": 0.42,
+      "location": [
+        0,
+        0,
+        0.72
+      ],
+      "scale": [
+        0.78,
+        0.4,
+        0.42
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_UpperArm_L",
+      "primitive": "cylinder",
+      "radius": 0.055,
+      "depth": 0.32,
+      "location": [
+        0.34,
+        0,
+        1.22
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_ForeArm_L",
+      "primitive": "cylinder",
+      "radius": 0.045,
+      "depth": 0.3,
+      "location": [
+        0.5,
+        0,
+        0.98
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Hand_L",
+      "primitive": "cube",
+      "size": 0.12,
+      "location": [
+        0.58,
+        0,
+        0.8
+      ],
+      "scale": [
+        0.7,
+        0.45,
+        1.1
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_UpperArm_R",
+      "primitive": "cylinder",
+      "radius": 0.055,
+      "depth": 0.32,
+      "location": [
+        -0.34,
+        0,
+        1.22
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_ForeArm_R",
+      "primitive": "cylinder",
+      "radius": 0.045,
+      "depth": 0.3,
+      "location": [
+        -0.5,
+        0,
+        0.98
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Hand_R",
+      "primitive": "cube",
+      "size": 0.12,
+      "location": [
+        -0.58,
+        0,
+        0.8
+      ],
+      "scale": [
+        0.7,
+        0.45,
+        1.1
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Thigh_L",
+      "primitive": "cylinder",
+      "radius": 0.07,
+      "depth": 0.38,
+      "location": [
+        0.12,
+        0,
+        0.5
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Shin_L",
+      "primitive": "cylinder",
+      "radius": 0.055,
+      "depth": 0.36,
+      "location": [
+        0.12,
+        0,
+        0.2
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Foot_L",
+      "primitive": "cube",
+      "size": 0.18,
+      "location": [
+        0.12,
+        0.06,
+        0.04
+      ],
+      "scale": [
+        0.7,
+        1.35,
+        0.4
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Thigh_R",
+      "primitive": "cylinder",
+      "radius": 0.07,
+      "depth": 0.38,
+      "location": [
+        -0.12,
+        0,
+        0.5
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Shin_R",
+      "primitive": "cylinder",
+      "radius": 0.055,
+      "depth": 0.36,
+      "location": [
+        -0.12,
+        0,
+        0.2
+      ]
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "Mesh_Foot_R",
+      "primitive": "cube",
+      "size": 0.18,
+      "location": [
+        -0.12,
+        0.06,
+        0.04
+      ],
+      "scale": [
+        0.7,
+        1.35,
+        0.4
+      ]
+    },
+    {
+      "op": "mesh.bevel",
+      "target": "Mesh_Torso",
+      "width": 0.02,
+      "segments": 2
+    },
+    {
+      "op": "mesh.bevel",
+      "target": "Mesh_Pelvis",
+      "width": 0.015,
+      "segments": 2
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Head",
+      "material": "MAT_Skin"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Torso",
+      "material": "MAT_TeamShirt"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Pelvis",
+      "material": "MAT_Shorts"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_UpperArm_L",
+      "material": "MAT_TeamShirt"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_ForeArm_L",
+      "material": "MAT_Skin"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Hand_L",
+      "material": "MAT_Skin"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_UpperArm_R",
+      "material": "MAT_TeamShirt"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_ForeArm_R",
+      "material": "MAT_Skin"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Hand_R",
+      "material": "MAT_Skin"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Thigh_L",
+      "material": "MAT_Shorts"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Shin_L",
+      "material": "MAT_Skin"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Foot_L",
+      "material": "MAT_Shoes"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Thigh_R",
+      "material": "MAT_Shorts"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Shin_R",
+      "material": "MAT_Skin"
+    },
+    {
+      "op": "material.assign",
+      "target": "Mesh_Foot_R",
+      "material": "MAT_Shoes"
+    },
+    {
+      "op": "rig.create_armature",
+      "name": "Armature",
+      "location": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Root",
+      "head": [
+        0,
+        0,
+        0
+      ],
+      "tail": [
+        0,
+        0,
+        0.12
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Hips",
+      "parent": "Root",
+      "head": [
+        0,
+        0,
+        0.58
+      ],
+      "tail": [
+        0,
+        0,
+        0.78
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Spine",
+      "parent": "Hips",
+      "head": [
+        0,
+        0,
+        0.78
+      ],
+      "tail": [
+        0,
+        0,
+        1.05
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Chest",
+      "parent": "Spine",
+      "head": [
+        0,
+        0,
+        1.05
+      ],
+      "tail": [
+        0,
+        0,
+        1.32
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Neck",
+      "parent": "Chest",
+      "head": [
+        0,
+        0,
+        1.32
+      ],
+      "tail": [
+        0,
+        0,
+        1.45
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Head",
+      "parent": "Neck",
+      "head": [
+        0,
+        0,
+        1.45
+      ],
+      "tail": [
+        0,
+        0,
+        1.7
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "UpperArm_L",
+      "parent": "Chest",
+      "head": [
+        0.2,
+        0,
+        1.28
+      ],
+      "tail": [
+        0.38,
+        0,
+        1.12
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "ForeArm_L",
+      "parent": "UpperArm_L",
+      "head": [
+        0.38,
+        0,
+        1.12
+      ],
+      "tail": [
+        0.52,
+        0,
+        0.92
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Hand_L",
+      "parent": "ForeArm_L",
+      "head": [
+        0.52,
+        0,
+        0.92
+      ],
+      "tail": [
+        0.6,
+        0,
+        0.78
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "UpperArm_R",
+      "parent": "Chest",
+      "head": [
+        -0.2,
+        0,
+        1.28
+      ],
+      "tail": [
+        -0.38,
+        0,
+        1.12
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "ForeArm_R",
+      "parent": "UpperArm_R",
+      "head": [
+        -0.38,
+        0,
+        1.12
+      ],
+      "tail": [
+        -0.52,
+        0,
+        0.92
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Hand_R",
+      "parent": "ForeArm_R",
+      "head": [
+        -0.52,
+        0,
+        0.92
+      ],
+      "tail": [
+        -0.6,
+        0,
+        0.78
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Thigh_L",
+      "parent": "Hips",
+      "head": [
+        0.12,
+        0,
+        0.7
+      ],
+      "tail": [
+        0.12,
+        0,
+        0.38
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Shin_L",
+      "parent": "Thigh_L",
+      "head": [
+        0.12,
+        0,
+        0.38
+      ],
+      "tail": [
+        0.12,
+        0,
+        0.08
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Foot_L",
+      "parent": "Shin_L",
+      "head": [
+        0.12,
+        0,
+        0.08
+      ],
+      "tail": [
+        0.12,
+        0.14,
+        0.04
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Thigh_R",
+      "parent": "Hips",
+      "head": [
+        -0.12,
+        0,
+        0.7
+      ],
+      "tail": [
+        -0.12,
+        0,
+        0.38
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Shin_R",
+      "parent": "Thigh_R",
+      "head": [
+        -0.12,
+        0,
+        0.38
+      ],
+      "tail": [
+        -0.12,
+        0,
+        0.08
+      ]
+    },
+    {
+      "op": "rig.create_bone",
+      "armature": "Armature",
+      "name": "Foot_R",
+      "parent": "Shin_R",
+      "head": [
+        -0.12,
+        0,
+        0.08
+      ],
+      "tail": [
+        -0.12,
+        0.14,
+        0.04
+      ]
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Head",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Head",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Torso",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Torso",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Pelvis",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Pelvis",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_UpperArm_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_UpperArm_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_ForeArm_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_ForeArm_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Hand_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Hand_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_UpperArm_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_UpperArm_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_ForeArm_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_ForeArm_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Hand_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Hand_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Thigh_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Thigh_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Shin_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Shin_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Foot_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Foot_L",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Thigh_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Thigh_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Shin_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Shin_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.parent_mesh",
+      "mesh": "Mesh_Foot_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "rig.assign_weights",
+      "mesh": "Mesh_Foot_R",
+      "armature": "Armature"
+    },
+    {
+      "op": "animation.create_action",
+      "name": "idle",
+      "armature": "Armature",
+      "frameStart": 1,
+      "frameEnd": 48
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "Spine",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "Spine",
+      "frame": 24,
+      "rotationEulerDeg": [
+        3,
+        0,
+        1
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "Spine",
+      "frame": 48,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "Chest",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "Chest",
+      "frame": 24,
+      "rotationEulerDeg": [
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "Chest",
+      "frame": 48,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "UpperArm_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        5,
+        0,
+        8
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "UpperArm_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        5,
+        0,
+        -8
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "UpperArm_L",
+      "frame": 24,
+      "rotationEulerDeg": [
+        8,
+        0,
+        10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "UpperArm_R",
+      "frame": 24,
+      "rotationEulerDeg": [
+        8,
+        0,
+        -10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "UpperArm_L",
+      "frame": 48,
+      "rotationEulerDeg": [
+        5,
+        0,
+        8
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "idle",
+      "bone": "UpperArm_R",
+      "frame": 48,
+      "rotationEulerDeg": [
+        5,
+        0,
+        -8
+      ]
+    },
+    {
+      "op": "animation.create_action",
+      "name": "walk",
+      "armature": "Armature",
+      "frameStart": 1,
+      "frameEnd": 32
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "Thigh_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        28,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "Thigh_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        -28,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "UpperArm_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        -20,
+        0,
+        5
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "UpperArm_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        20,
+        0,
+        -5
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "Thigh_L",
+      "frame": 16,
+      "rotationEulerDeg": [
+        -28,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "Thigh_R",
+      "frame": 16,
+      "rotationEulerDeg": [
+        28,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "UpperArm_L",
+      "frame": 16,
+      "rotationEulerDeg": [
+        20,
+        0,
+        5
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "UpperArm_R",
+      "frame": 16,
+      "rotationEulerDeg": [
+        -20,
+        0,
+        -5
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "Thigh_L",
+      "frame": 32,
+      "rotationEulerDeg": [
+        28,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "Thigh_R",
+      "frame": 32,
+      "rotationEulerDeg": [
+        -28,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "UpperArm_L",
+      "frame": 32,
+      "rotationEulerDeg": [
+        -20,
+        0,
+        5
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "walk",
+      "bone": "UpperArm_R",
+      "frame": 32,
+      "rotationEulerDeg": [
+        20,
+        0,
+        -5
+      ]
+    },
+    {
+      "op": "animation.create_action",
+      "name": "run",
+      "armature": "Armature",
+      "frameStart": 1,
+      "frameEnd": 20
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "Thigh_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        48,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "Thigh_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        -48,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "UpperArm_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        -35,
+        0,
+        8
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "UpperArm_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        35,
+        0,
+        -8
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "Chest",
+      "frame": 1,
+      "rotationEulerDeg": [
+        8,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "Thigh_L",
+      "frame": 10,
+      "rotationEulerDeg": [
+        -48,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "Thigh_R",
+      "frame": 10,
+      "rotationEulerDeg": [
+        48,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "UpperArm_L",
+      "frame": 10,
+      "rotationEulerDeg": [
+        35,
+        0,
+        8
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "UpperArm_R",
+      "frame": 10,
+      "rotationEulerDeg": [
+        -35,
+        0,
+        -8
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "Chest",
+      "frame": 10,
+      "rotationEulerDeg": [
+        12,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "Thigh_L",
+      "frame": 20,
+      "rotationEulerDeg": [
+        48,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "Thigh_R",
+      "frame": 20,
+      "rotationEulerDeg": [
+        -48,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "UpperArm_L",
+      "frame": 20,
+      "rotationEulerDeg": [
+        -35,
+        0,
+        8
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "UpperArm_R",
+      "frame": 20,
+      "rotationEulerDeg": [
+        35,
+        0,
+        -8
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "run",
+      "bone": "Chest",
+      "frame": 20,
+      "rotationEulerDeg": [
+        8,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "light.create",
+      "name": "Light_Key",
+      "type": "SUN",
+      "location": [
+        4,
+        -4,
+        6
+      ],
+      "energy": 3.8,
+      "rotationEulerDeg": [
+        45,
+        15,
+        45
+      ]
+    },
+    {
+      "op": "light.create",
+      "name": "Light_Fill",
+      "type": "POINT",
+      "location": [
+        -2.5,
+        2.5,
+        2.2
+      ],
+      "energy": 40
+    },
+    {
+      "op": "camera.create",
+      "name": "Camera_Main",
+      "location": [
+        2.6,
+        -2.8,
+        1.5
+      ],
+      "rotationEulerDeg": [
+        72,
+        0,
+        42
+      ],
+      "setActive": true
+    },
+    {
+      "op": "file.save_blend",
+      "outputName": "yun_player_base.blend"
+    },
+    {
+      "op": "render.preview",
+      "outputName": "yun_player_base-preview.png",
+      "width": 720,
+      "height": 720
+    },
+    {
+      "op": "render.multi_view",
+      "outputPrefix": "yun_player_base",
+      "views": [
+        "front",
+        "side",
+        "back",
+        "three_quarter"
+      ],
+      "width": 640,
+      "height": 640
+    },
+    {
+      "op": "export.character_glb",
+      "outputName": "yun_player_base.glb"
+    },
+    {
+      "op": "animation.inspect"
+    },
+    {
+      "op": "character.inspect"
+    }
+  ],
+  "completedOperations": [
+    "scene.new",
+    "material.create:MAT_Skin",
+    "material.create:MAT_TeamShirt",
+    "material.create:MAT_Shorts",
+    "material.create:MAT_Shoes",
+    "material.create:MAT_Accent",
+    "mesh.create_primitive:Mesh_Head",
+    "mesh.create_primitive:Mesh_Torso",
+    "mesh.create_primitive:Mesh_Pelvis",
+    "mesh.create_primitive:Mesh_UpperArm_L",
+    "mesh.create_primitive:Mesh_ForeArm_L",
+    "mesh.create_primitive:Mesh_Hand_L",
+    "mesh.create_primitive:Mesh_UpperArm_R",
+    "mesh.create_primitive:Mesh_ForeArm_R",
+    "mesh.create_primitive:Mesh_Hand_R",
+    "mesh.create_primitive:Mesh_Thigh_L",
+    "mesh.create_primitive:Mesh_Shin_L",
+    "mesh.create_primitive:Mesh_Foot_L",
+    "mesh.create_primitive:Mesh_Thigh_R",
+    "mesh.create_primitive:Mesh_Shin_R",
+    "mesh.create_primitive:Mesh_Foot_R",
+    "mesh.bevel:Mesh_Torso",
+    "mesh.bevel:Mesh_Pelvis",
+    "material.assign:Mesh_Head",
+    "material.assign:Mesh_Torso",
+    "material.assign:Mesh_Pelvis",
+    "material.assign:Mesh_UpperArm_L",
+    "material.assign:Mesh_ForeArm_L",
+    "material.assign:Mesh_Hand_L",
+    "material.assign:Mesh_UpperArm_R",
+    "material.assign:Mesh_ForeArm_R",
+    "material.assign:Mesh_Hand_R",
+    "material.assign:Mesh_Thigh_L",
+    "material.assign:Mesh_Shin_L",
+    "material.assign:Mesh_Foot_L",
+    "material.assign:Mesh_Thigh_R",
+    "material.assign:Mesh_Shin_R",
+    "material.assign:Mesh_Foot_R",
+    "rig.create_armature:Armature",
+    "rig.create_bone:Root",
+    "rig.create_bone:Hips",
+    "rig.create_bone:Spine",
+    "rig.create_bone:Chest",
+    "rig.create_bone:Neck",
+    "rig.create_bone:Head",
+    "rig.create_bone:UpperArm_L",
+    "rig.create_bone:ForeArm_L",
+    "rig.create_bone:Hand_L",
+    "rig.create_bone:UpperArm_R",
+    "rig.create_bone:ForeArm_R",
+    "rig.create_bone:Hand_R",
+    "rig.create_bone:Thigh_L",
+    "rig.create_bone:Shin_L",
+    "rig.create_bone:Foot_L",
+    "rig.create_bone:Thigh_R",
+    "rig.create_bone:Shin_R",
+    "rig.create_bone:Foot_R",
+    "rig.parent_mesh:Mesh_Head",
+    "rig.assign_weights:Mesh_Head",
+    "rig.parent_mesh:Mesh_Torso",
+    "rig.assign_weights:Mesh_Torso",
+    "rig.parent_mesh:Mesh_Pelvis",
+    "rig.assign_weights:Mesh_Pelvis",
+    "rig.parent_mesh:Mesh_UpperArm_L",
+    "rig.assign_weights:Mesh_UpperArm_L",
+    "rig.parent_mesh:Mesh_ForeArm_L",
+    "rig.assign_weights:Mesh_ForeArm_L",
+    "rig.parent_mesh:Mesh_Hand_L",
+    "rig.assign_weights:Mesh_Hand_L",
+    "rig.parent_mesh:Mesh_UpperArm_R",
+    "rig.assign_weights:Mesh_UpperArm_R",
+    "rig.parent_mesh:Mesh_ForeArm_R",
+    "rig.assign_weights:Mesh_ForeArm_R",
+    "rig.parent_mesh:Mesh_Hand_R",
+    "rig.assign_weights:Mesh_Hand_R",
+    "rig.parent_mesh:Mesh_Thigh_L",
+    "rig.assign_weights:Mesh_Thigh_L",
+    "rig.parent_mesh:Mesh_Shin_L",
+    "rig.assign_weights:Mesh_Shin_L",
+    "rig.parent_mesh:Mesh_Foot_L",
+    "rig.assign_weights:Mesh_Foot_L",
+    "rig.parent_mesh:Mesh_Thigh_R",
+    "rig.assign_weights:Mesh_Thigh_R",
+    "rig.parent_mesh:Mesh_Shin_R",
+    "rig.assign_weights:Mesh_Shin_R",
+    "rig.parent_mesh:Mesh_Foot_R",
+    "rig.assign_weights:Mesh_Foot_R",
+    "animation.create_action:idle",
+    "animation.insert_keyframe:idle:Spine:1",
+    "animation.insert_keyframe:idle:Spine:24",
+    "animation.insert_keyframe:idle:Spine:48",
+    "animation.insert_keyframe:idle:Chest:1",
+    "animation.insert_keyframe:idle:Chest:24",
+    "animation.insert_keyframe:idle:Chest:48",
+    "animation.insert_keyframe:idle:UpperArm_L:1",
+    "animation.insert_keyframe:idle:UpperArm_R:1",
+    "animation.insert_keyframe:idle:UpperArm_L:24",
+    "animation.insert_keyframe:idle:UpperArm_R:24",
+    "animation.insert_keyframe:idle:UpperArm_L:48",
+    "animation.insert_keyframe:idle:UpperArm_R:48",
+    "animation.create_action:walk",
+    "animation.insert_keyframe:walk:Thigh_L:1",
+    "animation.insert_keyframe:walk:Thigh_R:1",
+    "animation.insert_keyframe:walk:UpperArm_L:1",
+    "animation.insert_keyframe:walk:UpperArm_R:1",
+    "animation.insert_keyframe:walk:Thigh_L:16",
+    "animation.insert_keyframe:walk:Thigh_R:16",
+    "animation.insert_keyframe:walk:UpperArm_L:16",
+    "animation.insert_keyframe:walk:UpperArm_R:16",
+    "animation.insert_keyframe:walk:Thigh_L:32",
+    "animation.insert_keyframe:walk:Thigh_R:32",
+    "animation.insert_keyframe:walk:UpperArm_L:32",
+    "animation.insert_keyframe:walk:UpperArm_R:32",
+    "animation.create_action:run",
+    "animation.insert_keyframe:run:Thigh_L:1",
+    "animation.insert_keyframe:run:Thigh_R:1",
+    "animation.insert_keyframe:run:UpperArm_L:1",
+    "animation.insert_keyframe:run:UpperArm_R:1",
+    "animation.insert_keyframe:run:Chest:1",
+    "animation.insert_keyframe:run:Thigh_L:10",
+    "animation.insert_keyframe:run:Thigh_R:10",
+    "animation.insert_keyframe:run:UpperArm_L:10",
+    "animation.insert_keyframe:run:UpperArm_R:10",
+    "animation.insert_keyframe:run:Chest:10",
+    "animation.insert_keyframe:run:Thigh_L:20",
+    "animation.insert_keyframe:run:Thigh_R:20",
+    "animation.insert_keyframe:run:UpperArm_L:20",
+    "animation.insert_keyframe:run:UpperArm_R:20",
+    "animation.insert_keyframe:run:Chest:20",
+    "light.create",
+    "light.create",
+    "camera.create",
+    "file.save_blend:yun_player_base.blend",
+    "render.preview:yun_player_base-preview.png",
+    "render.multi_view",
+    "export.character_glb:yun_player_base.glb",
+    "animation.inspect",
+    "character.inspect"
+  ],
+  "outputArtifacts": [
+    {
+      "kind": "blend",
+      "name": "yun_player_base.blend",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\t-yun-player-base-flyrail\\yun_player_base.blend",
+      "sizeBytes": 135337
+    },
+    {
+      "kind": "glb",
+      "name": "yun_player_base.glb",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\t-yun-player-base-flyrail\\yun_player_base.glb",
+      "sizeBytes": 275200
+    },
+    {
+      "kind": "json",
+      "name": "yun_player_base-report.json",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\t-yun-player-base-flyrail\\yun_player_base-report.json",
+      "sizeBytes": 12718
+    },
+    {
+      "kind": "json",
+      "name": "blender-report.json",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\t-yun-player-base-flyrail\\blender-report.json",
+      "sizeBytes": 12718
+    },
+    {
+      "kind": "png",
+      "name": "yun_player_base-front.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\t-yun-player-base-flyrail\\yun_player_base-front.png",
+      "sizeBytes": 159147
+    },
+    {
+      "kind": "png",
+      "name": "yun_player_base-side.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\t-yun-player-base-flyrail\\yun_player_base-side.png",
+      "sizeBytes": 153252
+    },
+    {
+      "kind": "png",
+      "name": "yun_player_base-back.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\t-yun-player-base-flyrail\\yun_player_base-back.png",
+      "sizeBytes": 156770
+    },
+    {
+      "kind": "png",
+      "name": "yun_player_base-three-quarter.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\t-yun-player-base-flyrail\\yun_player_base-three-quarter.png",
+      "sizeBytes": 156248
+    },
+    {
+      "kind": "png",
+      "name": "yun_player_base-preview.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\t-yun-player-base-flyrail\\yun_player_base-preview.png",
+      "sizeBytes": 209127
+    }
+  ],
+  "render": {
+    "previews": [
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-flyrail-ccGm4F/t-yun-player-base-flyrail\\yun_player_base-preview.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-flyrail-ccGm4F/t-yun-player-base-flyrail\\yun_player_base-front.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-flyrail-ccGm4F/t-yun-player-base-flyrail\\yun_player_base-side.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-flyrail-ccGm4F/t-yun-player-base-flyrail\\yun_player_base-back.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-flyrail-ccGm4F/t-yun-player-base-flyrail\\yun_player_base-three-quarter.png"
+    ]
+  },
+  "geometry": {
+    "vertices": 1042,
+    "edges": 1832,
+    "polygons": 820,
+    "meshObjects": 15
+  },
+  "materials": {
+    "count": 5,
+    "names": [
+      "MAT_Accent",
+      "MAT_Shoes",
+      "MAT_Shorts",
+      "MAT_Skin",
+      "MAT_TeamShirt"
+    ]
+  },
+  "exportInfo": {
+    "animations": [
+      "idle",
+      "run",
+      "walk"
+    ],
+    "skins": true
+  },
+  "skeleton": {
+    "armatureName": "Armature",
+    "boneNames": [
+      "Root",
+      "Hips",
+      "Spine",
+      "Chest",
+      "Neck",
+      "Head",
+      "UpperArm_L",
+      "ForeArm_L",
+      "Hand_L",
+      "UpperArm_R",
+      "ForeArm_R",
+      "Hand_R",
+      "Thigh_L",
+      "Shin_L",
+      "Foot_L",
+      "Thigh_R",
+      "Shin_R",
+      "Foot_R"
+    ]
+  },
+  "warnings": [],
+  "errors": [],
+  "status": "completed"
+}

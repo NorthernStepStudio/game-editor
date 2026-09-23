@@ -117,7 +117,7 @@ export interface RenderPreviewOp extends BlenderOperationBase {
 export interface RenderMultiViewOp extends BlenderOperationBase {
   readonly op: "render.multi_view";
   readonly outputPrefix: string;
-  readonly views?: readonly ("front" | "side" | "three_quarter" | "top")[];
+  readonly views?: readonly ("front" | "side" | "back" | "three_quarter" | "top")[];
   readonly width?: number;
   readonly height?: number;
 }

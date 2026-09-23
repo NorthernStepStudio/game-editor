@@ -158,18 +158,25 @@ completed.append("render.preview:${op.outputName}")
               ? "(0, -4.5, 1.6)"
               : view === "side"
                 ? "(4.5, 0, 1.6)"
-                : view === "top"
-                  ? "(0, 0, 5.5)"
-                  : "(3.2, -3.2, 2.6)";
+                : view === "back"
+                  ? "(0, 4.5, 1.6)"
+                  : view === "top"
+                    ? "(0, 0, 5.5)"
+                    : "(3.2, -3.2, 2.6)";
           const rot =
             view === "front"
               ? "(math.radians(80), 0, 0)"
               : view === "side"
                 ? "(math.radians(80), 0, math.radians(90))"
-                : view === "top"
-                  ? "(0, 0, 0)"
-                  : "(math.radians(60), 0, math.radians(45))";
-          const file = `${op.outputPrefix}-${view}.png`;
+                : view === "back"
+                  ? "(math.radians(80), 0, math.radians(180))"
+                  : view === "top"
+                    ? "(0, 0, 0)"
+                    : "(math.radians(60), 0, math.radians(45))";
+          const file =
+            view === "three_quarter"
+              ? `${op.outputPrefix}-three-quarter.png`
+              : `${op.outputPrefix}-${view}.png`;
           return `
 cam.location = ${loc}
 cam.rotation_euler = ${rot}
@@ -456,6 +463,12 @@ ${indentedBody}
         with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
         print("Wrote blender-report.json", report_path)
+        asset_report = os.path.join(WORK_DIR, ${pyStr(`${spec.assetName}-report.json`)})
+        assert_under_work(asset_report)
+        with open(asset_report, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2)
+        artifacts[${pyStr(`${spec.assetName}-report.json`)}] = asset_report
+        print("Wrote asset report", asset_report)
 
 if __name__ == "__main__":
     main()

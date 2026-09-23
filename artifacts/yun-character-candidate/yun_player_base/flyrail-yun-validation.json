@@ -1,0 +1,58 @@
+{
+  "report": {
+    "ok": true,
+    "sessionId": "b8b39a7d-58fc-4088-a24c-135bc1c9fa5e",
+    "listedFiles": [],
+    "staticValidationOk": true,
+    "probe": {
+      "animationNames": [
+        "idle",
+        "run",
+        "walk"
+      ],
+      "childCount": 2,
+      "hasAnimationPlayer": true,
+      "hasSkeleton3D": true,
+      "missing": [],
+      "ok": true,
+      "rootName": "YunPlayerBase",
+      "matched": {
+        "idle": "idle",
+        "walk": "walk",
+        "sprint": "run",
+        "missing": []
+      }
+    },
+    "evidencePath": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-flyrail-ccGm4F\\godot-yun-candidate\\flyrail-character-probe.json",
+    "errors": [],
+    "warnings": [
+      "runtime.launch: connect ECONNREFUSED 127.0.0.1:7522"
+    ]
+  },
+  "motion": {
+    "aabbHeight": 1.73600001260638,
+    "animationNames": [
+      "idle",
+      "run",
+      "walk"
+    ],
+    "childName": "Kenney",
+    "hasAnimationPlayer": true,
+    "hasSkeleton3D": true,
+    "matched": {
+      "idle": "idle",
+      "walk": "walk",
+      "sprint": "run",
+      "missing": []
+    },
+    "motionSequence": [
+      "idle@idle",
+      "walk@walk",
+      "run@run",
+      "idle@idle"
+    ],
+    "ok": true,
+    "wrapperScale": 1.2
+  },
+  "blenderSummary": "Blender completed asset yun_player_base (executionId=346b7723-69a9-4672-8d65-79a9a554d7ba)"
+}

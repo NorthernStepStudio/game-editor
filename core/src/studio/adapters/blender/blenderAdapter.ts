@@ -18,6 +18,7 @@ import {
 } from "../types.js";
 import { validateExpectedArtifacts } from "./blenderArtifacts.js";
 import { buildCrateTaskSpec, buildHumanoidPrototypeTaskSpec } from "./blenderFixtures.js";
+import { buildYunPlayerBaseTaskSpec } from "./yunPlayerBaseFixture.js";
 import {
   assertResultMatchesExecution,
   createTaskManifest,
@@ -132,6 +133,14 @@ export class BlenderAdapter implements SpecialistAdapter {
     }
 
     const goal = handoff.goal.toLowerCase();
+    if (
+      goal.includes("yun_player_base") ||
+      goal.includes("yun character") ||
+      goal.includes("yun player") ||
+      handoff.acceptanceCriteria.some((c) => c.toLowerCase().includes("yun_player_base"))
+    ) {
+      return validateBlenderTaskSpec(buildYunPlayerBaseTaskSpec(taskWorkDir));
+    }
     if (goal.includes("humanoid") || goal.includes("mannequin") || goal.includes("character prototype")) {
       return validateBlenderTaskSpec(buildHumanoidPrototypeTaskSpec(taskWorkDir));
     }
@@ -141,7 +150,7 @@ export class BlenderAdapter implements SpecialistAdapter {
 
     throw new SpecialistError(
       "INVALID_TASK",
-      "Blender task requires a validated blender task specification input artifact (or a known fixture goal: crate / humanoid).",
+      "Blender task requires a validated blender task specification input artifact (or a known fixture goal: crate / humanoid / yun_player_base).",
     );
   }
 

@@ -49,7 +49,7 @@ async function main(): Promise<void> {
     resolve(__dirname, "blenderFlyrailCharacterSlice.test.js"),
   ];
 
-  const res = spawnSync(process.execPath, ["--test", ...tests], {
+  const res = spawnSync(process.execPath, ["--test", "--test-force-exit", ...tests], {
     stdio: "inherit",
     env: process.env,
   });

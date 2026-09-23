@@ -20,3 +20,8 @@ export {
   type FlyrailGlbValidationReport,
   type CharacterProbeResult,
 } from "./flyrailAssetValidation.js";
+export {
+  writeYunWrapperMotionProbe,
+  runYunWrapperMotionProbe,
+  type YunWrapperMotionReport,
+} from "./yunCharacterValidation.js";

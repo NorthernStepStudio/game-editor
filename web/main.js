@@ -1,3 +1,4 @@
+import { initWorkspace } from './workspace.js';
 import { api, notice } from './api.js';
 import { initStudio, loadProjects, refreshRuns } from './studio.js';
 import { initChat } from './chat.js';
@@ -21,6 +22,6 @@ async function providers() {
   const describe = () => { const p = data.providers.find(p => p.id === select.value); document.querySelector('#provider-detail').textContent = `${p?.model || select.value}. ${select.value === 'mock' ? 'Mock responses do not execute or validate work.' : 'Provider credentials are configured on the server.'}`; };
   select.onchange = describe; describe();
 }
-initStudio(); initChat(); route(); window.addEventListener('hashchange', route);
+initStudio(); initChat(); initWorkspace(); route(); window.addEventListener('hashchange', route);
 document.querySelector('#recheck').onclick = () => health().catch(notice);
 for (const task of [health, providers, loadProjects, refreshRuns]) task().catch(notice);

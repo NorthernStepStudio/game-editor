@@ -1,3 +1,4 @@
+import { createWorkspaceRoutes } from "./workspace/routes.js";
 import { createStudioService } from "./services/studioService.js";
 import { studioRoutes } from "./services/studioRoutes.js";
 import * as fs from "node:fs";
@@ -54,6 +55,7 @@ export async function startNssWorkspaceAiServer(
     options.portStateFilePath === false ? undefined : options.portStateFilePath ?? resolveDefaultPortStateFilePath();
   if (!["127.0.0.1", "localhost", "::1"].includes(host)) throw new Error("Matterhorn standalone must bind to loopback.");
   const studio = createStudioService();
+  const workspaceRoutes = createWorkspaceRoutes(studio, config);
   const server = http.createServer(async (request, response) => {
     try {
       setCommonHeaders(response);
@@ -64,6 +66,7 @@ export async function startNssWorkspaceAiServer(
       if (request.method === 'POST' && !request.headers['content-type']?.startsWith('application/json')) {
         await respondJson(response, 415, { error: "Content-Type must be application/json." }); return;
       }
+      if (await workspaceRoutes(request, response, () => readJsonBody(request))) return;
       if (await studioRoutes(request, response, studio, () => readJsonBody(request))) return;
 
       if (request.method === "GET" && request.url === "/health") {

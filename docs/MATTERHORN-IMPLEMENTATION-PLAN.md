@@ -22,3 +22,9 @@ Matterhorn owns intent, plans, scheduling, state, approvals and final validation
 Each implemented item has automated evidence, each unsupported operation is visible, and all remaining work is named honestly. A mock test is not real Godot proof. PC testing cannot silently substitute for unfinished implementation. Record actual delivered scope and any environment blockers in `docs/MATTERHORN-VALIDATION.md`.
 
 Implementation rebased on the concurrent Phase 3 commit `242de254f92c74f5186e55b97cb35be3724a4afb`; see the validation report for API consolidation and intentional safety semantics.
+
+## Continuation: standalone workspace migration
+
+The next coding milestone migrates project browsing, bounded text search, file assistance and reviewed single-file changes into Projects. Backups and proposal state persist independently of Studio run state. Stale files and active known Studio executions block conflicting writes. Track the complete migration boundary in WORKSPACE-MIGRATION.md; keep the optional extension until its remaining features have replacements.
+
+After this: durable Studio history with restart reconciliation (interrupted execution must remain unconfirmed); multi-file review transactions and configured validation tasks; criterion-specific gameplay proof; then the real PC acceptance gate. Blender remains after that gate.

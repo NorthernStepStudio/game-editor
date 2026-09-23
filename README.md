@@ -64,3 +64,16 @@ npm run test:live
 - `docs/MATTERHORN-VALIDATION.md`: actual verification and PC checklist.
 
 Blender remains a subsequent milestone after the Matterhorn/Flyrail live gate passes. No automatic merges or release promotion.
+
+## Standalone workspace tools
+
+Open **Projects**, choose a configured project, then browse or search source files. Workspace tools support ordinary source projects as well as Godot projects; only Studio execution requires `project.godot`.
+
+- Read a file and use **Explain**, **Plan change**, **Propose edit**, or **Diagnose error**. These actions send the saved file and up to 200 source filenames to the selected chat provider.
+- Edit the text manually, then choose **Review my changes**. Nothing is written until **Approve and apply**.
+- Review before/after content, reject a proposal, or restore an applied edit. A changed file version blocks apply/restore instead of overwriting newer work.
+- Backups and review status persist in the repository's `.matterhorn/workspace-reviews` directory, independent of launch working directory. Set `MATTERHORN_DATA_DIR` to an absolute path to store them elsewhere.
+
+The current workflow handles one existing UTF-8 source file at a time, up to 32 KiB. It excludes hidden/generated paths, linked files and common credential patterns. This is not comprehensive secret detection; review file contents before sending them to a cloud provider. Search is literal and bounded, not a semantic index. AI tool-call output is never executed by these routes. Mock providers produce explanations but no concrete edits.
+
+Apply/restore is blocked while a known Studio run is active. Run state is still in memory, so confirm remote Flyrail work has stopped before restarting the server and editing the same project. See `docs/WORKSPACE-MIGRATION.md` for delivered and remaining extension migrations.

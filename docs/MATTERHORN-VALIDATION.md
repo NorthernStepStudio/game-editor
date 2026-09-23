@@ -62,3 +62,11 @@ Use the review branch in a separate checkout so existing local edits are preserv
 The upstream branch advanced during implementation. This change builds on `242de254` and keeps its public `StudioRunController({registry,...})`, `executeRun`, `cancelRun`, event, registry and injected-store interfaces. They delegate to the same execution engine used by the standalone API; there is no second scheduler. Snapshot events support the UI, while the existing event vocabulary and run shape remain available to callers. Required capabilities and output artifacts are enforced.
 
 Intentional behavior changes: generic successful summaries cannot prove acceptance; unknown submission outcomes are never automatically replayed; unsupported cancellation cannot produce a terminal cancelled state. The earlier controller tests that accepted summary-only evidence or retried mutations are superseded by stronger engine and public-API regression tests. Custom validators may add stricter checks but cannot bypass the evidence gate. The injected legacy store is a snapshot mirror; it does not implement restart recovery.
+
+## Workspace continuation validation
+
+The prior commit `ccad4df440064b42b99fea3bc4bf43c361a697fb` passed GitHub Actions on both Ubuntu and Windows (run 35810822353). This continuation adds standalone file browsing/search, AI file assistance, persistent reviewed edits, safe restore, and interrupted-write reconciliation.
+
+Local verification after the workspace changes: core/server compilation and smoke checks PASS; 30 Node/DOM/integration tests PASS; 28 adapter checks PASS. The new end-to-end workspace test connects the Projects DOM to the real local HTTP server and edits/restores a real disposable file. Cloud provider output is not validated by mock tests. Rendered visual QA and the real Flyrail/Godot gate remain pending PC checks. CI for the new commit must be checked separately.
+
+Additional PC checks: use a disposable ordinary source project, browse/search a file, create a manual edit, inspect both versions, apply, restart the server, then restore. Change the file externally before apply/restore and verify rejection. Configure a real provider and confirm a returned concrete proposal remains pending until approved. Keep real project directories out of simultaneous editing/running sessions.

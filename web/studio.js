@@ -8,6 +8,7 @@ export async function loadProjects() {
   for (const project of projects) { select.add(new Option(project.name, project.id)); list.append(el('h2', project.name), el('p', project.id, 'muted')); }
   if (!projects.length) list.append(el('p', 'No projects configured. Add MATTERHORN_PROJECTS to the server environment, then restart.'));
   document.querySelector('#review').disabled = !projects.length;
+  window.dispatchEvent(new window.CustomEvent('workspace-projects', { detail: projects }));
 }
 function renderRun(run) {
   const container = document.querySelector('#active-run'); container.replaceChildren(el('h3', run.plan.goal), el('p', run.status, 'badge'));

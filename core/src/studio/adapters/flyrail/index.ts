@@ -9,3 +9,14 @@ export {
   type FlyrailLoopStatus,
 } from "./flyrailMapper.js";
 export { fromJsonRpcError, fromTransportError } from "./flyrailErrors.js";
+export {
+  validateGlbThroughFlyrail,
+  prepareDisposableGlbProject,
+  runGodotEditorImport,
+  runGodotCharacterTreeProbe,
+  resolveDisposableGodotFixture,
+  DEFAULT_GODOT_BIN,
+  type FlyrailGlbValidationOptions,
+  type FlyrailGlbValidationReport,
+  type CharacterProbeResult,
+} from "./flyrailAssetValidation.js";

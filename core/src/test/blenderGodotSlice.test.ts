@@ -1,25 +1,35 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { test } from "node:test";
 import { BlenderAdapter, findBlenderExecutable } from "../studio/adapters/blender/index.js";
 import type { NssStudioHandoff } from "../studio/types.js";
 
-test("Full Cross-Tool Vertical Slice: Matterhorn -> BlenderAdapter -> crate.glb -> Godot Import -> Evidence", async () => {
+/**
+ * Bootstrap crate import check (direct Godot).
+ * This proves Matterhorn → BlenderAdapter → Blender → GLB → Godot.
+ * It does NOT prove Flyrail ownership — see blenderFlyrailCharacterSlice.test.ts.
+ */
+test("Blender→Godot crate import slice (direct Godot; not Flyrail)", async (t) => {
   const blenderBin = findBlenderExecutable();
-  const godotBin = "D:\\dev\\Northern Step Studio\\apps\\flyrail\\tools\\godot\\bin\\Godot_v4.7.2-stable_win64.exe";
+  const godotBin =
+    process.env.FLYRAIL_GODOT_BIN ||
+    process.env.MATTERHORN_GODOT_BIN ||
+    "D:\\dev\\Northern Step Studio\\apps\\flyrail\\tools\\godot\\bin\\Godot_v4.7.2-stable_win64.exe";
 
   if (!blenderBin || !existsSync(godotBin)) {
-    return; // Skip if binaries absent
+    t.diagnostic("SKIPPED — environment unavailable (Blender and/or Godot binary missing)");
+    return;
   }
+
+  const { spawnSync } = await import("node:child_process");
+  const { cpSync, writeFileSync } = await import("node:fs");
 
   const workDir = mkdtempSync(join(tmpdir(), "matterhorn-slice-test-"));
   const godotDir = join(workDir, "godot-fixture");
 
   try {
-    // 1. Matterhorn submits task to BlenderAdapter
     const blenderAdapter = new BlenderAdapter({ baseWorkDir: workDir });
     const handoff: NssStudioHandoff = {
       protocol: "nss.studio-handoff.v1",
@@ -45,17 +55,15 @@ test("Full Cross-Tool Vertical Slice: Matterhorn -> BlenderAdapter -> crate.glb 
     const glbArtifact = blenderResult.artifacts?.find((a) => a.kind === "glb");
     assert.ok(glbArtifact && existsSync(glbArtifact.uri));
 
-    // 2. Set up Godot disposable project fixture
     const fixtureSource = resolve(__dirname, "../../../core/src/test/fixtures/disposable-godot-project");
     cpSync(fixtureSource, godotDir, { recursive: true });
-
-    // Copy exported GLB into Godot project
     const importedGlbPath = join(godotDir, "crate.glb");
     cpSync(glbArtifact.uri, importedGlbPath);
 
-    // Write Godot import verification script
     const gdScriptPath = join(godotDir, "verify_crate_slice.gd");
-    const gdScriptCode = `@tool
+    writeFileSync(
+      gdScriptPath,
+      `@tool
 extends SceneTree
 
 func _init():
@@ -76,31 +84,26 @@ func _init():
 		return
 	print("SLICE_GODOT_OK node=", inst.name, " children=", inst.get_child_count())
 	quit(0)
-`;
-    const fs = await import("node:fs");
-    fs.writeFileSync(gdScriptPath, gdScriptCode, "utf8");
+`,
+      "utf8",
+    );
 
-    // 3. Run Godot asset import scan
     const importRes = spawnSync(godotBin, ["--path", godotDir, "--headless", "--editor", "--quit"], {
       encoding: "utf8",
     });
     assert.equal(importRes.status, 0);
 
-    // 4. Run Godot import verification script
-    const verifyRes = spawnSync(
-      godotBin,
-      ["--path", godotDir, "--headless", "-s", "verify_crate_slice.gd"],
-      { encoding: "utf8" },
-    );
+    const verifyRes = spawnSync(godotBin, ["--path", godotDir, "--headless", "-s", "verify_crate_slice.gd"], {
+      encoding: "utf8",
+    });
     assert.equal(verifyRes.status, 0);
-    assert.ok(verifyRes.stdout.includes("SLICE_GODOT_OK"));
+    assert.ok(String(verifyRes.stdout).includes("SLICE_GODOT_OK"));
 
-    // 5. Verify multi-specialist evidence aggregation
     const blendedEvidence = [
       ...(blenderResult.evidence || []),
       {
         kind: "test" as const,
-        summary: "Godot imported and instantiated crate.glb successfully",
+        summary: "Godot imported and instantiated crate.glb successfully (direct Godot; not Flyrail)",
         outcome: "passed" as const,
         uri: importedGlbPath,
       },

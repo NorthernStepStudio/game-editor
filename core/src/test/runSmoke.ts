@@ -3,6 +3,8 @@ import { strict as assert } from "node:assert";
 import { resolveAgentForRequest } from "../agents/router.js";
 import { createResponseOsRuntime } from "../core/runtime.js";
 import type { NssAskRequestPayload } from "../core/types.js";
+import { createStudioHandoff, createStudioPlan, validateStudioPlan } from "../studio/orchestrator.js";
+import { listStudioSpecialists } from "../studio/specialistRegistry.js";
 
 async function main(): Promise<void> {
   const request = createRequest();
@@ -65,6 +67,47 @@ async function main(): Promise<void> {
     },
   });
   assert.equal(stackByContent.id, "stack-expert");
+
+  const specialists = listStudioSpecialists();
+  assert.equal(specialists.find((specialist) => specialist.id === "matterhorn")?.availability, "available");
+  assert.equal(specialists.find((specialist) => specialist.id === "flyrail")?.availability, "integration-pending");
+  assert.equal(specialists.find((specialist) => specialist.id === "blender-engine")?.availability, "planned");
+
+  const studioPlan = createStudioPlan({
+    id: "castle-pipeline",
+    goal: "Create a castle asset in Blender and integrate it into a Godot game.",
+    tasks: [
+      {
+        id: "create-castle",
+        title: "Create castle asset",
+        goal: "Create and validate the castle in Blender.",
+        domain: "blender",
+        acceptanceCriteria: ["A validated game-ready asset is exported."],
+      },
+      {
+        id: "integrate-castle",
+        title: "Integrate castle",
+        goal: "Import the asset into Godot and validate it in-game.",
+        domain: "godot",
+        dependsOn: ["create-castle"],
+        acceptanceCriteria: ["The asset loads in Godot and passes the project validation checks."],
+      },
+    ],
+    finalAcceptanceCriteria: ["The castle is usable in the target Godot project."],
+  });
+
+  assert.equal(studioPlan.tasks[0]?.specialistId, "blender-engine");
+  assert.equal(studioPlan.tasks[1]?.specialistId, "flyrail");
+
+  const validation = validateStudioPlan(studioPlan);
+  assert.equal(validation.valid, true);
+  assert(validation.warnings.some((warning) => warning.includes("Blender Engine")));
+  assert(validation.warnings.some((warning) => warning.includes("Flyrail")));
+
+  const handoff = createStudioHandoff(studioPlan.tasks[0]!);
+  assert.equal(handoff.protocol, "nss.studio-handoff.v1");
+  assert.equal(handoff.from, "matterhorn");
+  assert.equal(handoff.to, "blender-engine");
 }
 
 function createRequest(): NssAskRequestPayload {

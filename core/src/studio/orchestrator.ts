@@ -25,8 +25,8 @@ export function createStudioPlan(input: NssStudioPlanInput): NssStudioPlan {
     domain: task.domain,
     specialistId: task.specialistId ?? resolveDefaultStudioSpecialist(task.domain),
     status: "planned",
-    dependsOn: task.dependsOn ?? [],
-    acceptanceCriteria: task.acceptanceCriteria,
+    dependsOn: (task.dependsOn ?? []).map((dependency) => dependency.trim()),
+    acceptanceCriteria: task.acceptanceCriteria.map((criterion) => criterion.trim()),
     inputArtifacts: task.inputArtifacts,
   }));
 
@@ -35,7 +35,7 @@ export function createStudioPlan(input: NssStudioPlanInput): NssStudioPlan {
     goal,
     createdAt: new Date().toISOString(),
     tasks,
-    finalAcceptanceCriteria: input.finalAcceptanceCriteria ?? [],
+    finalAcceptanceCriteria: (input.finalAcceptanceCriteria ?? []).map((criterion) => criterion.trim()),
   };
 
   const validation = validateStudioPlan(plan);
@@ -50,8 +50,17 @@ export function validateStudioPlan(plan: NssStudioPlan): NssStudioPlanValidation
   const errors: string[] = [];
   const warnings: string[] = [];
 
+  if (!plan.id.trim()) {
+    errors.push("Plan id must be non-empty.");
+  }
   if (!plan.goal.trim()) {
     errors.push("Plan goal must be non-empty.");
+  }
+  if (plan.tasks.length === 0) {
+    errors.push("Plan must contain at least one task.");
+  }
+  if (plan.finalAcceptanceCriteria.some((criterion) => !criterion.trim())) {
+    errors.push("Final acceptance criteria cannot contain blank entries.");
   }
 
   const ids = new Set<string>();
@@ -74,6 +83,11 @@ export function validateStudioPlan(plan: NssStudioPlan): NssStudioPlanValidation
     }
     if (task.acceptanceCriteria.length === 0) {
       errors.push(`Task ${task.id} must define at least one acceptance criterion.`);
+    } else if (task.acceptanceCriteria.some((criterion) => !criterion.trim())) {
+      errors.push(`Task ${task.id} acceptance criteria cannot contain blank entries.`);
+    }
+    if (task.dependsOn.some((dependency) => !dependency.trim())) {
+      errors.push(`Task ${task.id} dependencies cannot contain blank entries.`);
     }
 
     try {

@@ -69,7 +69,7 @@ function createTestHandoff(overrides: Partial<NssStudioHandoff> = {}): NssStudio
 
 function createTestLoopReport(overrides: Partial<FlyrailLoopReport> = {}): FlyrailLoopReport {
   return {
-    requestId: "req-1",
+    runId: "req-1",
     ok: true,
     stages: [
       { stage: "inspect", ok: true, detail: "inspected" },
@@ -134,9 +134,10 @@ async function main(): Promise<void> {
   // ── 4. Valid Godot task routing ──────────────────────────────────
   test("4. Valid Godot task — handoff maps to loop.run params", () => {
     const handoff = createTestHandoff();
-    const params = handoffToLoopRunParams(handoff, "d:\\dev\\test-project");
-    assert.equal(params.id, "task-godot-1");
-    assert.equal(params.projectPath, "d:\\dev\\test-project");
+    const params = handoffToLoopRunParams(handoff, "sess-123");
+    assert.equal(params.sessionId, "sess-123");
+    assert.equal(params.runId, "task-godot-1");
+    assert.equal(params.featureId, "task-godot-1");
     assert.equal(params.maxRepairAttempts, 3);
     assert(typeof params.text === "string");
     assert((params.text as string).includes("Create a player character"));
@@ -341,7 +342,7 @@ async function main(): Promise<void> {
 
   test("Result with no evidence still produces valid ExecutionResult", () => {
     const report: FlyrailLoopReport = {
-      requestId: "req-empty",
+      runId: "req-empty",
       ok: true,
     };
     const result = loopReportToExecutionResult("task-e", report);

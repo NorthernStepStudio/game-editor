@@ -1,0 +1,6 @@
+.flyrail/
+addons/
+scenes/
+scripts/
+.git/
+*.import

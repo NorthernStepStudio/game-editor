@@ -17,7 +17,8 @@ import type { SpecialistCapabilitySet } from "../types.js";
 
 /** Subset of LoopReport fields we need from Flyrail. */
 export interface FlyrailLoopReport {
-  requestId: string;
+  runId: string;
+  requestId?: string;
   ok: boolean;
   stages?: ReadonlyArray<{ stage: string; ok: boolean; detail: string }>;
   spec?: { title?: string; summary?: string } | null;
@@ -46,8 +47,9 @@ export interface FlyrailLoopReport {
 }
 
 export interface FlyrailLoopStatus {
-  requestId: string;
+  runId: string;
   status: string;
+  ok?: boolean | null;
   stage?: string;
   report?: FlyrailLoopReport | null;
 }
@@ -56,6 +58,13 @@ export interface FlyrailSystemPing {
   ok: boolean;
   protocolVersion: string;
   phase: number;
+}
+
+export interface FlyrailCapabilitiesResponse {
+  ok?: boolean;
+  protocolVersion?: string;
+  phase?: number;
+  capabilities?: string[];
 }
 
 // ── Capability mapping ──────────────────────────────────────────────
@@ -79,11 +88,16 @@ const PHASE_CAPABILITIES: ReadonlyArray<readonly [number, readonly string[]]> = 
 export function mapFlyrailCapabilities(
   protocolVersion: string,
   phase: number,
+  explicitCapabilities?: readonly string[],
 ): SpecialistCapabilitySet {
-  const capabilities: string[] = [];
-  for (const [phaseNumber, caps] of PHASE_CAPABILITIES) {
-    if (phase >= phaseNumber) {
-      capabilities.push(...caps);
+  let capabilities: string[] = [];
+  if (explicitCapabilities && explicitCapabilities.length > 0) {
+    capabilities = [...explicitCapabilities];
+  } else {
+    for (const [phaseNumber, caps] of PHASE_CAPABILITIES) {
+      if (phase >= phaseNumber) {
+        capabilities.push(...caps);
+      }
     }
   }
   return {
@@ -97,15 +111,17 @@ export function mapFlyrailCapabilities(
 
 /**
  * Translate a Matterhorn studio handoff into params for `loop.run`.
+ * Uses handoff.taskId for both runId and featureId, and requires an open sessionId.
  */
 export function handoffToLoopRunParams(
   handoff: NssStudioHandoff,
-  projectPath: string,
+  sessionId: string,
 ): Record<string, unknown> {
   return {
-    id: handoff.taskId,
+    sessionId,
+    runId: handoff.taskId,
+    featureId: handoff.taskId,
     text: buildFeatureText(handoff),
-    projectPath,
     maxRepairAttempts: 3,
     playtestMode: "auto",
   };

@@ -39,3 +39,8 @@ npm-debug.log*
 # Coverage
 coverage/
 .nyc_output/
+
+
+# Machine-local execution history and daemon credentials
+.matterhorn/
+.flyrail-daemon.json

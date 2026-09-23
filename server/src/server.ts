@@ -1,3 +1,5 @@
+import { createStudioService } from "./services/studioService.js";
+import { studioRoutes } from "./services/studioRoutes.js";
 import * as fs from "node:fs";
 import * as http from "node:http";
 import * as path from "node:path";
@@ -50,9 +52,19 @@ export async function startNssWorkspaceAiServer(
   const host = process.env.SERVER_HOST ?? "127.0.0.1";
   const portStateFilePath =
     options.portStateFilePath === false ? undefined : options.portStateFilePath ?? resolveDefaultPortStateFilePath();
+  if (!["127.0.0.1", "localhost", "::1"].includes(host)) throw new Error("Matterhorn standalone must bind to loopback.");
+  const studio = createStudioService();
   const server = http.createServer(async (request, response) => {
     try {
       setCommonHeaders(response);
+      const hostHeader = request.headers.host ?? "";
+      if (!/^(127\.0\.0\.1|localhost|\[::1\])(?::[0-9]+)?$/.test(hostHeader) || (request.headers.origin && request.headers.origin !== `http://${hostHeader}`) || request.headers['sec-fetch-site'] === 'cross-site') {
+        await respondJson(response, 403, { error: "Only same-origin local requests are accepted." }); return;
+      }
+      if (request.method === 'POST' && !request.headers['content-type']?.startsWith('application/json')) {
+        await respondJson(response, 415, { error: "Content-Type must be application/json." }); return;
+      }
+      if (await studioRoutes(request, response, studio, () => readJsonBody(request))) return;
 
       if (request.method === "GET" && request.url === "/health") {
         await respondJson(response, 200, createHealthResponse(config));
@@ -89,7 +101,8 @@ export async function startNssWorkspaceAiServer(
 
       if (request.method === "GET") {
         const urlPath = request.url?.split("?")[0] ?? "/";
-        const filePath = urlPath === "/" ? path.join(WEB_DIR, "index.html") : path.join(WEB_DIR, urlPath);
+        const filePath = path.resolve(WEB_DIR, urlPath === "/" ? "index.html" : `.${decodeURIComponent(urlPath)}`);
+        if (!filePath.startsWith(WEB_DIR + path.sep)) { await respondJson(response, 403, { error: "Invalid static path." }); return; }
         if (serveStaticFile(response, filePath)) {
           return;
         }
@@ -114,8 +127,7 @@ export async function startNssWorkspaceAiServer(
   return {
     server,
     port,
-    close: () =>
-      new Promise<void>((resolve, reject) => {
+    close: () => { studio.adapter.disconnect(); server.closeAllConnections(); return new Promise<void>((resolve, reject) => {
         server.close((error) => {
           if (error) {
             reject(error);
@@ -124,7 +136,7 @@ export async function startNssWorkspaceAiServer(
 
           resolve();
         });
-      }),
+      }); },
   };
 }
 
@@ -139,9 +151,12 @@ function createHealthResponse(config: NssWorkspaceAiServerConfig): NssHealthResp
 
 async function readJsonBody(request: http.IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = [];
+  let size = 0;
 
   await new Promise<void>((resolve, reject) => {
     request.on("data", (chunk) => {
+      size += Buffer.byteLength(chunk);
+      if (size > 65536) { reject(new Error("Request exceeds 64 KiB.")); return; }
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     });
     request.on("end", () => resolve());
@@ -194,9 +209,9 @@ async function handleStreamRequest(
 }
 
 function setCommonHeaders(response: http.ServerResponse): void {
-  response.setHeader("Access-Control-Allow-Origin", "*");
-  response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.setHeader("Referrer-Policy", "no-referrer");
+  response.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
 }
 
 async function listenOnAvailablePort(server: http.Server, requestedPort: number, host: string): Promise<number> {
@@ -257,3 +272,4 @@ function createListenError(port: number, host: string, error: unknown, fallbackA
 
   return new Error(`${prefix}: ${message}`, { cause: error instanceof Error ? error : undefined });
 }
+

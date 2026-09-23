@@ -14,6 +14,7 @@ export class SpecialistAdapterRegistry {
     if (!adapter || !adapter.specialistId) {
       throw new Error("Invalid specialist adapter: specialistId is required.");
     }
+    if (this.adapters.has(adapter.specialistId)) throw new Error(`Duplicate adapter: ${adapter.specialistId}`);
     this.adapters.set(adapter.specialistId, adapter);
   }
 
@@ -37,3 +38,4 @@ export class SpecialistAdapterRegistry {
     this.adapters.clear();
   }
 }
+

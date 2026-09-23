@@ -2,7 +2,7 @@
   "name": "nss-workspace-ai-server",
   "version": "0.1.0",
   "private": true,
-  "description": "Local NSS Workspace AI backend for the VS Code extension.",
+  "description": "Matterhorn standalone local server and Studio API.",
   "main": "./out/index.js",
   "scripts": {
     "compile": "npm --prefix ../core run compile && tsc -p ./",

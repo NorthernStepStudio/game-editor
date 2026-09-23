@@ -77,3 +77,10 @@ aggregate evidence -> validate -> repair/retry if needed -> complete
 ## Non-goals for this foundation
 
 This layer does not yet control Blender or Flyrail. It does not claim autonomous completion. It establishes the contracts and validation rules required before those integrations are allowed to execute work.
+
+
+## September 23 standalone implementation update
+
+The registry/orchestration foundation now has a `StudioRunController`, adapter registry, in-memory run store, events, bounded reads, cancellation tracking and criterion-based evidence validation. The server exposes Studio routes and the standalone web UI provides Chat/Studio/Projects/Evidence/Settings. The optional legacy extension is excluded from default builds.
+
+Flyrail's adapter exists; its registry availability remains integration-pending until the live PC gate passes. The earlier statement that no adapter exists is superseded by this update. Blender remains planned. Current implementation scope, supported gate criteria and known limitations are authoritative in README.md and MATTERHORN-VALIDATION.md. Roadmap items above are not claims of completed functionality.

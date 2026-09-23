@@ -1,126 +1,66 @@
-# 🏔️ Matterhorn VS Code Extension
+# Matterhorn
 
-**Matterhorn** is an AI-powered VS Code extension and local agent built by [Northern Step Studio](https://northernstepstudio.com). It provides workspace-aware AI assistance for coding, debugging, planning, and project management — all running locally.
+Matterhorn is Northern Step Studio's standalone local AI assistant and Studio coordinator. Use **Chat** to discuss work and **Studio** to review and run Godot tasks through Flyrail. VS Code is not required.
 
-## Repository Structure
+## Start
 
-```
-matterhorn-vscode/
-├── extension/              VS Code extension (sidebar, commands, review center)
-├── server/                 Local HTTP backend (/health, /ask)
-├── core/                   @nss/m-core — shared AI runtime (agents, providers, policies)
-├── bridges/
-│   └── synox-local-bridge/ Local reasoning bridge (LM Studio / Ollama)
-├── docs/                   Architecture, QA checklists, naming specs
-└── .vscode/                Debug launch configs (F5)
-```
+Requires Node.js 22 or newer and npm.
 
-## Components
-
-| Package | Name | Description |
-|---------|------|-------------|
-| `extension/` | `nss-workspace-ai` | VS Code extension — sidebar, 50+ commands, review center, diagnostic sessions |
-| `server/` | `nss-workspace-ai-server` | Local HTTP server exposing `/health` and `/ask` endpoints |
-| `core/` | `@nss/m-core` | Master Core — shared AI runtime with agents, providers, policies, and tools |
-| `bridges/synox-local-bridge/` | `@nstep/synox-local-bridge` | Local reasoning bridge for LM Studio / Ollama |
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js >= 18
-- VS Code >= 1.85.0
-
-### Install & Build
-
-```bash
-npm install
+```sh
+npm ci
 npm run compile
+npm start
 ```
 
-### Run in VS Code
+Open `http://127.0.0.1:3001`. If that port is occupied, the server reports a free port. Run `npm run dev:server` to compile and launch together.
 
-1. Open this repo in VS Code
-2. Press `F5` and select **Matterhorn (Full)** to launch both the server and extension
-3. Or select **Matterhorn Extension** / **Matterhorn Server** individually
+## Configure a Godot project
 
-### Run Server Standalone
+Set `MATTERHORN_PROJECTS` to a JSON array in your server environment or root `.env` file:
 
-```bash
-npm run dev:server
+```text
+MATTERHORN_PROJECTS=[{"id":"my-game","name":"My Game","path":"D:/dev/My Game"}]
+FLYRAIL_REPO_ROOT=D:/dev/Northern Step Studio/apps/flyrail
 ```
 
-Default: `http://127.0.0.1:3001`
+The project must already contain `project.godot`. Flyrail must be running on the same machine with access to Godot and the project. The adapter discovers `.flyrail-daemon.json` from `FLYRAIL_REPO_ROOT`. You may instead configure `FLYRAIL_DAEMON_URL` and `FLYRAIL_DAEMON_TOKEN` on the server. Never put the daemon token in browser code or commit it.
 
-## Extension Features
+Studio currently creates a single reviewed Godot task from your goal. The core controller also supports multi-task dependency plans. General-purpose chat does not execute changes. Project generation, autonomous arbitrary feature implementation and visual correctness depend on Flyrail's supported capabilities and must not be inferred from this UI.
 
-### Core AI Commands
-- **Ask Matterhorn** — workspace-aware AI chat
-- **Explain This File** — AI-powered file explanation
-- **Search Codebase** — semantic codebase search
-- **Plan Change** — AI-assisted change planning
-- **Propose Edit / Multi-File Change** — review-first code proposals
+## Acceptance and evidence
 
-### Diagnostics & Debugging
-- **Start Diagnostic Session** — structured debugging from task failures
-- **Find Likely Error Files** — AI-assisted error location
-- **Compare Last Two Results** — diff task outcomes
-- **Save Repair Pattern** — learn from fixes
+The current Flyrail schema can prove these exact gate criteria from its persisted evidence bundle:
 
-### Studio & Project Management
-- **Switch Mode** (coding, debugging, product, marketing, research)
-- **Switch Preset** — workspace-specific configurations
-- **Run Workflow** — multi-step guided workflows
-- **Knowledge Packs** — rebuild and search workspace knowledge
-- **Review Center** — approve/reject/apply proposed changes
-- **Studio Dashboard** — cross-project overview
-- **Roadmap Notes** — track project roadmap items
+- `Godot validation passes`
+- `Scenario checks pass`
+- `QA checks pass`
+- `Playtest passes` (requires a real playtest result)
 
-## Provider Modes
+Custom acceptance criteria remain **blocked** until the execution system supplies verifiable criterion-specific evidence. Passing generic gates does not prove arbitrary gameplay requirements. Matterhorn checks persisted bundle identity, matching gate values and confinement to the project's evidence directory. Missing evidence never produces a completed Studio run.
 
-The server supports multiple AI provider backends:
+Cancellation stops further scheduling. Flyrail currently cannot stop an active `loop.run`; Matterhorn waits for it to settle. On uncertain timeout the run stays cancellation-requested and new runs are blocked. Inspect/stop remote work before restarting the server. Run history is in memory; export evidence before restart.
 
-| Mode | Description |
-|------|-------------|
-| `mock` | Returns mock responses (default, no API key needed) |
-| `off` | Disables AI responses |
-| `gemini` | Connects to Google Gemini API |
+## Providers
 
-### Gemini Setup
+Chat uses the existing server-side provider configuration: Gemini, OpenAI, Anthropic, Ollama or LM Studio. Set `M_CORE_PROVIDER_MODE` and the matching provider credentials/model on the server. The default without credentials is mock mode and is explicitly labeled. Settings shows provider availability without exposing secrets.
 
-```bash
-M_CORE_PROVIDER_MODE=gemini
-M_CORE_GEMINI_API_KEY=your-key-here
-M_CORE_GEMINI_MODEL=gemini-2.5-flash
-```
+## Verification
 
-## Development
-
-```bash
-# Compile all packages
-npm run compile
-
-# Compile individually
-npm run compile:core
-npm run compile:server
-npm run compile:extension
-
-# Watch mode
-npm run watch:core
-npm run watch:server
-npm run watch:extension
-
-# Run checks (compile + smoke tests)
+```sh
 npm run check
+npm run test:live
 ```
 
-## Branding
+`check` compiles and runs deterministic tests. `test:live` requires the real daemon and Godot, creates a disposable project in a path with spaces, initializes its Git baseline, and checks controller completion against persisted evidence. Missing prerequisites fail the live gate rather than pass through a skip. Reports are written to `.matterhorn/evidence/`.
 
-- **Matterhorn** — user-facing agent name (UI labels, commands)
-- **Synox** — core intelligence engine / runtime references
-- **NStep AI** — ecosystem umbrella term
-- **M-CORE / @nss/m-core** — shared runtime package
+## Structure
 
-## License
+- `core/src/studio/`: contracts, adapter registry, scheduler, run store and evidence validator.
+- `core/src/studio/adapters/flyrail/`: daemon protocol and persisted evidence checks.
+- `server/`: local HTTP APIs, project configuration and event streams.
+- `web/`: standalone Chat, Studio, Projects, Evidence and Settings.
+- `extension/`: optional legacy VS Code integration, excluded from the default installation/build; retained for migration reference.
+- `docs/MATTERHORN-IMPLEMENTATION-PLAN.md`: scope, order and acceptance.
+- `docs/MATTERHORN-VALIDATION.md`: actual verification and PC checklist.
 
-Private — Northern Step Studio. All rights reserved.
+Blender remains a subsequent milestone after the Matterhorn/Flyrail live gate passes. No automatic merges or release promotion.

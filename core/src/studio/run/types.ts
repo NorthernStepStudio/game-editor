@@ -22,6 +22,7 @@ export type NssStudioRunState =
   | "blocked"
   | "failed"
   | "completed"
+  | "cancel-requested"
   | "cancelled";
 
 export type NssStudioTaskRunState = NssStudioTaskStatus;
@@ -91,3 +92,4 @@ export interface StudioRunEvent {
 }
 
 export type StudioEventListener = (event: StudioRunEvent) => void;
+

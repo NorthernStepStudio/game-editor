@@ -17,7 +17,8 @@ import type { SpecialistCapabilitySet } from "../types.js";
 
 /** Subset of LoopReport fields we need from Flyrail. */
 export interface FlyrailLoopReport {
-  runId: string;
+  runId?: string;
+  criterionResults?: NssStudioExecutionResult["criterionResults"];
   requestId?: string;
   ok: boolean;
   stages?: ReadonlyArray<{ stage: string; ok: boolean; detail: string }>;
@@ -186,6 +187,8 @@ export function loopReportToExecutionResult(
       evidence.push({
         kind: "test",
         summary: ev.validationOk ? "Validation passed" : "Validation failed",
+        outcome: ev.validationOk ? "passed" : "failed",
+        uri: report.evidencePath,
       });
     }
 
@@ -193,6 +196,8 @@ export function loopReportToExecutionResult(
       evidence.push({
         kind: "test",
         summary: ev.scenarioOk ? "Scenario checks passed" : "Scenario checks failed",
+        outcome: ev.scenarioOk ? "passed" : "failed",
+        uri: report.evidencePath,
       });
     }
 
@@ -200,6 +205,8 @@ export function loopReportToExecutionResult(
       evidence.push({
         kind: "report",
         summary: ev.qaOk ? "QA passed" : "QA failed",
+        outcome: ev.qaOk ? "passed" : "failed",
+        uri: report.evidencePath,
       });
     }
 
@@ -207,6 +214,7 @@ export function loopReportToExecutionResult(
       evidence.push({
         kind: "report",
         summary: ev.playtestOk ? "Playtest passed" : "Playtest failed",
+        outcome: ev.playtestOk ? "passed" : "failed",
         uri: ev.playtestRunId ?? undefined,
       });
     }
@@ -249,6 +257,7 @@ export function loopReportToExecutionResult(
         evidence.push({
           kind: "log",
           summary: `Stage ${stage.stage} failed: ${stage.detail}`,
+          outcome: "failed",
         });
       }
     }
@@ -272,6 +281,7 @@ export function loopReportToExecutionResult(
     summary: summaryParts.join(" — ") || (report.ok ? "Task completed" : "Task failed"),
     artifacts: artifacts.length > 0 ? artifacts : undefined,
     evidence: evidence.length > 0 ? evidence : undefined,
+    criterionResults: report.criterionResults,
   };
 }
 
@@ -298,6 +308,7 @@ export function mapLoopStageToPhase(
       return "validating";
     case "commit":
     case "report":
+      return "validating";
     case "done":
       return "completed";
     case "diagnose":
@@ -309,3 +320,4 @@ export function mapLoopStageToPhase(
       return "unknown";
   }
 }
+

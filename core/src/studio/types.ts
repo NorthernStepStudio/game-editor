@@ -51,6 +51,7 @@ export interface NssStudioArtifactRef {
 export interface NssStudioEvidence {
   readonly kind: "log" | "test" | "render" | "screenshot" | "artifact" | "report";
   readonly summary: string;
+  readonly outcome?: "passed" | "failed" | "unknown";
   readonly uri?: string;
 }
 
@@ -119,4 +120,6 @@ export interface NssStudioExecutionResult {
   readonly summary: string;
   readonly artifacts?: readonly NssStudioArtifactRef[];
   readonly evidence?: readonly NssStudioEvidence[];
+  readonly criterionResults?: readonly { criterion: string; outcome: "passed" | "failed" | "unknown"; evidenceUri?: string }[];
 }
+

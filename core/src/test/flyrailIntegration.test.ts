@@ -1,3 +1,4 @@
+import { strict as assert } from "node:assert";
 /**
  * Full End-to-End Integration test for the Matterhorn ↔ Flyrail adapter.
  *
@@ -17,17 +18,14 @@ async function main(): Promise<void> {
   console.log("\nMatterhorn ↔ Flyrail E2E Integration Test\n");
 
   const candidates = [
-    "d:\\dev\\Northern Step Studio\\apps\\matterhorn-vscode\\core\\src\\test\\fixtures\\disposable-godot-project",
-    "d:\\dev\\Northern Step Studio\\apps\\matterhorn-vscode\\core\\out\\test\\fixtures\\disposable-godot-project",
-    resolve(process.cwd(), "apps/matterhorn-vscode/core/src/test/fixtures/disposable-godot-project"),
+    resolve(__dirname, "../../src/test/fixtures/disposable-godot-project"),
+    resolve(process.cwd(), "core/src/test/fixtures/disposable-godot-project"),
   ];
   const fixturePath = candidates.find((p) => existsSync(resolve(p, "project.godot"))) ?? candidates[0]!;
 
   const adapter = new FlyrailAdapter({
     projectPath: fixturePath,
-    discoveryPaths: [
-      "d:\\dev\\Northern Step Studio\\apps\\flyrail",
-    ],
+
   });
 
   let passed = 0;
@@ -41,7 +39,8 @@ async function main(): Promise<void> {
   if (!health.available) {
     console.log(`  ⊘ Flyrail daemon not available: ${health.detail ?? "no detail"}`);
     console.log("  ⊘ Skipping live E2E integration tests (daemon not running).");
-    console.log("\n  0 passed, 0 failed (skipped)\n");
+    console.log("\n  Live gate NOT PASSED: prerequisites unavailable.\n");
+    process.exitCode = 1;
     return;
   }
 
@@ -98,6 +97,7 @@ async function main(): Promise<void> {
     const handle = await adapter.submitTask(handoff);
     console.log(`  ✓ submitTask returned handle immediately: taskId=${handle.taskId}, accepted=${handle.accepted}`);
     console.log(`    Detail: ${handle.detail}`);
+    assert.equal(handle.accepted, true);
     passed++;
 
     // ── 5. Concurrent RPC Status Polling ─────────────────────────
@@ -119,9 +119,12 @@ async function main(): Promise<void> {
       attempts++;
     }
 
+    assert.equal(finalStatus.phase, "completed", "Execution did not complete successfully");
     console.log(`  ✓ Terminal status observed: phase=${finalStatus.phase}`);
 
     const result = await adapter.getResult(taskId);
+    assert.equal(result.status, "completed");
+    assert(result.evidence?.length, "Missing execution evidence");
     console.log(`  ✓ ExecutionResult received: status=${result.status}, summary="${result.summary}"`);
     if (result.artifacts && result.artifacts.length > 0) {
       console.log(`    Artifacts (${result.artifacts.length}): ${result.artifacts.map((a) => a.kind).join(", ")}`);
@@ -144,3 +147,4 @@ async function main(): Promise<void> {
 }
 
 void main();
+

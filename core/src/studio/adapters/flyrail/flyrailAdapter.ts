@@ -1,3 +1,4 @@
+import { verifyFlyrailEvidence } from "./flyrailEvidence.js";
 /**
  * Flyrail specialist adapter — implements the SpecialistAdapter
  * interface for Flyrail's Godot execution system.
@@ -42,7 +43,8 @@ export interface FlyrailAdapterOptions extends FlyrailClientOptions {
 interface ActiveRun {
   taskId: string;
   sessionId: string;
-  status: "running" | "completed" | "failed";
+  projectPath: string;
+  status: "running" | "completed" | "failed" | "uncertain";
   result?: NssStudioExecutionResult;
   error?: Error;
   promise: Promise<void>;
@@ -149,6 +151,7 @@ export class FlyrailAdapter implements SpecialistAdapter {
       throw new SpecialistError("INVALID_TASK", `This adapter only accepts tasks for flyrail, got: ${handoff.to}`);
     }
 
+    if (this.activeRuns.has(handoff.taskId)) throw new SpecialistError("INVALID_TASK", "Duplicate execution id");
     const projectPath = this.resolveProjectPath(handoff);
     if (!projectPath) {
       throw new SpecialistError("PROJECT_UNAVAILABLE", "No project path specified. Provide projectPath in adapter options or as an input artifact with kind 'godot-project'.");
@@ -161,6 +164,7 @@ export class FlyrailAdapter implements SpecialistAdapter {
       const activeRun: ActiveRun = {
         taskId: handoff.taskId,
         sessionId,
+        projectPath,
         status: "running",
         promise: Promise.resolve(),
       };
@@ -173,10 +177,11 @@ export class FlyrailAdapter implements SpecialistAdapter {
           if (!report) {
             report = (await this.client.call("loop.last_report", { runId: handoff.taskId })) as FlyrailLoopReport;
           }
+          if ((report.requestId ?? report.runId) !== handoff.taskId) throw new SpecialistError("VALIDATION_FAILED", "Report identity mismatch");
           activeRun.status = report.ok ? "completed" : "failed";
-          activeRun.result = loopReportToExecutionResult(handoff.taskId, report);
+          activeRun.result = verifyFlyrailEvidence(loopReportToExecutionResult(handoff.taskId, report), report, projectPath);
         } catch (err) {
-          activeRun.status = "failed";
+          activeRun.status = err instanceof SpecialistError && ["TIMEOUT", "TRANSPORT_ERROR", "SPECIALIST_UNAVAILABLE"].includes(err.code) ? "uncertain" : "failed";
           activeRun.error = err instanceof Error ? err : new Error(String(err));
           activeRun.result = {
             taskId: handoff.taskId,
@@ -205,11 +210,11 @@ export class FlyrailAdapter implements SpecialistAdapter {
 
   async getTaskStatus(taskId: string): Promise<SpecialistTaskStatus> {
     const active = this.activeRuns.get(taskId);
-    if (active) {
+    if (active && active.status !== "running" && active.status !== "uncertain") {
       return {
         taskId,
         specialistId: "flyrail",
-        phase: active.status === "completed" ? "completed" : active.status === "failed" ? "failed" : "running",
+        phase: active.status === "completed" ? "completed" : "failed",
         detail: active.status,
       };
     }
@@ -243,7 +248,7 @@ export class FlyrailAdapter implements SpecialistAdapter {
 
   async getResult(taskId: string): Promise<NssStudioExecutionResult> {
     const active = this.activeRuns.get(taskId);
-    if (active?.result) {
+    if (active?.result && active.status !== "uncertain") {
       return active.result;
     }
 
@@ -260,7 +265,9 @@ export class FlyrailAdapter implements SpecialistAdapter {
         };
       }
 
-      return loopReportToExecutionResult(taskId, report);
+      if ((report.requestId ?? report.runId) !== taskId) throw new SpecialistError("VALIDATION_FAILED", "Report identity mismatch");
+      if (active) return verifyFlyrailEvidence(loopReportToExecutionResult(taskId, report), report, active.projectPath);
+      return { ...loopReportToExecutionResult(taskId, report), status: "blocked", summary: "Execution is not tracked locally; evidence verification requires the original project context." };
     } catch (error) {
       if (error instanceof SpecialistError) throw error;
       throw new SpecialistError("EXECUTION_FAILED", `Failed to get result: ${error instanceof Error ? error.message : String(error)}`);
@@ -297,3 +304,4 @@ export class FlyrailAdapter implements SpecialistAdapter {
     return projectArtifact?.uri;
   }
 }
+

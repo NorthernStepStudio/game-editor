@@ -1,26 +1,33 @@
 {
-  "name": "matterhorn-vscode",
+  "name": "matterhorn",
   "version": "0.1.0",
   "private": true,
-  "description": "Matterhorn — VS Code extension + AI agent by Northern Step Studio.",
+  "description": "Matterhorn standalone studio and local AI orchestration runtime.",
   "workspaces": [
     "core",
     "server",
-    "extension",
     "bridges/synox-local-bridge"
   ],
   "scripts": {
-    "compile": "npm run compile --workspace=core && npm run compile --workspace=server && npm run compile --workspace=extension",
+    "compile": "npm run compile:core && npm run compile:server",
     "compile:core": "npm run compile --workspace=core",
     "compile:server": "npm run compile --workspace=server",
-    "compile:extension": "npm run compile --workspace=extension",
-    "check": "npm run check --workspace=core && npm run check --workspace=server && npm run check --workspace=extension",
+    "compile:extension": "npm --prefix extension run compile",
+    "check": "npm run check --workspace=core && npm run check --workspace=server && npm run test:studio && node core/out/test/flyrailAdapter.test.js",
     "dev:server": "npm run dev --workspace=server",
-    "watch:extension": "npm run watch --workspace=extension",
+    "watch:extension": "npm --prefix extension run watch",
     "watch:server": "npm run watch --workspace=server",
-    "watch:core": "npm run watch --workspace=core"
+    "watch:core": "npm run watch --workspace=core",
+    "start": "npm run start --workspace=server",
+    "test:studio": "node --test core/out/test/studioRun.test.js core/out/test/studioRunController.test.js core/out/test/flyrailEvidence.test.js core/out/test/flyrailTransport.test.js server/out/test/studioApi.test.js tests/web.test.mjs",
+    "test:live": "npm run compile && node core/out/test/studioLive.test.js"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "jsdom": "^26.1.0",
+    "ws": "^8.21.3"
   }
 }

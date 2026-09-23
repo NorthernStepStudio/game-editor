@@ -108,6 +108,32 @@ async function main(): Promise<void> {
   assert.equal(handoff.protocol, "nss.studio-handoff.v1");
   assert.equal(handoff.from, "matterhorn");
   assert.equal(handoff.to, "blender-engine");
+
+  assert.throws(
+    () =>
+      createStudioPlan({
+        goal: "Create an audio cue.",
+        tasks: [
+          {
+            id: "audio-cue",
+            title: "Create audio cue",
+            goal: "Create a new audio cue.",
+            domain: "audio",
+            acceptanceCriteria: ["The cue is ready for integration."],
+          },
+        ],
+      }),
+    /No default studio specialist is registered for the audio domain yet/,
+  );
+
+  assert.throws(
+    () =>
+      createStudioPlan({
+        goal: "Empty plan",
+        tasks: [],
+      }),
+    /Plan must contain at least one task/,
+  );
 }
 
 function createRequest(): NssAskRequestPayload {

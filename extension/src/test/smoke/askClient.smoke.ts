@@ -67,6 +67,22 @@ export async function runAskClientSmoke(): Promise<void> {
       }),
     },
     {
+      statusCode: 200,
+      contentType: "application/json; charset=utf-8",
+      body: JSON.stringify({
+        title: "Needs tool alias",
+        response: "I need workspace context.",
+        tool_calls: [
+          {
+            function: {
+              name: "list_files",
+              arguments: JSON.stringify({ path: "." }),
+            },
+          },
+        ],
+      }),
+    },
+    {
       statusCode: 500,
       contentType: "text/plain; charset=utf-8",
       body: "Server exploded.",
@@ -135,6 +151,11 @@ export async function runAskClientSmoke(): Promise<void> {
     assert.equal(needsTools.title, "Needs tools");
     assert.equal(needsTools.toolCalls?.[0]?.name, "list_files");
     assert.equal(needsTools.toolCalls?.[0]?.args?.path, "extension/src");
+
+    const needsToolAlias = await postAskRequest(config, payload);
+    assert.equal(needsToolAlias.title, "Needs tool alias");
+    assert.equal(needsToolAlias.toolCalls?.[0]?.name, "list_files");
+    assert.equal(needsToolAlias.toolCalls?.[0]?.args?.path, ".");
 
     await assert.rejects(() => postAskRequest(config, payload), /Backend request failed \(500\): Server exploded\./);
   } finally {

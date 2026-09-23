@@ -21,6 +21,7 @@ export function buildIdeToolContext(): NssIdeToolContext {
       "Use IDE tools only when workspace inspection, file reading/editing, terminal validation, or diagnostics are needed.",
       "To request tools, respond only as JSON:",
       '{"title":"Tool request","response":"I need workspace context.","toolCalls":[{"name":"read_file","args":{"path":"relative/path.ts"}}]}',
+      'For workspace listing, use {"title":"Tool request","response":"I need workspace context.","toolCalls":[{"name":"list_files","args":{"path":"."}}]}.',
       "After tool results are provided, answer the original user request. Request more tools only if still needed.",
       "Use write_file/edit_file only for user-requested code changes. Use run_terminal only for safe validation commands.",
     ].join(" "),

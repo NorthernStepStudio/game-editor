@@ -64,7 +64,7 @@ function normalizeAskResponse(body: string, contentType: string): NssAskResponse
       "newFileContent",
     ]);
     const proposedMemories = parseProposedMemories(record.proposedMemories);
-    const toolCalls = parseToolCalls(record.toolCalls);
+    const toolCalls = parseToolCallsFromRecord(record);
     const responseText =
       firstString(record, ["response", "answer", "text", "message", "content", "body", "output", "result"]) ??
       firstString(record, ["preview", "summary"]) ??
@@ -83,6 +83,17 @@ function normalizeAskResponse(body: string, contentType: string): NssAskResponse
   return { response: body };
 }
 
+function parseToolCallsFromRecord(record: Record<string, unknown>): NssAskResponse["toolCalls"] | undefined {
+  return (
+    parseToolCalls(record.toolCalls) ??
+    parseToolCalls(record.tool_calls) ??
+    parseToolCalls(record.toolCall) ??
+    parseToolCalls(record.tool_call) ??
+    parseToolCalls(record.tools) ??
+    parseToolCalls([record])
+  );
+}
+
 function parseToolCalls(value: unknown): NssAskResponse["toolCalls"] | undefined {
   if (!Array.isArray(value)) {
     return undefined;
@@ -95,19 +106,66 @@ function parseToolCalls(value: unknown): NssAskResponse["toolCalls"] | undefined
     }
 
     const record = item as Record<string, unknown>;
-    const name = record.name;
+    const nestedFunction = record.function && typeof record.function === "object"
+      ? (record.function as Record<string, unknown>)
+      : undefined;
+    const name = record.name ?? record.tool ?? record.toolName ?? nestedFunction?.name;
     if (!isToolName(name)) {
       continue;
     }
 
-    const args = record.args && typeof record.args === "object" && !Array.isArray(record.args)
-      ? (record.args as Record<string, unknown>)
-      : undefined;
+    const args = parseToolArgs(record, nestedFunction);
 
     toolCalls.push(args ? { name, args } : { name });
   }
 
   return toolCalls.length > 0 ? toolCalls : undefined;
+}
+
+function parseToolArgs(
+  record: Record<string, unknown>,
+  nestedFunction: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+  const directArgs =
+    record.args ??
+    record.arguments ??
+    record.input ??
+    record.parameters ??
+    nestedFunction?.arguments ??
+    nestedFunction?.args;
+  const parsedArgs = parseArgsValue(directArgs);
+  if (parsedArgs) {
+    return parsedArgs;
+  }
+
+  const fallbackArgs: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(record)) {
+    if (["name", "tool", "toolName", "function", "id", "type"].includes(key)) {
+      continue;
+    }
+    fallbackArgs[key] = value;
+  }
+
+  return Object.keys(fallbackArgs).length > 0 ? fallbackArgs : undefined;
+}
+
+function parseArgsValue(value: unknown): Record<string, unknown> | undefined {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      return undefined;
+    }
+  }
+
+  return undefined;
 }
 
 function isToolName(value: unknown): value is NonNullable<NssAskResponse["toolCalls"]>[number]["name"] {
@@ -135,7 +193,16 @@ function tryParseJson(body: string, contentType: string): unknown {
   }
 
   if (!contentType.includes("json") && !trimmed.startsWith("{")) {
-    return undefined;
+    const extracted = extractJsonObject(trimmed);
+    if (!extracted) {
+      return undefined;
+    }
+    trimmed = extracted;
+  } else if (!trimmed.startsWith("{")) {
+    const extracted = extractJsonObject(trimmed);
+    if (extracted) {
+      trimmed = extracted;
+    }
   }
 
   try {
@@ -143,6 +210,17 @@ function tryParseJson(body: string, contentType: string): unknown {
   } catch {
     return undefined;
   }
+}
+
+function extractJsonObject(value: string): string | undefined {
+  const firstBrace = value.indexOf("{");
+  const lastBrace = value.lastIndexOf("}");
+  if (firstBrace < 0 || lastBrace <= firstBrace) {
+    return undefined;
+  }
+
+  const candidate = value.slice(firstBrace, lastBrace + 1).trim();
+  return candidate.includes("tool") || candidate.includes("response") ? candidate : undefined;
 }
 
 function firstString(record: Record<string, unknown>, keys: readonly string[]): string | undefined {

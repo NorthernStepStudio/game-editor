@@ -312,6 +312,35 @@ function summarizeIdeToolResult(result: Awaited<ReturnType<typeof executeIdeTool
   return `${result.name}: ok`;
 }
 
+function inferSafeFallbackToolCalls(
+  request: ReturnType<typeof buildAskRequest>,
+  response: NssAskResponse,
+  round: number,
+): NonNullable<NssAskResponse["toolCalls"]> {
+  if (round > 0 || !request.ideTools) {
+    return [];
+  }
+
+  const text = `${response.response}\n${request.prompt}`.toLowerCase();
+  const needsWorkspaceContext =
+    text.includes("need workspace context") ||
+    text.includes("need more context") ||
+    text.includes("workspace context") ||
+    text.includes("call list_files") ||
+    text.includes("use list_files");
+
+  if (!needsWorkspaceContext) {
+    return [];
+  }
+
+  return [
+    {
+      name: "list_files",
+      args: { path: "." },
+    },
+  ];
+}
+
 class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode.Disposable {
   private readonly outputChannel = vscode.window.createOutputChannel("Matterhorn");
   private sidebar?: NssSidebarProvider;
@@ -1943,7 +1972,11 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
         ...(modelHint ? { _model: modelHint } : {}),
       };
       const response = await postAskRequest(getRuntimeConfig(), requestWithProvider as typeof currentRequest);
-      const toolCalls = response.toolCalls ?? [];
+      const parsedToolCalls = response.toolCalls ?? [];
+      const fallbackToolCalls = parsedToolCalls.length === 0
+        ? inferSafeFallbackToolCalls(currentRequest, response, round)
+        : [];
+      const toolCalls = parsedToolCalls.length > 0 ? parsedToolCalls : fallbackToolCalls;
       if (toolCalls.length === 0) {
         return { response, toolTranscript };
       }
@@ -1953,7 +1986,11 @@ class NssWorkspaceAiController implements NssSidebarHost, NssCommandHost, vscode
         break;
       }
 
-      progress.report({ message: `Running IDE tools (${round + 1}/${MAX_IDE_TOOL_ROUNDS})...` });
+      progress.report({
+        message: fallbackToolCalls.length > 0
+          ? "Running safe workspace context probe..."
+          : `Running IDE tools (${round + 1}/${MAX_IDE_TOOL_ROUNDS})...`,
+      });
       const toolResults = await executeIdeToolCalls(toolCalls);
       this.outputChannel.appendLine(`[Matterhorn tools] round ${round + 1}`);
       for (const result of toolResults) {

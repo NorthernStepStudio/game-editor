@@ -1,12 +1,11 @@
-import * as vscode from "vscode";
-
 import type { NssCommandDefinition } from "../models/command.types.js";
 import { classifyTerminalCommand } from "../tools/commandSafety.js";
-import { formatTerminalCommandResult, runTerminalCommand } from "../tools/runTerminalCommand.js";
 
 const runSafeTerminalCommand: NssCommandDefinition = {
   id: "nssWorkspaceAi.runSafeTerminalCommand",
   async run() {
+    const vscode = await import("vscode");
+    const { formatTerminalCommandResult, runTerminalCommand } = await import("../tools/runTerminalCommand.js");
     const command = await vscode.window.showInputBox({
       prompt: "Command for Matterhorn to run in the current workspace",
       placeHolder: "Example: git status",

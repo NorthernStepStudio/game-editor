@@ -12,3 +12,4 @@ export * from "./providers/provider.js";
 export * from "./studio/types.js";
 export * from "./studio/specialistRegistry.js";
 export * from "./studio/orchestrator.js";
+export * from "./studio/adapters/index.js";

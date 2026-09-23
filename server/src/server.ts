@@ -130,7 +130,7 @@ export async function startNssWorkspaceAiServer(
   return {
     server,
     port,
-    close: () => { studio.adapter.disconnect(); server.closeAllConnections(); return new Promise<void>((resolve, reject) => {
+    close: () => { studio.dispose(); studio.adapter.disconnect(); server.closeAllConnections(); return new Promise<void>((resolve, reject) => {
         server.close((error) => {
           if (error) {
             reject(error);

@@ -151,35 +151,34 @@ completed.append("render.preview:${op.outputName}")
 `;
     case "render.multi_view": {
       const views = op.views ?? ["front", "side", "three_quarter"];
+      const target = op.target ?? [0, 0, 1.0];
+      const distance = op.distance ?? 4.5;
+      const heightOffset = op.heightOffset ?? 1.6;
+      const tx = Number(target[0]);
+      const ty = Number(target[1]);
+      const tz = Number(target[2]);
+      const diag = Number((distance * 0.72).toFixed(6));
       const viewBlocks = views
         .map((view) => {
           const loc =
             view === "front"
-              ? "(0, -4.5, 1.6)"
+              ? `(${tx}, ${ty - distance}, ${tz + heightOffset})`
               : view === "side"
-                ? "(4.5, 0, 1.6)"
+                ? `(${tx + distance}, ${ty}, ${tz + heightOffset})`
                 : view === "back"
-                  ? "(0, 4.5, 1.6)"
+                  ? `(${tx}, ${ty + distance}, ${tz + heightOffset})`
                   : view === "top"
-                    ? "(0, 0, 5.5)"
-                    : "(3.2, -3.2, 2.6)";
-          const rot =
-            view === "front"
-              ? "(math.radians(80), 0, 0)"
-              : view === "side"
-                ? "(math.radians(80), 0, math.radians(90))"
-                : view === "back"
-                  ? "(math.radians(80), 0, math.radians(180))"
-                  : view === "top"
-                    ? "(0, 0, 0)"
-                    : "(math.radians(60), 0, math.radians(45))";
+                    ? `(${tx}, ${ty}, ${tz + distance})`
+                    : `(${tx + diag}, ${ty - diag}, ${tz + heightOffset})`;
           const file =
             view === "three_quarter"
               ? `${op.outputPrefix}-three-quarter.png`
               : `${op.outputPrefix}-${view}.png`;
           return `
 cam.location = ${loc}
-cam.rotation_euler = ${rot}
+target = Vector((${tx}, ${ty}, ${tz}))
+direction = target - cam.location
+cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
 out_path = os.path.join(WORK_DIR, ${pyStr(file)})
 assert_under_work(out_path)
 scene.render.filepath = out_path
@@ -188,7 +187,7 @@ artifacts[${pyStr(file)}] = out_path
 previews.append(out_path)
 `;
         })
-        .join("\n");
+        .join("\\n");
       return `
 # op[${index}] render.multi_view
 scene = bpy.context.scene
@@ -361,6 +360,7 @@ export function compileBlenderTaskScript(input: {
 import math
 import os
 import json
+from mathutils import Vector
 from datetime import datetime, timezone
 
 WORK_DIR = ${pyStr(workDirPosix)}

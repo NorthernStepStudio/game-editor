@@ -41,7 +41,11 @@ async function main(): Promise<void> {
   console.log(`  Godot: ${DEFAULT_GODOT_BIN}`);
   console.log("  Flyrail: healthy");
 
-  const tests = [resolve(__dirname, "yunCharacterSlice.test.js")];
+  const tests = [
+    resolve(__dirname, "yunCharacterSlice.test.js"),
+    resolve(__dirname, "yunCharacterV2Slice.test.js"),
+    resolve(__dirname, "yunProductionCharacterIntegration.test.js"),
+  ];
   const res = spawnSync(process.execPath, ["--test", "--test-force-exit", ...tests], {
     stdio: "inherit",
     env: process.env,

@@ -55,6 +55,12 @@ export interface FoundryAssetCost {
 export interface FoundryAssetManifest {
   readonly assetId: string;
   readonly type: string;
+  readonly requestId?: string;
+  readonly operation?: string;
+  readonly providerRequestId?: string;
+  readonly providerAssetId?: string;
+  readonly outputIndex?: number;
+  readonly sourceUrl?: string;
   readonly sourceIds: readonly string[];
   readonly sourceLicenseIds?: readonly string[];
   readonly generationProvider?: string;

@@ -50,11 +50,15 @@ describe("Foundry AssetForge execution", () => {
       descriptor: descriptor(),
       async execute(req) {
         return {
-          providerId: "local",
-          requestId: req.requestId,
-          assetId: req.assetId,
-          localPath: "assets/generated/hero.png",
-          contentHash: "hash-1",
+          outputs: [
+            {
+              providerId: "local",
+              requestId: req.requestId,
+              outputIndex: 0,
+              localPath: "assets/generated/hero.png",
+              contentHash: "hash-1",
+            },
+          ],
         };
       },
     });
@@ -65,8 +69,42 @@ describe("Foundry AssetForge execution", () => {
     });
 
     assert.equal(result.provider.id, "local");
-    assert.equal(result.manifest.contentHash, "hash-1");
-    assert.equal(result.manifest.sourceLicenseIds?.[0], "MIT");
+    assert.equal(result.manifests[0].contentHash, "hash-1");
+    assert.equal(result.manifests[0].sourceLicenseIds?.[0], "MIT");
+  });
+
+  it("preserves every output in a generation batch", async () => {
+    const registry = new FoundryAssetProviderRegistry();
+    registry.register({
+      descriptor: descriptor(),
+      async execute(req) {
+        return {
+          providerRequestId: "provider-req-1",
+          outputs: [0, 1, 2].map((outputIndex) => ({
+            providerId: "local",
+            requestId: req.requestId,
+            outputIndex,
+            providerAssetId: `remote-${outputIndex}`,
+          })),
+        };
+      },
+    });
+    const forge = new FoundryAssetForge(registry);
+    const result = await forge.execute(request);
+
+    assert.deepEqual(
+      result.manifests.map((manifest) => manifest.assetId),
+      ["hero-01", "hero-02", "hero-03"],
+    );
+    assert.deepEqual(
+      result.manifests.map((manifest) => manifest.providerAssetId),
+      ["remote-0", "remote-1", "remote-2"],
+    );
+    assert.ok(
+      result.manifests.every(
+        (manifest) => manifest.providerRequestId === "provider-req-1",
+      ),
+    );
   });
 
   it("requires an explicit budget before calling a paid provider", async () => {
@@ -82,9 +120,13 @@ describe("Foundry AssetForge execution", () => {
       async execute(req) {
         called = true;
         return {
-          providerId: "paid",
-          requestId: req.requestId,
-          assetId: req.assetId,
+          outputs: [
+            {
+              providerId: "paid",
+              requestId: req.requestId,
+              outputIndex: 0,
+            },
+          ],
           cost: { currency: "USD", amount: 1 },
         };
       },
@@ -106,7 +148,7 @@ describe("Foundry AssetForge execution", () => {
     assert.equal(called, false);
   });
 
-  it("fails closed when a provider exceeds the allowed cost", async () => {
+  it("fails closed when a provider exceeds the allowed batch cost", async () => {
     const registry = new FoundryAssetProviderRegistry();
     registry.register({
       descriptor: descriptor({
@@ -119,9 +161,13 @@ describe("Foundry AssetForge execution", () => {
       async execute(req, context) {
         assert.equal(context?.maxCost?.amount, 2);
         return {
-          providerId: "paid",
-          requestId: req.requestId,
-          assetId: req.assetId,
+          outputs: [
+            {
+              providerId: "paid",
+              requestId: req.requestId,
+              outputIndex: 0,
+            },
+          ],
           cost: { currency: "USD", amount: 3 },
         };
       },
@@ -139,6 +185,23 @@ describe("Foundry AssetForge execution", () => {
         }),
       /exceeded/i,
     );
+  });
+
+  it("rejects duplicate output indexes instead of overwriting provenance", async () => {
+    const registry = new FoundryAssetProviderRegistry();
+    registry.register({
+      descriptor: descriptor(),
+      async execute(req) {
+        return {
+          outputs: [
+            { providerId: "local", requestId: req.requestId, outputIndex: 0 },
+            { providerId: "local", requestId: req.requestId, outputIndex: 0 },
+          ],
+        };
+      },
+    });
+    const forge = new FoundryAssetForge(registry);
+    await assert.rejects(() => forge.execute(request), /duplicate outputIndex/i);
   });
 
   it("derives safety classes from provider behavior", () => {

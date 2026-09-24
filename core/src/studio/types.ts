@@ -87,6 +87,7 @@ export interface NssStudioPlanTaskInput {
   readonly acceptanceCriteria: readonly string[];
   readonly requiredCapabilities?: readonly string[];
   readonly inputArtifacts?: readonly NssStudioArtifactRef[];
+  readonly outputArtifacts?: readonly NssStudioArtifactRef[];
 }
 
 export interface NssStudioPlanInput {

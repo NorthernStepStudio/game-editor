@@ -5,8 +5,8 @@ import json
 from datetime import datetime, timezone
 from mathutils import Vector
 
-WORK_DIR = "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-aNcBeZ/t-yun-calle-env"
-EXECUTION_ID = "68b026a4-624b-482a-bfa2-676aa3b7f06e"
+WORK_DIR = "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-T69Out/t-yun-calle-env"
+EXECUTION_ID = "7ec6c2f5-e335-44dc-b4fd-2538a7712e71"
 TASK_ID = "t-yun-calle-env"
 HANDOFF_ID = "h-yun-calle-env"
 

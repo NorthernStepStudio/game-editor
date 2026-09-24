@@ -93,11 +93,12 @@ Roster v1 adds three CharacterVariantSpec-generated players (`yun_player_02` Ray
 | Evidence | Blender `.blend`, `.glb`, JSON task/result/report, logs, six preview renders; Flyrail/Godot runtime report and start/walk/turn/return screenshots |
 | Live command | `npm run test:yun-environment-live` (Blender 5.2, Godot 4.7.2, running Flyrail daemon, `FLYRAIL_REPO_ROOT`) |
 | Disposable import | PASS — Flyrail opens a Yun project copy, Godot imports 77 environment meshes, and the procedural YunCourt remains unchanged |
-| Camera + six-player route | PASS — all 77 environment mesh origins project into the active game camera; six players visible; scripted attackers walk, cross a tube, turn at TURN and return toward YUN |
+| Camera + six-player route + tag | PASS — all 77 environment mesh origins project into the active game camera; six players visible; attackers walk, cross a tube, turn at TURN and return toward YUN; then the production `Area3D` tag resolves and swaps roles |
 | Production selector | Opt-in `matterhorn_calle`; Kenney remains default. The fallback clone starts with six visible players and no Matterhorn scene; Kenney Calle assets are retained |
 | Court and collision policy | Environment is visual-only; no gameplay markings or play-area intrusions. YunCourt/actors retain gameplay geometry and collision ownership |
-| Performance | Mesh/object/material/GLB counts recorded above. No sustained frame-time or FPS claim; no prolonged performance measurement was collected |
-| Known limits | Route evidence pauses defender processing to isolate movement; automated run does not prove tag behavior or substitute for human keyboard/HUD play. Calle is the only Matterhorn map in this milestone; other maps remain on existing dressing |
+| Runtime observation | Opt-in match scene runs for at least 20 seconds and records elapsed observation time in `godot/matterhorn-runtime.json`; route and tag screenshots include the game HUD |
+| Performance | Mesh/object/material/GLB counts recorded above. No sustained frame-time or FPS claim was collected |
+| Known limits | Defender AI is paused during the scripted route, then the real tag area/role-swap path is exercised at a tube. This automated run does not replace a human keyboard playtest. Calle is the only Matterhorn map in this milestone; other maps remain on existing dressing |
 
 ## Verification performed here
 

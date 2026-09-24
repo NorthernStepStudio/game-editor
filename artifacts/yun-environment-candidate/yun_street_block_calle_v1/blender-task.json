@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.0.0",
   "taskId": "t-yun-calle-env",
-  "executionId": "68b026a4-624b-482a-bfa2-676aa3b7f06e",
+  "executionId": "7ec6c2f5-e335-44dc-b4fd-2538a7712e71",
   "handoffId": "h-yun-calle-env",
   "assetName": "yun_street_block_calle_v1",
-  "workingDirectory": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env",
+  "workingDirectory": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env",
   "requestedOperations": [
     {
       "op": "scene.new",
@@ -2092,6 +2092,6 @@
     "All prop IDs are unique and all solid prop footprints remain outside the playable court",
     "Required six-view environment evidence and structured scene report are present"
   ],
-  "createdAt": "2026-09-24T14:34:26.247Z",
+  "createdAt": "2026-09-24T14:47:49.749Z",
   "timeoutMs": 420000
 }

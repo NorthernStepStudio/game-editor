@@ -1,11 +1,11 @@
 {
   "schemaVersion": "1.0.0",
   "taskId": "t-yun-calle-env",
-  "executionId": "68b026a4-624b-482a-bfa2-676aa3b7f06e",
+  "executionId": "7ec6c2f5-e335-44dc-b4fd-2538a7712e71",
   "handoffId": "h-yun-calle-env",
   "blenderVersion": "5.2.1 LTS",
-  "startedAt": "2026-09-24T14:34:28.628007+00:00",
-  "endedAt": "2026-09-24T14:34:32.166814+00:00",
+  "startedAt": "2026-09-24T14:47:52.112259+00:00",
+  "endedAt": "2026-09-24T14:47:55.620270+00:00",
   "requestedOperations": [
     {
       "op": "scene.new",
@@ -2226,66 +2226,66 @@
     {
       "kind": "blend",
       "name": "yun_street_block_calle_v1.blend",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env\\yun_street_block_calle_v1.blend",
-      "sizeBytes": 159380
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env\\yun_street_block_calle_v1.blend",
+      "sizeBytes": 159211
     },
     {
       "kind": "glb",
       "name": "yun_street_block_calle_v1.glb",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env\\yun_street_block_calle_v1.glb",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env\\yun_street_block_calle_v1.glb",
       "sizeBytes": 559840
     },
     {
       "kind": "json",
       "name": "yun_street_block_calle_v1-report.json",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env\\yun_street_block_calle_v1-report.json",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env\\yun_street_block_calle_v1-report.json",
       "sizeBytes": 44176
     },
     {
       "kind": "png",
       "name": "yun_street_block_calle_v1-overview.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env\\yun_street_block_calle_v1-overview.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env\\yun_street_block_calle_v1-overview.png",
       "sizeBytes": 607853
     },
     {
       "kind": "png",
       "name": "yun_street_block_calle_v1-left.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env\\yun_street_block_calle_v1-left.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env\\yun_street_block_calle_v1-left.png",
       "sizeBytes": 645696
     },
     {
       "kind": "png",
       "name": "yun_street_block_calle_v1-right.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env\\yun_street_block_calle_v1-right.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env\\yun_street_block_calle_v1-right.png",
       "sizeBytes": 651144
     },
     {
       "kind": "png",
       "name": "yun_street_block_calle_v1-yun_side.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env\\yun_street_block_calle_v1-yun_side.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env\\yun_street_block_calle_v1-yun_side.png",
       "sizeBytes": 602604
     },
     {
       "kind": "png",
       "name": "yun_street_block_calle_v1-turn_side.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env\\yun_street_block_calle_v1-turn_side.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env\\yun_street_block_calle_v1-turn_side.png",
       "sizeBytes": 598131
     },
     {
       "kind": "png",
       "name": "yun_street_block_calle_v1-gameplay.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-aNcBeZ\\t-yun-calle-env\\yun_street_block_calle_v1-gameplay.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-T69Out\\t-yun-calle-env\\yun_street_block_calle_v1-gameplay.png",
       "sizeBytes": 615571
     }
   ],
   "render": {
     "previews": [
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-aNcBeZ/t-yun-calle-env\\yun_street_block_calle_v1-overview.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-aNcBeZ/t-yun-calle-env\\yun_street_block_calle_v1-left.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-aNcBeZ/t-yun-calle-env\\yun_street_block_calle_v1-right.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-aNcBeZ/t-yun-calle-env\\yun_street_block_calle_v1-yun_side.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-aNcBeZ/t-yun-calle-env\\yun_street_block_calle_v1-turn_side.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-aNcBeZ/t-yun-calle-env\\yun_street_block_calle_v1-gameplay.png"
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-T69Out/t-yun-calle-env\\yun_street_block_calle_v1-overview.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-T69Out/t-yun-calle-env\\yun_street_block_calle_v1-left.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-T69Out/t-yun-calle-env\\yun_street_block_calle_v1-right.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-T69Out/t-yun-calle-env\\yun_street_block_calle_v1-yun_side.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-T69Out/t-yun-calle-env\\yun_street_block_calle_v1-turn_side.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-T69Out/t-yun-calle-env\\yun_street_block_calle_v1-gameplay.png"
     ]
   },
   "geometry": {

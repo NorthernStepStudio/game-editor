@@ -6,3 +6,4 @@ export * from "./safety/types.js";
 export * from "./criteria/index.js";
 export * from "./runtime/index.js";
 export * from "./qa/index.js";
+export * from "./verification/index.js";

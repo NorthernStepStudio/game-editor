@@ -44,6 +44,12 @@ export interface FoundryAssetDimensions {
   readonly height: number;
 }
 
+export interface FoundryAnimationRequest {
+  readonly frameCount?: number;
+  readonly colorCount?: number;
+  readonly loop?: boolean;
+}
+
 export interface FoundryAssetRequest {
   readonly requestId: string;
   readonly assetId: string;
@@ -58,6 +64,7 @@ export interface FoundryAssetRequest {
   readonly referenceAssets?: readonly string[];
   readonly parentAsset?: string;
   readonly seed?: string | number;
+  readonly animation?: FoundryAnimationRequest;
   readonly tags?: readonly string[];
 }
 

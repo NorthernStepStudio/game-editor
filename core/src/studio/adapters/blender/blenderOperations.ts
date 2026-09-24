@@ -8,6 +8,10 @@ export const BLENDER_OPERATION_KINDS = [
   "scene.new",
   "world.set_background",
   "mesh.create_primitive",
+  "mesh.create_tapered_segment",
+  "mesh.create_tapered_box",
+  "mesh.join",
+  "mesh.smooth",
   "mesh.transform",
   "mesh.bevel",
   "material.create",
@@ -33,6 +37,7 @@ export type BlenderOperationKind = (typeof BLENDER_OPERATION_KINDS)[number];
 
 export type BlenderPrimitiveType = "cube" | "uv_sphere" | "cylinder" | "cone" | "plane";
 
+export type BlenderVec2 = readonly [number, number];
 export type BlenderVec3 = readonly [number, number, number];
 export type BlenderVec4 = readonly [number, number, number, number];
 
@@ -65,6 +70,38 @@ export interface MeshCreatePrimitiveOp extends BlenderOperationBase {
   readonly scale?: BlenderVec3;
   readonly radius?: number;
   readonly depth?: number;
+}
+
+export interface MeshCreateTaperedSegmentOp extends BlenderOperationBase {
+  readonly op: "mesh.create_tapered_segment";
+  readonly name: string;
+  readonly start: BlenderVec3;
+  readonly end: BlenderVec3;
+  readonly radiusStart: number;
+  readonly radiusEnd: number;
+  readonly sides?: number;
+}
+
+export interface MeshCreateTaperedBoxOp extends BlenderOperationBase {
+  readonly op: "mesh.create_tapered_box";
+  readonly name: string;
+  readonly location: BlenderVec3;
+  readonly height: number;
+  readonly topSize: BlenderVec2;
+  readonly bottomSize: BlenderVec2;
+  readonly rotationEulerDeg?: BlenderVec3;
+}
+
+export interface MeshJoinOp extends BlenderOperationBase {
+  readonly op: "mesh.join";
+  readonly name: string;
+  readonly sources: readonly string[];
+}
+
+export interface MeshSmoothOp extends BlenderOperationBase {
+  readonly op: "mesh.smooth";
+  readonly target: string;
+  readonly enabled?: boolean;
 }
 
 export interface MeshTransformOp extends BlenderOperationBase {
@@ -212,6 +249,10 @@ export type BlenderOperation =
   | SceneInspectOp
   | WorldSetBackgroundOp
   | MeshCreatePrimitiveOp
+  | MeshCreateTaperedSegmentOp
+  | MeshCreateTaperedBoxOp
+  | MeshJoinOp
+  | MeshSmoothOp
   | MeshTransformOp
   | MeshBevelOp
   | MaterialCreateOp
@@ -261,7 +302,11 @@ export function operationToCapability(op: BlenderOperationKind): string {
     case "world.set_background":
       return "blender.scene.inspect";
     case "mesh.create_primitive":
+    case "mesh.create_tapered_segment":
+    case "mesh.create_tapered_box":
       return "blender.mesh.create";
+    case "mesh.join":
+    case "mesh.smooth":
     case "mesh.transform":
     case "mesh.bevel":
       return "blender.mesh.modify";

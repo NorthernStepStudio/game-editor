@@ -10,6 +10,16 @@ export {
 } from "./flyrailMapper.js";
 export { fromJsonRpcError, fromTransportError } from "./flyrailErrors.js";
 export {
+  FlyrailVerificationClient,
+  deriveFlyrailVerificationCapabilities,
+  mapFlyrailRuntimeSnapshot,
+  mapFlyrailAgentRunToReplayBundle,
+  type FlyrailVerificationCapabilities,
+  type FlyrailVerificationClientOptions,
+  type FlyrailRuntimeLaunchOptions,
+  type FlyrailAgentPlaytestOptions,
+} from "./flyrailVerification.js";
+export {
   validateGlbThroughFlyrail,
   prepareDisposableGlbProject,
   runGodotEditorImport,

@@ -5,8 +5,8 @@ import json
 from datetime import datetime, timezone
 from mathutils import Vector
 
-WORK_DIR = "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env"
-EXECUTION_ID = "efee82d5-c739-4252-aea3-9297249d9271"
+WORK_DIR = "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-aNcBeZ/t-yun-calle-env"
+EXECUTION_ID = "68b026a4-624b-482a-bfa2-676aa3b7f06e"
 TASK_ID = "t-yun-calle-env"
 HANDOFF_ID = "h-yun-calle-env"
 
@@ -2063,6 +2063,7 @@ def main():
             scene.camera = cam
 
         cam.location = (48.4, 36, 40.8)
+        cam.data.lens = 50
         cam.rotation_euler = (Vector((14.4, -10, 1.8)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
         out_path = os.path.join(WORK_DIR, "yun_street_block_calle_v1-overview.png")
         assert_under_work(out_path)
@@ -2073,6 +2074,7 @@ def main():
 
 
         cam.location = (8.4, 3, 11.5)
+        cam.data.lens = 50
         cam.rotation_euler = (Vector((2.4, -10, 1.5)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
         out_path = os.path.join(WORK_DIR, "yun_street_block_calle_v1-left.png")
         assert_under_work(out_path)
@@ -2083,6 +2085,7 @@ def main():
 
 
         cam.location = (20.4, 3, 11.5)
+        cam.data.lens = 50
         cam.rotation_euler = (Vector((26.4, -10, 1.5)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
         out_path = os.path.join(WORK_DIR, "yun_street_block_calle_v1-right.png")
         assert_under_work(out_path)
@@ -2093,6 +2096,7 @@ def main():
 
 
         cam.location = (14.4, 17.2, 12.8)
+        cam.data.lens = 24
         cam.rotation_euler = (Vector((14.4, -4.8, 1.8)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
         out_path = os.path.join(WORK_DIR, "yun_street_block_calle_v1-yun_side.png")
         assert_under_work(out_path)
@@ -2103,6 +2107,7 @@ def main():
 
 
         cam.location = (14.4, -37.2, 12.8)
+        cam.data.lens = 24
         cam.rotation_euler = (Vector((14.4, -15.2, 1.8)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
         out_path = os.path.join(WORK_DIR, "yun_street_block_calle_v1-turn_side.png")
         assert_under_work(out_path)
@@ -2113,6 +2118,7 @@ def main():
 
 
         cam.location = (44.4, 32, 34.8)
+        cam.data.lens = 50
         cam.rotation_euler = (Vector((14.4, -10, 1.8)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
         out_path = os.path.join(WORK_DIR, "yun_street_block_calle_v1-gameplay.png")
         assert_under_work(out_path)

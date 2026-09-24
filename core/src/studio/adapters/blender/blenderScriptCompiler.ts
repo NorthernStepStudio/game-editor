@@ -180,6 +180,7 @@ completed.append("render.preview:${op.outputName}")
             const file = `${op.outputPrefix}-${view}.png`;
             return `
 cam.location = ${loc}
+cam.data.lens = ${view === "yun_side" || view === "turn_side" ? 24 : 50}
 cam.rotation_euler = (Vector(${pyTuple(center)}) - cam.location).to_track_quat('-Z', 'Y').to_euler()
 out_path = os.path.join(WORK_DIR, ${pyStr(file)})
 assert_under_work(out_path)

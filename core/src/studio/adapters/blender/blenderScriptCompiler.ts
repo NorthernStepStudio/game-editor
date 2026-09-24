@@ -75,6 +75,99 @@ objects[${pyStr(op.name)}] = obj
 completed.append("mesh.create_primitive:${op.name}")
 `;
     }
+    case "mesh.create_tapered_segment": {
+      return `
+# op[${index}] mesh.create_tapered_segment
+start = Vector(${pyTuple(op.start)})
+end = Vector(${pyTuple(op.end)})
+delta = end - start
+length = delta.length
+if length <= 0.000001:
+    raise RuntimeError("mesh.create_tapered_segment start/end are coincident")
+mid = (start + end) * 0.5
+bpy.ops.mesh.primitive_cone_add(
+    vertices=${op.sides ?? 10},
+    radius1=${op.radiusStart},
+    radius2=${op.radiusEnd},
+    depth=length,
+    location=mid,
+)
+obj = bpy.context.active_object
+obj.name = ${pyStr(op.name)}
+obj.rotation_mode = "QUATERNION"
+obj.rotation_quaternion = delta.to_track_quat("Z", "Y")
+objects[${pyStr(op.name)}] = obj
+completed.append("mesh.create_tapered_segment:${op.name}")
+`;
+    }
+    case "mesh.create_tapered_box": {
+      return `
+# op[${index}] mesh.create_tapered_box
+top_w, top_d = ${pyTuple(op.topSize)}
+bottom_w, bottom_d = ${pyTuple(op.bottomSize)}
+half_h = ${op.height} * 0.5
+verts = [
+    (-bottom_w * 0.5, -bottom_d * 0.5, -half_h),
+    ( bottom_w * 0.5, -bottom_d * 0.5, -half_h),
+    ( bottom_w * 0.5,  bottom_d * 0.5, -half_h),
+    (-bottom_w * 0.5,  bottom_d * 0.5, -half_h),
+    (-top_w * 0.5, -top_d * 0.5, half_h),
+    ( top_w * 0.5, -top_d * 0.5, half_h),
+    ( top_w * 0.5,  top_d * 0.5, half_h),
+    (-top_w * 0.5,  top_d * 0.5, half_h),
+]
+faces = [
+    (0, 1, 2, 3),
+    (4, 7, 6, 5),
+    (0, 4, 5, 1),
+    (1, 5, 6, 2),
+    (2, 6, 7, 3),
+    (4, 0, 3, 7),
+]
+mesh_data = bpy.data.meshes.new(${pyStr(op.name + "_mesh")})
+mesh_data.from_pydata(verts, [], faces)
+mesh_data.update()
+obj = bpy.data.objects.new(${pyStr(op.name)}, mesh_data)
+bpy.context.collection.objects.link(obj)
+obj.location = ${pyTuple(op.location)}
+${op.rotationEulerDeg ? `obj.rotation_euler = tuple(math.radians(v) for v in ${pyTuple(op.rotationEulerDeg)})` : ""}
+objects[${pyStr(op.name)}] = obj
+completed.append("mesh.create_tapered_box:${op.name}")
+`;
+    }
+    case "mesh.join": {
+      return `
+# op[${index}] mesh.join
+source_names = ${JSON.stringify(op.sources)}
+source_objects = []
+for source_name in source_names:
+    source_obj = objects.get(source_name) or bpy.data.objects.get(source_name)
+    if source_obj is None or source_obj.type != "MESH":
+        raise RuntimeError("mesh.join missing mesh " + source_name)
+    source_objects.append(source_obj)
+bpy.ops.object.select_all(action="DESELECT")
+for source_obj in source_objects:
+    source_obj.select_set(True)
+bpy.context.view_layer.objects.active = source_objects[0]
+bpy.ops.object.join()
+obj = bpy.context.active_object
+obj.name = ${pyStr(op.name)}
+for source_name in source_names:
+    objects.pop(source_name, None)
+objects[${pyStr(op.name)}] = obj
+completed.append("mesh.join:${op.name}")
+`;
+    }
+    case "mesh.smooth":
+      return `
+# op[${index}] mesh.smooth
+obj = objects.get(${pyStr(op.target)}) or bpy.data.objects.get(${pyStr(op.target)})
+if obj is None or obj.type != "MESH":
+    raise RuntimeError("mesh.smooth missing mesh ${op.target}")
+for poly in obj.data.polygons:
+    poly.use_smooth = ${op.enabled === false ? "False" : "True"}
+completed.append("mesh.smooth:${op.target}")
+`;
     case "mesh.transform":
       return `
 # op[${index}] mesh.transform

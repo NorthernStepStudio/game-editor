@@ -147,6 +147,16 @@ export function buildYunEnvironmentOperations(spec: YunEnvironmentAssetSpec): Bl
   return ops;
 }
 
+export function yunEnvironmentAcceptanceCriteria(spec: YunEnvironmentAssetSpec): readonly string[] {
+  const prefix = spec.assetId;
+  return [
+    `${prefix}.blend and ${prefix}.glb are nonempty and confined to task output`,
+    "Yun gameplay geometry remains absent from this environment asset",
+    "All prop IDs are unique and all solid prop footprints remain outside the playable court",
+    "Required six-view environment evidence and structured scene report are present",
+  ];
+}
+
 export function buildYunEnvironmentTaskSpec(
   workingDirectory: string,
   spec: YunEnvironmentAssetSpec = YUN_FIRST_ENVIRONMENT_SPEC,
@@ -165,12 +175,7 @@ export function buildYunEnvironmentTaskSpec(
         kind: "png" as const, name: `${prefix}-${view}.png`, required: true, minBytes: 256,
       })),
     ],
-    acceptanceCriteria: [
-      `${prefix}.blend and ${prefix}.glb are nonempty and confined to task output`,
-      "Yun gameplay geometry remains absent from this environment asset",
-      "All prop IDs are unique and all solid prop footprints remain outside the playable court",
-      "Required six-view environment evidence and structured scene report are present",
-    ],
+    acceptanceCriteria: yunEnvironmentAcceptanceCriteria(spec),
     renderSettings: { width: 960, height: 640 },
     exportSettings: { format: "GLB", applyModifiers: true },
     timeoutMs: 420_000,

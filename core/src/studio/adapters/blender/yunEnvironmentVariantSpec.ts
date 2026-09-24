@@ -179,13 +179,15 @@ export function getYunEnvironmentSpec(theme: YunEnvironmentTheme): YunEnvironmen
 
 export function resolveYunEnvironmentSpecFromGoal(goal: string): YunEnvironmentAssetSpec | undefined {
   const normalized = goal.toLowerCase();
+  const isYunEnvironmentRequest =
+    normalized.includes("yun environment") ||
+    normalized.includes("yun map") ||
+    normalized.includes("yun street") ||
+    normalized.includes("yun court environment") ||
+    normalized.includes("yun_street_block_");
+  if (!isYunEnvironmentRequest) return undefined;
   if (normalized.includes("malecon") || normalized.includes("malecón")) return YUN_MALECON_ENVIRONMENT_SPEC;
   if (normalized.includes("parque") || normalized.includes("park")) return YUN_PARQUE_ENVIRONMENT_SPEC;
   if (normalized.includes("noche") || normalized.includes("night")) return YUN_NOCHE_ENVIRONMENT_SPEC;
-  if (
-    normalized.includes("calle") ||
-    normalized.includes("yun environment") ||
-    normalized.includes("yun_street_block")
-  ) return YUN_FIRST_ENVIRONMENT_SPEC;
-  return undefined;
+  return YUN_FIRST_ENVIRONMENT_SPEC;
 }

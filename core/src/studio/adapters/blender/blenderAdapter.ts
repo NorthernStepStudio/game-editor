@@ -53,6 +53,7 @@ interface ActiveBlenderRun {
   readonly executionId: string;
   readonly handoffId: string;
   readonly workDir: string;
+  readonly acceptanceCriteria: readonly string[];
   status: "accepted" | "running" | "completed" | "failed" | "cancelled";
   result?: NssStudioExecutionResult;
   error?: Error;
@@ -226,6 +227,7 @@ export class BlenderAdapter implements SpecialistAdapter {
       executionId,
       handoffId: handoff.id,
       workDir: taskWorkDir,
+      acceptanceCriteria: [...handoff.acceptanceCriteria],
       status: "accepted",
       startedAt: new Date().toISOString(),
     };
@@ -450,6 +452,7 @@ export class BlenderAdapter implements SpecialistAdapter {
         },
       ];
 
+      const resultEvidenceUri = join(taskWorkDir, "blender-result.json");
       const evidence: NssStudioEvidence[] = validated
         .filter((a) => a.kind === "png" || a.kind === "glb" || a.kind === "json")
         .map((a) => ({
@@ -458,6 +461,26 @@ export class BlenderAdapter implements SpecialistAdapter {
           outcome: "passed" as const,
           uri: a.path,
         }));
+      evidence.push({
+        kind: "report",
+        summary: `Validated Blender task result for ${spec.assetName}`,
+        outcome: "passed",
+        uri: resultEvidenceUri,
+      });
+
+      const criterionResults = activeRun.acceptanceCriteria.map((criterion, index) => {
+        const supported = spec.acceptanceCriteria.includes(criterion);
+        return {
+          criterionId: `criterion-${index + 1}`,
+          description: criterion,
+          checkType: "generic" as const,
+          outcome: supported ? ("passed" as const) : ("blocked" as const),
+          evidenceUri: supported ? resultEvidenceUri : undefined,
+          executionId: taskId,
+          timestamp: new Date().toISOString(),
+          criterion,
+        };
+      });
 
       activeRun.status = "completed";
       activeRun.result = {
@@ -467,6 +490,7 @@ export class BlenderAdapter implements SpecialistAdapter {
         summary: `Blender completed asset ${spec.assetName} (executionId=${activeRun.executionId})`,
         artifacts,
         evidence,
+        criterionResults,
       };
     } catch (error) {
       activeRun.status = "failed";

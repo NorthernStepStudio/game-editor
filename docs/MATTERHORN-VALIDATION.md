@@ -81,6 +81,24 @@ Roster v1 adds three CharacterVariantSpec-generated players (`yun_player_02` Ray
 | Rollback | `character_id` 0–11; assets retained |
 | Known limitations | Hair/jersey differences read at distance; face/hands still schematic; default Kenney |
 
+## Yun environment Calle v1 snapshot
+
+| Item | Value |
+| --- | --- |
+| Asset ID | `yun_street_block_calle_v1` |
+| Archive | `artifacts/yun-environment-candidate/yun_street_block_calle_v1/` |
+| Production GLB | `games/yun/assets/matterhorn/yun_street_block_calle_v1.glb` in Flyrail |
+| Generator | Reusable `YunEnvironmentAssetSpec` + structured Blender operations |
+| Geometry | 4,050 vertices; 3,524 polygons; 77 meshes / 79 scene objects; 10 materials; GLB 559,840 bytes |
+| Evidence | Blender `.blend`, `.glb`, JSON task/result/report, logs, six preview renders; Flyrail/Godot runtime report and start/walk/turn/return screenshots |
+| Live command | `npm run test:yun-environment-live` (Blender 5.2, Godot 4.7.2, running Flyrail daemon, `FLYRAIL_REPO_ROOT`) |
+| Disposable import | PASS — Flyrail opens a Yun project copy, Godot imports 77 environment meshes, and the procedural YunCourt remains unchanged |
+| Camera + six-player route | PASS — all 77 environment mesh origins project into the active game camera; six players visible; scripted attackers walk, cross a tube, turn at TURN and return toward YUN |
+| Production selector | Opt-in `matterhorn_calle`; Kenney remains default. The fallback clone starts with six visible players and no Matterhorn scene; Kenney Calle assets are retained |
+| Court and collision policy | Environment is visual-only; no gameplay markings or play-area intrusions. YunCourt/actors retain gameplay geometry and collision ownership |
+| Performance | Mesh/object/material/GLB counts recorded above. No sustained frame-time or FPS claim; no prolonged performance measurement was collected |
+| Known limits | Route evidence pauses defender processing to isolate movement; automated run does not prove tag behavior or substitute for human keyboard/HUD play. Calle is the only Matterhorn map in this milestone; other maps remain on existing dressing |
+
 ## Verification performed here
 
 | Check | Result |
@@ -127,7 +145,7 @@ Use the review branch in a separate checkout so existing local edits are preserv
 - Flyrail does not provide active loop cancellation. Matterhorn cannot safely manufacture that capability; it exposes the limitation and blocks unsafe overlapping runs.
 - Studio snapshot/evidence metadata is durable on disk and restart reconciliation is implemented. Matterhorn deliberately does not resume an uncertain mutation. Multi-user service hosting and true remote cancellation remain later work.
 - Existing extension-only workspace editing/review tools are not all migrated into the standalone UI. The extension stays optional as migration reference.
-- Yun production character generation is **not** complete: Phase 3H delivers a disposable-validated candidate only. Production `games/yun` assets and `mini_figure.gd` MODELS list are unchanged.
+- Yun production character and roster v1 gates are complete: the character and Raya/Kade/Mira variants are integrated as opt-in production choices, with Kenney defaults and rollback retained. The Calle environment gate is also live-validated as an opt-in; manual tag/match play and sustained performance observation remain open checks.
 
 ## Concurrent Phase 3 integration
 

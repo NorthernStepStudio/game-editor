@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { extname, join } from "node:path";
+import type { FoundryAssetCatalog } from "../catalog.js";
 import type {
   FoundryAssetProvider,
   FoundryAssetProviderContext,
@@ -23,7 +24,7 @@ export type SpriteFusionInput =
 export interface SpriteFusionFetchInit {
   readonly method?: string;
   readonly headers?: Readonly<Record<string, string>>;
-  readonly body?: string;
+  readonly body?: string | Uint8Array;
 }
 
 export interface SpriteFusionHttpResponse {
@@ -42,6 +43,7 @@ export interface SpriteFusionProviderOptions {
   readonly apiKey?: string;
   readonly baseUrl?: string;
   readonly fetchImpl?: SpriteFusionFetch;
+  readonly catalog?: FoundryAssetCatalog;
   readonly resolveReference?: (
     assetId: string,
   ) => SpriteFusionInput | Promise<SpriteFusionInput>;
@@ -84,7 +86,8 @@ export class SpriteFusionAssetProvider implements FoundryAssetProvider {
   private readonly apiKey?: string;
   private readonly baseUrl: string;
   private readonly fetchImpl: SpriteFusionFetch;
-  private readonly resolveReference: (
+  private readonly catalog?: FoundryAssetCatalog;
+  private readonly customResolveReference?: (
     assetId: string,
   ) => SpriteFusionInput | Promise<SpriteFusionInput>;
 
@@ -95,8 +98,8 @@ export class SpriteFusionAssetProvider implements FoundryAssetProvider {
       "",
     );
     this.fetchImpl = options.fetchImpl ?? defaultSpriteFusionFetch;
-    this.resolveReference =
-      options.resolveReference ?? ((assetId) => ({ asset_id: assetId }));
+    this.catalog = options.catalog;
+    this.customResolveReference = options.resolveReference;
   }
 
   async execute(
@@ -121,7 +124,8 @@ export class SpriteFusionAssetProvider implements FoundryAssetProvider {
 
     const payload = await buildSpriteFusionRequestPayload(
       request,
-      this.resolveReference,
+      this.customResolveReference ??
+        ((assetId) => this.resolveReferenceAsset(assetId, apiKey)),
     );
     const response = await this.fetchImpl(`${this.baseUrl}/generate`, {
       method: "POST",
@@ -242,6 +246,87 @@ export class SpriteFusionAssetProvider implements FoundryAssetProvider {
           numberValue(asRecord(completed.credits)?.remaining) ?? undefined,
       },
     };
+  }
+
+  private async resolveReferenceAsset(
+    assetId: string,
+    apiKey: string,
+  ): Promise<SpriteFusionInput> {
+    if (!this.catalog) return { asset_id: assetId };
+
+    const reference = this.catalog.resolve(assetId);
+    if (
+      reference.generationProvider === this.descriptor.id &&
+      reference.providerAssetId
+    ) {
+      return { asset_id: reference.providerAssetId };
+    }
+    if (reference.localPath) {
+      return this.stageLocalInput(reference.localPath, apiKey);
+    }
+    throw new Error(
+      `Asset ${assetId} cannot be supplied to Sprite Fusion because it has neither a native provider asset id nor a local file.`,
+    );
+  }
+
+  private async stageLocalInput(
+    localPath: string,
+    apiKey: string,
+  ): Promise<SpriteFusionInput> {
+    const bytes = await readFile(localPath);
+    if (bytes.byteLength > 20 * 1024 * 1024) {
+      throw new Error("Sprite Fusion staged input exceeds the 20 MiB limit.");
+    }
+    const contentType = spriteFusionInputContentType(localPath);
+    const sha256 = createHash("sha256").update(bytes).digest("hex");
+
+    const descriptorResponse = await this.fetchImpl(
+      `${this.baseUrl}/uploads`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${apiKey}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          content_type: contentType,
+          size_bytes: bytes.byteLength,
+          sha256,
+        }),
+      },
+    );
+    if (!descriptorResponse.ok) {
+      throw new Error(
+        `Sprite Fusion upload descriptor request failed with HTTP ${descriptorResponse.status}.`,
+      );
+    }
+
+    const descriptor = asRecord(
+      JSON.parse(await descriptorResponse.text()) as unknown,
+    );
+    const uploadId = stringValue(descriptor?.upload_id);
+    const uploadUrl = stringValue(descriptor?.upload_url);
+    const rawHeaders = asRecord(descriptor?.headers);
+    if (!uploadId || !uploadUrl || !rawHeaders) {
+      throw new Error("Sprite Fusion upload descriptor is incomplete.");
+    }
+    assertHttpsUrl(uploadUrl);
+
+    const headers: Record<string, string> = {};
+    for (const [key, value] of Object.entries(rawHeaders)) {
+      if (typeof value === "string") headers[key] = value;
+    }
+    const uploaded = await this.fetchImpl(uploadUrl, {
+      method: "PUT",
+      headers,
+      body: bytes,
+    });
+    if (!uploaded.ok) {
+      throw new Error(
+        `Sprite Fusion staged upload failed with HTTP ${uploaded.status}.`,
+      );
+    }
+    return { upload_id: uploadId };
   }
 }
 
@@ -471,6 +556,18 @@ function assertHttpsUrl(value: string): void {
   }
 }
 
+function spriteFusionInputContentType(
+  path: string,
+): "image/png" | "image/jpeg" | "image/webp" {
+  const extension = extname(path).toLowerCase();
+  if (extension === ".png") return "image/png";
+  if (extension === ".jpg" || extension === ".jpeg") return "image/jpeg";
+  if (extension === ".webp") return "image/webp";
+  throw new Error(
+    "Sprite Fusion staged inputs must be PNG, JPEG, or WebP files.",
+  );
+}
+
 function safeFilePart(value: string): string {
   const clean = value
     .replace(/[^a-zA-Z0-9._-]+/g, "-")
@@ -517,7 +614,14 @@ const defaultSpriteFusionFetch: SpriteFusionFetch = async (url, init) => {
   const response = await fetch(url, {
     ...(init?.method ? { method: init.method } : {}),
     ...(init?.headers ? { headers: { ...init.headers } } : {}),
-    ...(init?.body !== undefined ? { body: init.body } : {}),
+    ...(init?.body !== undefined
+      ? {
+          body:
+            typeof init.body === "string"
+              ? init.body
+              : Buffer.from(init.body),
+        }
+      : {}),
   });
   return response;
 };

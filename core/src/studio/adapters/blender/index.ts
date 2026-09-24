@@ -51,3 +51,14 @@ export {
 } from "./blenderOperations.js";
 export { validateExpectedArtifacts, resolveConfinedPath } from "./blenderArtifacts.js";
 export { YUN_CHARACTER_CONTRACT, matchYunAnimationClips } from "./yunCharacterContract.js";
+
+export {
+  YUN_ENVIRONMENT_REVISION,
+  YUN_COURT_CONTRACT,
+  YUN_COURT_WORLD_METRICS,
+  YUN_FIRST_ENVIRONMENT_SPEC,
+  validateYunEnvironmentSpec,
+  type YunEnvironmentTheme,
+  type YunEnvironmentPropSpec,
+  type YunEnvironmentAssetSpec,
+} from "./yunEnvironmentContract.js";

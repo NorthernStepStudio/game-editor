@@ -10,6 +10,7 @@ import {
 import { getYunRosterVariant } from "../studio/adapters/blender/yunCharacterVariantSpec.js";
 import { validateBlenderTaskSpec } from "../studio/adapters/blender/blenderTaskSpec.js";
 import { compileBlenderTaskScript } from "../studio/adapters/blender/blenderScriptCompiler.js";
+import type { AnimationInsertKeyframeOp } from "../studio/adapters/blender/blenderOperations.js";
 
 test("Yun V3 character generator replaces mannequin joint fillers with aligned tapered anatomy", () => {
   const spec = getYunRosterVariant("yun_player_base");
@@ -58,12 +59,12 @@ test("Yun V3 locomotion has denser walk/run key poses than the old three-pose pl
   const ops = buildYunCharacterArtV3Operations(spec!);
   const walkFrames = new Set(
     ops
-      .filter((op) => op.op === "animation.insert_keyframe" && op.action === "walk")
+      .filter((op): op is AnimationInsertKeyframeOp => op.op === "animation.insert_keyframe" && op.action === "walk")
       .map((op) => op.frame),
   );
   const runFrames = new Set(
     ops
-      .filter((op) => op.op === "animation.insert_keyframe" && op.action === "run")
+      .filter((op): op is AnimationInsertKeyframeOp => op.op === "animation.insert_keyframe" && op.action === "run")
       .map((op) => op.frame),
   );
   assert.deepEqual([...walkFrames], [1, 8, 16, 24, 32]);

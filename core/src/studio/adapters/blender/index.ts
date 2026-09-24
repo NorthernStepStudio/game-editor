@@ -62,3 +62,10 @@ export {
   type YunEnvironmentPropSpec,
   type YunEnvironmentAssetSpec,
 } from "./yunEnvironmentContract.js";
+
+export {
+  godotToBlenderPosition,
+  findYunEnvironmentPlayAreaIntrusions,
+  buildYunEnvironmentOperations,
+  buildYunEnvironmentTaskSpec,
+} from "./yunEnvironmentFixture.js";

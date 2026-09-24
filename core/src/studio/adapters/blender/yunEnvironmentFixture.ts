@@ -8,26 +8,20 @@ import {
   type YunEnvironmentAssetSpec,
   type YunEnvironmentPropSpec,
 } from "./yunEnvironmentContract.js";
+import {
+  YUN_ENVIRONMENT_MATERIAL_PALETTES,
+  YUN_ENVIRONMENT_WORLD_PREVIEWS,
+  type YunEnvironmentMaterialName,
+} from "./yunEnvironmentVariantSpec.js";
 
-export const YUN_CALLE_MATERIALS = {
-  MAT_BuildingWarm: [0.92, 0.57, 0.32, 1],
-  MAT_BuildingCoral: [0.84, 0.31, 0.25, 1],
-  MAT_BuildingTeal: [0.18, 0.56, 0.55, 1],
-  MAT_Concrete: [0.52, 0.49, 0.43, 1],
-  MAT_Metal: [0.16, 0.19, 0.22, 1],
-  MAT_Wood: [0.44, 0.25, 0.13, 1],
-  MAT_Foliage: [0.22, 0.46, 0.20, 1],
-  MAT_AsphaltProp: [0.10, 0.13, 0.18, 1],
-  MAT_Light: [1.0, 0.77, 0.32, 1],
-  MAT_Glass: [0.25, 0.62, 0.72, 1],
-} as const;
+export const YUN_CALLE_MATERIALS = YUN_ENVIRONMENT_MATERIAL_PALETTES.calle;
 
 type Part = {
   suffix: string;
   primitive: "cube" | "uv_sphere" | "cylinder" | "cone";
   size: readonly [number, number, number];
   offset: readonly [number, number, number];
-  material: keyof typeof YUN_CALLE_MATERIALS;
+  material: YunEnvironmentMaterialName;
   rotation?: number;
 };
 
@@ -138,8 +132,10 @@ export function buildYunEnvironmentOperations(spec: YunEnvironmentAssetSpec): Bl
   const invalid = validateYunEnvironmentSpec(spec);
   if (invalid.length) throw new Error(`Invalid Yun environment spec: ${invalid.join("; ")}`);
   const ops: BlenderOperation[] = [{ op: "scene.new", sceneName: spec.assetId }];
-  ops.push({ op: "world.set_background", color: [0.52, 0.67, 0.76, 1], strength: 0.7 });
-  for (const [name, color] of Object.entries(YUN_CALLE_MATERIALS)) {
+  const preview = YUN_ENVIRONMENT_WORLD_PREVIEWS[spec.theme];
+  ops.push({ op: "world.set_background", color: [...preview.color] as [number, number, number, number], strength: preview.strength });
+  const palette = YUN_ENVIRONMENT_MATERIAL_PALETTES[spec.theme];
+  for (const [name, color] of Object.entries(palette)) {
     ops.push({ op: "material.create", name, baseColor: [...color] as [number, number, number, number], roughness: name === "MAT_Metal" ? 0.34 : 0.72, metallic: name === "MAT_Metal" ? 0.55 : 0 });
   }
   spec.props.forEach((prop, i) => addProp(ops, prop, i));

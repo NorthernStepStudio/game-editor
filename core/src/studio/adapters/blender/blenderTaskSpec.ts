@@ -209,6 +209,9 @@ function validateOperation(raw: unknown, index: number): BlenderOperation {
       assertSafePathSegment(op.outputPrefix, "outputPrefix");
       assertOptionalFinite(op.width, "width", 16, 4096);
       assertOptionalFinite(op.height, "height", 16, 4096);
+      if (op.target !== undefined) assertVec3(op.target, "target");
+      assertOptionalFinite(op.distance, "distance", 0.1, 500);
+      assertOptionalFinite(op.heightOffset, "heightOffset", -100, 500);
       return op as unknown as BlenderOperation;
     }
 

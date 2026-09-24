@@ -7,6 +7,7 @@ import {
 } from "../foundry/index.js";
 import {
   deriveFlyrailVerificationCapabilities,
+  extractFlyrailRuntimeSessionId,
   mapFlyrailAgentRunToReplayBundle,
   mapFlyrailRuntimeSnapshot,
 } from "../studio/adapters/flyrail/flyrailVerification.js";
@@ -22,6 +23,9 @@ describe("Foundry verification fabric", () => {
         "godot.screenshot.capture",
         "godot.performance.capture",
         "godot.explore.run",
+        "godot.runtime.agent_step",
+        "godot.runtime.viewport_capture",
+        "godot.runtime.events",
       ],
     });
     assert.deepEqual(caps, {
@@ -31,7 +35,23 @@ describe("Foundry verification fabric", () => {
       screenshot: true,
       performance: true,
       agentPlaytest: true,
+      agentStep: true,
+      viewportCapture: true,
+      runtimeEvents: true,
     });
+  });
+
+  it("extracts the nested runtime session id returned by Flyrail", () => {
+    assert.equal(
+      extractFlyrailRuntimeSessionId({
+        runtime: { sessionId: "runtime-nested" },
+      }),
+      "runtime-nested",
+    );
+    assert.equal(
+      extractFlyrailRuntimeSessionId({ runtimeSessionId: "runtime-direct" }),
+      "runtime-direct",
+    );
   });
 
   it("normalizes a Flyrail runtime snapshot into Foundry semantics", () => {

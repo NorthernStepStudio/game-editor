@@ -11,16 +11,15 @@ import { spawnSync } from "node:child_process";
 import { DEFAULT_GODOT_BIN } from "../studio/adapters/flyrail/index.js";
 import { matchYunAnimationClips, YUN_CHARACTER_CONTRACT } from "../studio/adapters/blender/index.js";
 
-function resolveFlyrailRoot(): string {
+function resolveFlyrailRoot(): string | undefined {
   const candidates = [
-    process.env.FLYRAIL_REPO_ROOT ?? "",
+    process.env.FLYRAIL_REPO_ROOT?.trim() ?? "",
     resolve(process.cwd(), "..", "flyrail"),
-    "D:\\dev\\Northern Step Studio\\apps\\flyrail",
   ].filter(Boolean);
   for (const c of candidates) {
     if (existsSync(join(c, "games", "yun", "scripts", "mini_figure.gd"))) return c;
   }
-  return candidates[candidates.length - 1]!;
+  return undefined;
 }
 
 function yunProductionPaths(flyrailRoot: string) {
@@ -36,8 +35,12 @@ function yunProductionPaths(flyrailRoot: string) {
   };
 }
 
-test("yun production character integration: selector + resources + fallback", () => {
+test("yun production character integration: selector + resources + fallback", (t) => {
   const flyrailRoot = resolveFlyrailRoot();
+  if (!flyrailRoot) {
+    t.skip("Flyrail checkout unavailable; set FLYRAIL_REPO_ROOT or place it beside Matterhorn");
+    return;
+  }
   const paths = yunProductionPaths(flyrailRoot);
   assert.ok(existsSync(paths.miniFigure), `mini_figure.gd missing under ${flyrailRoot}`);
 
@@ -70,6 +73,10 @@ test("yun production character runtime probe: mount yun + kenney fallback", asyn
     return;
   }
   const flyrailRoot = resolveFlyrailRoot();
+  if (!flyrailRoot) {
+    t.skip("Flyrail checkout unavailable; set FLYRAIL_REPO_ROOT or place it beside Matterhorn");
+    return;
+  }
   const paths = yunProductionPaths(flyrailRoot);
   if (!existsSync(paths.yunGlb)) {
     t.diagnostic("SKIPPED — yun_player_base.glb not yet installed in production assets");

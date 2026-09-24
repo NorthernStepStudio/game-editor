@@ -96,7 +96,9 @@ export interface FoundryAssetProviderContext {
 export interface FoundryGeneratedAsset {
   readonly providerId: string;
   readonly requestId: string;
-  readonly assetId: string;
+  readonly outputIndex: number;
+  readonly providerAssetId?: string;
+  readonly providerRequestId?: string;
   readonly localPath?: string;
   readonly contentHash?: string;
   readonly width?: number;
@@ -104,7 +106,13 @@ export interface FoundryGeneratedAsset {
   readonly seed?: string | number;
   readonly cost?: FoundryAssetCost;
   readonly sourceUrl?: string;
-  readonly providerAssetId?: string;
+  readonly metadata?: Readonly<Record<string, unknown>>;
+}
+
+export interface FoundryAssetProviderResult {
+  readonly outputs: readonly FoundryGeneratedAsset[];
+  readonly providerRequestId?: string;
+  readonly cost?: FoundryAssetCost;
   readonly metadata?: Readonly<Record<string, unknown>>;
 }
 
@@ -113,12 +121,12 @@ export interface FoundryAssetProvider {
   execute(
     request: FoundryAssetRequest,
     context?: FoundryAssetProviderContext,
-  ): Promise<FoundryGeneratedAsset>;
+  ): Promise<FoundryAssetProviderResult>;
 }
 
 export interface FoundryAssetExecution {
   readonly request: FoundryAssetRequest;
   readonly provider: FoundryAssetProviderDescriptor;
-  readonly generated: FoundryGeneratedAsset;
-  readonly manifest: FoundryAssetManifest;
+  readonly generated: FoundryAssetProviderResult;
+  readonly manifests: readonly FoundryAssetManifest[];
 }

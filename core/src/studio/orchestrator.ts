@@ -29,6 +29,7 @@ export function createStudioPlan(input: NssStudioPlanInput): NssStudioPlan {
     acceptanceCriteria: task.acceptanceCriteria.map((criterion) => criterion.trim()),
     requiredCapabilities: task.requiredCapabilities?.map((cap) => cap.trim()),
     inputArtifacts: task.inputArtifacts,
+    outputArtifacts: task.outputArtifacts,
   }));
 
   const plan: NssStudioPlan = {

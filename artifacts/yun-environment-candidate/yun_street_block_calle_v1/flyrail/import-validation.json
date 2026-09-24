@@ -1,0 +1,62 @@
+{
+  "report": {
+    "ok": true,
+    "sessionId": "0fb4e94d-c6d1-4343-bf65-0d46eec04299",
+    "listedFiles": [],
+    "staticValidationOk": true,
+    "probe": {
+      "animationNames": [],
+      "childCount": 77,
+      "hasAnimationPlayer": false,
+      "hasSkeleton3D": false,
+      "missing": [
+        "idle",
+        "walk",
+        "run_or_sprint"
+      ],
+      "ok": true,
+      "rootName": "yun_street_block_calle_v1",
+      "matched": {
+        "missing": [
+          "idle",
+          "walk",
+          "run_or_sprint"
+        ]
+      }
+    },
+    "evidencePath": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\godot-yun-environment-glb\\flyrail-character-probe.json",
+    "errors": [],
+    "warnings": [
+      "runtime.launch: connect ECONNREFUSED 127.0.0.1:7522"
+    ]
+  },
+  "result": {
+    "taskId": "flyrail-glb-1790259571348",
+    "specialistId": "flyrail",
+    "status": "completed",
+    "summary": "Flyrail Godot stage validated Blender GLB",
+    "evidence": [
+      {
+        "kind": "test",
+        "summary": "Flyrail validated GLB animations ()",
+        "outcome": "passed",
+        "uri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\godot-yun-environment-glb\\flyrail-character-probe.json"
+      }
+    ],
+    "criterionResults": [],
+    "artifacts": [
+      {
+        "kind": "glb",
+        "uri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\godot-yun-environment-glb\\yun_street_block_calle_v1.glb",
+        "label": "yun_street_block_calle_v1.glb",
+        "producedBy": "flyrail"
+      },
+      {
+        "kind": "report",
+        "uri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\godot-yun-environment-glb\\flyrail-character-probe.json",
+        "label": "flyrail-character-probe.json",
+        "producedBy": "flyrail"
+      }
+    ]
+  }
+}

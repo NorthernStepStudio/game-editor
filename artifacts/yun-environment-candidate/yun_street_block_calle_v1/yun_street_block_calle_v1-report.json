@@ -1,0 +1,1716 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "t-yun-calle-env",
+  "executionId": "efee82d5-c739-4252-aea3-9297249d9271",
+  "handoffId": "h-yun-calle-env",
+  "blenderVersion": "5.2.1 LTS",
+  "startedAt": "2026-09-24T14:19:07.795566+00:00",
+  "endedAt": "2026-09-24T14:19:11.304960+00:00",
+  "requestedOperations": [
+    "scene.new",
+    "world.set_background",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "light.create",
+    "render.multi_view",
+    "file.save_blend",
+    "export.glb"
+  ],
+  "completedOperations": [
+    "scene.new",
+    "world.set_background",
+    "material.create:MAT_BuildingWarm",
+    "material.create:MAT_BuildingCoral",
+    "material.create:MAT_BuildingTeal",
+    "material.create:MAT_Concrete",
+    "material.create:MAT_Metal",
+    "material.create:MAT_Wood",
+    "material.create:MAT_Foliage",
+    "material.create:MAT_AsphaltProp",
+    "material.create:MAT_Light",
+    "material.create:MAT_Glass",
+    "mesh.create_primitive:shop_left__body",
+    "material.assign:shop_left__body",
+    "mesh.create_primitive:shop_left__roof",
+    "material.assign:shop_left__roof",
+    "mesh.create_primitive:shop_left__door",
+    "material.assign:shop_left__door",
+    "mesh.create_primitive:shop_left__window_l",
+    "material.assign:shop_left__window_l",
+    "mesh.create_primitive:shop_left__window_r",
+    "material.assign:shop_left__window_r",
+    "mesh.create_primitive:shop_left__awning",
+    "material.assign:shop_left__awning",
+    "mesh.create_primitive:shop_left__sign",
+    "material.assign:shop_left__sign",
+    "mesh.create_primitive:house_left__body",
+    "material.assign:house_left__body",
+    "mesh.create_primitive:house_left__roof",
+    "material.assign:house_left__roof",
+    "mesh.create_primitive:house_left__door",
+    "material.assign:house_left__door",
+    "mesh.create_primitive:house_left__window_l",
+    "material.assign:house_left__window_l",
+    "mesh.create_primitive:house_left__window_r",
+    "material.assign:house_left__window_r",
+    "mesh.create_primitive:shop_right__body",
+    "material.assign:shop_right__body",
+    "mesh.create_primitive:shop_right__roof",
+    "material.assign:shop_right__roof",
+    "mesh.create_primitive:shop_right__door",
+    "material.assign:shop_right__door",
+    "mesh.create_primitive:shop_right__window_l",
+    "material.assign:shop_right__window_l",
+    "mesh.create_primitive:shop_right__window_r",
+    "material.assign:shop_right__window_r",
+    "mesh.create_primitive:shop_right__awning",
+    "material.assign:shop_right__awning",
+    "mesh.create_primitive:shop_right__sign",
+    "material.assign:shop_right__sign",
+    "mesh.create_primitive:house_right__body",
+    "material.assign:house_right__body",
+    "mesh.create_primitive:house_right__roof",
+    "material.assign:house_right__roof",
+    "mesh.create_primitive:house_right__door",
+    "material.assign:house_right__door",
+    "mesh.create_primitive:house_right__window_l",
+    "material.assign:house_right__window_l",
+    "mesh.create_primitive:house_right__window_r",
+    "material.assign:house_right__window_r",
+    "mesh.create_primitive:bench_left__seat",
+    "material.assign:bench_left__seat",
+    "mesh.create_primitive:bench_left__back",
+    "material.assign:bench_left__back",
+    "mesh.create_primitive:bench_left__leg_l",
+    "material.assign:bench_left__leg_l",
+    "mesh.create_primitive:bench_left__leg_r",
+    "material.assign:bench_left__leg_r",
+    "mesh.create_primitive:bench_right__seat",
+    "material.assign:bench_right__seat",
+    "mesh.create_primitive:bench_right__back",
+    "material.assign:bench_right__back",
+    "mesh.create_primitive:bench_right__leg_l",
+    "material.assign:bench_right__leg_l",
+    "mesh.create_primitive:bench_right__leg_r",
+    "material.assign:bench_right__leg_r",
+    "mesh.create_primitive:lamp_left_near__pole",
+    "material.assign:lamp_left_near__pole",
+    "mesh.create_primitive:lamp_left_near__arm",
+    "material.assign:lamp_left_near__arm",
+    "mesh.create_primitive:lamp_left_near__lamp",
+    "material.assign:lamp_left_near__lamp",
+    "mesh.create_primitive:lamp_left_far__pole",
+    "material.assign:lamp_left_far__pole",
+    "mesh.create_primitive:lamp_left_far__arm",
+    "material.assign:lamp_left_far__arm",
+    "mesh.create_primitive:lamp_left_far__lamp",
+    "material.assign:lamp_left_far__lamp",
+    "mesh.create_primitive:lamp_right_near__pole",
+    "material.assign:lamp_right_near__pole",
+    "mesh.create_primitive:lamp_right_near__arm",
+    "material.assign:lamp_right_near__arm",
+    "mesh.create_primitive:lamp_right_near__lamp",
+    "material.assign:lamp_right_near__lamp",
+    "mesh.create_primitive:lamp_right_far__pole",
+    "material.assign:lamp_right_far__pole",
+    "mesh.create_primitive:lamp_right_far__arm",
+    "material.assign:lamp_right_far__arm",
+    "mesh.create_primitive:lamp_right_far__lamp",
+    "material.assign:lamp_right_far__lamp",
+    "mesh.create_primitive:car_left_blue__chassis",
+    "mesh.transform:car_left_blue__chassis",
+    "material.assign:car_left_blue__chassis",
+    "mesh.create_primitive:car_left_blue__cabin",
+    "mesh.transform:car_left_blue__cabin",
+    "material.assign:car_left_blue__cabin",
+    "mesh.create_primitive:car_left_blue__wheel_0_l",
+    "mesh.transform:car_left_blue__wheel_0_l",
+    "material.assign:car_left_blue__wheel_0_l",
+    "mesh.create_primitive:car_left_blue__wheel_0_r",
+    "mesh.transform:car_left_blue__wheel_0_r",
+    "material.assign:car_left_blue__wheel_0_r",
+    "mesh.create_primitive:car_left_blue__wheel_1_l",
+    "mesh.transform:car_left_blue__wheel_1_l",
+    "material.assign:car_left_blue__wheel_1_l",
+    "mesh.create_primitive:car_left_blue__wheel_1_r",
+    "mesh.transform:car_left_blue__wheel_1_r",
+    "material.assign:car_left_blue__wheel_1_r",
+    "mesh.create_primitive:car_right_coral__chassis",
+    "mesh.transform:car_right_coral__chassis",
+    "material.assign:car_right_coral__chassis",
+    "mesh.create_primitive:car_right_coral__cabin",
+    "mesh.transform:car_right_coral__cabin",
+    "material.assign:car_right_coral__cabin",
+    "mesh.create_primitive:car_right_coral__wheel_0_l",
+    "mesh.transform:car_right_coral__wheel_0_l",
+    "material.assign:car_right_coral__wheel_0_l",
+    "mesh.create_primitive:car_right_coral__wheel_0_r",
+    "mesh.transform:car_right_coral__wheel_0_r",
+    "material.assign:car_right_coral__wheel_0_r",
+    "mesh.create_primitive:car_right_coral__wheel_1_l",
+    "mesh.transform:car_right_coral__wheel_1_l",
+    "material.assign:car_right_coral__wheel_1_l",
+    "mesh.create_primitive:car_right_coral__wheel_1_r",
+    "mesh.transform:car_right_coral__wheel_1_r",
+    "material.assign:car_right_coral__wheel_1_r",
+    "mesh.create_primitive:palm_left__trunk",
+    "material.assign:palm_left__trunk",
+    "mesh.create_primitive:palm_left__crown_a",
+    "material.assign:palm_left__crown_a",
+    "mesh.create_primitive:palm_left__crown_b",
+    "material.assign:palm_left__crown_b",
+    "mesh.create_primitive:palm_right__trunk",
+    "material.assign:palm_right__trunk",
+    "mesh.create_primitive:palm_right__crown_a",
+    "material.assign:palm_right__crown_a",
+    "mesh.create_primitive:palm_right__crown_b",
+    "material.assign:palm_right__crown_b",
+    "mesh.create_primitive:planter_left__pot",
+    "material.assign:planter_left__pot",
+    "mesh.create_primitive:planter_left__plant",
+    "material.assign:planter_left__plant",
+    "mesh.create_primitive:bin_right__body",
+    "material.assign:bin_right__body",
+    "mesh.create_primitive:bin_right__lid",
+    "material.assign:bin_right__lid",
+    "mesh.create_primitive:fence_left__post_0",
+    "mesh.transform:fence_left__post_0",
+    "material.assign:fence_left__post_0",
+    "mesh.create_primitive:fence_left__post_1",
+    "mesh.transform:fence_left__post_1",
+    "material.assign:fence_left__post_1",
+    "mesh.create_primitive:fence_left__post_2",
+    "mesh.transform:fence_left__post_2",
+    "material.assign:fence_left__post_2",
+    "mesh.create_primitive:fence_left__post_3",
+    "mesh.transform:fence_left__post_3",
+    "material.assign:fence_left__post_3",
+    "mesh.create_primitive:fence_left__post_4",
+    "mesh.transform:fence_left__post_4",
+    "material.assign:fence_left__post_4",
+    "mesh.create_primitive:fence_left__rail_low",
+    "mesh.transform:fence_left__rail_low",
+    "material.assign:fence_left__rail_low",
+    "mesh.create_primitive:fence_left__rail_high",
+    "mesh.transform:fence_left__rail_high",
+    "material.assign:fence_left__rail_high",
+    "mesh.create_primitive:street_sign_right__post",
+    "material.assign:street_sign_right__post",
+    "mesh.create_primitive:street_sign_right__board",
+    "material.assign:street_sign_right__board",
+    "mesh.create_primitive:sidewalk_left__strip",
+    "material.assign:sidewalk_left__strip",
+    "mesh.create_primitive:sidewalk_right__strip",
+    "material.assign:sidewalk_right__strip",
+    "light.create",
+    "render.multi_view",
+    "file.save_blend:yun_street_block_calle_v1.blend",
+    "export.glb:yun_street_block_calle_v1.glb"
+  ],
+  "artifacts": {
+    "yun_street_block_calle_v1-overview.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-overview.png",
+    "yun_street_block_calle_v1-left.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-left.png",
+    "yun_street_block_calle_v1-right.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-right.png",
+    "yun_street_block_calle_v1-yun_side.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-yun_side.png",
+    "yun_street_block_calle_v1-turn_side.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-turn_side.png",
+    "yun_street_block_calle_v1-gameplay.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-gameplay.png",
+    "yun_street_block_calle_v1.blend": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1.blend",
+    "yun_street_block_calle_v1.glb": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1.glb"
+  },
+  "artifactSizes": {
+    "yun_street_block_calle_v1-overview.png": 607853,
+    "yun_street_block_calle_v1-left.png": 645696,
+    "yun_street_block_calle_v1-right.png": 651144,
+    "yun_street_block_calle_v1-yun_side.png": 583825,
+    "yun_street_block_calle_v1-turn_side.png": 577471,
+    "yun_street_block_calle_v1-gameplay.png": 615571,
+    "yun_street_block_calle_v1.blend": 159345,
+    "yun_street_block_calle_v1.glb": 559840
+  },
+  "previews": [
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-overview.png",
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-left.png",
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-right.png",
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-yun_side.png",
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-turn_side.png",
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-gameplay.png"
+  ],
+  "geometry": {
+    "vertices": 4050,
+    "edges": 7420,
+    "polygons": 3524,
+    "meshObjects": 77
+  },
+  "objectCount": 79,
+  "sceneObjects": [
+    {
+      "name": "shop_left__body",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -1.5999999046325684,
+          -16.049999237060547,
+          0.04999995231628418
+        ],
+        "max": [
+          3.0,
+          -13.550000190734863,
+          3.049999952316284
+        ]
+      }
+    },
+    {
+      "name": "shop_left__roof",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -1.75,
+          -16.174999237060547,
+          3.080000162124634
+        ],
+        "max": [
+          3.1500000953674316,
+          -13.425000190734863,
+          3.319999933242798
+        ]
+      }
+    },
+    {
+      "name": "shop_left__door",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.38999998569488525,
+          -13.550000190734863,
+          0.014999985694885254
+        ],
+        "max": [
+          1.0099999904632568,
+          -13.470000267028809,
+          1.6649999618530273
+        ]
+      }
+    },
+    {
+      "name": "shop_left__window_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.9099999666213989,
+          -13.545000076293945,
+          1.649999976158142
+        ],
+        "max": [
+          -0.09000000357627869,
+          -13.454999923706055,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "shop_left__window_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.4900000095367432,
+          -13.545000076293945,
+          1.649999976158142
+        ],
+        "max": [
+          2.309999942779541,
+          -13.454999923706055,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "shop_left__awning",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.7500000596046448,
+          -13.539999961853027,
+          2.6600000858306885
+        ],
+        "max": [
+          2.1500000953674316,
+          -12.820000648498535,
+          2.8399999141693115
+        ]
+      }
+    },
+    {
+      "name": "shop_left__sign",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.30000001192092896,
+          -13.520000457763672,
+          3.2100000381469727
+        ],
+        "max": [
+          1.7000000476837158,
+          -13.399999618530273,
+          3.690000057220459
+        ]
+      }
+    },
+    {
+      "name": "house_left__body",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -1.5,
+          -7.849999904632568,
+          0.04999995231628418
+        ],
+        "max": [
+          3.0999999046325684,
+          -5.349999904632568,
+          3.049999952316284
+        ]
+      }
+    },
+    {
+      "name": "house_left__roof",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -1.6500000953674316,
+          -7.974999904632568,
+          3.080000162124634
+        ],
+        "max": [
+          3.25,
+          -5.224999904632568,
+          3.319999933242798
+        ]
+      }
+    },
+    {
+      "name": "house_left__door",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.49000000953674316,
+          -5.349999904632568,
+          0.014999985694885254
+        ],
+        "max": [
+          1.1100000143051147,
+          -5.269999980926514,
+          1.6649999618530273
+        ]
+      }
+    },
+    {
+      "name": "house_left__window_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.8100000023841858,
+          -5.345000267028809,
+          1.649999976158142
+        ],
+        "max": [
+          0.009999990463256836,
+          -5.255000114440918,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "house_left__window_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.590000033378601,
+          -5.345000267028809,
+          1.649999976158142
+        ],
+        "max": [
+          2.4100000858306885,
+          -5.255000114440918,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "shop_right__body",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.700000762939453,
+          -16.450000762939453,
+          0.04999995231628418
+        ],
+        "max": [
+          30.299999237060547,
+          -13.949999809265137,
+          3.049999952316284
+        ]
+      }
+    },
+    {
+      "name": "shop_right__roof",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.549999237060547,
+          -16.575000762939453,
+          3.080000162124634
+        ],
+        "max": [
+          30.450000762939453,
+          -13.824999809265137,
+          3.319999933242798
+        ]
+      }
+    },
+    {
+      "name": "shop_right__door",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.690000534057617,
+          -13.949999809265137,
+          0.014999985694885254
+        ],
+        "max": [
+          28.309999465942383,
+          -13.869999885559082,
+          1.6649999618530273
+        ]
+      }
+    },
+    {
+      "name": "shop_right__window_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.389999389648438,
+          -13.944999694824219,
+          1.649999976158142
+        ],
+        "max": [
+          27.209999084472656,
+          -13.854999542236328,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "shop_right__window_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          28.790000915527344,
+          -13.944999694824219,
+          1.649999976158142
+        ],
+        "max": [
+          29.610000610351562,
+          -13.854999542236328,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "shop_right__awning",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.549999237060547,
+          -13.9399995803833,
+          2.6600000858306885
+        ],
+        "max": [
+          29.450000762939453,
+          -13.220000267028809,
+          2.8399999141693115
+        ]
+      }
+    },
+    {
+      "name": "shop_right__sign",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.0,
+          -13.920000076293945,
+          3.2100000381469727
+        ],
+        "max": [
+          29.0,
+          -13.799999237060547,
+          3.690000057220459
+        ]
+      }
+    },
+    {
+      "name": "house_right__body",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.80000114440918,
+          -9.25,
+          0.04999995231628418
+        ],
+        "max": [
+          30.399999618530273,
+          -6.75,
+          3.049999952316284
+        ]
+      }
+    },
+    {
+      "name": "house_right__roof",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.649999618530273,
+          -9.375,
+          3.080000162124634
+        ],
+        "max": [
+          30.55000114440918,
+          -6.625,
+          3.319999933242798
+        ]
+      }
+    },
+    {
+      "name": "house_right__door",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.790000915527344,
+          -6.75,
+          0.014999985694885254
+        ],
+        "max": [
+          28.40999984741211,
+          -6.670000076293945,
+          1.6649999618530273
+        ]
+      }
+    },
+    {
+      "name": "house_right__window_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.489999771118164,
+          -6.744999885559082,
+          1.649999976158142
+        ],
+        "max": [
+          27.309999465942383,
+          -6.654999732971191,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "house_right__window_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          28.889999389648438,
+          -6.744999885559082,
+          1.649999976158142
+        ],
+        "max": [
+          29.709999084472656,
+          -6.654999732971191,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "bench_left__seat",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.75,
+          -8.8100004196167,
+          0.4399999976158142
+        ],
+        "max": [
+          3.1500000953674316,
+          -8.390000343322754,
+          0.5600000023841858
+        ]
+      }
+    },
+    {
+      "name": "bench_left__back",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.75,
+          -8.8100004196167,
+          0.5600000023841858
+        ],
+        "max": [
+          3.1500000953674316,
+          -8.6899995803833,
+          1.0799999237060547
+        ]
+      }
+    },
+    {
+      "name": "bench_left__leg_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.9079749584197998,
+          -8.602025032043457,
+          0.1348000019788742
+        ],
+        "max": [
+          1.912024974822998,
+          -8.597975730895996,
+          0.3651999831199646
+        ]
+      }
+    },
+    {
+      "name": "bench_left__leg_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.9879751205444336,
+          -8.602025032043457,
+          0.1348000019788742
+        ],
+        "max": [
+          2.9920248985290527,
+          -8.597975730895996,
+          0.3651999831199646
+        ]
+      }
+    },
+    {
+      "name": "bench_right__seat",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.5,
+          -7.010000228881836,
+          0.4399999976158142
+        ],
+        "max": [
+          26.900001525878906,
+          -6.590000152587891,
+          0.5600000023841858
+        ]
+      }
+    },
+    {
+      "name": "bench_right__back",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.5,
+          -7.009999752044678,
+          0.5600000023841858
+        ],
+        "max": [
+          26.900001525878906,
+          -6.889999866485596,
+          1.0799999237060547
+        ]
+      }
+    },
+    {
+      "name": "bench_right__leg_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.657974243164062,
+          -6.802025318145752,
+          0.1348000019788742
+        ],
+        "max": [
+          25.662025451660156,
+          -6.797975063323975,
+          0.3651999831199646
+        ]
+      }
+    },
+    {
+      "name": "bench_right__leg_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.737974166870117,
+          -6.802025318145752,
+          0.1348000019788742
+        ],
+        "max": [
+          26.74202537536621,
+          -6.797975063323975,
+          0.3651999831199646
+        ]
+      }
+    },
+    {
+      "name": "lamp_left_near__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.9451000690460205,
+          -4.404900074005127,
+          -7.095000743865967
+        ],
+        "max": [
+          2.954900026321411,
+          -4.395100116729736,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "lamp_left_near__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.875,
+          -4.440000057220459,
+          4.110000133514404
+        ],
+        "max": [
+          3.7249999046325684,
+          -4.360000133514404,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "lamp_left_near__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          3.4200000762939453,
+          -4.550000190734863,
+          4.0
+        ],
+        "max": [
+          3.8400001525878906,
+          -4.25,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "lamp_left_far__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.9451000690460205,
+          -12.604900360107422,
+          -7.095000743865967
+        ],
+        "max": [
+          2.954900026321411,
+          -12.595100402832031,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "lamp_left_far__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.875,
+          -12.640000343322754,
+          4.110000133514404
+        ],
+        "max": [
+          3.7249999046325684,
+          -12.5600004196167,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "lamp_left_far__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          3.4200000762939453,
+          -12.75,
+          4.0
+        ],
+        "max": [
+          3.8400001525878906,
+          -12.450000762939453,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "lamp_right_near__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.895099639892578,
+          -4.804900169372559,
+          -7.095000743865967
+        ],
+        "max": [
+          25.90489959716797,
+          -4.795100212097168,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "lamp_right_near__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.825000762939453,
+          -4.840000152587891,
+          4.110000133514404
+        ],
+        "max": [
+          26.674999237060547,
+          -4.760000228881836,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "lamp_right_near__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.3700008392334,
+          -4.950000286102295,
+          4.0
+        ],
+        "max": [
+          26.78999900817871,
+          -4.650000095367432,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "lamp_right_far__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.895099639892578,
+          -12.004899978637695,
+          -7.095000743865967
+        ],
+        "max": [
+          25.90489959716797,
+          -11.995100021362305,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "lamp_right_far__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.825000762939453,
+          -12.039999961853027,
+          4.110000133514404
+        ],
+        "max": [
+          26.674999237060547,
+          -11.960000038146973,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "lamp_right_far__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.3700008392334,
+          -12.149999618530273,
+          4.0
+        ],
+        "max": [
+          26.78999900817871,
+          -11.850000381469727,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "car_left_blue__chassis",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.0339722633361816,
+          -4.60621452331543,
+          0.2799999713897705
+        ],
+        "max": [
+          2.9660277366638184,
+          -1.3937852382659912,
+          0.7599999904632568
+        ]
+      }
+    },
+    {
+      "name": "car_left_blue__cabin",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.265258550643921,
+          -3.9249420166015625,
+          0.7099999785423279
+        ],
+        "max": [
+          2.7235803604125977,
+          -2.234668254852295,
+          1.3299999237060547
+        ]
+      }
+    },
+    {
+      "name": "car_left_blue__wheel_0_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.2332302331924438,
+          -2.0284276008605957,
+          0.23750001192092896
+        ],
+        "max": [
+          1.2674874067306519,
+          -1.9019463062286377,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "car_left_blue__wheel_0_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.8692352771759033,
+          -2.1428279876708984,
+          0.23750001192092896
+        ],
+        "max": [
+          2.9034926891326904,
+          -2.0163469314575195,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "car_left_blue__wheel_1_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.0965075492858887,
+          -3.9836530685424805,
+          0.23750001192092896
+        ],
+        "max": [
+          1.1307647228240967,
+          -3.8571720123291016,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "car_left_blue__wheel_1_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.7325124740600586,
+          -4.098053455352783,
+          0.23750001192092896
+        ],
+        "max": [
+          2.7667698860168457,
+          -3.9715723991394043,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "car_right_coral__chassis",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.886428833007812,
+          -11.879069328308105,
+          0.2799999713897705
+        ],
+        "max": [
+          27.71356964111328,
+          -8.720931053161621,
+          0.7599999904632568
+        ]
+      }
+    },
+    {
+      "name": "car_right_coral__cabin",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.09469985961914,
+          -11.043118476867676,
+          0.7099999785423279
+        ],
+        "max": [
+          27.499717712402344,
+          -9.396979331970215,
+          1.3299999237060547
+        ]
+      }
+    },
+    {
+      "name": "car_right_coral__wheel_0_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.638729095458984,
+          -11.31369400024414,
+          0.23750001192092896
+        ],
+        "max": [
+          27.66867446899414,
+          -11.187877655029297,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "car_right_coral__wheel_0_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.99972915649414,
+          -11.370928764343262,
+          0.23750001192092896
+        ],
+        "max": [
+          26.029674530029297,
+          -11.245112419128418,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "car_right_coral__wheel_1_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.57032585144043,
+          -9.354887962341309,
+          0.23750001192092896
+        ],
+        "max": [
+          27.600271224975586,
+          -9.229071617126465,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "car_right_coral__wheel_1_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.931325912475586,
+          -9.41212272644043,
+          0.23750001192092896
+        ],
+        "max": [
+          25.961271286010742,
+          -9.286306381225586,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "palm_left__trunk",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.5638999938964844,
+          -17.33609962463379,
+          -2.5199999809265137
+        ],
+        "max": [
+          2.6360998153686523,
+          -17.263898849487305,
+          5.319999694824219
+        ]
+      }
+    },
+    {
+      "name": "palm_left__crown_a",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.8250006437301636,
+          -18.024999618530273,
+          2.450000047683716
+        ],
+        "max": [
+          3.374999523162842,
+          -16.57499885559082,
+          3.549999952316284
+        ]
+      }
+    },
+    {
+      "name": "palm_left__crown_b",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.4550005197525024,
+          -17.829999923706055,
+          3.119999885559082
+        ],
+        "max": [
+          2.504999876022339,
+          -16.829999923706055,
+          3.9200000762939453
+        ]
+      }
+    },
+    {
+      "name": "palm_right__trunk",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.16390037536621,
+          -17.036100387573242,
+          -2.5199999809265137
+        ],
+        "max": [
+          26.236101150512695,
+          -16.963899612426758,
+          5.319999694824219
+        ]
+      }
+    },
+    {
+      "name": "palm_right__crown_a",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.42500114440918,
+          -17.725000381469727,
+          2.450000047683716
+        ],
+        "max": [
+          26.975000381469727,
+          -16.274999618530273,
+          3.549999952316284
+        ]
+      }
+    },
+    {
+      "name": "palm_right__crown_b",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.05500030517578,
+          -17.530000686645508,
+          3.119999885559082
+        ],
+        "max": [
+          26.104999542236328,
+          -16.530000686645508,
+          3.9200000762939453
+        ]
+      }
+    },
+    {
+      "name": "planter_left__pot",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.010000228881836,
+          -11.34000015258789,
+          0.009999990463256836
+        ],
+        "max": [
+          2.7899999618530273,
+          -10.65999984741211,
+          0.5099999904632568
+        ]
+      }
+    },
+    {
+      "name": "planter_left__plant",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.0500004291534424,
+          -11.309999465942383,
+          0.45499998331069946
+        ],
+        "max": [
+          2.75,
+          -10.6899995803833,
+          1.1050000190734863
+        ]
+      }
+    },
+    {
+      "name": "bin_right__body",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.53999900817871,
+          -8.375,
+          0.02499997615814209
+        ],
+        "max": [
+          26.059999465942383,
+          -7.825000286102295,
+          0.875
+        ]
+      }
+    },
+    {
+      "name": "bin_right__lid",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.489999771118164,
+          -8.420000076293945,
+          0.8600000143051147
+        ],
+        "max": [
+          26.10999870300293,
+          -7.78000020980835,
+          0.9800000190734863
+        ]
+      }
+    },
+    {
+      "name": "fence_left__post_0",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.36000001430511475,
+          -0.5400000214576721,
+          0.004999995231628418
+        ],
+        "max": [
+          0.4399999976158142,
+          -0.46000000834465027,
+          0.8550000190734863
+        ]
+      }
+    },
+    {
+      "name": "fence_left__post_1",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.36000001430511475,
+          -1.1399999856948853,
+          0.004999995231628418
+        ],
+        "max": [
+          0.4399999976158142,
+          -1.0600000619888306,
+          0.8550000190734863
+        ]
+      }
+    },
+    {
+      "name": "fence_left__post_2",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.36000001430511475,
+          -1.7400000095367432,
+          0.004999995231628418
+        ],
+        "max": [
+          0.4399999976158142,
+          -1.6600000858306885,
+          0.8550000190734863
+        ]
+      }
+    },
+    {
+      "name": "fence_left__post_3",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.36000001430511475,
+          -2.3399999141693115,
+          0.004999995231628418
+        ],
+        "max": [
+          0.4399999976158142,
+          -2.259999990463257,
+          0.8550000190734863
+        ]
+      }
+    },
+    {
+      "name": "fence_left__post_4",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.36000001430511475,
+          -2.940000057220459,
+          0.004999995231628418
+        ],
+        "max": [
+          0.4399999976158142,
+          -2.8600001335144043,
+          0.8550000190734863
+        ]
+      }
+    },
+    {
+      "name": "fence_left__rail_low",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.35999995470046997,
+          -2.950000047683716,
+          0.2149999886751175
+        ],
+        "max": [
+          0.440000057220459,
+          -0.4500000476837158,
+          0.3050000071525574
+        ]
+      }
+    },
+    {
+      "name": "fence_left__rail_high",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.35999995470046997,
+          -2.950000047683716,
+          0.6349999904632568
+        ],
+        "max": [
+          0.440000057220459,
+          -0.4500000476837158,
+          0.7250000238418579
+        ]
+      }
+    },
+    {
+      "name": "street_sign_right__post",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.497974395751953,
+          -15.702024459838867,
+          -1.6800000667572021
+        ],
+        "max": [
+          25.502025604248047,
+          -15.697975158691406,
+          4.079999923706055
+        ]
+      }
+    },
+    {
+      "name": "street_sign_right__board",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.09000015258789,
+          -15.769999504089355,
+          1.7499998807907104
+        ],
+        "max": [
+          25.90999984741211,
+          -15.630000114440918,
+          2.4099998474121094
+        ]
+      }
+    },
+    {
+      "name": "sidewalk_left__strip",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.6000001430511475,
+          -19.5,
+          0.0
+        ],
+        "max": [
+          3.200000047683716,
+          -0.5,
+          0.14000000059604645
+        ]
+      }
+    },
+    {
+      "name": "sidewalk_right__strip",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.600000381469727,
+          -19.5,
+          0.0
+        ],
+        "max": [
+          27.19999885559082,
+          -0.5,
+          0.14000000059604645
+        ]
+      }
+    },
+    {
+      "name": "Preview_Sun",
+      "type": "LIGHT",
+      "bounds": {
+        "min": [
+          4.0,
+          -4.0,
+          6.0
+        ],
+        "max": [
+          4.0,
+          -4.0,
+          6.0
+        ]
+      }
+    },
+    {
+      "name": "Camera",
+      "type": "CAMERA",
+      "bounds": {
+        "min": [
+          44.400001525878906,
+          32.0,
+          34.79999923706055
+        ],
+        "max": [
+          44.400001525878906,
+          32.0,
+          34.79999923706055
+        ]
+      }
+    }
+  ],
+  "materials": {
+    "count": 10,
+    "names": [
+      "MAT_AsphaltProp",
+      "MAT_BuildingCoral",
+      "MAT_BuildingTeal",
+      "MAT_BuildingWarm",
+      "MAT_Concrete",
+      "MAT_Foliage",
+      "MAT_Glass",
+      "MAT_Light",
+      "MAT_Metal",
+      "MAT_Wood"
+    ]
+  },
+  "exportInfo": {
+    "animations": [],
+    "skins": false
+  },
+  "skeleton": null,
+  "warnings": [],
+  "errors": [],
+  "status": "completed",
+  "success": true
+}

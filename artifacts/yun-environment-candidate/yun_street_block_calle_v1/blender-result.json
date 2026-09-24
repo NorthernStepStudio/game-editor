@@ -1,0 +1,2320 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "t-yun-calle-env",
+  "executionId": "efee82d5-c739-4252-aea3-9297249d9271",
+  "handoffId": "h-yun-calle-env",
+  "blenderVersion": "5.2.1 LTS",
+  "startedAt": "2026-09-24T14:19:07.795566+00:00",
+  "endedAt": "2026-09-24T14:19:11.304960+00:00",
+  "requestedOperations": [
+    {
+      "op": "scene.new",
+      "sceneName": "yun_street_block_calle_v1"
+    },
+    {
+      "op": "world.set_background",
+      "color": [
+        0.52,
+        0.67,
+        0.76,
+        1
+      ],
+      "strength": 0.7
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_BuildingWarm",
+      "baseColor": [
+        0.92,
+        0.57,
+        0.32,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_BuildingCoral",
+      "baseColor": [
+        0.84,
+        0.31,
+        0.25,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_BuildingTeal",
+      "baseColor": [
+        0.18,
+        0.56,
+        0.55,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Concrete",
+      "baseColor": [
+        0.52,
+        0.49,
+        0.43,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Metal",
+      "baseColor": [
+        0.16,
+        0.19,
+        0.22,
+        1
+      ],
+      "roughness": 0.34,
+      "metallic": 0.55
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Wood",
+      "baseColor": [
+        0.44,
+        0.25,
+        0.13,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Foliage",
+      "baseColor": [
+        0.22,
+        0.46,
+        0.2,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_AsphaltProp",
+      "baseColor": [
+        0.1,
+        0.13,
+        0.18,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Light",
+      "baseColor": [
+        1,
+        0.77,
+        0.32,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Glass",
+      "baseColor": [
+        0.25,
+        0.62,
+        0.72,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_left__body",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.6,
+        2.5,
+        3
+      ],
+      "location": [
+        0.7,
+        -14.8,
+        1.55
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_left__body",
+      "material": "MAT_BuildingTeal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_left__roof",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.9,
+        2.75,
+        0.24
+      ],
+      "location": [
+        0.7,
+        -14.8,
+        3.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_left__roof",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_left__door",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.62,
+        0.08,
+        1.65
+      ],
+      "location": [
+        0.7,
+        -13.510000000000002,
+        0.84
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_left__door",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_left__window_l",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        -0.5,
+        -13.5,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_left__window_l",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_left__window_r",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        1.9,
+        -13.5,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_left__window_r",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_left__awning",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2.9,
+        0.72,
+        0.18
+      ],
+      "location": [
+        0.7,
+        -13.18,
+        2.75
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_left__awning",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_left__sign",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2,
+        0.12,
+        0.48
+      ],
+      "location": [
+        0.7,
+        -13.46,
+        3.45
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_left__sign",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_left__body",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.6,
+        2.5,
+        3
+      ],
+      "location": [
+        0.8,
+        -6.6,
+        1.55
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_left__body",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_left__roof",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.9,
+        2.75,
+        0.24
+      ],
+      "location": [
+        0.8,
+        -6.6,
+        3.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_left__roof",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_left__door",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.62,
+        0.08,
+        1.65
+      ],
+      "location": [
+        0.8,
+        -5.31,
+        0.84
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_left__door",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_left__window_l",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        -0.3999999999999999,
+        -5.3,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_left__window_l",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_left__window_r",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        2,
+        -5.3,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_left__window_r",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_right__body",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.6,
+        2.5,
+        3
+      ],
+      "location": [
+        28,
+        -15.2,
+        1.55
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_right__body",
+      "material": "MAT_BuildingTeal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_right__roof",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.9,
+        2.75,
+        0.24
+      ],
+      "location": [
+        28,
+        -15.2,
+        3.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_right__roof",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_right__door",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.62,
+        0.08,
+        1.65
+      ],
+      "location": [
+        28,
+        -13.91,
+        0.84
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_right__door",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_right__window_l",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        26.8,
+        -13.899999999999999,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_right__window_l",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_right__window_r",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        29.2,
+        -13.899999999999999,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_right__window_r",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_right__awning",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2.9,
+        0.72,
+        0.18
+      ],
+      "location": [
+        28,
+        -13.579999999999998,
+        2.75
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_right__awning",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "shop_right__sign",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2,
+        0.12,
+        0.48
+      ],
+      "location": [
+        28,
+        -13.86,
+        3.45
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "shop_right__sign",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_right__body",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.6,
+        2.5,
+        3
+      ],
+      "location": [
+        28.1,
+        -8,
+        1.55
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_right__body",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_right__roof",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.9,
+        2.75,
+        0.24
+      ],
+      "location": [
+        28.1,
+        -8,
+        3.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_right__roof",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_right__door",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.62,
+        0.08,
+        1.65
+      ],
+      "location": [
+        28.1,
+        -6.71,
+        0.84
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_right__door",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_right__window_l",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        26.900000000000002,
+        -6.7,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_right__window_l",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "house_right__window_r",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        29.3,
+        -6.7,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "house_right__window_r",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bench_left__seat",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.4,
+        0.42,
+        0.12
+      ],
+      "location": [
+        2.45,
+        -8.6,
+        0.5
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bench_left__seat",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bench_left__back",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.4,
+        0.12,
+        0.52
+      ],
+      "location": [
+        2.45,
+        -8.75,
+        0.82
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bench_left__back",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bench_left__leg_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.045,
+      "depth": 0.48,
+      "scale": [
+        0.045,
+        0.045,
+        0.48
+      ],
+      "location": [
+        1.9100000000000001,
+        -8.6,
+        0.25
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bench_left__leg_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bench_left__leg_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.045,
+      "depth": 0.48,
+      "scale": [
+        0.045,
+        0.045,
+        0.48
+      ],
+      "location": [
+        2.99,
+        -8.6,
+        0.25
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bench_left__leg_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bench_right__seat",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.4,
+        0.42,
+        0.12
+      ],
+      "location": [
+        26.2,
+        -6.8,
+        0.5
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bench_right__seat",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bench_right__back",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.4,
+        0.12,
+        0.52
+      ],
+      "location": [
+        26.2,
+        -6.95,
+        0.82
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bench_right__back",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bench_right__leg_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.045,
+      "depth": 0.48,
+      "scale": [
+        0.045,
+        0.045,
+        0.48
+      ],
+      "location": [
+        25.66,
+        -6.8,
+        0.25
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bench_right__leg_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bench_right__leg_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.045,
+      "depth": 0.48,
+      "scale": [
+        0.045,
+        0.045,
+        0.48
+      ],
+      "location": [
+        26.74,
+        -6.8,
+        0.25
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bench_right__leg_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_left_near__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        2.95,
+        -4.4,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_left_near__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_left_near__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        3.3000000000000003,
+        -4.4,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_left_near__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_left_near__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        3.6300000000000003,
+        -4.4,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_left_near__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_left_far__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        2.95,
+        -12.6,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_left_far__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_left_far__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        3.3000000000000003,
+        -12.6,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_left_far__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_left_far__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        3.6300000000000003,
+        -12.6,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_left_far__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_right_near__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        25.9,
+        -4.8,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_right_near__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_right_near__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        26.25,
+        -4.8,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_right_near__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_right_near__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        26.58,
+        -4.8,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_right_near__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_right_far__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        25.9,
+        -12,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_right_far__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_right_far__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        26.25,
+        -12,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_right_far__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "lamp_right_far__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        26.58,
+        -12,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "lamp_right_far__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_left_blue__chassis",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.72,
+        3.1,
+        0.48
+      ],
+      "location": [
+        2,
+        -3,
+        0.52
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_left_blue__chassis",
+      "rotationEulerDeg": [
+        0,
+        0,
+        4
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_left_blue__chassis",
+      "material": "MAT_BuildingTeal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_left_blue__cabin",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.35,
+        1.6,
+        0.62
+      ],
+      "location": [
+        1.99441948210047,
+        -3.079805124020786,
+        1.02
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_left_blue__cabin",
+      "rotationEulerDeg": [
+        0,
+        0,
+        4
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_left_blue__cabin",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_left_blue__wheel_0_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        1.250358823056187,
+        -1.9651869222751897,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_left_blue__wheel_0_l",
+      "rotationEulerDeg": [
+        0,
+        90,
+        4
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_left_blue__wheel_0_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_left_blue__wheel_0_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        2.8863638654822985,
+        -2.079587539215555,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_left_blue__wheel_0_r",
+      "rotationEulerDeg": [
+        0,
+        90,
+        4
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_left_blue__wheel_0_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_left_blue__wheel_1_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        1.1136361345177015,
+        -3.920412460784445,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_left_blue__wheel_1_l",
+      "rotationEulerDeg": [
+        0,
+        90,
+        4
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_left_blue__wheel_1_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_left_blue__wheel_1_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        2.749641176943813,
+        -4.03481307772481,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_left_blue__wheel_1_r",
+      "rotationEulerDeg": [
+        0,
+        90,
+        4
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_left_blue__wheel_1_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_right_coral__chassis",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.72,
+        3.1,
+        0.48
+      ],
+      "location": [
+        26.8,
+        -10.3,
+        0.52
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_right_coral__chassis",
+      "rotationEulerDeg": [
+        0,
+        0,
+        178
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_right_coral__chassis",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_right_coral__cabin",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.35,
+        1.6,
+        0.62
+      ],
+      "location": [
+        26.7972080402638,
+        -10.220048733838473,
+        1.02
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_right_coral__cabin",
+      "rotationEulerDeg": [
+        0,
+        0,
+        178
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_right_coral__cabin",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_right_coral__wheel_0_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        27.65370198492411,
+        -11.250785423182665,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_right_coral__wheel_0_l",
+      "rotationEulerDeg": [
+        0,
+        90,
+        178
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_right_coral__wheel_0_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_right_coral__wheel_0_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        26.014701028612794,
+        -11.308020597774766,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_right_coral__wheel_0_r",
+      "rotationEulerDeg": [
+        0,
+        90,
+        178
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_right_coral__wheel_0_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_right_coral__wheel_1_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        27.585298971387207,
+        -9.291979402225236,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_right_coral__wheel_1_l",
+      "rotationEulerDeg": [
+        0,
+        90,
+        178
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_right_coral__wheel_1_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "car_right_coral__wheel_1_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        25.946298015075893,
+        -9.349214576817337,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "car_right_coral__wheel_1_r",
+      "rotationEulerDeg": [
+        0,
+        90,
+        178
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "car_right_coral__wheel_1_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "palm_left__trunk",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.19,
+      "depth": 2.8,
+      "scale": [
+        0.19,
+        0.19,
+        2.8
+      ],
+      "location": [
+        2.6,
+        -17.3,
+        1.4
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "palm_left__trunk",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "palm_left__crown_a",
+      "primitive": "uv_sphere",
+      "size": 1,
+      "radius": 0.5,
+      "scale": [
+        1.55,
+        1.45,
+        1.1
+      ],
+      "location": [
+        2.6,
+        -17.3,
+        3
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "palm_left__crown_a",
+      "material": "MAT_Foliage"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "palm_left__crown_b",
+      "primitive": "uv_sphere",
+      "size": 1,
+      "radius": 0.5,
+      "scale": [
+        1.05,
+        1,
+        0.8
+      ],
+      "location": [
+        1.98,
+        -17.330000000000002,
+        3.52
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "palm_left__crown_b",
+      "material": "MAT_Foliage"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "palm_right__trunk",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.19,
+      "depth": 2.8,
+      "scale": [
+        0.19,
+        0.19,
+        2.8
+      ],
+      "location": [
+        26.2,
+        -17,
+        1.4
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "palm_right__trunk",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "palm_right__crown_a",
+      "primitive": "uv_sphere",
+      "size": 1,
+      "radius": 0.5,
+      "scale": [
+        1.55,
+        1.45,
+        1.1
+      ],
+      "location": [
+        26.2,
+        -17,
+        3
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "palm_right__crown_a",
+      "material": "MAT_Foliage"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "palm_right__crown_b",
+      "primitive": "uv_sphere",
+      "size": 1,
+      "radius": 0.5,
+      "scale": [
+        1.05,
+        1,
+        0.8
+      ],
+      "location": [
+        25.58,
+        -17.03,
+        3.52
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "palm_right__crown_b",
+      "material": "MAT_Foliage"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "planter_left__pot",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.78,
+        0.68,
+        0.5
+      ],
+      "location": [
+        2.4,
+        -11,
+        0.26
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "planter_left__pot",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "planter_left__plant",
+      "primitive": "uv_sphere",
+      "size": 1,
+      "radius": 0.5,
+      "scale": [
+        0.7,
+        0.62,
+        0.65
+      ],
+      "location": [
+        2.4,
+        -11,
+        0.78
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "planter_left__plant",
+      "material": "MAT_Foliage"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bin_right__body",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.52,
+        0.55,
+        0.85
+      ],
+      "location": [
+        25.8,
+        -8.1,
+        0.45
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bin_right__body",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "bin_right__lid",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.62,
+        0.64,
+        0.12
+      ],
+      "location": [
+        25.8,
+        -8.1,
+        0.92
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "bin_right__lid",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "fence_left__post_0",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.08,
+        0.08,
+        0.85
+      ],
+      "location": [
+        0.39999999999999997,
+        -0.5,
+        0.43
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "fence_left__post_0",
+      "rotationEulerDeg": [
+        0,
+        0,
+        90
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "fence_left__post_0",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "fence_left__post_1",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.08,
+        0.08,
+        0.85
+      ],
+      "location": [
+        0.39999999999999997,
+        -1.1,
+        0.43
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "fence_left__post_1",
+      "rotationEulerDeg": [
+        0,
+        0,
+        90
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "fence_left__post_1",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "fence_left__post_2",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.08,
+        0.08,
+        0.85
+      ],
+      "location": [
+        0.4,
+        -1.7,
+        0.43
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "fence_left__post_2",
+      "rotationEulerDeg": [
+        0,
+        0,
+        90
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "fence_left__post_2",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "fence_left__post_3",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.08,
+        0.08,
+        0.85
+      ],
+      "location": [
+        0.4000000000000001,
+        -2.3,
+        0.43
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "fence_left__post_3",
+      "rotationEulerDeg": [
+        0,
+        0,
+        90
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "fence_left__post_3",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "fence_left__post_4",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.08,
+        0.08,
+        0.85
+      ],
+      "location": [
+        0.4000000000000001,
+        -2.9,
+        0.43
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "fence_left__post_4",
+      "rotationEulerDeg": [
+        0,
+        0,
+        90
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "fence_left__post_4",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "fence_left__rail_low",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2.5,
+        0.08,
+        0.09
+      ],
+      "location": [
+        0.4,
+        -1.7,
+        0.26
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "fence_left__rail_low",
+      "rotationEulerDeg": [
+        0,
+        0,
+        90
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "fence_left__rail_low",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "fence_left__rail_high",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2.5,
+        0.08,
+        0.09
+      ],
+      "location": [
+        0.4,
+        -1.7,
+        0.68
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "fence_left__rail_high",
+      "rotationEulerDeg": [
+        0,
+        0,
+        90
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "fence_left__rail_high",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "street_sign_right__post",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.045,
+      "depth": 2.4,
+      "scale": [
+        0.045,
+        0.045,
+        2.4
+      ],
+      "location": [
+        25.5,
+        -15.7,
+        1.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "street_sign_right__post",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "street_sign_right__board",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.14,
+        0.66
+      ],
+      "location": [
+        25.5,
+        -15.7,
+        2.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "street_sign_right__board",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "sidewalk_left__strip",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.6,
+        19,
+        0.14
+      ],
+      "location": [
+        2.4,
+        -10,
+        0.07
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "sidewalk_left__strip",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "sidewalk_right__strip",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.6,
+        19,
+        0.14
+      ],
+      "location": [
+        26.4,
+        -10,
+        0.07
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "sidewalk_right__strip",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "light.create",
+      "name": "Preview_Sun",
+      "type": "SUN",
+      "energy": 2,
+      "rotationEulerDeg": [
+        28,
+        0,
+        24
+      ]
+    },
+    {
+      "op": "render.multi_view",
+      "outputPrefix": "yun_street_block_calle_v1",
+      "target": [
+        14.4,
+        -10,
+        1.8
+      ],
+      "views": [
+        "overview",
+        "left",
+        "right",
+        "yun_side",
+        "turn_side",
+        "gameplay"
+      ],
+      "width": 960,
+      "height": 640
+    },
+    {
+      "op": "file.save_blend",
+      "outputName": "yun_street_block_calle_v1.blend"
+    },
+    {
+      "op": "export.glb",
+      "outputName": "yun_street_block_calle_v1.glb",
+      "applyModifiers": true
+    }
+  ],
+  "completedOperations": [
+    "scene.new",
+    "world.set_background",
+    "material.create:MAT_BuildingWarm",
+    "material.create:MAT_BuildingCoral",
+    "material.create:MAT_BuildingTeal",
+    "material.create:MAT_Concrete",
+    "material.create:MAT_Metal",
+    "material.create:MAT_Wood",
+    "material.create:MAT_Foliage",
+    "material.create:MAT_AsphaltProp",
+    "material.create:MAT_Light",
+    "material.create:MAT_Glass",
+    "mesh.create_primitive:shop_left__body",
+    "material.assign:shop_left__body",
+    "mesh.create_primitive:shop_left__roof",
+    "material.assign:shop_left__roof",
+    "mesh.create_primitive:shop_left__door",
+    "material.assign:shop_left__door",
+    "mesh.create_primitive:shop_left__window_l",
+    "material.assign:shop_left__window_l",
+    "mesh.create_primitive:shop_left__window_r",
+    "material.assign:shop_left__window_r",
+    "mesh.create_primitive:shop_left__awning",
+    "material.assign:shop_left__awning",
+    "mesh.create_primitive:shop_left__sign",
+    "material.assign:shop_left__sign",
+    "mesh.create_primitive:house_left__body",
+    "material.assign:house_left__body",
+    "mesh.create_primitive:house_left__roof",
+    "material.assign:house_left__roof",
+    "mesh.create_primitive:house_left__door",
+    "material.assign:house_left__door",
+    "mesh.create_primitive:house_left__window_l",
+    "material.assign:house_left__window_l",
+    "mesh.create_primitive:house_left__window_r",
+    "material.assign:house_left__window_r",
+    "mesh.create_primitive:shop_right__body",
+    "material.assign:shop_right__body",
+    "mesh.create_primitive:shop_right__roof",
+    "material.assign:shop_right__roof",
+    "mesh.create_primitive:shop_right__door",
+    "material.assign:shop_right__door",
+    "mesh.create_primitive:shop_right__window_l",
+    "material.assign:shop_right__window_l",
+    "mesh.create_primitive:shop_right__window_r",
+    "material.assign:shop_right__window_r",
+    "mesh.create_primitive:shop_right__awning",
+    "material.assign:shop_right__awning",
+    "mesh.create_primitive:shop_right__sign",
+    "material.assign:shop_right__sign",
+    "mesh.create_primitive:house_right__body",
+    "material.assign:house_right__body",
+    "mesh.create_primitive:house_right__roof",
+    "material.assign:house_right__roof",
+    "mesh.create_primitive:house_right__door",
+    "material.assign:house_right__door",
+    "mesh.create_primitive:house_right__window_l",
+    "material.assign:house_right__window_l",
+    "mesh.create_primitive:house_right__window_r",
+    "material.assign:house_right__window_r",
+    "mesh.create_primitive:bench_left__seat",
+    "material.assign:bench_left__seat",
+    "mesh.create_primitive:bench_left__back",
+    "material.assign:bench_left__back",
+    "mesh.create_primitive:bench_left__leg_l",
+    "material.assign:bench_left__leg_l",
+    "mesh.create_primitive:bench_left__leg_r",
+    "material.assign:bench_left__leg_r",
+    "mesh.create_primitive:bench_right__seat",
+    "material.assign:bench_right__seat",
+    "mesh.create_primitive:bench_right__back",
+    "material.assign:bench_right__back",
+    "mesh.create_primitive:bench_right__leg_l",
+    "material.assign:bench_right__leg_l",
+    "mesh.create_primitive:bench_right__leg_r",
+    "material.assign:bench_right__leg_r",
+    "mesh.create_primitive:lamp_left_near__pole",
+    "material.assign:lamp_left_near__pole",
+    "mesh.create_primitive:lamp_left_near__arm",
+    "material.assign:lamp_left_near__arm",
+    "mesh.create_primitive:lamp_left_near__lamp",
+    "material.assign:lamp_left_near__lamp",
+    "mesh.create_primitive:lamp_left_far__pole",
+    "material.assign:lamp_left_far__pole",
+    "mesh.create_primitive:lamp_left_far__arm",
+    "material.assign:lamp_left_far__arm",
+    "mesh.create_primitive:lamp_left_far__lamp",
+    "material.assign:lamp_left_far__lamp",
+    "mesh.create_primitive:lamp_right_near__pole",
+    "material.assign:lamp_right_near__pole",
+    "mesh.create_primitive:lamp_right_near__arm",
+    "material.assign:lamp_right_near__arm",
+    "mesh.create_primitive:lamp_right_near__lamp",
+    "material.assign:lamp_right_near__lamp",
+    "mesh.create_primitive:lamp_right_far__pole",
+    "material.assign:lamp_right_far__pole",
+    "mesh.create_primitive:lamp_right_far__arm",
+    "material.assign:lamp_right_far__arm",
+    "mesh.create_primitive:lamp_right_far__lamp",
+    "material.assign:lamp_right_far__lamp",
+    "mesh.create_primitive:car_left_blue__chassis",
+    "mesh.transform:car_left_blue__chassis",
+    "material.assign:car_left_blue__chassis",
+    "mesh.create_primitive:car_left_blue__cabin",
+    "mesh.transform:car_left_blue__cabin",
+    "material.assign:car_left_blue__cabin",
+    "mesh.create_primitive:car_left_blue__wheel_0_l",
+    "mesh.transform:car_left_blue__wheel_0_l",
+    "material.assign:car_left_blue__wheel_0_l",
+    "mesh.create_primitive:car_left_blue__wheel_0_r",
+    "mesh.transform:car_left_blue__wheel_0_r",
+    "material.assign:car_left_blue__wheel_0_r",
+    "mesh.create_primitive:car_left_blue__wheel_1_l",
+    "mesh.transform:car_left_blue__wheel_1_l",
+    "material.assign:car_left_blue__wheel_1_l",
+    "mesh.create_primitive:car_left_blue__wheel_1_r",
+    "mesh.transform:car_left_blue__wheel_1_r",
+    "material.assign:car_left_blue__wheel_1_r",
+    "mesh.create_primitive:car_right_coral__chassis",
+    "mesh.transform:car_right_coral__chassis",
+    "material.assign:car_right_coral__chassis",
+    "mesh.create_primitive:car_right_coral__cabin",
+    "mesh.transform:car_right_coral__cabin",
+    "material.assign:car_right_coral__cabin",
+    "mesh.create_primitive:car_right_coral__wheel_0_l",
+    "mesh.transform:car_right_coral__wheel_0_l",
+    "material.assign:car_right_coral__wheel_0_l",
+    "mesh.create_primitive:car_right_coral__wheel_0_r",
+    "mesh.transform:car_right_coral__wheel_0_r",
+    "material.assign:car_right_coral__wheel_0_r",
+    "mesh.create_primitive:car_right_coral__wheel_1_l",
+    "mesh.transform:car_right_coral__wheel_1_l",
+    "material.assign:car_right_coral__wheel_1_l",
+    "mesh.create_primitive:car_right_coral__wheel_1_r",
+    "mesh.transform:car_right_coral__wheel_1_r",
+    "material.assign:car_right_coral__wheel_1_r",
+    "mesh.create_primitive:palm_left__trunk",
+    "material.assign:palm_left__trunk",
+    "mesh.create_primitive:palm_left__crown_a",
+    "material.assign:palm_left__crown_a",
+    "mesh.create_primitive:palm_left__crown_b",
+    "material.assign:palm_left__crown_b",
+    "mesh.create_primitive:palm_right__trunk",
+    "material.assign:palm_right__trunk",
+    "mesh.create_primitive:palm_right__crown_a",
+    "material.assign:palm_right__crown_a",
+    "mesh.create_primitive:palm_right__crown_b",
+    "material.assign:palm_right__crown_b",
+    "mesh.create_primitive:planter_left__pot",
+    "material.assign:planter_left__pot",
+    "mesh.create_primitive:planter_left__plant",
+    "material.assign:planter_left__plant",
+    "mesh.create_primitive:bin_right__body",
+    "material.assign:bin_right__body",
+    "mesh.create_primitive:bin_right__lid",
+    "material.assign:bin_right__lid",
+    "mesh.create_primitive:fence_left__post_0",
+    "mesh.transform:fence_left__post_0",
+    "material.assign:fence_left__post_0",
+    "mesh.create_primitive:fence_left__post_1",
+    "mesh.transform:fence_left__post_1",
+    "material.assign:fence_left__post_1",
+    "mesh.create_primitive:fence_left__post_2",
+    "mesh.transform:fence_left__post_2",
+    "material.assign:fence_left__post_2",
+    "mesh.create_primitive:fence_left__post_3",
+    "mesh.transform:fence_left__post_3",
+    "material.assign:fence_left__post_3",
+    "mesh.create_primitive:fence_left__post_4",
+    "mesh.transform:fence_left__post_4",
+    "material.assign:fence_left__post_4",
+    "mesh.create_primitive:fence_left__rail_low",
+    "mesh.transform:fence_left__rail_low",
+    "material.assign:fence_left__rail_low",
+    "mesh.create_primitive:fence_left__rail_high",
+    "mesh.transform:fence_left__rail_high",
+    "material.assign:fence_left__rail_high",
+    "mesh.create_primitive:street_sign_right__post",
+    "material.assign:street_sign_right__post",
+    "mesh.create_primitive:street_sign_right__board",
+    "material.assign:street_sign_right__board",
+    "mesh.create_primitive:sidewalk_left__strip",
+    "material.assign:sidewalk_left__strip",
+    "mesh.create_primitive:sidewalk_right__strip",
+    "material.assign:sidewalk_right__strip",
+    "light.create",
+    "render.multi_view",
+    "file.save_blend:yun_street_block_calle_v1.blend",
+    "export.glb:yun_street_block_calle_v1.glb"
+  ],
+  "outputArtifacts": [
+    {
+      "kind": "blend",
+      "name": "yun_street_block_calle_v1.blend",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\t-yun-calle-env\\yun_street_block_calle_v1.blend",
+      "sizeBytes": 159345
+    },
+    {
+      "kind": "glb",
+      "name": "yun_street_block_calle_v1.glb",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\t-yun-calle-env\\yun_street_block_calle_v1.glb",
+      "sizeBytes": 559840
+    },
+    {
+      "kind": "json",
+      "name": "yun_street_block_calle_v1-report.json",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\t-yun-calle-env\\yun_street_block_calle_v1-report.json",
+      "sizeBytes": 44176
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_calle_v1-overview.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\t-yun-calle-env\\yun_street_block_calle_v1-overview.png",
+      "sizeBytes": 607853
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_calle_v1-left.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\t-yun-calle-env\\yun_street_block_calle_v1-left.png",
+      "sizeBytes": 645696
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_calle_v1-right.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\t-yun-calle-env\\yun_street_block_calle_v1-right.png",
+      "sizeBytes": 651144
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_calle_v1-yun_side.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\t-yun-calle-env\\yun_street_block_calle_v1-yun_side.png",
+      "sizeBytes": 583825
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_calle_v1-turn_side.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\t-yun-calle-env\\yun_street_block_calle_v1-turn_side.png",
+      "sizeBytes": 577471
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_calle_v1-gameplay.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-environment-6A7KmY\\t-yun-calle-env\\yun_street_block_calle_v1-gameplay.png",
+      "sizeBytes": 615571
+    }
+  ],
+  "render": {
+    "previews": [
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-overview.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-left.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-right.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-yun_side.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-turn_side.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-environment-6A7KmY/t-yun-calle-env\\yun_street_block_calle_v1-gameplay.png"
+    ]
+  },
+  "geometry": {
+    "vertices": 4050,
+    "edges": 7420,
+    "polygons": 3524,
+    "meshObjects": 77
+  },
+  "materials": {
+    "count": 10,
+    "names": [
+      "MAT_AsphaltProp",
+      "MAT_BuildingCoral",
+      "MAT_BuildingTeal",
+      "MAT_BuildingWarm",
+      "MAT_Concrete",
+      "MAT_Foliage",
+      "MAT_Glass",
+      "MAT_Light",
+      "MAT_Metal",
+      "MAT_Wood"
+    ]
+  },
+  "exportInfo": {
+    "animations": [],
+    "skins": false
+  },
+  "skeleton": null,
+  "warnings": [],
+  "errors": [],
+  "status": "completed"
+}

@@ -8,6 +8,7 @@ import type {
   FoundryAssetProviderDescriptor,
   FoundryAssetRequest,
   FoundryAssetRoutingPolicy,
+  FoundryGeneratedAsset,
 } from "./types.js";
 import { validateFoundryAssetRequest } from "./validator.js";
 
@@ -45,6 +46,13 @@ export class FoundryAssetForge {
         : {}),
     });
 
+    if (generated.outputs.length === 0) {
+      throw new Error(
+        `Asset provider ${provider.descriptor.id} returned no usable outputs.`,
+      );
+    }
+    validateOutputBatch(request, provider.descriptor, generated.outputs);
+
     if (provider.descriptor.externalCost && !generated.cost) {
       throw new Error(
         `Paid asset provider ${provider.descriptor.id} did not report generation cost.`,
@@ -56,18 +64,26 @@ export class FoundryAssetForge {
       );
     }
 
-    const manifest = createFoundryAssetManifest(
-      request,
-      provider.descriptor,
-      generated,
-      options.createdAt,
-    );
+    const manifests = generated.outputs
+      .slice()
+      .sort((a, b) => a.outputIndex - b.outputIndex)
+      .map((output) =>
+        createFoundryAssetManifest(request, provider.descriptor, output, {
+          assetId: outputAssetId(
+            request.assetId,
+            output.outputIndex,
+            generated.outputs.length,
+          ),
+          createdAt: options.createdAt,
+          providerRequestId: generated.providerRequestId,
+        }),
+      );
 
     return {
       request,
       provider: provider.descriptor,
       generated,
-      manifest,
+      manifests,
     };
   }
 }
@@ -88,4 +104,38 @@ export function operationPolicyForAssetProvider(
       ? { costBudget: routing.maxEstimatedCost }
       : {}),
   };
+}
+
+function validateOutputBatch(
+  request: FoundryAssetRequest,
+  provider: FoundryAssetProviderDescriptor,
+  outputs: readonly FoundryGeneratedAsset[],
+): void {
+  const indexes = new Set<number>();
+  for (const output of outputs) {
+    if (output.providerId !== provider.id) {
+      throw new Error("Generated asset providerId does not match selected provider.");
+    }
+    if (output.requestId !== request.requestId) {
+      throw new Error("Generated asset requestId does not match request.");
+    }
+    if (!Number.isInteger(output.outputIndex) || output.outputIndex < 0) {
+      throw new Error("Generated asset outputIndex must be a non-negative integer.");
+    }
+    if (indexes.has(output.outputIndex)) {
+      throw new Error(
+        `Generated asset batch contains duplicate outputIndex ${output.outputIndex}.`,
+      );
+    }
+    indexes.add(output.outputIndex);
+  }
+}
+
+function outputAssetId(
+  baseAssetId: string,
+  outputIndex: number,
+  outputCount: number,
+): string {
+  if (outputCount === 1) return baseAssetId;
+  return `${baseAssetId}-${String(outputIndex + 1).padStart(2, "0")}`;
 }

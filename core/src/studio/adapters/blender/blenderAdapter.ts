@@ -23,6 +23,10 @@ import { buildYunPlayerBaseV2TaskSpec } from "./yunPlayerBaseV2Fixture.js";
 import { buildYunEnvironmentTaskSpec } from "./yunEnvironmentFixture.js";
 import { resolveYunEnvironmentSpecFromGoal } from "./yunEnvironmentVariantSpec.js";
 import {
+  buildYunCharacterArtV3TaskSpec,
+  resolveYunCharacterArtV3FromGoal,
+} from "./yunCharacterArtV3Fixture.js";
+import {
   buildYunCharacterVariantTaskSpec,
   resolveYunRosterVariantFromGoal,
 } from "./yunCharacterVariantFixture.js";
@@ -145,6 +149,10 @@ export class BlenderAdapter implements SpecialistAdapter {
     const environmentSpec = resolveYunEnvironmentSpecFromGoal(goal);
     if (environmentSpec) {
       return validateBlenderTaskSpec(buildYunEnvironmentTaskSpec(taskWorkDir, environmentSpec));
+    }
+    const artV3Variant = resolveYunCharacterArtV3FromGoal(goal);
+    if (artV3Variant) {
+      return validateBlenderTaskSpec(buildYunCharacterArtV3TaskSpec(artV3Variant, taskWorkDir));
     }
     const rosterVariant = resolveYunRosterVariantFromGoal(goal, criteria);
     if (rosterVariant) {

@@ -87,3 +87,12 @@ export {
   type YunEnvironmentMaterialName,
   type YunEnvironmentMaterialPalette,
 } from "./yunEnvironmentVariantSpec.js";
+
+export {
+  YUN_CHARACTER_ART_V3_REVISION,
+  YUN_CHARACTER_ART_V3_QUALITY,
+  buildYunCharacterArtV3Operations,
+  buildYunCharacterArtV3TaskSpec,
+  yunCharacterArtV3AcceptanceCriteria,
+  resolveYunCharacterArtV3FromGoal,
+} from "./yunCharacterArtV3Fixture.js";

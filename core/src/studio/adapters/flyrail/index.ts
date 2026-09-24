@@ -23,5 +23,8 @@ export {
 export {
   writeYunWrapperMotionProbe,
   runYunWrapperMotionProbe,
+  writeYunGameplayCameraProbe,
+  runYunGameplayCameraProbe,
   type YunWrapperMotionReport,
+  type YunGameplayCameraReport,
 } from "./yunCharacterValidation.js";

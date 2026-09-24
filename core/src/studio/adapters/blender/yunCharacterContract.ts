@@ -61,10 +61,9 @@ export interface YunScaleOrientationContract {
 
 export interface YunMaterialContract {
   /**
-   * Wrapper does not rewrite mesh materials; it adds a separate TeamSash
-   * MeshInstance3D with StandardMaterial3D team color + emission.
-   * Blender-produced candidates should still expose MAT_TeamShirt (or equivalent)
-   * as a dedicated albedo surface for future roster/team variants without remodeling.
+   * Wrapper adds TeamSash; production opt-in may also tint materials whose name
+   * contains "TeamShirt" (MAT_TeamShirt). Candidates expose MAT_TeamShirt as the
+   * primary configurable team surface.
    */
   readonly wrapperOwnsTeamSash: true;
   readonly sashNodeName: "TeamSash";

@@ -17,6 +17,16 @@ export {
   YUN_PLAYER_BASE_BONES,
 } from "./yunPlayerBaseFixture.js";
 export {
+  buildYunPlayerBaseV2TaskSpec,
+  buildYunPlayerBaseV2Operations,
+  YUN_PLAYER_BASE_V2_ASSET_NAME,
+  YUN_PLAYER_BASE_V2_REVISION,
+} from "./yunPlayerBaseV2Fixture.js";
+export {
+  runYunCharacterVisualSanity,
+  type YunCharacterVisualSanityReport,
+} from "./yunCharacterVisualSanity.js";
+export {
   BLENDER_OPERATION_KINDS,
   IMPLEMENTED_BLENDER_CAPABILITIES,
   type BlenderOperation,

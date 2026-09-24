@@ -19,6 +19,7 @@ import {
 import { validateExpectedArtifacts } from "./blenderArtifacts.js";
 import { buildCrateTaskSpec, buildHumanoidPrototypeTaskSpec } from "./blenderFixtures.js";
 import { buildYunPlayerBaseTaskSpec } from "./yunPlayerBaseFixture.js";
+import { buildYunPlayerBaseV2TaskSpec } from "./yunPlayerBaseV2Fixture.js";
 import {
   assertResultMatchesExecution,
   createTaskManifest,
@@ -133,11 +134,20 @@ export class BlenderAdapter implements SpecialistAdapter {
     }
 
     const goal = handoff.goal.toLowerCase();
+    const criteria = handoff.acceptanceCriteria.map((c) => c.toLowerCase());
+    if (
+      goal.includes("yun_player_base_v2") ||
+      goal.includes("yun player base v2") ||
+      goal.includes("refine yun") ||
+      criteria.some((c) => c.includes("yun_player_base_v2"))
+    ) {
+      return validateBlenderTaskSpec(buildYunPlayerBaseV2TaskSpec(taskWorkDir));
+    }
     if (
       goal.includes("yun_player_base") ||
       goal.includes("yun character") ||
       goal.includes("yun player") ||
-      handoff.acceptanceCriteria.some((c) => c.toLowerCase().includes("yun_player_base"))
+      criteria.some((c) => c.includes("yun_player_base"))
     ) {
       return validateBlenderTaskSpec(buildYunPlayerBaseTaskSpec(taskWorkDir));
     }

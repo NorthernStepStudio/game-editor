@@ -1,0 +1,86 @@
+{
+  "report": {
+    "ok": true,
+    "sessionId": "bb693fe2-2a9e-47ad-b468-b9278b124401",
+    "listedFiles": [],
+    "staticValidationOk": true,
+    "probe": {
+      "animationNames": [
+        "idle",
+        "run",
+        "walk"
+      ],
+      "childCount": 2,
+      "hasAnimationPlayer": true,
+      "hasSkeleton3D": true,
+      "missing": [],
+      "ok": true,
+      "rootName": "YunPlayerBaseV2",
+      "matched": {
+        "idle": "idle",
+        "walk": "walk",
+        "sprint": "run",
+        "missing": []
+      }
+    },
+    "evidencePath": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\godot-yun-v2\\flyrail-character-probe.json",
+    "errors": [],
+    "warnings": [
+      "runtime.launch: connect ECONNREFUSED 127.0.0.1:7522"
+    ]
+  },
+  "motion": {
+    "aabbHeight": 1.75880002975464,
+    "animationNames": [
+      "idle",
+      "run",
+      "walk"
+    ],
+    "childName": "Kenney",
+    "hasAnimationPlayer": true,
+    "hasSkeleton3D": true,
+    "matched": {
+      "idle": "idle",
+      "walk": "walk",
+      "sprint": "run",
+      "missing": []
+    },
+    "motionSequence": [
+      "idle@idle",
+      "walk@walk",
+      "run@run",
+      "idle@idle"
+    ],
+    "ok": true,
+    "wrapperScale": 1.2
+  },
+  "camera": {
+    "ok": true,
+    "screenshots": [
+      "res://gameplay-standing-idle.png",
+      "res://gameplay-walk-mid.png",
+      "res://gameplay-run-mid.png",
+      "res://gameplay-team-a-mango.png",
+      "res://gameplay-team-b-blue.png"
+    ],
+    "silhouetteNotes": [
+      "aabb_top_y=2.11056017875671",
+      "aabb_bot_y=0.0",
+      "feet_near_ground=true",
+      "head_above_torso=true"
+    ],
+    "teamVariants": [
+      {
+        "color": "#f2b82e",
+        "label": "team_a",
+        "shot": "res://gameplay-team-a-mango.png"
+      },
+      {
+        "color": "#3373f2",
+        "label": "team_b",
+        "shot": "res://gameplay-team-b-blue.png"
+      }
+    ]
+  },
+  "blenderSummary": "Blender completed asset yun_player_base_v2 (executionId=be946d25-935a-4975-b783-949e8049c7c9)"
+}

@@ -1,0 +1,1 @@
+{"checks":[{"id":"mount_yun","ok":true},{"id":"yun_child","ok":true},{"id":"yun_scale","ok":true},{"id":"yun_anims","ok":true},{"id":"mount_kenney_fallback","ok":true},{"id":"kenney_child","ok":true},{"id":"model_count","ok":true},{"id":"display_yun","ok":true}],"ok":true,"yunAnimations":["idle","run","walk"]}

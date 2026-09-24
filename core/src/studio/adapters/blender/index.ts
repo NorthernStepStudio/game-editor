@@ -27,6 +27,23 @@ export {
   type YunCharacterVisualSanityReport,
 } from "./yunCharacterVisualSanity.js";
 export {
+  YUN_ROSTER_REVISION,
+  YUN_ROSTER_VARIANTS,
+  YUN_ROSTER_GENERATED_VARIANTS,
+  YUN_ROSTER_GEOMETRY_BUDGET,
+  YUN_ROSTER_TEAM_COLOR_MATERIAL,
+  assertYunRosterUnique,
+  getYunRosterVariant,
+  validateYunCharacterVariantSpec,
+  type YunCharacterVariantSpec,
+} from "./yunCharacterVariantSpec.js";
+export {
+  buildYunCharacterVariantTaskSpec,
+  buildYunCharacterVariantOperations,
+  appendSharedYunLocomotionAnimations,
+  resolveYunRosterVariantFromGoal,
+} from "./yunCharacterVariantFixture.js";
+export {
   BLENDER_OPERATION_KINDS,
   IMPLEMENTED_BLENDER_CAPABILITIES,
   type BlenderOperation,

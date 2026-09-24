@@ -21,6 +21,10 @@ import { buildCrateTaskSpec, buildHumanoidPrototypeTaskSpec } from "./blenderFix
 import { buildYunPlayerBaseTaskSpec } from "./yunPlayerBaseFixture.js";
 import { buildYunPlayerBaseV2TaskSpec } from "./yunPlayerBaseV2Fixture.js";
 import {
+  buildYunCharacterVariantTaskSpec,
+  resolveYunRosterVariantFromGoal,
+} from "./yunCharacterVariantFixture.js";
+import {
   assertResultMatchesExecution,
   createTaskManifest,
   writeBlenderResultManifest,
@@ -135,6 +139,10 @@ export class BlenderAdapter implements SpecialistAdapter {
 
     const goal = handoff.goal.toLowerCase();
     const criteria = handoff.acceptanceCriteria.map((c) => c.toLowerCase());
+    const rosterVariant = resolveYunRosterVariantFromGoal(goal, criteria);
+    if (rosterVariant) {
+      return validateBlenderTaskSpec(buildYunCharacterVariantTaskSpec(rosterVariant, taskWorkDir));
+    }
     if (
       goal.includes("yun_player_base_v2") ||
       goal.includes("yun player base v2") ||

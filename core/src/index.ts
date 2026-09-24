@@ -9,12 +9,12 @@ export * from "./core/runtime.js";
 export * from "./core/types.js";
 export * from "./policies/runtimePolicy.js";
 export * from "./providers/provider.js";
+export * from "./foundry/index.js";
 export * from "./studio/types.js";
 export * from "./studio/specialistRegistry.js";
 export * from "./studio/orchestrator.js";
 export * from "./studio/yunAutonomousScenePlan.js";
 export * from "./studio/adapters/index.js";
-
 
 export * from "./studio/runTypes.js";
 export * from "./studio/runStore.js";

@@ -130,6 +130,14 @@ export function handoffToLoopRunParams(
 
 function buildFeatureText(handoff: NssStudioHandoff): string {
   const parts = [handoff.goal];
+  if (handoff.inputArtifacts.length > 0) {
+    parts.push("");
+    parts.push("Input artifacts:");
+    for (const artifact of handoff.inputArtifacts) {
+      const label = artifact.label ? ` (${artifact.label})` : "";
+      parts.push(`- [${artifact.kind}]${label} ${artifact.uri}`);
+    }
+  }
   if (handoff.acceptanceCriteria.length > 0) {
     parts.push("");
     parts.push("Acceptance criteria:");

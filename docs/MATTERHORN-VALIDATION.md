@@ -13,6 +13,7 @@ Phase 3F (`d7e9ff2351c7312cc090260b032afe7d0bba155c`) implemented the Blender 3D
 Phase 3G generalizes Blender into a structured operation pipeline, async execution, artifact confinement, execution manifests, humanoid rig/animation prototype, `YunCharacterContract`, and a real **Matterhorn → Blender → Flyrail → Godot** character validation path.
 Phase 3H delivers the first Yun production-candidate `yun_player_base` (structured Blender ops, multi-view renders, animated GLB, Flyrail disposable import + YunMiniFigure-compatible wrapper motion probe). Candidate archived at `artifacts/yun-character-candidate/yun_player_base/`.
 The production character gate refines that candidate to `yun_player_base_v2` and installs it as an **opt-in** production model (`games/yun/assets/matterhorn/yun_player_base.glb`, `YunMiniFigure` index 12 / display name `Yun`). Kenney models 0–11 remain; default `character_id = 0`. Rollback requires no asset deletion.
+Roster v1 adds three CharacterVariantSpec-generated players (`yun_player_02` Raya, `yun_player_03` Kade, `yun_player_04` Mira) at indexes 13–15 on the same contract. Archive: `artifacts/yun-character-candidate/yun_roster_v1/`.
 
 ## Delivered in this change
 
@@ -64,6 +65,22 @@ The production character gate refines that candidate to `yun_player_base_v2` and
 | Playable PC | PASS — 6-player team-color mount, idle/walk/run, Kenney fallback remount |
 | Known limitations | Still modular/low-poly; hands/face are indications not final art; not promoted as global default |
 
+## Yun Matterhorn roster v1 snapshot
+
+| Item | Value |
+| --- | --- |
+| Revision | `1.0.0` |
+| Archive | `artifacts/yun-character-candidate/yun_roster_v1/` |
+| Indexes | 12 Yun · 13 Raya · 14 Kade · 15 Mira (`CHAR_MAX = 15`) |
+| Contract | 18 bones, idle/walk/run, `MAT_TeamShirt`, wrapper scale 1.2 |
+| Geometry budget | ≤8000 verts/polys (v2 reference ~6488/6532) |
+| Live command | `npm run test:yun-roster-live` |
+| Production mix | PASS — lineup + 6-player Matterhorn mix + Kenney fallback remount |
+| Team color | Per-instance TeamShirt tint; isolation shot captured |
+| Performance | ~30 animation-advance loops over ~1.5s (~20 loops/s); not a GPU FPS claim |
+| Rollback | `character_id` 0–11; assets retained |
+| Known limitations | Hair/jersey differences read at distance; face/hands still schematic; default Kenney |
+
 ## Verification performed here
 
 | Check | Result |
@@ -78,6 +95,7 @@ The production character gate refines that candidate to `yun_player_base_v2` and
 | Yun `yun_player_base` Blender + Flyrail + wrapper motion | PASS — session + Skeleton3D + AnimationPlayer + idle/walk/run + motion sequence |
 | Yun `yun_player_base_v2` art + visual sanity + gameplay camera | PASS — archive + team A/B shots |
 | Yun production opt-in + Kenney fallback | PASS — mount index 12, remount 0, 6-player team colors |
+| Yun Matterhorn roster v1 (Raya/Kade/Mira) | PASS — `npm run test:yun-roster-live` (generate + Flyrail + production lineup/mix) |
 | Direct Blender crate fixture | PASS — structured ops → `crate.blend` / preview / `crate.glb` |
 | Direct Godot crate import (not Flyrail) | PASS — `blenderGodotSlice.test.ts` |
 | Humanoid prototype (Blender) | PASS — armature, idle/walk/run, multi-view previews, animated `humanoid.glb` |

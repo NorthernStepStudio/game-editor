@@ -13,11 +13,11 @@ Matterhorn is Northern Step Studio's **standalone AI assistant and Studio applic
 
 Read `README.md`, `docs/MATTERHORN-IMPLEMENTATION-PLAN.md`, `docs/WORKSPACE-MIGRATION.md` and `docs/MATTERHORN-VALIDATION.md`. Check the current branch and implementation before labeling work complete or pending. Explain next steps in terms of the standalone application.
 
-At this handoff (September 23, 2026), standalone Chat/Studio/Projects/Evidence/Settings, Flyrail orchestration, source browsing/search, reviewed single-file edits, reviewed 2–20 file transactions, server-configured validation tasks, disk-backed Studio run history, fail-closed restart reconciliation, real Matterhorn → Flyrail → Godot acceptance gate, Blender bootstrap, Phase 3G generic Blender specialist, Phase 3H `yun_player_base`, and the **production character art/integration gate** (`yun_player_base_v2` refined candidate + opt-in Yun model index 12 coexisting with Kenney) are on draft PR #2. Recovered active/unknown remote work is never resubmitted automatically.
+At this handoff (September 23, 2026), standalone Chat/Studio/Projects/Evidence/Settings, Flyrail orchestration, source browsing/search, reviewed single-file edits, reviewed 2–20 file transactions, server-configured validation tasks, disk-backed Studio run history, fail-closed restart reconciliation, real Matterhorn → Flyrail → Godot acceptance gate, Blender bootstrap, Phase 3G–3I Yun character work, and the **first Matterhorn Yun roster** (`yun_player_base` + Raya/Kade/Mira via reusable `CharacterVariantSpec`, indexes 12–15, Kenney 0–11 intact) are on draft PR #2. Recovered active/unknown remote work is never resubmitted automatically.
 
 Current continuation order:
 
-1. Roster / art expansion (additional characters, polish silhouette/hands/face, court-facing art pass). Default remains Kenney until stakeholders promote Yun.
+1. Court/environment art and further roster expansion (more variants, polish silhouettes/hands/face). Default remains Kenney until stakeholders promote Matterhorn characters.
 2. Continue broader workspace migration (new files, diagnostic/repair sessions, semantic project context) without making VS Code a dependency.
 
 Broader workspace migrations remain tracked in `docs/WORKSPACE-MIGRATION.md`. Update this handoff and the implementation plan as milestones change, keeping the standalone direction explicit.

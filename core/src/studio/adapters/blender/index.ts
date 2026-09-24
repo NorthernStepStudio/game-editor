@@ -74,3 +74,16 @@ export {
   type YunEnvironmentVisualSanityCheck,
   type YunEnvironmentVisualSanityReport,
 } from "./yunEnvironmentVisualSanity.js";
+
+export {
+  YUN_ENVIRONMENT_MATERIAL_PALETTES,
+  YUN_ENVIRONMENT_WORLD_PREVIEWS,
+  YUN_MALECON_ENVIRONMENT_SPEC,
+  YUN_PARQUE_ENVIRONMENT_SPEC,
+  YUN_NOCHE_ENVIRONMENT_SPEC,
+  YUN_ENVIRONMENT_SPECS,
+  getYunEnvironmentSpec,
+  resolveYunEnvironmentSpecFromGoal,
+  type YunEnvironmentMaterialName,
+  type YunEnvironmentMaterialPalette,
+} from "./yunEnvironmentVariantSpec.js";

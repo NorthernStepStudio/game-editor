@@ -112,13 +112,17 @@ describe("Foundry AssetForge foundation", () => {
       descriptor: provider(),
       async execute(req) {
         return {
-          providerId: "local-pixel",
-          requestId: req.requestId,
-          assetId: req.assetId,
-          localPath: "assets/generated/hero.png",
-          contentHash: "abc123",
-          width: 32,
-          height: 32,
+          outputs: [
+            {
+              providerId: "local-pixel",
+              requestId: req.requestId,
+              outputIndex: 0,
+              localPath: "assets/generated/hero.png",
+              contentHash: "abc123",
+              width: 32,
+              height: 32,
+            },
+          ],
         };
       },
     };
@@ -129,12 +133,18 @@ describe("Foundry AssetForge foundation", () => {
     const manifest = createFoundryAssetManifest(
       request(),
       implementation.descriptor,
-      generated,
-      "2026-09-24T20:00:00.000Z",
+      generated.outputs[0],
+      {
+        assetId: "hero",
+        createdAt: "2026-09-24T20:00:00.000Z",
+      },
     );
     assert.equal(manifest.generationProvider, "local-pixel");
     assert.equal(manifest.localPath, "assets/generated/hero.png");
     assert.equal(manifest.seed, 42);
+    assert.equal(manifest.requestId, "req-1");
+    assert.equal(manifest.operation, "generate");
+    assert.match(manifest.promptHash ?? "", /^[a-f0-9]{64}$/);
     assert.equal(manifest.sourceLicenseIds?.[0], "MIT");
   });
 

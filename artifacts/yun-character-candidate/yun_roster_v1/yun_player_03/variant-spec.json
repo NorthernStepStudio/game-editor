@@ -1,0 +1,51 @@
+{
+  "assetId": "yun_player_03",
+  "displayName": "Kade",
+  "modelIndex": 14,
+  "heightScale": 0.96,
+  "torsoWidth": 0.92,
+  "torsoDepth": 0.48,
+  "limbThickness": 1.18,
+  "headScale": 1.06,
+  "skinColor": [
+    0.62,
+    0.5,
+    0.4,
+    1
+  ],
+  "hairColor": [
+    0.08,
+    0.07,
+    0.06,
+    1
+  ],
+  "hairStyle": "buzz",
+  "shortsColor": [
+    0.08,
+    0.1,
+    0.14,
+    1
+  ],
+  "shoeColor": [
+    0.2,
+    0.2,
+    0.22,
+    1
+  ],
+  "accentColor": [
+    0.95,
+    0.45,
+    0.12,
+    1
+  ],
+  "shirtPreviewColor": [
+    0.25,
+    0.55,
+    0.95,
+    1
+  ],
+  "jerseyStyle": "sleeveless",
+  "shoeStyle": "high",
+  "browIndication": true,
+  "description": "Stocky sleeveless player with buzz cut and high-tops."
+}

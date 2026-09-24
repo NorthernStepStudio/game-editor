@@ -1,0 +1,83 @@
+{
+  "report": {
+    "ok": true,
+    "sessionId": "32d037e3-dcf0-4a6f-9b56-0f4931d9998e",
+    "listedFiles": [],
+    "staticValidationOk": true,
+    "probe": {
+      "animationNames": [
+        "idle",
+        "run",
+        "walk"
+      ],
+      "childCount": 2,
+      "hasAnimationPlayer": true,
+      "hasSkeleton3D": true,
+      "missing": [],
+      "ok": true,
+      "rootName": "YunVariant_yun_player_02",
+      "matched": {
+        "idle": "idle",
+        "walk": "walk",
+        "sprint": "run",
+        "missing": []
+      }
+    },
+    "evidencePath": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fly-PCPoPJ\\godot-yun_player_02\\flyrail-character-probe.json",
+    "errors": [],
+    "warnings": []
+  },
+  "motion": {
+    "aabbHeight": 1.84591996669769,
+    "animationNames": [
+      "idle",
+      "run",
+      "walk"
+    ],
+    "childName": "Kenney",
+    "hasAnimationPlayer": true,
+    "hasSkeleton3D": true,
+    "matched": {
+      "idle": "idle",
+      "walk": "walk",
+      "sprint": "run",
+      "missing": []
+    },
+    "motionSequence": [
+      "idle@idle",
+      "walk@walk",
+      "run@run",
+      "idle@idle"
+    ],
+    "ok": true,
+    "wrapperScale": 1.2
+  },
+  "camera": {
+    "ok": true,
+    "screenshots": [
+      "res://gameplay-standing-idle.png",
+      "res://gameplay-walk-mid.png",
+      "res://gameplay-run-mid.png",
+      "res://gameplay-team-a-mango.png",
+      "res://gameplay-team-b-blue.png"
+    ],
+    "silhouetteNotes": [
+      "aabb_top_y=2.21510410308838",
+      "aabb_bot_y=0.0",
+      "feet_near_ground=true",
+      "head_above_torso=true"
+    ],
+    "teamVariants": [
+      {
+        "color": "#f2b82e",
+        "label": "team_a",
+        "shot": "res://gameplay-team-a-mango.png"
+      },
+      {
+        "color": "#3373f2",
+        "label": "team_b",
+        "shot": "res://gameplay-team-b-blue.png"
+      }
+    ]
+  }
+}

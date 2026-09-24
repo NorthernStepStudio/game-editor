@@ -1,0 +1,68 @@
+{
+  "revision": "1.0.0",
+  "generated": [
+    {
+      "assetId": "yun_player_02",
+      "displayName": "Raya",
+      "modelIndex": 13,
+      "geometry": {
+        "vertices": 6978,
+        "polygons": 7050,
+        "meshObjects": 32
+      },
+      "boneCount": 18,
+      "materials": [
+        "MAT_Accent",
+        "MAT_Eyes",
+        "MAT_Hair",
+        "MAT_Shoes",
+        "MAT_Shorts",
+        "MAT_Skin",
+        "MAT_TeamShirt"
+      ],
+      "glbBytes": 1632448
+    },
+    {
+      "assetId": "yun_player_03",
+      "displayName": "Kade",
+      "modelIndex": 14,
+      "geometry": {
+        "vertices": 6496,
+        "polygons": 6538,
+        "meshObjects": 31
+      },
+      "boneCount": 18,
+      "materials": [
+        "MAT_Accent",
+        "MAT_Eyes",
+        "MAT_Hair",
+        "MAT_Shoes",
+        "MAT_Shorts",
+        "MAT_Skin",
+        "MAT_TeamShirt"
+      ],
+      "glbBytes": 1522968
+    },
+    {
+      "assetId": "yun_player_04",
+      "displayName": "Mira",
+      "modelIndex": 15,
+      "geometry": {
+        "vertices": 6488,
+        "polygons": 6532,
+        "meshObjects": 30
+      },
+      "boneCount": 18,
+      "materials": [
+        "MAT_Accent",
+        "MAT_Eyes",
+        "MAT_Hair",
+        "MAT_Shoes",
+        "MAT_Shorts",
+        "MAT_Skin",
+        "MAT_TeamShirt"
+      ],
+      "glbBytes": 1526344
+    }
+  ]
+}

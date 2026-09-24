@@ -1,0 +1,51 @@
+{
+  "assetId": "yun_player_04",
+  "displayName": "Mira",
+  "modelIndex": 15,
+  "heightScale": 1.02,
+  "torsoWidth": 0.74,
+  "torsoDepth": 0.38,
+  "limbThickness": 0.95,
+  "headScale": 1.04,
+  "skinColor": [
+    0.55,
+    0.38,
+    0.28,
+    1
+  ],
+  "hairColor": [
+    0.06,
+    0.04,
+    0.03,
+    1
+  ],
+  "hairStyle": "afro",
+  "shortsColor": [
+    0.18,
+    0.22,
+    0.35,
+    1
+  ],
+  "shoeColor": [
+    0.9,
+    0.9,
+    0.2,
+    1
+  ],
+  "accentColor": [
+    0.85,
+    0.25,
+    0.55,
+    1
+  ],
+  "shirtPreviewColor": [
+    0.9,
+    0.9,
+    0.92,
+    1
+  ],
+  "jerseyStyle": "tank",
+  "shoeStyle": "high",
+  "browIndication": false,
+  "description": "Afro + tank silhouette with bright shoes and magenta accents."
+}

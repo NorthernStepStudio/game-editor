@@ -1,0 +1,125 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "id": "character_bounds_nonzero",
+      "ok": true,
+      "detail": "vertices=6488 polygons=6532"
+    },
+    {
+      "id": "no_zero_geometry_scene",
+      "ok": true,
+      "detail": "meshObjects=30"
+    },
+    {
+      "id": "min_geometry",
+      "ok": true,
+      "detail": "vertices=6488 polygons=6532"
+    },
+    {
+      "id": "max_vertices",
+      "ok": true,
+      "detail": "vertices=6488 max=8000"
+    },
+    {
+      "id": "max_polygons",
+      "ok": true,
+      "detail": "polygons=6532 max=8000"
+    },
+    {
+      "id": "skeleton_bone_count",
+      "ok": true,
+      "detail": "bones=18 expected>=18"
+    },
+    {
+      "id": "head_bone_present",
+      "ok": true,
+      "detail": "bones=Root,Hips,Spine,Chest,Neck,Head,UpperArm_L,ForeArm_L,Hand_L,UpperArm_R,ForeArm_R,Hand_R,Thigh_L,Shin_L,Foot_L,Thigh_R,Shin_R,Foot_R"
+    },
+    {
+      "id": "limb_symmetry_names",
+      "ok": true,
+      "detail": "left/right limb bones present"
+    },
+    {
+      "id": "material_MAT_TeamShirt",
+      "ok": true,
+      "detail": "materials=MAT_Accent,MAT_Eyes,MAT_Hair,MAT_Shoes,MAT_Shorts,MAT_Skin,MAT_TeamShirt"
+    },
+    {
+      "id": "material_MAT_Skin",
+      "ok": true,
+      "detail": "materials=MAT_Accent,MAT_Eyes,MAT_Hair,MAT_Shoes,MAT_Shorts,MAT_Skin,MAT_TeamShirt"
+    },
+    {
+      "id": "material_MAT_Accent",
+      "ok": true,
+      "detail": "materials=MAT_Accent,MAT_Eyes,MAT_Hair,MAT_Shoes,MAT_Shorts,MAT_Skin,MAT_TeamShirt"
+    },
+    {
+      "id": "material_MAT_Hair",
+      "ok": true,
+      "detail": "materials=MAT_Accent,MAT_Eyes,MAT_Hair,MAT_Shoes,MAT_Shorts,MAT_Skin,MAT_TeamShirt"
+    },
+    {
+      "id": "anim_idle",
+      "ok": true,
+      "detail": "animations=idle,run,walk"
+    },
+    {
+      "id": "anim_walk",
+      "ok": true,
+      "detail": "animations=idle,run,walk"
+    },
+    {
+      "id": "anim_run",
+      "ok": true,
+      "detail": "animations=idle,run,walk"
+    },
+    {
+      "id": "render_yun_player_04-front.png",
+      "ok": true,
+      "detail": "159653 bytes"
+    },
+    {
+      "id": "render_yun_player_04-side.png",
+      "ok": true,
+      "detail": "166425 bytes"
+    },
+    {
+      "id": "render_yun_player_04-back.png",
+      "ok": true,
+      "detail": "162941 bytes"
+    },
+    {
+      "id": "render_yun_player_04-three-quarter.png",
+      "ok": true,
+      "detail": "160951 bytes"
+    },
+    {
+      "id": "render_yun_player_04-preview.png",
+      "ok": true,
+      "detail": "202792 bytes"
+    },
+    {
+      "id": "foot_ground_contract",
+      "ok": true,
+      "detail": "Root and Foot_* bones present for ground contact ownership"
+    }
+  ],
+  "geometry": {
+    "vertices": 6488,
+    "polygons": 6532,
+    "meshObjects": 30
+  },
+  "boneCount": 18,
+  "materials": [
+    "MAT_Accent",
+    "MAT_Eyes",
+    "MAT_Hair",
+    "MAT_Shoes",
+    "MAT_Shorts",
+    "MAT_Skin",
+    "MAT_TeamShirt"
+  ]
+}

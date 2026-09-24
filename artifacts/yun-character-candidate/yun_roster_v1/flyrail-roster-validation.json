@@ -1,0 +1,20 @@
+{
+  "revision": "1.0.0",
+  "characters": [
+    {
+      "assetId": "yun_player_02",
+      "flyrail": "PASS",
+      "teamVariants": 2
+    },
+    {
+      "assetId": "yun_player_03",
+      "flyrail": "PASS",
+      "teamVariants": 2
+    },
+    {
+      "assetId": "yun_player_04",
+      "flyrail": "PASS",
+      "teamVariants": 2
+    }
+  ]
+}

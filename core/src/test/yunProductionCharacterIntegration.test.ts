@@ -48,13 +48,13 @@ test("yun production character integration: selector + resources + fallback", ()
   assert.match(mini, /_apply_team_shirt_color/);
 
   const settings = readFileSync(paths.gameSettings, "utf8");
-  assert.match(settings, /CHAR_MAX\s*:=\s*12/);
+  assert.match(settings, /CHAR_MAX\s*:=\s*15/);
   assert.match(settings, /"Yun"/);
   // Default remains Kenney (character_id = 0).
   assert.match(settings, /character_id:\s*int\s*=\s*0/);
 
   const net = readFileSync(paths.netSession, "utf8");
-  assert.match(net, /CHAR_MAX\s*:=\s*12/);
+  assert.match(net, /CHAR_MAX\s*:=\s*15/);
 
   assert.ok(existsSync(paths.kenneyGlb), "Kenney fallback GLB must still exist");
   assert.ok(existsSync(paths.yunGlb), "Opt-in yun_player_base.glb must be present in production assets");

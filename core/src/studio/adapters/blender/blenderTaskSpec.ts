@@ -9,6 +9,7 @@ import {
   BLENDER_OPERATION_KINDS,
   type BlenderOperation,
   type BlenderOperationKind,
+  type BlenderVec2,
   type BlenderVec3,
   type BlenderVec4,
 } from "./blenderOperations.js";
@@ -53,6 +54,12 @@ const KIND_SET = new Set<string>(BLENDER_OPERATION_KINDS);
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function assertVec2(value: unknown, label: string): asserts value is BlenderVec2 {
+  if (!Array.isArray(value) || value.length !== 2 || !value.every(isFiniteNumber)) {
+    throw new SpecialistError("INVALID_TASK", `Malformed ${label}: expected [x,y] finite numbers`);
+  }
 }
 
 function assertVec3(value: unknown, label: string): asserts value is BlenderVec3 {
@@ -146,6 +153,67 @@ function validateOperation(raw: unknown, index: number): BlenderOperation {
       assertOptionalFinite(op.depth, "depth", 0.01, 100);
       if (op.location !== undefined) assertVec3(op.location, "location");
       if (op.scale !== undefined) assertVec3(op.scale, "scale");
+      return op as unknown as BlenderOperation;
+    }
+
+    case "mesh.create_tapered_segment": {
+      if (typeof op.name !== "string" || !SAFE_NAME.test(op.name)) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid tapered segment name`);
+      }
+      assertVec3(op.start, "start");
+      assertVec3(op.end, "end");
+      assertOptionalFinite(op.radiusStart, "radiusStart", 0.005, 10);
+      assertOptionalFinite(op.radiusEnd, "radiusEnd", 0.005, 10);
+      if (!isFiniteNumber(op.radiusStart) || !isFiniteNumber(op.radiusEnd)) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] tapered segment radii required`);
+      }
+      assertOptionalFinite(op.sides, "sides", 6, 32);
+      return op as unknown as BlenderOperation;
+    }
+
+    case "mesh.create_tapered_box": {
+      if (typeof op.name !== "string" || !SAFE_NAME.test(op.name)) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid tapered box name`);
+      }
+      assertVec3(op.location, "location");
+      assertVec2(op.topSize, "topSize");
+      assertVec2(op.bottomSize, "bottomSize");
+      assertOptionalFinite(op.height, "height", 0.01, 20);
+      if (!isFiniteNumber(op.height)) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] tapered box height required`);
+      }
+      if ([...op.topSize, ...op.bottomSize].some((v) => v <= 0 || v > 20)) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] tapered box sizes out of bounds`);
+      }
+      if (op.rotationEulerDeg !== undefined) assertVec3(op.rotationEulerDeg, "rotationEulerDeg");
+      return op as unknown as BlenderOperation;
+    }
+
+    case "mesh.join": {
+      if (typeof op.name !== "string" || !SAFE_NAME.test(op.name)) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid joined mesh name`);
+      }
+      if (!Array.isArray(op.sources) || op.sources.length < 2 || op.sources.length > 128) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] mesh.join requires 2-128 sources`);
+      }
+      for (const source of op.sources) {
+        if (typeof source !== "string" || !SAFE_NAME.test(source)) {
+          throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid mesh.join source`);
+        }
+      }
+      if (new Set(op.sources).size !== op.sources.length) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] mesh.join sources must be unique`);
+      }
+      return op as unknown as BlenderOperation;
+    }
+
+    case "mesh.smooth": {
+      if (typeof op.target !== "string" || !SAFE_NAME.test(op.target)) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid smooth target`);
+      }
+      if (op.enabled !== undefined && typeof op.enabled !== "boolean") {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] mesh.smooth enabled must be boolean`);
+      }
       return op as unknown as BlenderOperation;
     }
 

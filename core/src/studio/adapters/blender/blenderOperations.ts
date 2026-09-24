@@ -125,9 +125,14 @@ export interface RenderMultiViewOp extends BlenderOperationBase {
   readonly op: "render.multi_view";
   readonly outputPrefix: string;
   readonly views?: readonly ("front" | "side" | "back" | "three_quarter" | "top" | "overview" | "left" | "right" | "yun_side" | "turn_side" | "gameplay")[];
-  readonly target?: BlenderVec3;
   readonly width?: number;
   readonly height?: number;
+  /** World-space point the evidence camera should orbit around. */
+  readonly target?: BlenderVec3;
+  /** Orbit distance in meters; defaults to the character-friendly legacy distance. */
+  readonly distance?: number;
+  /** Camera height above the target for non-top views. */
+  readonly heightOffset?: number;
 }
 
 export interface FileSaveBlendOp extends BlenderOperationBase {

@@ -68,7 +68,7 @@ export interface YunEnvironmentPropSpec {
     | "sidewalk"
     | "sign"
     | "utility";
-  /** World-space XYZ in Godot/Blender meters. */
+  /** Godot world-space [X, Y-up, Z] in meters. Blender fixtures must convert to [X, Y, Z-up]. */
   readonly position: readonly [number, number, number];
   readonly rotationYDeg?: number;
   readonly scale?: readonly [number, number, number];

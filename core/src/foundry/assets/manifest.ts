@@ -21,6 +21,9 @@ export function createFoundryAssetManifest(
     throw new Error("Generated asset assetId does not match request.");
   }
 
+  const width = generated.width ?? request.dimensions?.width;
+  const height = generated.height ?? request.dimensions?.height;
+
   return {
     assetId: request.assetId,
     type: request.kind,
@@ -37,12 +40,8 @@ export function createFoundryAssetManifest(
       ? { referenceAssets: request.referenceAssets }
       : {}),
     ...(request.parentAsset ? { parentAsset: request.parentAsset } : {}),
-    ...(generated.width ?? request.dimensions?.width) !== undefined
-      ? { width: generated.width ?? request.dimensions?.width }
-      : {},
-    ...(generated.height ?? request.dimensions?.height) !== undefined
-      ? { height: generated.height ?? request.dimensions?.height }
-      : {},
+    ...(width !== undefined ? { width } : {}),
+    ...(height !== undefined ? { height } : {}),
     ...(request.intendedWorldWidth !== undefined
       ? { intendedWorldWidth: request.intendedWorldWidth }
       : {}),

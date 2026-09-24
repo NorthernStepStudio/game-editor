@@ -96,3 +96,8 @@ export {
   yunCharacterArtV3AcceptanceCriteria,
   resolveYunCharacterArtV3FromGoal,
 } from "./yunCharacterArtV3Fixture.js";
+
+export {
+  runYunCharacterArtV3Sanity,
+  type YunCharacterArtV3SanityReport,
+} from "./yunCharacterArtV3Sanity.js";

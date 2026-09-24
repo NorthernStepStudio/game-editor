@@ -146,7 +146,7 @@ Use the review branch in a separate checkout so existing local edits are preserv
 - Flyrail does not provide active loop cancellation. Matterhorn cannot safely manufacture that capability; it exposes the limitation and blocks unsafe overlapping runs.
 - Studio snapshot/evidence metadata is durable on disk and restart reconciliation is implemented. Matterhorn deliberately does not resume an uncertain mutation. Multi-user service hosting and true remote cancellation remain later work.
 - Existing extension-only workspace editing/review tools are not all migrated into the standalone UI. The extension stays optional as migration reference.
-- Yun production character and roster v1 gates are complete: the character and Raya/Kade/Mira variants are integrated as opt-in production choices, with Kenney defaults and rollback retained. The Calle environment gate is also live-validated as an opt-in; manual tag/match play and sustained performance observation remain open checks.
+- Yun production character and roster v1 gates are complete: the character and Raya/Kade/Mira variants are integrated as opt-in production choices, with Kenney defaults and rollback retained. The Calle environment gate is live-validated as opt-in, including the scripted route and production tag/role-swap path. Human keyboard match play and frame-time/FPS measurement remain open checks.
 
 ## Concurrent Phase 3 integration
 

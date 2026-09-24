@@ -285,14 +285,16 @@ export async function validateGlbThroughFlyrail(
         sessionId,
         scene: "res://verify_character_asset.tscn",
         headless: true,
-        quitAfter: 5,
-      })) as { runtimeSessionId?: string };
-      runtimeSessionId = launch.runtimeSessionId;
+        quitAfter: 120,
+      })) as { runtimeSessionId?: string; runtime?: { sessionId?: string } };
+      runtimeSessionId = launch.runtimeSessionId ?? launch.runtime?.sessionId;
       if (runtimeSessionId) {
         await client.call("runtime.probe_ready", { runtimeSessionId }).catch(() => undefined);
         // Allow probe scene to write evidence before stop.
         await new Promise((r) => setTimeout(r, 1500));
         await client.call("runtime.stop", { runtimeSessionId }).catch(() => undefined);
+      } else {
+        errors.push("Flyrail runtime.launch returned no runtime session identity");
       }
     } catch (error) {
       // runtime.launch may fail if the live probe port is unavailable; Fall back to
@@ -302,7 +304,7 @@ export async function validateGlbThroughFlyrail(
 
     // Prefer evidence from runtime scene; otherwise run SceneTree probe on the
     // Flyrail-opened disposable project (still fail-closed on missing anims).
-    if (!existsSync(prepared.evidencePath)) {
+    if (!existsSync(prepared.evidencePath) && !errors.some((e) => e.includes("no runtime session identity"))) {
       try {
         runGodotCharacterTreeProbe(options.disposableProjectDir);
       } catch (error) {

@@ -6,6 +6,7 @@
 export const BLENDER_OPERATION_KINDS = [
   "scene.inspect",
   "scene.new",
+  "world.set_background",
   "mesh.create_primitive",
   "mesh.transform",
   "mesh.bevel",
@@ -47,6 +48,12 @@ export interface SceneNewOp extends BlenderOperationBase {
 
 export interface SceneInspectOp extends BlenderOperationBase {
   readonly op: "scene.inspect";
+}
+
+export interface WorldSetBackgroundOp extends BlenderOperationBase {
+  readonly op: "world.set_background";
+  readonly color: BlenderVec4;
+  readonly strength?: number;
 }
 
 export interface MeshCreatePrimitiveOp extends BlenderOperationBase {
@@ -117,7 +124,8 @@ export interface RenderPreviewOp extends BlenderOperationBase {
 export interface RenderMultiViewOp extends BlenderOperationBase {
   readonly op: "render.multi_view";
   readonly outputPrefix: string;
-  readonly views?: readonly ("front" | "side" | "back" | "three_quarter" | "top")[];
+  readonly views?: readonly ("front" | "side" | "back" | "three_quarter" | "top" | "overview" | "left" | "right" | "yun_side" | "turn_side" | "gameplay")[];
+  readonly target?: BlenderVec3;
   readonly width?: number;
   readonly height?: number;
 }
@@ -197,6 +205,7 @@ export interface ExportCharacterGlbOp extends BlenderOperationBase {
 export type BlenderOperation =
   | SceneNewOp
   | SceneInspectOp
+  | WorldSetBackgroundOp
   | MeshCreatePrimitiveOp
   | MeshTransformOp
   | MeshBevelOp
@@ -244,6 +253,7 @@ export function operationToCapability(op: BlenderOperationKind): string {
   switch (op) {
     case "scene.inspect":
     case "scene.new":
+    case "world.set_background":
       return "blender.scene.inspect";
     case "mesh.create_primitive":
       return "blender.mesh.create";

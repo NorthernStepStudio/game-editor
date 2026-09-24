@@ -40,6 +40,15 @@ export const YUN_COURT_WORLD_METRICS = {
   ) as readonly number[],
 } as const;
 
+/** Conservative per-kind visual/collision footprint in world meters [X, depth]. */
+export const YUN_ENVIRONMENT_PROP_FOOTPRINTS = {
+  building: [2.45, 1.4], storefront: [2.45, 1.8], house: [2.45, 1.4],
+  car: [1.0, 1.7], bench: [0.75, 0.25], trash_bin: [0.32, 0.34],
+  street_light: [0.95, 0.15], tree: [0.82, 0.78], fence: [1.28, 0.12],
+  planter: [0.4, 0.36], curb: [1.0, 0.6], sidewalk: [0.8, 9.5],
+  sign: [0.48, 0.18], utility: [0.34, 0.28],
+} as const;
+
 export type YunEnvironmentTheme = "calle" | "malecon" | "parque" | "noche";
 
 export interface YunEnvironmentPropSpec {
@@ -54,6 +63,7 @@ export interface YunEnvironmentPropSpec {
     | "street_light"
     | "tree"
     | "fence"
+    | "planter"
     | "curb"
     | "sidewalk"
     | "sign"
@@ -100,16 +110,26 @@ export const YUN_FIRST_ENVIRONMENT_SPEC: YunEnvironmentAssetSpec = {
     "six_player_runtime",
   ],
   props: [
-    { id: "shop_left", kind: "storefront", position: [1.05, 0, 14.8], collision: "static" },
-    { id: "house_left", kind: "house", position: [1.15, 0, 6.6], collision: "static" },
-    { id: "shop_right", kind: "storefront", position: [27.7, 0, 15.2], collision: "static" },
-    { id: "house_right", kind: "house", position: [27.65, 0, 8.0], collision: "static" },
-    { id: "bench_left", kind: "bench", position: [3.4, 0, 8.6], collision: "static" },
-    { id: "bench_right", kind: "bench", position: [25.4, 0, 6.8], collision: "static" },
-    { id: "lamp_left_near", kind: "street_light", position: [3.7, 0, 4.4], collision: "static" },
-    { id: "lamp_left_far", kind: "street_light", position: [3.7, 0, 12.6], collision: "static" },
-    { id: "lamp_right_near", kind: "street_light", position: [25.1, 0, 4.8], collision: "static" },
-    { id: "lamp_right_far", kind: "street_light", position: [25.1, 0, 12.0], collision: "static" },
+    { id: "shop_left", kind: "storefront", position: [0.7, 0, 14.8], collision: "static" },
+    { id: "house_left", kind: "house", position: [0.8, 0, 6.6], collision: "static" },
+    { id: "shop_right", kind: "storefront", position: [28.0, 0, 15.2], collision: "static" },
+    { id: "house_right", kind: "house", position: [28.1, 0, 8.0], collision: "static" },
+    { id: "bench_left", kind: "bench", position: [2.45, 0, 8.6], collision: "static" },
+    { id: "bench_right", kind: "bench", position: [26.2, 0, 6.8], collision: "static" },
+    { id: "lamp_left_near", kind: "street_light", position: [2.95, 0, 4.4], collision: "static" },
+    { id: "lamp_left_far", kind: "street_light", position: [2.95, 0, 12.6], collision: "static" },
+    { id: "lamp_right_near", kind: "street_light", position: [25.9, 0, 4.8], collision: "static" },
+    { id: "lamp_right_far", kind: "street_light", position: [25.9, 0, 12.0], collision: "static" },
+    { id: "car_left_blue", kind: "car", position: [2.0, 0, 3.0], rotationYDeg: 4, collision: "static" },
+    { id: "car_right_coral", kind: "car", position: [26.8, 0, 10.3], rotationYDeg: 178, collision: "static" },
+    { id: "palm_left", kind: "tree", position: [2.6, 0, 17.3], collision: "static" },
+    { id: "palm_right", kind: "tree", position: [26.2, 0, 17.0], collision: "static" },
+    { id: "planter_left", kind: "planter", position: [2.4, 0, 11.0], collision: "static" },
+    { id: "bin_right", kind: "trash_bin", position: [25.8, 0, 8.1], collision: "static" },
+    { id: "fence_left", kind: "fence", position: [0.4, 0, 1.7], rotationYDeg: 90, collision: "static" },
+    { id: "street_sign_right", kind: "sign", position: [25.5, 0, 15.7], collision: "static" },
+    { id: "sidewalk_left", kind: "sidewalk", position: [2.4, 0, 10.0] },
+    { id: "sidewalk_right", kind: "sidewalk", position: [26.4, 0, 10.0] },
   ],
 };
 
@@ -131,6 +151,18 @@ export function validateYunEnvironmentSpec(spec: YunEnvironmentAssetSpec): strin
       prop.position.some((value) => !Number.isFinite(value))
     ) {
       errors.push(`invalid position for ${prop.id}`);
+    }
+    const [halfX, halfDepth] = YUN_ENVIRONMENT_PROP_FOOTPRINTS[prop.kind];
+    const yaw = (prop.rotationYDeg ?? 0) * Math.PI / 180;
+    const sx = Math.abs(prop.scale?.[0] ?? 1);
+    const sz = Math.abs(prop.scale?.[2] ?? 1);
+    const extentX = Math.abs(Math.cos(yaw)) * halfX * sx + Math.abs(Math.sin(yaw)) * halfDepth * sz;
+    const minX = prop.position[0] - extentX;
+    const maxX = prop.position[0] + extentX;
+    const playLeft = YUN_COURT_CONTRACT.courtLeft * YUN_COURT_CONTRACT.planarToWorld;
+    const playRight = YUN_COURT_CONTRACT.courtRight * YUN_COURT_CONTRACT.planarToWorld;
+    if (maxX > playLeft && minX < playRight) {
+      errors.push(`prop ${prop.id} intrudes into authoritative playable X region`);
     }
   }
   return errors;

@@ -120,6 +120,13 @@ function validateOperation(raw: unknown, index: number): BlenderOperation {
     case "character.inspect":
       return { op: kind as "scene.new" | "scene.inspect" | "animation.inspect" | "character.inspect", ...(typeof op.sceneName === "string" ? { sceneName: op.sceneName } : {}) };
 
+    case "world.set_background": {
+      assertVec4(op.color, "background color");
+      if (op.color.some((v) => v < 0 || v > 1)) throw new SpecialistError("INVALID_TASK", `Operation[${index}] background color must be in [0,1]`);
+      assertOptionalFinite(op.strength, "strength", 0, 10);
+      return op as unknown as BlenderOperation;
+    }
+
     case "mesh.create_primitive": {
       if (typeof op.name !== "string" || !SAFE_NAME.test(op.name)) {
         throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid mesh name`);
@@ -209,6 +216,11 @@ function validateOperation(raw: unknown, index: number): BlenderOperation {
       assertSafePathSegment(op.outputPrefix, "outputPrefix");
       assertOptionalFinite(op.width, "width", 16, 4096);
       assertOptionalFinite(op.height, "height", 16, 4096);
+      if (op.target !== undefined) assertVec3(op.target, "target");
+      if (op.views !== undefined && (!Array.isArray(op.views) || op.views.some((view) =>
+        !["front", "side", "back", "three_quarter", "top", "overview", "left", "right", "yun_side", "turn_side", "gameplay"].includes(view)))) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] contains an unsupported render view`);
+      }
       return op as unknown as BlenderOperation;
     }
 

@@ -56,9 +56,21 @@ export {
   YUN_ENVIRONMENT_REVISION,
   YUN_COURT_CONTRACT,
   YUN_COURT_WORLD_METRICS,
+  YUN_ENVIRONMENT_PROP_FOOTPRINTS,
   YUN_FIRST_ENVIRONMENT_SPEC,
   validateYunEnvironmentSpec,
   type YunEnvironmentTheme,
   type YunEnvironmentPropSpec,
   type YunEnvironmentAssetSpec,
 } from "./yunEnvironmentContract.js";
+export {
+  YUN_CALLE_MATERIALS,
+  YUN_ENVIRONMENT_PLAY_X,
+  buildYunEnvironmentOperations,
+  buildYunEnvironmentTaskSpec,
+} from "./yunEnvironmentFixture.js";
+export {
+  runYunEnvironmentVisualSanity,
+  type YunEnvironmentVisualSanityCheck,
+  type YunEnvironmentVisualSanityReport,
+} from "./yunEnvironmentVisualSanity.js";

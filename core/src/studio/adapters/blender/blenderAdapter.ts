@@ -20,6 +20,7 @@ import { validateExpectedArtifacts } from "./blenderArtifacts.js";
 import { buildCrateTaskSpec, buildHumanoidPrototypeTaskSpec } from "./blenderFixtures.js";
 import { buildYunPlayerBaseTaskSpec } from "./yunPlayerBaseFixture.js";
 import { buildYunPlayerBaseV2TaskSpec } from "./yunPlayerBaseV2Fixture.js";
+import { buildYunEnvironmentTaskSpec } from "./yunEnvironmentFixture.js";
 import {
   buildYunCharacterVariantTaskSpec,
   resolveYunRosterVariantFromGoal,
@@ -139,6 +140,9 @@ export class BlenderAdapter implements SpecialistAdapter {
 
     const goal = handoff.goal.toLowerCase();
     const criteria = handoff.acceptanceCriteria.map((c) => c.toLowerCase());
+    if (goal.includes("yun environment") || goal.includes("yun_street_block_calle")) {
+      return validateBlenderTaskSpec(buildYunEnvironmentTaskSpec(taskWorkDir));
+    }
     const rosterVariant = resolveYunRosterVariantFromGoal(goal, criteria);
     if (rosterVariant) {
       return validateBlenderTaskSpec(buildYunCharacterVariantTaskSpec(rosterVariant, taskWorkDir));
@@ -168,7 +172,7 @@ export class BlenderAdapter implements SpecialistAdapter {
 
     throw new SpecialistError(
       "INVALID_TASK",
-      "Blender task requires a validated blender task specification input artifact (or a known fixture goal: crate / humanoid / yun_player_base).",
+      "Blender task requires a validated blender task specification input artifact (or a known fixture goal: crate / humanoid / Yun character / Yun environment).",
     );
   }
 

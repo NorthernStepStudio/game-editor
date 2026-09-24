@@ -30,6 +30,18 @@ completed.append("scene.new")
 # op[${index}] scene.inspect
 completed.append("scene.inspect")
 `;
+    case "world.set_background":
+      return `
+# op[${index}] world.set_background
+if bpy.context.scene.world is None:
+    bpy.context.scene.world = bpy.data.worlds.new('Matterhorn_Environment_Preview')
+world = bpy.context.scene.world
+world.use_nodes = True
+background = world.node_tree.nodes.get('Background')
+background.inputs['Color'].default_value = ${pyTuple(op.color)}
+background.inputs['Strength'].default_value = ${op.strength ?? 0.65}
+completed.append("world.set_background")
+`;
     case "mesh.create_primitive": {
       const loc = op.location ?? [0, 0, 0];
       const size = op.size ?? 1;
@@ -151,8 +163,32 @@ completed.append("render.preview:${op.outputName}")
 `;
     case "render.multi_view": {
       const views = op.views ?? ["front", "side", "three_quarter"];
+      const targetedOffsets: Record<string, readonly [number, number, number]> = {
+        overview: [34, 46, 39], left: [6, 13, 10], right: [-6, 13, 10],
+        yun_side: [0, 22, 11], turn_side: [0, -22, 11], gameplay: [30, 42, 33],
+      };
+      const targetedCenters: Record<string, readonly [number, number, number]> = {
+        left: [2.4, -10, 1.5], right: [26.4, -10, 1.5],
+        yun_side: [14.4, -4.8, 1.8], turn_side: [14.4, -15.2, 1.8],
+      };
       const viewBlocks = views
         .map((view) => {
+          if (op.target && targetedOffsets[view]) {
+            const offset = targetedOffsets[view];
+            const center = targetedCenters[view] ?? op.target;
+            const loc = `(${center[0] + offset[0]}, ${center[1] + offset[1]}, ${center[2] + offset[2]})`;
+            const file = `${op.outputPrefix}-${view}.png`;
+            return `
+cam.location = ${loc}
+cam.rotation_euler = (Vector(${pyTuple(center)}) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+out_path = os.path.join(WORK_DIR, ${pyStr(file)})
+assert_under_work(out_path)
+scene.render.filepath = out_path
+bpy.ops.render.render(write_still=True)
+artifacts[${pyStr(file)}] = out_path
+previews.append(out_path)
+`;
+          }
           const loc =
             view === "front"
               ? "(0, -4.5, 1.6)"
@@ -362,6 +398,7 @@ import math
 import os
 import json
 from datetime import datetime, timezone
+from mathutils import Vector
 
 WORK_DIR = ${pyStr(workDirPosix)}
 EXECUTION_ID = ${pyStr(executionId)}
@@ -415,6 +452,21 @@ def collect_animations():
         names.append(action.name)
     return names
 
+def collect_scene_objects():
+    out = []
+    for obj in bpy.context.scene.objects:
+        if obj.type not in {"MESH", "EMPTY", "CAMERA", "LIGHT"}:
+            continue
+        coords = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+        if coords:
+            mins = [min(v[i] for v in coords) for i in range(3)]
+            maxs = [max(v[i] for v in coords) for i in range(3)]
+            bounds = {"min": mins, "max": maxs}
+        else:
+            bounds = None
+        out.append({"name": obj.name, "type": obj.type, "bounds": bounds})
+    return out
+
 def main():
     started = datetime.now(timezone.utc).isoformat()
     status = "completed"
@@ -429,6 +481,7 @@ ${indentedBody}
         skeleton = collect_skeleton()
         animation_names = collect_animations()
         material_names = [m.name for m in bpy.data.materials]
+        scene_objects = collect_scene_objects()
         ended = datetime.now(timezone.utc).isoformat()
         artifact_sizes = {}
         for name, path in artifacts.items():
@@ -447,6 +500,8 @@ ${indentedBody}
             "artifactSizes": artifact_sizes,
             "previews": previews,
             "geometry": geometry,
+            "objectCount": len(scene_objects),
+            "sceneObjects": scene_objects,
             "materials": {"count": len(material_names), "names": material_names},
             "exportInfo": {
                 "animations": animation_names,

@@ -101,7 +101,12 @@ export function operationPolicyForAssetProvider(
     dryRunSupported: false,
     requiresApproval: provider.externalCost,
     ...(routing.maxEstimatedCost
-      ? { costBudget: routing.maxEstimatedCost }
+      ? {
+          costBudget: {
+            currency: routing.maxEstimatedCost.currency,
+            maxAmount: routing.maxEstimatedCost.amount,
+          },
+        }
       : {}),
   };
 }

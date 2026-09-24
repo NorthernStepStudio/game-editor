@@ -1,0 +1,36 @@
+{
+  "kenneyFallback": true,
+  "maps": [
+    {
+      "assetId": "yun_street_block_calle_v1",
+      "environmentRoot": true,
+      "mapId": 0,
+      "menuShowsMapAndProvider": true,
+      "meshCount": 77
+    },
+    {
+      "assetId": "yun_street_block_malecon_v1",
+      "environmentRoot": true,
+      "mapId": 1,
+      "menuShowsMapAndProvider": true,
+      "meshCount": 66
+    },
+    {
+      "assetId": "yun_street_block_parque_v1",
+      "environmentRoot": true,
+      "mapId": 2,
+      "menuShowsMapAndProvider": true,
+      "meshCount": 66
+    },
+    {
+      "assetId": "yun_street_block_noche_v1",
+      "environmentRoot": true,
+      "mapId": 3,
+      "menuShowsMapAndProvider": true,
+      "meshCount": 64
+    }
+  ],
+  "ok": true,
+  "oneEnvironmentAtATime": true,
+  "staleCourtsCleared": true
+}

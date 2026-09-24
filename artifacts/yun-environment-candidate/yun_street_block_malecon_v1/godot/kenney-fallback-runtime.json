@@ -1,0 +1,26 @@
+{
+  "cameraCurrent": true,
+  "cameraVisibleEnvironmentMeshes": 0,
+  "courtGeometryInvariant": true,
+  "environmentMeshCount": 0,
+  "environmentOptIn": false,
+  "environmentRootPresent": false,
+  "importedNodeCount": 0,
+  "mapId": 1,
+  "ok": true,
+  "phaseAfterTag": 2,
+  "playerCount": 6,
+  "route": {
+    "crossed_tube": false,
+    "returned_to_yun": false,
+    "turned_at_turn": false,
+    "walked": false
+  },
+  "runtimeObservationMs": 1649,
+  "screenshots": [
+    "res://tests/idle-six-player.png"
+  ],
+  "tagCanResolve": false,
+  "tagGameplayOk": false,
+  "tagOverlapCount": 0
+}

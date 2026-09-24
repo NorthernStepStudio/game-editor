@@ -1,0 +1,309 @@
+{
+  "ok": true,
+  "metrics": [
+    {
+      "mapId": 0,
+      "assetId": "yun_street_block_calle_v1",
+      "provider": "matterhorn",
+      "geometry": {
+        "vertices": 4050,
+        "polygons": 3524,
+        "meshObjects": 77
+      },
+      "glbBytes": 559840,
+      "matterhorn": {
+        "cameraCurrent": true,
+        "cameraVisibleEnvironmentMeshes": 77,
+        "courtGeometryInvariant": true,
+        "environmentMeshCount": 77,
+        "environmentOptIn": true,
+        "environmentRootPresent": true,
+        "importedNodeCount": 78,
+        "mapId": 0,
+        "ok": true,
+        "phaseAfterTag": 3,
+        "playerCount": 6,
+        "route": {
+          "crossed_tube": true,
+          "returned_to_yun": true,
+          "turned_at_turn": true,
+          "walked": true
+        },
+        "runtimeObservationMs": 25451,
+        "screenshots": [
+          "res://tests/idle-six-player.png",
+          "res://tests/tube-crossing.png",
+          "res://tests/turn.png",
+          "res://tests/return.png",
+          "res://tests/tag-role-swap.png"
+        ],
+        "tagCanResolve": false,
+        "tagGameplayOk": true,
+        "tagOverlapCount": 1
+      },
+      "fallback": {
+        "cameraCurrent": true,
+        "cameraVisibleEnvironmentMeshes": 0,
+        "courtGeometryInvariant": true,
+        "environmentMeshCount": 0,
+        "environmentOptIn": false,
+        "environmentRootPresent": false,
+        "importedNodeCount": 0,
+        "mapId": 0,
+        "ok": true,
+        "phaseAfterTag": 2,
+        "playerCount": 6,
+        "route": {
+          "crossed_tube": false,
+          "returned_to_yun": false,
+          "turned_at_turn": false,
+          "walked": false
+        },
+        "runtimeObservationMs": 1691,
+        "screenshots": [
+          "res://tests/idle-six-player.png"
+        ],
+        "tagCanResolve": false,
+        "tagGameplayOk": false,
+        "tagOverlapCount": 0
+      }
+    },
+    {
+      "mapId": 1,
+      "assetId": "yun_street_block_malecon_v1",
+      "provider": "matterhorn",
+      "geometry": {
+        "vertices": 6276,
+        "polygons": 5960,
+        "meshObjects": 66
+      },
+      "glbBytes": 869308,
+      "matterhorn": {
+        "cameraCurrent": true,
+        "cameraVisibleEnvironmentMeshes": 66,
+        "courtGeometryInvariant": true,
+        "environmentMeshCount": 66,
+        "environmentOptIn": true,
+        "environmentRootPresent": true,
+        "importedNodeCount": 67,
+        "mapId": 1,
+        "ok": true,
+        "phaseAfterTag": 3,
+        "playerCount": 6,
+        "route": {
+          "crossed_tube": true,
+          "returned_to_yun": true,
+          "turned_at_turn": true,
+          "walked": true
+        },
+        "runtimeObservationMs": 25410,
+        "screenshots": [
+          "res://tests/idle-six-player.png",
+          "res://tests/tube-crossing.png",
+          "res://tests/turn.png",
+          "res://tests/return.png",
+          "res://tests/tag-role-swap.png"
+        ],
+        "tagCanResolve": false,
+        "tagGameplayOk": true,
+        "tagOverlapCount": 1
+      },
+      "fallback": {
+        "cameraCurrent": true,
+        "cameraVisibleEnvironmentMeshes": 0,
+        "courtGeometryInvariant": true,
+        "environmentMeshCount": 0,
+        "environmentOptIn": false,
+        "environmentRootPresent": false,
+        "importedNodeCount": 0,
+        "mapId": 1,
+        "ok": true,
+        "phaseAfterTag": 2,
+        "playerCount": 6,
+        "route": {
+          "crossed_tube": false,
+          "returned_to_yun": false,
+          "turned_at_turn": false,
+          "walked": false
+        },
+        "runtimeObservationMs": 1649,
+        "screenshots": [
+          "res://tests/idle-six-player.png"
+        ],
+        "tagCanResolve": false,
+        "tagGameplayOk": false,
+        "tagOverlapCount": 0
+      }
+    },
+    {
+      "mapId": 2,
+      "assetId": "yun_street_block_parque_v1",
+      "provider": "matterhorn",
+      "geometry": {
+        "vertices": 6888,
+        "polygons": 6804,
+        "meshObjects": 66
+      },
+      "glbBytes": 990936,
+      "matterhorn": {
+        "cameraCurrent": true,
+        "cameraVisibleEnvironmentMeshes": 66,
+        "courtGeometryInvariant": true,
+        "environmentMeshCount": 66,
+        "environmentOptIn": true,
+        "environmentRootPresent": true,
+        "importedNodeCount": 67,
+        "mapId": 2,
+        "ok": true,
+        "phaseAfterTag": 3,
+        "playerCount": 6,
+        "route": {
+          "crossed_tube": true,
+          "returned_to_yun": true,
+          "turned_at_turn": true,
+          "walked": true
+        },
+        "runtimeObservationMs": 25479,
+        "screenshots": [
+          "res://tests/idle-six-player.png",
+          "res://tests/tube-crossing.png",
+          "res://tests/turn.png",
+          "res://tests/return.png",
+          "res://tests/tag-role-swap.png"
+        ],
+        "tagCanResolve": false,
+        "tagGameplayOk": true,
+        "tagOverlapCount": 1
+      },
+      "fallback": {
+        "cameraCurrent": true,
+        "cameraVisibleEnvironmentMeshes": 0,
+        "courtGeometryInvariant": true,
+        "environmentMeshCount": 0,
+        "environmentOptIn": false,
+        "environmentRootPresent": false,
+        "importedNodeCount": 0,
+        "mapId": 2,
+        "ok": true,
+        "phaseAfterTag": 2,
+        "playerCount": 6,
+        "route": {
+          "crossed_tube": false,
+          "returned_to_yun": false,
+          "turned_at_turn": false,
+          "walked": false
+        },
+        "runtimeObservationMs": 1641,
+        "screenshots": [
+          "res://tests/idle-six-player.png"
+        ],
+        "tagCanResolve": false,
+        "tagGameplayOk": false,
+        "tagOverlapCount": 0
+      }
+    },
+    {
+      "mapId": 3,
+      "assetId": "yun_street_block_noche_v1",
+      "provider": "matterhorn",
+      "geometry": {
+        "vertices": 3360,
+        "polygons": 2884,
+        "meshObjects": 64
+      },
+      "glbBytes": 466104,
+      "matterhorn": {
+        "cameraCurrent": true,
+        "cameraVisibleEnvironmentMeshes": 64,
+        "courtGeometryInvariant": true,
+        "environmentMeshCount": 64,
+        "environmentOptIn": true,
+        "environmentRootPresent": true,
+        "importedNodeCount": 65,
+        "mapId": 3,
+        "ok": true,
+        "phaseAfterTag": 3,
+        "playerCount": 6,
+        "route": {
+          "crossed_tube": true,
+          "returned_to_yun": true,
+          "turned_at_turn": true,
+          "walked": true
+        },
+        "runtimeObservationMs": 25465,
+        "screenshots": [
+          "res://tests/idle-six-player.png",
+          "res://tests/tube-crossing.png",
+          "res://tests/turn.png",
+          "res://tests/return.png",
+          "res://tests/tag-role-swap.png"
+        ],
+        "tagCanResolve": false,
+        "tagGameplayOk": true,
+        "tagOverlapCount": 1
+      },
+      "fallback": {
+        "cameraCurrent": true,
+        "cameraVisibleEnvironmentMeshes": 0,
+        "courtGeometryInvariant": true,
+        "environmentMeshCount": 0,
+        "environmentOptIn": false,
+        "environmentRootPresent": false,
+        "importedNodeCount": 0,
+        "mapId": 3,
+        "ok": true,
+        "phaseAfterTag": 2,
+        "playerCount": 6,
+        "route": {
+          "crossed_tube": false,
+          "returned_to_yun": false,
+          "turned_at_turn": false,
+          "walked": false
+        },
+        "runtimeObservationMs": 1789,
+        "screenshots": [
+          "res://tests/idle-six-player.png"
+        ],
+        "tagCanResolve": false,
+        "tagGameplayOk": false,
+        "tagOverlapCount": 0
+      }
+    }
+  ],
+  "mapSwitch": {
+    "kenneyFallback": true,
+    "maps": [
+      {
+        "assetId": "yun_street_block_calle_v1",
+        "environmentRoot": true,
+        "mapId": 0,
+        "menuShowsMapAndProvider": true,
+        "meshCount": 77
+      },
+      {
+        "assetId": "yun_street_block_malecon_v1",
+        "environmentRoot": true,
+        "mapId": 1,
+        "menuShowsMapAndProvider": true,
+        "meshCount": 66
+      },
+      {
+        "assetId": "yun_street_block_parque_v1",
+        "environmentRoot": true,
+        "mapId": 2,
+        "menuShowsMapAndProvider": true,
+        "meshCount": 66
+      },
+      {
+        "assetId": "yun_street_block_noche_v1",
+        "environmentRoot": true,
+        "mapId": 3,
+        "menuShowsMapAndProvider": true,
+        "meshCount": 64
+      }
+    ],
+    "ok": true,
+    "oneEnvironmentAtATime": true,
+    "staleCourtsCleared": true
+  }
+}

@@ -159,3 +159,55 @@ Intentional behavior changes: generic successful summaries cannot prove acceptan
 The prior commit `ccad4df440064b42b99fea3bc4bf43c361a697fb` passed GitHub Actions on both Ubuntu and Windows (run 35810822353). This continuation adds standalone file browsing/search, AI file assistance, persistent reviewed edits, safe restore, and interrupted-write reconciliation.
 
 Latest CI verification: core/server compilation and smoke checks PASS on the deterministic suite. Cloud provider output is not validated by mock tests. Rendered visual QA and the real Flyrail/Godot gate remain pending PC checks when the daemon is not running in CI.
+
+## Yun Matterhorn four-map environment gate
+
+Date: September 24, 2026.
+Matterhorn starting/pushed base: `c44b4604c24ec4accc7bcfa038626f98fdfad664` on `feat/standalone-studio-20260923`.
+Flyrail starting checkpoint: `ed7b0a0c4fce492d4dfabdd48c84714833092a5d` on `feature/playtest-agent-v3-source-repair`; provider/assets change committed and pushed as `dfed53503e1cd1560087fb470cc08edac04b8187`.
+CI at the Matterhorn base: PASS, GitHub Actions run `36017870750` (multi-map environment checks).
+Live tools: Blender 5.2.1 LTS; Godot 4.7.2; Flyrail daemon through `FLYRAIL_REPO_ROOT`.
+
+### Four-map live results
+
+All new assets use the existing shared `YunEnvironmentAssetSpec → buildYunEnvironmentTaskSpec → BlenderAdapter` pipeline. The live runner reuses the accepted Calle GLB and does not rebuild it. The three new asset goals select their matching spec inside `BlenderAdapter`; task manifests preserve the requested asset name. Every generated asset passed the visual sanity checks: nonzero `.blend`/GLB/report and six preview renders, unique prop/object IDs, valid materials, no gameplay geometry, no solid prop in playable X=4..24.8m, and bounded scene counts.
+
+| Map | Asset / provider | Vertices / polygons | Meshes / objects | Materials | GLB bytes | Blender | Flyrail import (meshes / nodes) | Six-player route | Tag / role swap | Camera / Kenney fallback |
+| --- | --- | ---: | ---: | ---: | ---: | --- | ---: | --- | --- | --- |
+| Calle | `yun_street_block_calle_v1` / `matterhorn` | 4,050 / 3,524 | 77 / 79 | 10 | 559,840 | Reused accepted asset; PASS sanity | 77 / 78 | PASS, 25.45s observation | PASS, physics overlap count 1 | PASS / PASS |
+| Malecón | `yun_street_block_malecon_v1` / `matterhorn` | 6,276 / 5,960 | 66 / 68 | 10 | 869,308 | PASS | 66 / 67 | PASS, 25.41s observation | PASS, physics overlap count 1 | PASS / PASS |
+| Parque | `yun_street_block_parque_v1` / `matterhorn` | 6,888 / 6,804 | 66 / 68 | 10 | 990,936 | PASS | 66 / 67 | PASS, 25.48s observation | PASS, physics overlap count 1 | PASS / PASS |
+| Noche | `yun_street_block_noche_v1` / `matterhorn` | 3,360 / 2,884 | 64 / 66 | 10 | 466,104 | PASS | 64 / 65 | PASS, 25.47s observation | PASS, physics overlap count 1 | PASS / PASS |
+
+Each gameplay runtime showed six visible players; movement, tube crossing, TURN and return were recorded. The tag probe moves a CharacterBody3D into the production Area3D, verifies physics overlap, calls the production `_check_tags()` and confirms YunMatch resolves the tag and swaps roles. Godot camera captures include idle, tube crossing, turn, return and tag/role swap; all players, team colors, YUN, TURN and tubes are camera-readable on every map. Defender AI is paused only for the scripted route, then enabled/used for the live tag overlap probe. Court left/right/center, head/far/tube Y positions, attacker/defender spawns and tag-lane math were checked unchanged; `YunCourt` source was unchanged. This is an automated production-scene probe, not a human keyboard match.
+
+### Provider and same-session switch
+
+Flyrail now uses a single `matterhorn` provider with a map-ID-to-asset lookup for all four maps. `kenney` remains the saved default. The old `matterhorn_calle` setting migrates to `matterhorn`. Missing or unloadable Matterhorn GLBs fall through to the existing Kenney dressing for the selected map. The main-menu control stays available across maps and displays both selected map and provider. `YunMap.apply_world()` remains responsible for real Noche world lighting.
+
+PASS: Flyrail launched the real main-menu scene and one runtime switched Calle → Malecón → Parque → Noche → Kenney. The probe verified each selected map/provider label, one Matterhorn root at a time, prior court clearing and a populated Kenney fallback. Evidence: `artifacts/yun-environment-candidate/map-switch/four-map-switch-runtime.json` and `flyrail-import-validation.json`.
+
+### Goal-to-runtime generation proof
+
+For Malecón, Parque and Noche, the live request carries the Yun environment theme and asset ID, `resolveYunEnvironmentSpecFromGoal` selects that spec, `BlenderAdapter.resolveTaskSpec` preserves its `assetName`, Blender emits the requested `.blend`, `.glb`, report, manifests, logs and six renders, and Flyrail/Godot imports that same GLB into a disposable copy of the production Yun project. The live scene then records map identity, camera visibility, six-player movement, tube/turn/return and tag/role-swap evidence. The goal is not replaced by a fixed Calle fixture.
+
+### Artifact directories
+
+- `artifacts/yun-environment-candidate/yun_street_block_calle_v1/` (accepted asset reused; live route/tag/fallback captures refreshed)
+- `artifacts/yun-environment-candidate/yun_street_block_malecon_v1/`
+- `artifacts/yun-environment-candidate/yun_street_block_parque_v1/`
+- `artifacts/yun-environment-candidate/yun_street_block_noche_v1/`
+- `artifacts/yun-environment-candidate/map-switch/`
+- Set summary: `artifacts/yun-environment-candidate/yun-environment-set-live.json`
+
+Each map folder contains Blender task/result/report manifests, `.blend`, `.glb`, six PNG previews, visual sanity JSON and `godot/` Flyrail import/runtime JSON plus gameplay PNGs. Production opt-in GLBs are installed in Flyrail at `games/yun/assets/matterhorn/`; the Kenney asset pack and default selection remain intact.
+
+### Noche visual review and limits
+
+PASS for competitive readability in the captured production camera: all six player silhouettes, team colors, YUN, TURN and tubes remain visible; the dark blue/purple world does not wash out the HUD. The generated environment is deliberately low-poly and the Blender overview renders are sparse with broad negative space; this is a visual refinement item. Warm lamp fixtures are present, while actual night world/sun lighting remains owned by `YunMap.apply_world()` and the GLB does not own gameplay lighting. The captures do not prove sustained FPS/frame-time; per-map runtime observation was about 25.5 seconds only.
+
+### Regression results and limits
+
+`npm run compile`: PASS. `npm run check`: PASS, 102 studio tests (99 pass, 0 fail, 3 live-runner prerequisite skips) and 28 Flyrail adapter checks pass. The suite runs the existing Blender, Yun character, production character, roster and new four-map deterministic checks. The dedicated `npm run test:yun-environment-set-live` and `npm run test:yun-environment-switch-live` both PASS with Blender/Godot/Flyrail present.
+
+The legacy `npm run test:yun-environment-live` was not run because it regenerates Calle, which this handoff explicitly forbids. Its live import, route, tag and fallback coverage was exercised by the set command using the existing accepted Calle asset. The individual `test:blender-live`, `test:yun-character-live` and `test:yun-roster-live` wrappers were not repeated separately; their live generation/import paths ran inside `npm run check`. Human keyboard play, continuous performance measurement and stakeholder promotion remain open. Keep PR #2 draft; do not merge or change the global default.

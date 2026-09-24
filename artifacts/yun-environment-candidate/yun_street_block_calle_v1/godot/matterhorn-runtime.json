@@ -1,1 +1,30 @@
-{"cameraCurrent":true,"cameraVisibleEnvironmentMeshes":77,"courtGeometryInvariant":true,"environmentMeshCount":77,"environmentOptIn":true,"ok":true,"playerCount":6,"providerOk":true,"route":{"crossed_tube":true,"returned_to_yun":true,"turned_at_turn":true,"walked":true},"runtimeObservationMs":25518,"screenshots":["res://tests/yun-environment-start.png","res://tests/yun-environment-walk-run.png","res://tests/yun-environment-turn.png","res://tests/yun-environment-return.png","res://tests/yun-environment-tag.png"],"tagGameplayOk":true}
+{
+  "cameraCurrent": true,
+  "cameraVisibleEnvironmentMeshes": 77,
+  "courtGeometryInvariant": true,
+  "environmentMeshCount": 77,
+  "environmentOptIn": true,
+  "environmentRootPresent": true,
+  "importedNodeCount": 78,
+  "mapId": 0,
+  "ok": true,
+  "phaseAfterTag": 3,
+  "playerCount": 6,
+  "route": {
+    "crossed_tube": true,
+    "returned_to_yun": true,
+    "turned_at_turn": true,
+    "walked": true
+  },
+  "runtimeObservationMs": 25451,
+  "screenshots": [
+    "res://tests/idle-six-player.png",
+    "res://tests/tube-crossing.png",
+    "res://tests/turn.png",
+    "res://tests/return.png",
+    "res://tests/tag-role-swap.png"
+  ],
+  "tagCanResolve": false,
+  "tagGameplayOk": true,
+  "tagOverlapCount": 1
+}

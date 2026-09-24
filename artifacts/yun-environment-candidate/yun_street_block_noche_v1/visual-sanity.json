@@ -1,0 +1,205 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "id": "artifact_yun_street_block_noche_v1.blend",
+      "ok": true,
+      "detail": "152762 bytes; confined"
+    },
+    {
+      "id": "artifact_yun_street_block_noche_v1.glb",
+      "ok": true,
+      "detail": "466104 bytes; confined"
+    },
+    {
+      "id": "artifact_yun_street_block_noche_v1-report.json",
+      "ok": true,
+      "detail": "38212 bytes; confined"
+    },
+    {
+      "id": "artifact_yun_street_block_noche_v1-overview.png",
+      "ok": true,
+      "detail": "520374 bytes; confined"
+    },
+    {
+      "id": "artifact_yun_street_block_noche_v1-left.png",
+      "ok": true,
+      "detail": "606658 bytes; confined"
+    },
+    {
+      "id": "artifact_yun_street_block_noche_v1-right.png",
+      "ok": true,
+      "detail": "597101 bytes; confined"
+    },
+    {
+      "id": "artifact_yun_street_block_noche_v1-yun_side.png",
+      "ok": true,
+      "detail": "523025 bytes; confined"
+    },
+    {
+      "id": "artifact_yun_street_block_noche_v1-turn_side.png",
+      "ok": true,
+      "detail": "527279 bytes; confined"
+    },
+    {
+      "id": "artifact_yun_street_block_noche_v1-gameplay.png",
+      "ok": true,
+      "detail": "533869 bytes; confined"
+    },
+    {
+      "id": "valid_spec",
+      "ok": true,
+      "detail": "schema, unique IDs and court clearance valid"
+    },
+    {
+      "id": "geometry_nonzero",
+      "ok": true,
+      "detail": "vertices=3360 polygons=2884 meshes=64"
+    },
+    {
+      "id": "geometry_budget",
+      "ok": true,
+      "detail": "vertices=3360/60000 polygons=2884/30000"
+    },
+    {
+      "id": "object_budget",
+      "ok": true,
+      "detail": "objects=66/220"
+    },
+    {
+      "id": "material_budget",
+      "ok": true,
+      "detail": "materials=10: MAT_AsphaltProp, MAT_BuildingCoral, MAT_BuildingTeal, MAT_BuildingWarm, MAT_Concrete, MAT_Foliage, MAT_Glass, MAT_Light, MAT_Metal, MAT_Wood"
+    },
+    {
+      "id": "prop_noche_shop_left",
+      "ok": true,
+      "detail": "mesh group present (storefront)"
+    },
+    {
+      "id": "prop_noche_build_left",
+      "ok": true,
+      "detail": "mesh group present (building)"
+    },
+    {
+      "id": "prop_noche_shop_right",
+      "ok": true,
+      "detail": "mesh group present (storefront)"
+    },
+    {
+      "id": "prop_noche_build_right",
+      "ok": true,
+      "detail": "mesh group present (building)"
+    },
+    {
+      "id": "prop_noche_lamp_left_a",
+      "ok": true,
+      "detail": "mesh group present (street_light)"
+    },
+    {
+      "id": "prop_noche_lamp_left_b",
+      "ok": true,
+      "detail": "mesh group present (street_light)"
+    },
+    {
+      "id": "prop_noche_lamp_left_c",
+      "ok": true,
+      "detail": "mesh group present (street_light)"
+    },
+    {
+      "id": "prop_noche_lamp_right_a",
+      "ok": true,
+      "detail": "mesh group present (street_light)"
+    },
+    {
+      "id": "prop_noche_lamp_right_b",
+      "ok": true,
+      "detail": "mesh group present (street_light)"
+    },
+    {
+      "id": "prop_noche_lamp_right_c",
+      "ok": true,
+      "detail": "mesh group present (street_light)"
+    },
+    {
+      "id": "prop_noche_car_left",
+      "ok": true,
+      "detail": "mesh group present (car)"
+    },
+    {
+      "id": "prop_noche_car_right",
+      "ok": true,
+      "detail": "mesh group present (car)"
+    },
+    {
+      "id": "prop_noche_tree_left",
+      "ok": true,
+      "detail": "mesh group present (tree)"
+    },
+    {
+      "id": "prop_noche_tree_right",
+      "ok": true,
+      "detail": "mesh group present (tree)"
+    },
+    {
+      "id": "prop_noche_sign_left",
+      "ok": true,
+      "detail": "mesh group present (sign)"
+    },
+    {
+      "id": "prop_noche_utility_right",
+      "ok": true,
+      "detail": "mesh group present (utility)"
+    },
+    {
+      "id": "no_gameplay_geometry",
+      "ok": true,
+      "detail": "no authoritative court geometry exported"
+    },
+    {
+      "id": "play_area_clear",
+      "ok": true,
+      "detail": "solid prop footprints outside X=4..24.8m"
+    },
+    {
+      "id": "unique_scene_object_names",
+      "ok": true,
+      "detail": "reported=66 unique=66"
+    },
+    {
+      "id": "object_bounds",
+      "ok": true,
+      "detail": "scene bounds {\"min\":[-1.8000000715255737,-18.225000381469727,-7.095000743865967],\"max\":[30.600000381469727,-3.049999952316284,11.395000457763672]}"
+    }
+  ],
+  "geometry": {
+    "vertices": 3360,
+    "polygons": 2884,
+    "meshObjects": 64
+  },
+  "objectCount": 66,
+  "materials": [
+    "MAT_AsphaltProp",
+    "MAT_BuildingCoral",
+    "MAT_BuildingTeal",
+    "MAT_BuildingWarm",
+    "MAT_Concrete",
+    "MAT_Foliage",
+    "MAT_Glass",
+    "MAT_Light",
+    "MAT_Metal",
+    "MAT_Wood"
+  ],
+  "bounds": {
+    "min": [
+      -1.8000000715255737,
+      -18.225000381469727,
+      -7.095000743865967
+    ],
+    "max": [
+      30.600000381469727,
+      -3.049999952316284,
+      11.395000457763672
+    ]
+  }
+}

@@ -1,1 +1,26 @@
-{"cameraCurrent":true,"cameraVisibleEnvironmentMeshes":0,"courtGeometryInvariant":true,"environmentMeshCount":0,"environmentOptIn":false,"ok":true,"playerCount":6,"providerOk":true,"route":{"crossed_tube":false,"returned_to_yun":false,"turned_at_turn":false,"walked":false},"runtimeObservationMs":1697,"screenshots":["res://tests/yun-environment-start.png"],"tagGameplayOk":false}
+{
+  "cameraCurrent": true,
+  "cameraVisibleEnvironmentMeshes": 0,
+  "courtGeometryInvariant": true,
+  "environmentMeshCount": 0,
+  "environmentOptIn": false,
+  "environmentRootPresent": false,
+  "importedNodeCount": 0,
+  "mapId": 0,
+  "ok": true,
+  "phaseAfterTag": 2,
+  "playerCount": 6,
+  "route": {
+    "crossed_tube": false,
+    "returned_to_yun": false,
+    "turned_at_turn": false,
+    "walked": false
+  },
+  "runtimeObservationMs": 1691,
+  "screenshots": [
+    "res://tests/idle-six-player.png"
+  ],
+  "tagCanResolve": false,
+  "tagGameplayOk": false,
+  "tagOverlapCount": 0
+}

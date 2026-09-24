@@ -1,0 +1,30 @@
+{
+  "cameraCurrent": true,
+  "cameraVisibleEnvironmentMeshes": 66,
+  "courtGeometryInvariant": true,
+  "environmentMeshCount": 66,
+  "environmentOptIn": true,
+  "environmentRootPresent": true,
+  "importedNodeCount": 67,
+  "mapId": 2,
+  "ok": true,
+  "phaseAfterTag": 3,
+  "playerCount": 6,
+  "route": {
+    "crossed_tube": true,
+    "returned_to_yun": true,
+    "turned_at_turn": true,
+    "walked": true
+  },
+  "runtimeObservationMs": 25479,
+  "screenshots": [
+    "res://tests/idle-six-player.png",
+    "res://tests/tube-crossing.png",
+    "res://tests/turn.png",
+    "res://tests/return.png",
+    "res://tests/tag-role-swap.png"
+  ],
+  "tagCanResolve": false,
+  "tagGameplayOk": true,
+  "tagOverlapCount": 1
+}

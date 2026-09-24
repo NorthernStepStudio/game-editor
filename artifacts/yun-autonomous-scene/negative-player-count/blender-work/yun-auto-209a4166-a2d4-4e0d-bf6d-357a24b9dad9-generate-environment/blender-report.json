@@ -1,0 +1,1434 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment",
+  "executionId": "3afc9af0-519b-4e8c-8c90-0e61fabf9462",
+  "handoffId": "handoff-yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment-1790282791695",
+  "blenderVersion": "5.2.1 LTS",
+  "startedAt": "2026-09-24T20:46:34.945170+00:00",
+  "endedAt": "2026-09-24T20:46:38.308968+00:00",
+  "requestedOperations": [
+    "scene.new",
+    "world.set_background",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "material.create",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "mesh.transform",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "mesh.create_primitive",
+    "material.assign",
+    "light.create",
+    "render.multi_view",
+    "file.save_blend",
+    "export.glb"
+  ],
+  "completedOperations": [
+    "scene.new",
+    "world.set_background",
+    "material.create:MAT_BuildingWarm",
+    "material.create:MAT_BuildingCoral",
+    "material.create:MAT_BuildingTeal",
+    "material.create:MAT_Concrete",
+    "material.create:MAT_Metal",
+    "material.create:MAT_Wood",
+    "material.create:MAT_Foliage",
+    "material.create:MAT_AsphaltProp",
+    "material.create:MAT_Light",
+    "material.create:MAT_Glass",
+    "mesh.create_primitive:noche_shop_left__body",
+    "material.assign:noche_shop_left__body",
+    "mesh.create_primitive:noche_shop_left__roof",
+    "material.assign:noche_shop_left__roof",
+    "mesh.create_primitive:noche_shop_left__door",
+    "material.assign:noche_shop_left__door",
+    "mesh.create_primitive:noche_shop_left__window_l",
+    "material.assign:noche_shop_left__window_l",
+    "mesh.create_primitive:noche_shop_left__window_r",
+    "material.assign:noche_shop_left__window_r",
+    "mesh.create_primitive:noche_shop_left__awning",
+    "material.assign:noche_shop_left__awning",
+    "mesh.create_primitive:noche_shop_left__sign",
+    "material.assign:noche_shop_left__sign",
+    "mesh.create_primitive:noche_build_left__body",
+    "material.assign:noche_build_left__body",
+    "mesh.create_primitive:noche_build_left__roof",
+    "material.assign:noche_build_left__roof",
+    "mesh.create_primitive:noche_build_left__door",
+    "material.assign:noche_build_left__door",
+    "mesh.create_primitive:noche_build_left__window_l",
+    "material.assign:noche_build_left__window_l",
+    "mesh.create_primitive:noche_build_left__window_r",
+    "material.assign:noche_build_left__window_r",
+    "mesh.create_primitive:noche_shop_right__body",
+    "material.assign:noche_shop_right__body",
+    "mesh.create_primitive:noche_shop_right__roof",
+    "material.assign:noche_shop_right__roof",
+    "mesh.create_primitive:noche_shop_right__door",
+    "material.assign:noche_shop_right__door",
+    "mesh.create_primitive:noche_shop_right__window_l",
+    "material.assign:noche_shop_right__window_l",
+    "mesh.create_primitive:noche_shop_right__window_r",
+    "material.assign:noche_shop_right__window_r",
+    "mesh.create_primitive:noche_shop_right__awning",
+    "material.assign:noche_shop_right__awning",
+    "mesh.create_primitive:noche_shop_right__sign",
+    "material.assign:noche_shop_right__sign",
+    "mesh.create_primitive:noche_build_right__body",
+    "material.assign:noche_build_right__body",
+    "mesh.create_primitive:noche_build_right__roof",
+    "material.assign:noche_build_right__roof",
+    "mesh.create_primitive:noche_build_right__door",
+    "material.assign:noche_build_right__door",
+    "mesh.create_primitive:noche_build_right__window_l",
+    "material.assign:noche_build_right__window_l",
+    "mesh.create_primitive:noche_build_right__window_r",
+    "material.assign:noche_build_right__window_r",
+    "mesh.create_primitive:noche_lamp_left_a__pole",
+    "material.assign:noche_lamp_left_a__pole",
+    "mesh.create_primitive:noche_lamp_left_a__arm",
+    "material.assign:noche_lamp_left_a__arm",
+    "mesh.create_primitive:noche_lamp_left_a__lamp",
+    "material.assign:noche_lamp_left_a__lamp",
+    "mesh.create_primitive:noche_lamp_left_b__pole",
+    "material.assign:noche_lamp_left_b__pole",
+    "mesh.create_primitive:noche_lamp_left_b__arm",
+    "material.assign:noche_lamp_left_b__arm",
+    "mesh.create_primitive:noche_lamp_left_b__lamp",
+    "material.assign:noche_lamp_left_b__lamp",
+    "mesh.create_primitive:noche_lamp_left_c__pole",
+    "material.assign:noche_lamp_left_c__pole",
+    "mesh.create_primitive:noche_lamp_left_c__arm",
+    "material.assign:noche_lamp_left_c__arm",
+    "mesh.create_primitive:noche_lamp_left_c__lamp",
+    "material.assign:noche_lamp_left_c__lamp",
+    "mesh.create_primitive:noche_lamp_right_a__pole",
+    "material.assign:noche_lamp_right_a__pole",
+    "mesh.create_primitive:noche_lamp_right_a__arm",
+    "material.assign:noche_lamp_right_a__arm",
+    "mesh.create_primitive:noche_lamp_right_a__lamp",
+    "material.assign:noche_lamp_right_a__lamp",
+    "mesh.create_primitive:noche_lamp_right_b__pole",
+    "material.assign:noche_lamp_right_b__pole",
+    "mesh.create_primitive:noche_lamp_right_b__arm",
+    "material.assign:noche_lamp_right_b__arm",
+    "mesh.create_primitive:noche_lamp_right_b__lamp",
+    "material.assign:noche_lamp_right_b__lamp",
+    "mesh.create_primitive:noche_lamp_right_c__pole",
+    "material.assign:noche_lamp_right_c__pole",
+    "mesh.create_primitive:noche_lamp_right_c__arm",
+    "material.assign:noche_lamp_right_c__arm",
+    "mesh.create_primitive:noche_lamp_right_c__lamp",
+    "material.assign:noche_lamp_right_c__lamp",
+    "mesh.create_primitive:noche_car_left__chassis",
+    "material.assign:noche_car_left__chassis",
+    "mesh.create_primitive:noche_car_left__cabin",
+    "material.assign:noche_car_left__cabin",
+    "mesh.create_primitive:noche_car_left__wheel_0_l",
+    "mesh.transform:noche_car_left__wheel_0_l",
+    "material.assign:noche_car_left__wheel_0_l",
+    "mesh.create_primitive:noche_car_left__wheel_0_r",
+    "mesh.transform:noche_car_left__wheel_0_r",
+    "material.assign:noche_car_left__wheel_0_r",
+    "mesh.create_primitive:noche_car_left__wheel_1_l",
+    "mesh.transform:noche_car_left__wheel_1_l",
+    "material.assign:noche_car_left__wheel_1_l",
+    "mesh.create_primitive:noche_car_left__wheel_1_r",
+    "mesh.transform:noche_car_left__wheel_1_r",
+    "material.assign:noche_car_left__wheel_1_r",
+    "mesh.create_primitive:noche_car_right__chassis",
+    "material.assign:noche_car_right__chassis",
+    "mesh.create_primitive:noche_car_right__cabin",
+    "material.assign:noche_car_right__cabin",
+    "mesh.create_primitive:noche_car_right__wheel_0_l",
+    "mesh.transform:noche_car_right__wheel_0_l",
+    "material.assign:noche_car_right__wheel_0_l",
+    "mesh.create_primitive:noche_car_right__wheel_0_r",
+    "mesh.transform:noche_car_right__wheel_0_r",
+    "material.assign:noche_car_right__wheel_0_r",
+    "mesh.create_primitive:noche_car_right__wheel_1_l",
+    "mesh.transform:noche_car_right__wheel_1_l",
+    "material.assign:noche_car_right__wheel_1_l",
+    "mesh.create_primitive:noche_car_right__wheel_1_r",
+    "mesh.transform:noche_car_right__wheel_1_r",
+    "material.assign:noche_car_right__wheel_1_r",
+    "mesh.create_primitive:noche_tree_left__trunk",
+    "material.assign:noche_tree_left__trunk",
+    "mesh.create_primitive:noche_tree_left__crown_a",
+    "material.assign:noche_tree_left__crown_a",
+    "mesh.create_primitive:noche_tree_left__crown_b",
+    "material.assign:noche_tree_left__crown_b",
+    "mesh.create_primitive:noche_tree_right__trunk",
+    "material.assign:noche_tree_right__trunk",
+    "mesh.create_primitive:noche_tree_right__crown_a",
+    "material.assign:noche_tree_right__crown_a",
+    "mesh.create_primitive:noche_tree_right__crown_b",
+    "material.assign:noche_tree_right__crown_b",
+    "mesh.create_primitive:noche_sign_left__post",
+    "material.assign:noche_sign_left__post",
+    "mesh.create_primitive:noche_sign_left__board",
+    "material.assign:noche_sign_left__board",
+    "mesh.create_primitive:noche_utility_right__cabinet",
+    "material.assign:noche_utility_right__cabinet",
+    "mesh.create_primitive:noche_utility_right__label",
+    "material.assign:noche_utility_right__label",
+    "light.create",
+    "render.multi_view",
+    "file.save_blend:yun_street_block_noche_v1.blend",
+    "export.glb:yun_street_block_noche_v1.glb"
+  ],
+  "artifacts": {
+    "yun_street_block_noche_v1-overview.png": "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-overview.png",
+    "yun_street_block_noche_v1-left.png": "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-left.png",
+    "yun_street_block_noche_v1-right.png": "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-right.png",
+    "yun_street_block_noche_v1-yun_side.png": "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-yun_side.png",
+    "yun_street_block_noche_v1-turn_side.png": "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-turn_side.png",
+    "yun_street_block_noche_v1-gameplay.png": "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-gameplay.png",
+    "yun_street_block_noche_v1.blend": "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1.blend",
+    "yun_street_block_noche_v1.glb": "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1.glb"
+  },
+  "artifactSizes": {
+    "yun_street_block_noche_v1-overview.png": 520374,
+    "yun_street_block_noche_v1-left.png": 606658,
+    "yun_street_block_noche_v1-right.png": 597101,
+    "yun_street_block_noche_v1-yun_side.png": 523025,
+    "yun_street_block_noche_v1-turn_side.png": 527279,
+    "yun_street_block_noche_v1-gameplay.png": 533869,
+    "yun_street_block_noche_v1.blend": 153340,
+    "yun_street_block_noche_v1.glb": 466104
+  },
+  "previews": [
+    "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-overview.png",
+    "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-left.png",
+    "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-right.png",
+    "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-yun_side.png",
+    "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-turn_side.png",
+    "D:/dev/Northern Step Studio/apps/matterhorn/artifacts/yun-autonomous-scene/negative-player-count/blender-work/yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9-generate-environment\\yun_street_block_noche_v1-gameplay.png"
+  ],
+  "geometry": {
+    "vertices": 3360,
+    "edges": 6116,
+    "polygons": 2884,
+    "meshObjects": 64
+  },
+  "objectCount": 66,
+  "sceneObjects": [
+    {
+      "name": "noche_shop_left__body",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -1.5999999046325684,
+          -6.449999809265137,
+          0.04999995231628418
+        ],
+        "max": [
+          3.0,
+          -3.9499998092651367,
+          3.049999952316284
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_left__roof",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -1.75,
+          -6.574999809265137,
+          3.080000162124634
+        ],
+        "max": [
+          3.1500000953674316,
+          -3.8249998092651367,
+          3.319999933242798
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_left__door",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.38999998569488525,
+          -3.950000047683716,
+          0.014999985694885254
+        ],
+        "max": [
+          1.0099999904632568,
+          -3.870000123977661,
+          1.6649999618530273
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_left__window_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.9099999666213989,
+          -3.945000171661377,
+          1.649999976158142
+        ],
+        "max": [
+          -0.09000000357627869,
+          -3.8550000190734863,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_left__window_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.4900000095367432,
+          -3.945000171661377,
+          1.649999976158142
+        ],
+        "max": [
+          2.309999942779541,
+          -3.8550000190734863,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_left__awning",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.7500000596046448,
+          -3.940000057220459,
+          2.6600000858306885
+        ],
+        "max": [
+          2.1500000953674316,
+          -3.2199997901916504,
+          2.8399999141693115
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_left__sign",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.30000001192092896,
+          -3.919999837875366,
+          3.2100000381469727
+        ],
+        "max": [
+          1.7000000476837158,
+          -3.799999952316284,
+          3.690000057220459
+        ]
+      }
+    },
+    {
+      "name": "noche_build_left__body",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -1.649999976158142,
+          -16.049999237060547,
+          0.04999995231628418
+        ],
+        "max": [
+          2.9499998092651367,
+          -13.550000190734863,
+          3.049999952316284
+        ]
+      }
+    },
+    {
+      "name": "noche_build_left__roof",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -1.8000000715255737,
+          -16.174999237060547,
+          3.080000162124634
+        ],
+        "max": [
+          3.0999999046325684,
+          -13.425000190734863,
+          3.319999933242798
+        ]
+      }
+    },
+    {
+      "name": "noche_build_left__door",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.3399999737739563,
+          -13.550000190734863,
+          0.014999985694885254
+        ],
+        "max": [
+          0.9599999785423279,
+          -13.470000267028809,
+          1.6649999618530273
+        ]
+      }
+    },
+    {
+      "name": "noche_build_left__window_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.9600000381469727,
+          -13.545000076293945,
+          1.649999976158142
+        ],
+        "max": [
+          -0.14000001549720764,
+          -13.454999923706055,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "noche_build_left__window_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.440000057220459,
+          -13.545000076293945,
+          1.649999976158142
+        ],
+        "max": [
+          2.259999990463257,
+          -13.454999923706055,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_right__body",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.80000114440918,
+          -7.25,
+          0.04999995231628418
+        ],
+        "max": [
+          30.399999618530273,
+          -4.75,
+          3.049999952316284
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_right__roof",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.649999618530273,
+          -7.375,
+          3.080000162124634
+        ],
+        "max": [
+          30.55000114440918,
+          -4.625,
+          3.319999933242798
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_right__door",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.790000915527344,
+          -4.75,
+          0.014999985694885254
+        ],
+        "max": [
+          28.40999984741211,
+          -4.670000076293945,
+          1.6649999618530273
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_right__window_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.489999771118164,
+          -4.744999885559082,
+          1.649999976158142
+        ],
+        "max": [
+          27.309999465942383,
+          -4.654999732971191,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_right__window_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          28.889999389648438,
+          -4.744999885559082,
+          1.649999976158142
+        ],
+        "max": [
+          29.709999084472656,
+          -4.654999732971191,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_right__awning",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.649999618530273,
+          -4.740000247955322,
+          2.6600000858306885
+        ],
+        "max": [
+          29.55000114440918,
+          -4.019999980926514,
+          2.8399999141693115
+        ]
+      }
+    },
+    {
+      "name": "noche_shop_right__sign",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.100000381469727,
+          -4.71999979019165,
+          3.2100000381469727
+        ],
+        "max": [
+          29.100000381469727,
+          -4.599999904632568,
+          3.690000057220459
+        ]
+      }
+    },
+    {
+      "name": "noche_build_right__body",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.850000381469727,
+          -16.25,
+          0.04999995231628418
+        ],
+        "max": [
+          30.44999885559082,
+          -13.75,
+          3.049999952316284
+        ]
+      }
+    },
+    {
+      "name": "noche_build_right__roof",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.69999885559082,
+          -16.375,
+          3.080000162124634
+        ],
+        "max": [
+          30.600000381469727,
+          -13.625,
+          3.319999933242798
+        ]
+      }
+    },
+    {
+      "name": "noche_build_right__door",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.84000015258789,
+          -13.75,
+          0.014999985694885254
+        ],
+        "max": [
+          28.459999084472656,
+          -13.670000076293945,
+          1.6649999618530273
+        ]
+      }
+    },
+    {
+      "name": "noche_build_right__window_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.540000915527344,
+          -13.744999885559082,
+          1.649999976158142
+        ],
+        "max": [
+          27.360000610351562,
+          -13.654999732971191,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "noche_build_right__window_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          28.940000534057617,
+          -13.744999885559082,
+          1.649999976158142
+        ],
+        "max": [
+          29.760000228881836,
+          -13.654999732971191,
+          2.3499999046325684
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_left_a__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.9451000690460205,
+          -3.204900026321411,
+          -7.095000743865967
+        ],
+        "max": [
+          2.954900026321411,
+          -3.1951000690460205,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_left_a__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.875,
+          -3.240000009536743,
+          4.110000133514404
+        ],
+        "max": [
+          3.7249999046325684,
+          -3.1600000858306885,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_left_a__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          3.4200000762939453,
+          -3.3500001430511475,
+          4.0
+        ],
+        "max": [
+          3.8400001525878906,
+          -3.049999952316284,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_left_b__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.9451000690460205,
+          -9.804900169372559,
+          -7.095000743865967
+        ],
+        "max": [
+          2.954900026321411,
+          -9.795100212097168,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_left_b__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.875,
+          -9.84000015258789,
+          4.110000133514404
+        ],
+        "max": [
+          3.7249999046325684,
+          -9.760000228881836,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_left_b__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          3.4200000762939453,
+          -9.949999809265137,
+          4.0
+        ],
+        "max": [
+          3.8400001525878906,
+          -9.65000057220459,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_left_c__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.9451000690460205,
+          -16.004899978637695,
+          -7.095000743865967
+        ],
+        "max": [
+          2.954900026321411,
+          -15.995100021362305,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_left_c__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.875,
+          -16.040000915527344,
+          4.110000133514404
+        ],
+        "max": [
+          3.7249999046325684,
+          -15.960000038146973,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_left_c__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          3.4200000762939453,
+          -16.149999618530273,
+          4.0
+        ],
+        "max": [
+          3.8400001525878906,
+          -15.850000381469727,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_right_a__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.84510040283203,
+          -4.204899787902832,
+          -7.095000743865967
+        ],
+        "max": [
+          25.854900360107422,
+          -4.195099830627441,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_right_a__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.775001525878906,
+          -4.239999771118164,
+          4.110000133514404
+        ],
+        "max": [
+          26.625,
+          -4.159999847412109,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_right_a__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.32000160217285,
+          -4.349999904632568,
+          4.0
+        ],
+        "max": [
+          26.739999771118164,
+          -4.049999713897705,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_right_b__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.84510040283203,
+          -10.504899978637695,
+          -7.095000743865967
+        ],
+        "max": [
+          25.854900360107422,
+          -10.495100021362305,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_right_b__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.775001525878906,
+          -10.539999961853027,
+          4.110000133514404
+        ],
+        "max": [
+          26.625,
+          -10.460000038146973,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_right_b__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.32000160217285,
+          -10.649999618530273,
+          4.0
+        ],
+        "max": [
+          26.739999771118164,
+          -10.350000381469727,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_right_c__pole",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.84510040283203,
+          -15.504899978637695,
+          -7.095000743865967
+        ],
+        "max": [
+          25.854900360107422,
+          -15.495100021362305,
+          11.395000457763672
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_right_c__arm",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.775001525878906,
+          -15.539999961853027,
+          4.110000133514404
+        ],
+        "max": [
+          26.625,
+          -15.460000038146973,
+          4.190000057220459
+        ]
+      }
+    },
+    {
+      "name": "noche_lamp_right_c__lamp",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.32000160217285,
+          -15.649999618530273,
+          4.0
+        ],
+        "max": [
+          26.739999771118164,
+          -15.350000381469727,
+          4.159999847412109
+        ]
+      }
+    },
+    {
+      "name": "noche_car_left__chassis",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.0399999618530273,
+          -13.550000190734863,
+          0.2799999713897705
+        ],
+        "max": [
+          2.759999990463257,
+          -10.449999809265137,
+          0.7599999904632568
+        ]
+      }
+    },
+    {
+      "name": "noche_car_left__cabin",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.2249999046325684,
+          -12.880000114440918,
+          0.7099999785423279
+        ],
+        "max": [
+          2.575000047683716,
+          -11.279999732971191,
+          1.3299999237060547
+        ]
+      }
+    },
+    {
+      "name": "noche_car_left__wheel_0_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.0672000646591187,
+          -11.082500457763672,
+          0.23750001192092896
+        ],
+        "max": [
+          1.0928000211715698,
+          -10.957500457763672,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "noche_car_left__wheel_0_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.707200050354004,
+          -11.082500457763672,
+          0.23750001192092896
+        ],
+        "max": [
+          2.732800006866455,
+          -10.957500457763672,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "noche_car_left__wheel_1_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.0672000646591187,
+          -13.042499542236328,
+          0.23750001192092896
+        ],
+        "max": [
+          1.0928000211715698,
+          -12.917499542236328,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "noche_car_left__wheel_1_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.707200050354004,
+          -13.042499542236328,
+          0.23750001192092896
+        ],
+        "max": [
+          2.732800006866455,
+          -12.917499542236328,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "noche_car_right__chassis",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.03999900817871,
+          -9.949999809265137,
+          0.2799999713897705
+        ],
+        "max": [
+          27.760000228881836,
+          -6.84999942779541,
+          0.7599999904632568
+        ]
+      }
+    },
+    {
+      "name": "noche_car_right__cabin",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.225000381469727,
+          -9.279999732971191,
+          0.7099999785423279
+        ],
+        "max": [
+          27.57499885559082,
+          -7.679999351501465,
+          1.3299999237060547
+        ]
+      }
+    },
+    {
+      "name": "noche_car_right__wheel_0_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.06719970703125,
+          -7.482500076293945,
+          0.23750001192092896
+        ],
+        "max": [
+          26.09280014038086,
+          -7.357500076293945,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "noche_car_right__wheel_0_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.707199096679688,
+          -7.482500076293945,
+          0.23750001192092896
+        ],
+        "max": [
+          27.732799530029297,
+          -7.357500076293945,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "noche_car_right__wheel_1_l",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.06719970703125,
+          -9.442500114440918,
+          0.23750001192092896
+        ],
+        "max": [
+          26.09280014038086,
+          -9.317500114440918,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "noche_car_right__wheel_1_r",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          27.707199096679688,
+          -9.442500114440918,
+          0.23750001192092896
+        ],
+        "max": [
+          27.732799530029297,
+          -9.317500114440918,
+          0.36250001192092896
+        ]
+      }
+    },
+    {
+      "name": "noche_tree_left__trunk",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.413900136947632,
+          -17.536100387573242,
+          -2.5199999809265137
+        ],
+        "max": [
+          2.4860999584198,
+          -17.463899612426758,
+          5.319999694824219
+        ]
+      }
+    },
+    {
+      "name": "noche_tree_left__crown_a",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.675000786781311,
+          -18.225000381469727,
+          2.450000047683716
+        ],
+        "max": [
+          3.2249999046325684,
+          -16.774999618530273,
+          3.549999952316284
+        ]
+      }
+    },
+    {
+      "name": "noche_tree_left__crown_b",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          1.3050005435943604,
+          -18.030000686645508,
+          3.119999885559082
+        ],
+        "max": [
+          2.3549997806549072,
+          -17.030000686645508,
+          3.9200000762939453
+        ]
+      }
+    },
+    {
+      "name": "noche_tree_right__trunk",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          26.213899612426758,
+          -17.236101150512695,
+          -2.5199999809265137
+        ],
+        "max": [
+          26.286100387573242,
+          -17.16390037536621,
+          5.319999694824219
+        ]
+      }
+    },
+    {
+      "name": "noche_tree_right__crown_a",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.475000381469727,
+          -17.92500114440918,
+          2.450000047683716
+        ],
+        "max": [
+          27.024999618530273,
+          -16.475000381469727,
+          3.549999952316284
+        ]
+      }
+    },
+    {
+      "name": "noche_tree_right__crown_b",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.104999542236328,
+          -17.729999542236328,
+          3.119999885559082
+        ],
+        "max": [
+          26.154998779296875,
+          -16.729999542236328,
+          3.9200000762939453
+        ]
+      }
+    },
+    {
+      "name": "noche_sign_left__post",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.647975206375122,
+          -6.90202522277832,
+          -1.6800000667572021
+        ],
+        "max": [
+          2.652024984359741,
+          -6.897974967956543,
+          4.079999923706055
+        ]
+      }
+    },
+    {
+      "name": "noche_sign_left__board",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          2.240000009536743,
+          -6.970000267028809,
+          1.7499998807907104
+        ],
+        "max": [
+          3.06000018119812,
+          -6.829999923706055,
+          2.4099998474121094
+        ]
+      }
+    },
+    {
+      "name": "noche_utility_right__cabinet",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.809999465942383,
+          -13.3100004196167,
+          0.01500004529953003
+        ],
+        "max": [
+          26.39000129699707,
+          -12.890000343322754,
+          1.065000057220459
+        ]
+      }
+    },
+    {
+      "name": "noche_utility_right__label",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          25.940000534057617,
+          -12.895000457763672,
+          0.5400000214576721
+        ],
+        "max": [
+          26.260000228881836,
+          -12.864999771118164,
+          0.699999988079071
+        ]
+      }
+    },
+    {
+      "name": "Preview_Sun",
+      "type": "LIGHT",
+      "bounds": {
+        "min": [
+          4.0,
+          -4.0,
+          6.0
+        ],
+        "max": [
+          4.0,
+          -4.0,
+          6.0
+        ]
+      }
+    },
+    {
+      "name": "Camera",
+      "type": "CAMERA",
+      "bounds": {
+        "min": [
+          44.400001525878906,
+          32.0,
+          34.79999923706055
+        ],
+        "max": [
+          44.400001525878906,
+          32.0,
+          34.79999923706055
+        ]
+      }
+    }
+  ],
+  "materials": {
+    "count": 10,
+    "names": [
+      "MAT_AsphaltProp",
+      "MAT_BuildingCoral",
+      "MAT_BuildingTeal",
+      "MAT_BuildingWarm",
+      "MAT_Concrete",
+      "MAT_Foliage",
+      "MAT_Glass",
+      "MAT_Light",
+      "MAT_Metal",
+      "MAT_Wood"
+    ]
+  },
+  "exportInfo": {
+    "animations": [],
+    "skins": false
+  },
+  "skeleton": null,
+  "warnings": [],
+  "errors": [],
+  "status": "completed",
+  "success": true
+}

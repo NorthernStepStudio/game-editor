@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "requestId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+  "generatedAt": "2026-09-24T20:46:30.563Z",
+  "ok": false,
+  "commit": null,
+  "validation": {
+    "ok": false,
+    "details": {
+      "editorImport": false
+    }
+  },
+  "scenario": {
+    "ok": false,
+    "details": {}
+  },
+  "qa": {
+    "ok": false,
+    "details": {}
+  },
+  "logs": [
+    "failed: ENOENT: no such file or directory, lstat 'D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1.glb'",
+    "ENOENT: no such file or directory, lstat 'D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1.glb'"
+  ],
+  "screenshots": [],
+  "tests": {
+    "passed": 0,
+    "failed": 0,
+    "total": 4,
+    "details": [
+      {
+        "criterionId": "scene-environment-root",
+        "description": "Matterhorn environment root exists",
+        "checkType": "node_exists",
+        "target": "MatterhornEnvironment",
+        "expected": true,
+        "outcome": "blocked",
+        "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-negative-missing-glb-nK98Zg\\yun-disposable\\.flyrail\\evidence\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene\\evidence-bundle.json",
+        "executionId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+        "timestamp": "2026-09-24T20:46:30.563Z"
+      },
+      {
+        "criterionId": "scene-player-count",
+        "description": "Six Yun players are visible",
+        "checkType": "property_equals",
+        "target": "playerCount",
+        "expected": 6,
+        "outcome": "blocked",
+        "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-negative-missing-glb-nK98Zg\\yun-disposable\\.flyrail\\evidence\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene\\evidence-bundle.json",
+        "executionId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+        "timestamp": "2026-09-24T20:46:30.563Z"
+      },
+      {
+        "criterionId": "scene-route-return",
+        "description": "Yun route returns to home",
+        "checkType": "property_equals",
+        "target": "route.returned_to_yun",
+        "expected": true,
+        "outcome": "blocked",
+        "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-negative-missing-glb-nK98Zg\\yun-disposable\\.flyrail\\evidence\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene\\evidence-bundle.json",
+        "executionId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+        "timestamp": "2026-09-24T20:46:30.563Z"
+      },
+      {
+        "criterionId": "scene-tag-role-swap",
+        "description": "Yun tag and role swap succeeds",
+        "checkType": "property_equals",
+        "target": "tagGameplayOk",
+        "expected": true,
+        "outcome": "blocked",
+        "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-negative-missing-glb-nK98Zg\\yun-disposable\\.flyrail\\evidence\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene\\evidence-bundle.json",
+        "executionId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+        "timestamp": "2026-09-24T20:46:30.563Z"
+      }
+    ]
+  },
+  "playtestOk": false,
+  "playtestRunId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+  "decisionTrace": null,
+  "incidentCount": 0,
+  "replayMovie": null,
+  "terminalOutcome": "blocked",
+  "seed": null,
+  "reproduction": null,
+  "incidentKinds": [],
+  "primaryIncident": null,
+  "repairComparisons": [],
+  "criterionResults": [
+    {
+      "criterionId": "scene-environment-root",
+      "description": "Matterhorn environment root exists",
+      "checkType": "node_exists",
+      "target": "MatterhornEnvironment",
+      "expected": true,
+      "outcome": "blocked",
+      "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-negative-missing-glb-nK98Zg\\yun-disposable\\.flyrail\\evidence\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene\\evidence-bundle.json",
+      "executionId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+      "timestamp": "2026-09-24T20:46:30.563Z"
+    },
+    {
+      "criterionId": "scene-player-count",
+      "description": "Six Yun players are visible",
+      "checkType": "property_equals",
+      "target": "playerCount",
+      "expected": 6,
+      "outcome": "blocked",
+      "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-negative-missing-glb-nK98Zg\\yun-disposable\\.flyrail\\evidence\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene\\evidence-bundle.json",
+      "executionId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+      "timestamp": "2026-09-24T20:46:30.563Z"
+    },
+    {
+      "criterionId": "scene-route-return",
+      "description": "Yun route returns to home",
+      "checkType": "property_equals",
+      "target": "route.returned_to_yun",
+      "expected": true,
+      "outcome": "blocked",
+      "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-negative-missing-glb-nK98Zg\\yun-disposable\\.flyrail\\evidence\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene\\evidence-bundle.json",
+      "executionId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+      "timestamp": "2026-09-24T20:46:30.563Z"
+    },
+    {
+      "criterionId": "scene-tag-role-swap",
+      "description": "Yun tag and role swap succeeds",
+      "checkType": "property_equals",
+      "target": "tagGameplayOk",
+      "expected": true,
+      "outcome": "blocked",
+      "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-negative-missing-glb-nK98Zg\\yun-disposable\\.flyrail\\evidence\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene\\evidence-bundle.json",
+      "executionId": "yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-assemble-validate-scene",
+      "timestamp": "2026-09-24T20:46:30.563Z"
+    }
+  ],
+  "dependencyArtifact": {
+    "blenderTaskId": null,
+    "sourceGlbPath": null,
+    "installedGlbPath": null,
+    "sourceSha256": null,
+    "installedSha256": null,
+    "exactArtifactIdentity": false
+  },
+  "runtime": null,
+  "featureText": "Assemble and validate a Yun Noche — Matterhorn Night Block full scene. Use the dependency GLB artifact yun_street_block_noche_v1.glb produced by Blender. Target mode: disposable. Preserve authoritative YunCourt geometry and gameplay rules. Use six visible Yun players and the production match camera. Run the YUN → tube → TURN → YUN route and production tag/role-swap probe. Do not report completion unless the dependency environment artifact is actually imported and instantiated.\n\nInput artifacts:\n- [godot-project] (Yun disposable project) C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-negative-missing-glb-nK98Zg\\yun-disposable\n- [blend] (yun_street_block_noche_v1.blend) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1.blend\n- [glb] (yun_street_block_noche_v1.glb) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1.glb\n- [report] (yun_street_block_noche_v1-report.json) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1-report.json\n- [preview] (yun_street_block_noche_v1-overview.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1-overview.png\n- [preview] (yun_street_block_noche_v1-left.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1-left.png\n- [preview] (yun_street_block_noche_v1-right.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1-right.png\n- [preview] (yun_street_block_noche_v1-yun_side.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1-yun_side.png\n- [preview] (yun_street_block_noche_v1-turn_side.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1-turn_side.png\n- [preview] (yun_street_block_noche_v1-gameplay.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1-gameplay.png\n- [report] (blender-result.json) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\blender-result.json\n- [report] (blender-task.json) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\blender-task.json\n\nAcceptance criteria:\n- Godot validation passes\n- Scenario checks pass\n- QA checks pass\n- {\"id\":\"scene-environment-root\",\"description\":\"Matterhorn environment root exists\",\"checkType\":\"node_exists\",\"target\":\"MatterhornEnvironment\",\"expected\":true}\n- {\"id\":\"scene-player-count\",\"description\":\"Six Yun players are visible\",\"checkType\":\"property_equals\",\"target\":\"playerCount\",\"expected\":6}\n- {\"id\":\"scene-route-return\",\"description\":\"Yun route returns to home\",\"checkType\":\"property_equals\",\"target\":\"route.returned_to_yun\",\"expected\":true}\n- {\"id\":\"scene-tag-role-swap\",\"description\":\"Yun tag and role swap succeeds\",\"checkType\":\"property_equals\",\"target\":\"tagGameplayOk\",\"expected\":true}",
+  "error": "ENOENT: no such file or directory, lstat 'D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\negative-missing-glb\\blender-work\\yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0-generate-environment\\yun_street_block_noche_v1.glb'",
+  "timingsMs": {
+    "total": 1
+  }
+}

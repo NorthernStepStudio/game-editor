@@ -22,3 +22,24 @@ test('persisted Flyrail evidence requires matching identity, gates and confined 
     assert.equal(verifyFlyrailEvidence(result,{...report,evidencePath:undefined},root).status,'blocked');
   } finally { rmSync(root,{recursive:true,force:true}); }
 });
+
+test('structured Flyrail scene criteria remain matched to exact Studio acceptance criteria', () => {
+  const root = mkdtempSync(join(tmpdir(), 'matterhorn-scene-evidence-'));
+  const dir = join(root, '.flyrail', 'evidence');
+  mkdirSync(dir, { recursive: true });
+  const uri = join(dir, 'task.json');
+  const custom = JSON.stringify({ id: 'scene-environment-root', description: 'Matterhorn environment root exists', checkType: 'node_exists', target: 'MatterhornEnvironment', expected: true });
+  const criteria = ['Godot validation passes', 'Scenario checks pass', 'QA checks pass', custom];
+  const item = { criterionId: 'scene-environment-root', description: 'Matterhorn environment root exists', checkType: 'node_exists' as const, target: 'MatterhornEnvironment', expected: true, actual: true, outcome: 'passed' as const, evidenceUri: uri, executionId: 'task' };
+  const bundle = { schemaVersion: 1, requestId: 'task', ok: true, validation: { ok: true }, scenario: { ok: true }, qa: { ok: true }, playtestOk: true, criterionResults: [item] };
+  const result: NssStudioExecutionResult = { taskId: 'task', specialistId: 'flyrail', status: 'completed', summary: 'Done' };
+  const report = { requestId: 'task', ok: true, evidencePath: uri, evidence: { validationOk: true, scenarioOk: true, qaOk: true, playtestOk: true }, criterionResults: [item] };
+  try {
+    writeFileSync(uri, JSON.stringify(bundle));
+    const checked = verifyFlyrailEvidence(result, report, root, criteria);
+    assert.equal(checked.status, 'completed');
+    assert.equal(validateStudioEvidence(checked, 'task', 'flyrail', criteria).valid, true);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

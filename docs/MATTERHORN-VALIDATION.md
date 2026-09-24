@@ -211,3 +211,33 @@ PASS for competitive readability in the captured production camera: all six play
 `npm run compile`: PASS. `npm run check`: PASS, 102 studio tests (99 pass, 0 fail, 3 live-runner prerequisite skips) and 28 Flyrail adapter checks pass. The suite runs the existing Blender, Yun character, production character, roster and new four-map deterministic checks. The dedicated `npm run test:yun-environment-set-live` and `npm run test:yun-environment-switch-live` both PASS with Blender/Godot/Flyrail present.
 
 The legacy `npm run test:yun-environment-live` was not run because it regenerates Calle, which this handoff explicitly forbids. Its live import, route, tag and fallback coverage was exercised by the set command using the existing accepted Calle asset. The individual `test:blender-live`, `test:yun-character-live` and `test:yun-roster-live` wrappers were not repeated separately; their live generation/import paths ran inside `npm run check`. Human keyboard play, continuous performance measurement and stakeholder promotion remain open. Keep PR #2 draft; do not merge or change the global default.
+
+## Autonomous full-scene Studio gate
+
+Date: September 24, 2026. The gate used Matterhorn starting head `d3cec4c1a3dbbb26d0788d331e903f035ed7e56f` and Flyrail starting head `dfed53503e1cd1560087fb470cc08edac04b8187`; code changes were in the working trees during the live run. GitHub Actions was green on the latest pushed Matterhorn base before this change (run `36044651875`). New changes are kept on draft PR #2 and must pass Actions after push.
+
+The dedicated `npm run test:yun-autonomous-scene-live` command passed using Blender 5.2, Godot 4.7.2, the production Yun project fixture and a Flyrail daemon with live bridge/runtime. It creates a disposable Yun copy with no archived Matterhorn environment GLBs and starts each high-level plan through `StudioExecutionEngine`. No direct Blender or Flyrail adapter submission is used for the acceptance runs.
+
+| Request | Studio run | Blender | Flyrail | Godot observation | GLB | Result |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| Create a Yun Noche street scene with warm lamps, clear competitive visibility, six players, and a readable route from YUN through the tubes to TURN and back. | `yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76` | 7.104 s (`50702440-845f-4840-a977-ac3e9af6b6d1`) | 36.126 s | 27.046 s | 466,104 bytes | PASS; both tasks completed |
+| Create a Yun Malecón full scene with bright open-air styling and clear player visibility. | `yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0` | 7.075 s (`7e31af46-0740-4268-a132-8eff5de91ffb`) | 36.117 s | 27.019 s | 869,308 bytes | PASS; both tasks completed |
+
+Exact current GLB handoffs: `artifacts/yun-autonomous-scene/noche-v1/blender-work/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment/yun_street_block_noche_v1.glb` (SHA-256 matched at install) and `artifacts/yun-autonomous-scene/malecon-v1/blender-work/yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment/yun_street_block_malecon_v1.glb` (SHA-256 matched at install). The exact high-level requests and generated plans are archived beside each run. Each run passed all seven gates: Godot import, production-scene scenario, QA, Matterhorn environment root, six visible players, route return, and production tag/role swap. The live scene measured camera-visible environment meshes, route motion through the tube and TURN, and physics-overlap tag handling. Each run captured five Godot screenshots (idle, tube crossing, turn, return and tag/role swap).
+
+Negative artifact run `yun-auto-acf9f1f2-e29f-47d1-9b56-b71f62cddcc0`: deleting the GLB after Blender completion made Flyrail fail to resolve the current-run path; the overall Studio run did not complete. Negative criterion run `yun-auto-209a4166-a2d4-4e0d-bf6d-357a24b9dad9`: the plan expected seven players, Godot measured six, and the `scene-player-count` criterion was `failed` with expected 7/actual 6; the Flyrail task and Studio run did not complete. The dedicated live command records four cases total: two positive full-scene runs and two negative cases, all four expected outcomes passed.
+
+Durations are task/run wall time and probe observation time, not FPS. Noche took 43.804 s total; Malecón took 43.669 s. Sustained frame timing and human keyboard play were not measured. Scenes were disposable; Kenney remains the production default and rollback. The opt-in environment model is visibly instantiated without replacing YunCourt/gameplay geometry. Screenshots, plans, task/result manifests, generated GLBs/renders, feature text, evidence bundles, criteria and final Studio snapshots are archived under `artifacts/yun-autonomous-scene/noche-v1/` and `artifacts/yun-autonomous-scene/malecon-v1/`; negative snapshots are under the matching negative-case folders.
+
+### Regression results
+
+- `npm run compile`: PASS.
+- `npm run check`: PASS, 112 Matterhorn tests (109 passed, 0 failed, 3 optional live-prerequisite skips) and 28 Flyrail adapter checks passed.
+- `test:blender-live`: PASS.
+- `test:yun-character-live`: PASS.
+- `test:yun-roster-live`: PASS.
+- `test:yun-environment-set-live`: PASS for Calle, Malecón, Parque and Noche.
+- `npm run test:yun-autonomous-scene-live`: PASS, 4/4 live cases.
+- `npm test --workspace=@flyrail/daemon`: PASS, 18/18 tests.
+
+The separate four-map environment set gate remains fixture generation/import coverage; it is not counted as full-scene Studio execution. The live full-scene gate proves the high-level request to multi-specialist plan, dependency artifact, Flyrail/Godot production scene and final Matterhorn acceptance path. See the implementation plan for the next open-ended scene generation and repair work.

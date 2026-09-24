@@ -27,3 +27,9 @@ Broader workspace migrations remain tracked in `docs/WORKSPACE-MIGRATION.md`. Up
 Matterhorn owns intent, plans, coordination, approvals, state and final validation. Flyrail owns Godot execution, repair, playtesting and export. Keep credentials server-side. Missing or uncertain evidence must stay visible; deterministic or mock tests are not proof of real Godot or visual correctness.
 
 Implement and verify work possible in this environment, including live PC checks when the required tools and services are available. Keep work on the draft PR. Do not merge, force-push or promote a release without explicit authorization.
+
+## Latest standalone handoff: autonomous full-scene gate
+
+On September 24, 2026, the autonomous full-scene Studio gate passed from high-level Noche and Malecón requests through `createYunAutonomousScenePlan`, `StudioExecutionEngine`, Blender, current-run GLB dependency handoff, Flyrail `loop.run`, Godot's production Yun match scene and measured criterion evidence. The expected-seven/actual-six criterion case fails; removing the current-run GLB blocks completion. Run `npm run test:yun-autonomous-scene-live` for the dedicated live gate. It requires Blender, Godot, the production Yun fixture and a Flyrail daemon in live runtime/bridge mode. The per-run plans, snapshots, GLBs, renders, evidence bundles and screenshots are in `artifacts/yun-autonomous-scene/`.
+
+Environment fixture generation proves asset creation and import. Autonomous full-scene Studio execution additionally proves the dependent multi-specialist run and final Matterhorn acceptance. Continue with open-ended standalone scene generation and repair loops. Keep Kenney as the saved default and immediate rollback until stakeholders promote Matterhorn assets. Keep PR #2 draft; do not merge, force-push or promote a release without explicit authorization.

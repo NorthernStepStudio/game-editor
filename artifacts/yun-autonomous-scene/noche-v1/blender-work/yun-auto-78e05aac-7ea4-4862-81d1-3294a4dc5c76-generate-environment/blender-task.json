@@ -1,0 +1,1709 @@
+{
+  "schemaVersion": "1.0.0",
+  "taskId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment",
+  "executionId": "50702440-845f-4840-a977-ac3e9af6b6d1",
+  "handoffId": "handoff-yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment-1790282694797",
+  "assetName": "yun_street_block_noche_v1",
+  "workingDirectory": "D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment",
+  "requestedOperations": [
+    {
+      "op": "scene.new",
+      "sceneName": "yun_street_block_noche_v1"
+    },
+    {
+      "op": "world.set_background",
+      "color": [
+        0.035,
+        0.05,
+        0.11,
+        1
+      ],
+      "strength": 0.26
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_BuildingWarm",
+      "baseColor": [
+        0.3,
+        0.2,
+        0.34,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_BuildingCoral",
+      "baseColor": [
+        0.42,
+        0.16,
+        0.28,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_BuildingTeal",
+      "baseColor": [
+        0.1,
+        0.3,
+        0.4,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Concrete",
+      "baseColor": [
+        0.22,
+        0.22,
+        0.28,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Metal",
+      "baseColor": [
+        0.08,
+        0.1,
+        0.14,
+        1
+      ],
+      "roughness": 0.34,
+      "metallic": 0.55
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Wood",
+      "baseColor": [
+        0.2,
+        0.13,
+        0.1,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Foliage",
+      "baseColor": [
+        0.1,
+        0.26,
+        0.16,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_AsphaltProp",
+      "baseColor": [
+        0.05,
+        0.07,
+        0.12,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Light",
+      "baseColor": [
+        0.95,
+        0.72,
+        0.25,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "material.create",
+      "name": "MAT_Glass",
+      "baseColor": [
+        0.12,
+        0.42,
+        0.62,
+        1
+      ],
+      "roughness": 0.72,
+      "metallic": 0
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_left__body",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.6,
+        2.5,
+        3
+      ],
+      "location": [
+        0.7,
+        -5.2,
+        1.55
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_left__body",
+      "material": "MAT_BuildingTeal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_left__roof",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.9,
+        2.75,
+        0.24
+      ],
+      "location": [
+        0.7,
+        -5.2,
+        3.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_left__roof",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_left__door",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.62,
+        0.08,
+        1.65
+      ],
+      "location": [
+        0.7,
+        -3.91,
+        0.84
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_left__door",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_left__window_l",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        -0.5,
+        -3.9000000000000004,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_left__window_l",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_left__window_r",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        1.9,
+        -3.9000000000000004,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_left__window_r",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_left__awning",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2.9,
+        0.72,
+        0.18
+      ],
+      "location": [
+        0.7,
+        -3.58,
+        2.75
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_left__awning",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_left__sign",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2,
+        0.12,
+        0.48
+      ],
+      "location": [
+        0.7,
+        -3.8600000000000003,
+        3.45
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_left__sign",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_left__body",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.6,
+        2.5,
+        3
+      ],
+      "location": [
+        0.65,
+        -14.8,
+        1.55
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_left__body",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_left__roof",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.9,
+        2.75,
+        0.24
+      ],
+      "location": [
+        0.65,
+        -14.8,
+        3.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_left__roof",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_left__door",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.62,
+        0.08,
+        1.65
+      ],
+      "location": [
+        0.65,
+        -13.510000000000002,
+        0.84
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_left__door",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_left__window_l",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        -0.5499999999999999,
+        -13.5,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_left__window_l",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_left__window_r",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        1.85,
+        -13.5,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_left__window_r",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_right__body",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.6,
+        2.5,
+        3
+      ],
+      "location": [
+        28.1,
+        -6,
+        1.55
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_right__body",
+      "material": "MAT_BuildingTeal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_right__roof",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.9,
+        2.75,
+        0.24
+      ],
+      "location": [
+        28.1,
+        -6,
+        3.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_right__roof",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_right__door",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.62,
+        0.08,
+        1.65
+      ],
+      "location": [
+        28.1,
+        -4.71,
+        0.84
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_right__door",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_right__window_l",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        26.900000000000002,
+        -4.7,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_right__window_l",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_right__window_r",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        29.3,
+        -4.7,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_right__window_r",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_right__awning",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2.9,
+        0.72,
+        0.18
+      ],
+      "location": [
+        28.1,
+        -4.38,
+        2.75
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_right__awning",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_shop_right__sign",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        2,
+        0.12,
+        0.48
+      ],
+      "location": [
+        28.1,
+        -4.66,
+        3.45
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_shop_right__sign",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_right__body",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.6,
+        2.5,
+        3
+      ],
+      "location": [
+        28.15,
+        -15,
+        1.55
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_right__body",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_right__roof",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        4.9,
+        2.75,
+        0.24
+      ],
+      "location": [
+        28.15,
+        -15,
+        3.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_right__roof",
+      "material": "MAT_Concrete"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_right__door",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.62,
+        0.08,
+        1.65
+      ],
+      "location": [
+        28.15,
+        -13.71,
+        0.84
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_right__door",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_right__window_l",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        26.95,
+        -13.7,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_right__window_l",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_build_right__window_r",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.09,
+        0.7
+      ],
+      "location": [
+        29.349999999999998,
+        -13.7,
+        2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_build_right__window_r",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_left_a__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        2.95,
+        -3.2,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_left_a__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_left_a__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        3.3000000000000003,
+        -3.2,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_left_a__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_left_a__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        3.6300000000000003,
+        -3.2,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_left_a__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_left_b__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        2.95,
+        -9.8,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_left_b__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_left_b__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        3.3000000000000003,
+        -9.8,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_left_b__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_left_b__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        3.6300000000000003,
+        -9.8,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_left_b__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_left_c__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        2.95,
+        -16,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_left_c__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_left_c__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        3.3000000000000003,
+        -16,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_left_c__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_left_c__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        3.6300000000000003,
+        -16,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_left_c__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_right_a__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        25.85,
+        -4.2,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_right_a__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_right_a__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        26.200000000000003,
+        -4.2,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_right_a__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_right_a__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        26.53,
+        -4.2,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_right_a__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_right_b__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        25.85,
+        -10.5,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_right_b__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_right_b__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        26.200000000000003,
+        -10.5,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_right_b__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_right_b__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        26.53,
+        -10.5,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_right_b__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_right_c__pole",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.07,
+      "depth": 4.3,
+      "scale": [
+        0.07,
+        0.07,
+        4.3
+      ],
+      "location": [
+        25.85,
+        -15.5,
+        2.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_right_c__pole",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_right_c__arm",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.85,
+        0.08,
+        0.08
+      ],
+      "location": [
+        26.200000000000003,
+        -15.5,
+        4.15
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_right_c__arm",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_lamp_right_c__lamp",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.42,
+        0.3,
+        0.16
+      ],
+      "location": [
+        26.53,
+        -15.5,
+        4.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_lamp_right_c__lamp",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_left__chassis",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.72,
+        3.1,
+        0.48
+      ],
+      "location": [
+        1.9,
+        -12,
+        0.52
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_left__chassis",
+      "material": "MAT_BuildingTeal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_left__cabin",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.35,
+        1.6,
+        0.62
+      ],
+      "location": [
+        1.9,
+        -12.08,
+        1.02
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_left__cabin",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_left__wheel_0_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        1.08,
+        -11.02,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "noche_car_left__wheel_0_l",
+      "rotationEulerDeg": [
+        0,
+        90,
+        0
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_left__wheel_0_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_left__wheel_0_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        2.7199999999999998,
+        -11.02,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "noche_car_left__wheel_0_r",
+      "rotationEulerDeg": [
+        0,
+        90,
+        0
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_left__wheel_0_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_left__wheel_1_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        1.08,
+        -12.98,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "noche_car_left__wheel_1_l",
+      "rotationEulerDeg": [
+        0,
+        90,
+        0
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_left__wheel_1_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_left__wheel_1_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        2.7199999999999998,
+        -12.98,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "noche_car_left__wheel_1_r",
+      "rotationEulerDeg": [
+        0,
+        90,
+        0
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_left__wheel_1_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_right__chassis",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.72,
+        3.1,
+        0.48
+      ],
+      "location": [
+        26.9,
+        -8.4,
+        0.52
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_right__chassis",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_right__cabin",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        1.35,
+        1.6,
+        0.62
+      ],
+      "location": [
+        26.9,
+        -8.48,
+        1.02
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_right__cabin",
+      "material": "MAT_Glass"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_right__wheel_0_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        26.08,
+        -7.42,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "noche_car_right__wheel_0_l",
+      "rotationEulerDeg": [
+        0,
+        90,
+        0
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_right__wheel_0_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_right__wheel_0_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        27.72,
+        -7.42,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "noche_car_right__wheel_0_r",
+      "rotationEulerDeg": [
+        0,
+        90,
+        0
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_right__wheel_0_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_right__wheel_1_l",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        26.08,
+        -9.38,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "noche_car_right__wheel_1_l",
+      "rotationEulerDeg": [
+        0,
+        90,
+        0
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_right__wheel_1_l",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_car_right__wheel_1_r",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.25,
+      "depth": 0.16,
+      "scale": [
+        0.25,
+        0.25,
+        0.16
+      ],
+      "location": [
+        27.72,
+        -9.38,
+        0.3
+      ]
+    },
+    {
+      "op": "mesh.transform",
+      "target": "noche_car_right__wheel_1_r",
+      "rotationEulerDeg": [
+        0,
+        90,
+        0
+      ],
+      "apply": true
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_car_right__wheel_1_r",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_tree_left__trunk",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.19,
+      "depth": 2.8,
+      "scale": [
+        0.19,
+        0.19,
+        2.8
+      ],
+      "location": [
+        2.45,
+        -17.5,
+        1.4
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_tree_left__trunk",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_tree_left__crown_a",
+      "primitive": "uv_sphere",
+      "size": 1,
+      "radius": 0.5,
+      "scale": [
+        1.55,
+        1.45,
+        1.1
+      ],
+      "location": [
+        2.45,
+        -17.5,
+        3
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_tree_left__crown_a",
+      "material": "MAT_Foliage"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_tree_left__crown_b",
+      "primitive": "uv_sphere",
+      "size": 1,
+      "radius": 0.5,
+      "scale": [
+        1.05,
+        1,
+        0.8
+      ],
+      "location": [
+        1.83,
+        -17.53,
+        3.52
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_tree_left__crown_b",
+      "material": "MAT_Foliage"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_tree_right__trunk",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.19,
+      "depth": 2.8,
+      "scale": [
+        0.19,
+        0.19,
+        2.8
+      ],
+      "location": [
+        26.25,
+        -17.2,
+        1.4
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_tree_right__trunk",
+      "material": "MAT_Wood"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_tree_right__crown_a",
+      "primitive": "uv_sphere",
+      "size": 1,
+      "radius": 0.5,
+      "scale": [
+        1.55,
+        1.45,
+        1.1
+      ],
+      "location": [
+        26.25,
+        -17.2,
+        3
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_tree_right__crown_a",
+      "material": "MAT_Foliage"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_tree_right__crown_b",
+      "primitive": "uv_sphere",
+      "size": 1,
+      "radius": 0.5,
+      "scale": [
+        1.05,
+        1,
+        0.8
+      ],
+      "location": [
+        25.63,
+        -17.23,
+        3.52
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_tree_right__crown_b",
+      "material": "MAT_Foliage"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_sign_left__post",
+      "primitive": "cylinder",
+      "size": 1,
+      "radius": 0.045,
+      "depth": 2.4,
+      "scale": [
+        0.045,
+        0.045,
+        2.4
+      ],
+      "location": [
+        2.65,
+        -6.9,
+        1.2
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_sign_left__post",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_sign_left__board",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.82,
+        0.14,
+        0.66
+      ],
+      "location": [
+        2.65,
+        -6.9,
+        2.08
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_sign_left__board",
+      "material": "MAT_BuildingCoral"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_utility_right__cabinet",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.58,
+        0.42,
+        1.05
+      ],
+      "location": [
+        26.1,
+        -13.1,
+        0.54
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_utility_right__cabinet",
+      "material": "MAT_Metal"
+    },
+    {
+      "op": "mesh.create_primitive",
+      "name": "noche_utility_right__label",
+      "primitive": "cube",
+      "size": 1,
+      "scale": [
+        0.32,
+        0.03,
+        0.16
+      ],
+      "location": [
+        26.1,
+        -12.879999999999999,
+        0.62
+      ]
+    },
+    {
+      "op": "material.assign",
+      "target": "noche_utility_right__label",
+      "material": "MAT_Light"
+    },
+    {
+      "op": "light.create",
+      "name": "Preview_Sun",
+      "type": "SUN",
+      "energy": 2,
+      "rotationEulerDeg": [
+        28,
+        0,
+        24
+      ]
+    },
+    {
+      "op": "render.multi_view",
+      "outputPrefix": "yun_street_block_noche_v1",
+      "target": [
+        14.4,
+        -10,
+        1.8
+      ],
+      "views": [
+        "overview",
+        "left",
+        "right",
+        "yun_side",
+        "turn_side",
+        "gameplay"
+      ],
+      "width": 960,
+      "height": 640
+    },
+    {
+      "op": "file.save_blend",
+      "outputName": "yun_street_block_noche_v1.blend"
+    },
+    {
+      "op": "export.glb",
+      "outputName": "yun_street_block_noche_v1.glb",
+      "applyModifiers": true
+    }
+  ],
+  "expectedArtifacts": [
+    {
+      "kind": "blend",
+      "name": "yun_street_block_noche_v1.blend",
+      "required": true,
+      "minBytes": 1
+    },
+    {
+      "kind": "glb",
+      "name": "yun_street_block_noche_v1.glb",
+      "required": true,
+      "minBytes": 1
+    },
+    {
+      "kind": "json",
+      "name": "yun_street_block_noche_v1-report.json",
+      "required": true,
+      "minBytes": 1
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_noche_v1-overview.png",
+      "required": true,
+      "minBytes": 256
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_noche_v1-left.png",
+      "required": true,
+      "minBytes": 256
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_noche_v1-right.png",
+      "required": true,
+      "minBytes": 256
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_noche_v1-yun_side.png",
+      "required": true,
+      "minBytes": 256
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_noche_v1-turn_side.png",
+      "required": true,
+      "minBytes": 256
+    },
+    {
+      "kind": "png",
+      "name": "yun_street_block_noche_v1-gameplay.png",
+      "required": true,
+      "minBytes": 256
+    }
+  ],
+  "acceptanceCriteria": [
+    "yun_street_block_noche_v1.blend and yun_street_block_noche_v1.glb are nonempty and confined to task output",
+    "Yun gameplay geometry remains absent from this environment asset",
+    "All prop IDs are unique and all solid prop footprints remain outside the playable court",
+    "Required six-view environment evidence and structured scene report are present"
+  ],
+  "createdAt": "2026-09-24T20:44:54.800Z",
+  "timeoutMs": 420000
+}

@@ -1,0 +1,78 @@
+{
+  "id": "yun-full-scene-malecon",
+  "goal": "Create a Yun Malecón full scene with bright open-air styling and clear player visibility.",
+  "createdAt": "2026-09-24T20:45:38.937Z",
+  "tasks": [
+    {
+      "id": "generate-environment",
+      "title": "Generate Malecón — Matterhorn Waterfront Block",
+      "goal": "Generate Yun environment malecon as yun_street_block_malecon_v1",
+      "domain": "blender",
+      "specialistId": "blender-engine",
+      "status": "planned",
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "yun_street_block_malecon_v1.blend and yun_street_block_malecon_v1.glb are nonempty and confined to task output",
+        "Yun gameplay geometry remains absent from this environment asset",
+        "All prop IDs are unique and all solid prop footprints remain outside the playable court",
+        "Required six-view environment evidence and structured scene report are present"
+      ],
+      "requiredCapabilities": [
+        "blender.create",
+        "blender.render.preview",
+        "blender.export.glb",
+        "blender.qa"
+      ],
+      "outputArtifacts": [
+        {
+          "kind": "glb",
+          "uri": "",
+          "label": "yun_street_block_malecon_v1.glb",
+          "producedBy": "blender-engine"
+        }
+      ]
+    },
+    {
+      "id": "assemble-validate-scene",
+      "title": "Assemble and validate Yun scene in Godot",
+      "goal": "Assemble and validate a Yun Malecón — Matterhorn Waterfront Block full scene. Use the dependency GLB artifact yun_street_block_malecon_v1.glb produced by Blender. Target mode: disposable. Preserve authoritative YunCourt geometry and gameplay rules. Use six visible Yun players and the production match camera. Run the YUN → tube → TURN → YUN route and production tag/role-swap probe. Do not report completion unless the dependency environment artifact is actually imported and instantiated.",
+      "domain": "godot",
+      "specialistId": "flyrail",
+      "status": "planned",
+      "dependsOn": [
+        "generate-environment"
+      ],
+      "acceptanceCriteria": [
+        "Godot validation passes",
+        "Scenario checks pass",
+        "QA checks pass",
+        "{\"id\":\"scene-environment-root\",\"description\":\"Matterhorn environment root exists\",\"checkType\":\"node_exists\",\"target\":\"MatterhornEnvironment\",\"expected\":true}",
+        "{\"id\":\"scene-player-count\",\"description\":\"Six Yun players are visible\",\"checkType\":\"property_equals\",\"target\":\"playerCount\",\"expected\":6}",
+        "{\"id\":\"scene-route-return\",\"description\":\"Yun route returns to home\",\"checkType\":\"property_equals\",\"target\":\"route.returned_to_yun\",\"expected\":true}",
+        "{\"id\":\"scene-tag-role-swap\",\"description\":\"Yun tag and role swap succeeds\",\"checkType\":\"property_equals\",\"target\":\"tagGameplayOk\",\"expected\":true}"
+      ],
+      "requiredCapabilities": [
+        "godot.project.inspect",
+        "godot.project.run",
+        "godot.validation.run",
+        "godot.screenshot.capture"
+      ],
+      "inputArtifacts": [
+        {
+          "kind": "godot-project",
+          "uri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-malecon-v1-pqCuKQ\\yun-disposable",
+          "label": "Yun disposable project"
+        }
+      ]
+    }
+  ],
+  "finalAcceptanceCriteria": [
+    "Godot validation passes",
+    "Scenario checks pass",
+    "QA checks pass",
+    "{\"id\":\"scene-environment-root\",\"description\":\"Matterhorn environment root exists\",\"checkType\":\"node_exists\",\"target\":\"MatterhornEnvironment\",\"expected\":true}",
+    "{\"id\":\"scene-player-count\",\"description\":\"Six Yun players are visible\",\"checkType\":\"property_equals\",\"target\":\"playerCount\",\"expected\":6}",
+    "{\"id\":\"scene-route-return\",\"description\":\"Yun route returns to home\",\"checkType\":\"property_equals\",\"target\":\"route.returned_to_yun\",\"expected\":true}",
+    "{\"id\":\"scene-tag-role-swap\",\"description\":\"Yun tag and role swap succeeds\",\"checkType\":\"property_equals\",\"target\":\"tagGameplayOk\",\"expected\":true}"
+  ]
+}

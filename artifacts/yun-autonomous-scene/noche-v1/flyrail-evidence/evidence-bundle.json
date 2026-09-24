@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "requestId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+  "generatedAt": "2026-09-24T20:45:37.555Z",
+  "ok": true,
+  "commit": null,
+  "validation": {
+    "ok": true,
+    "details": {
+      "editorImport": true
+    }
+  },
+  "scenario": {
+    "ok": true,
+    "details": {
+      "route": {
+        "crossed_tube": true,
+        "returned_to_yun": true,
+        "turned_at_turn": true,
+        "walked": true
+      },
+      "tagGameplayOk": true,
+      "tagOverlapCount": 1
+    }
+  },
+  "qa": {
+    "ok": true,
+    "details": {
+      "environmentRootPresent": true,
+      "playerCount": 6,
+      "courtGeometryInvariant": true,
+      "screenshots": [
+        "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/idle-six-player.png",
+        "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/tube-crossing.png",
+        "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/turn.png",
+        "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/return.png",
+        "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/tag-role-swap.png"
+      ]
+    }
+  },
+  "logs": [
+    "inspect: Validated disposable Yun project and current Studio GLB dependency.",
+    "implement: Installed the current-run dependency GLB and attached a disposable probe to the production Yun match scene.",
+    "validate: Godot editor import completed successfully.",
+    "scenario: Flyrail launched the production Yun match scene with the current-run GLB installed.",
+    "playtest: Production scene route and tag/role swap probes passed.",
+    "qa: Production scene identity, gameplay geometry, player visibility, camera captures, and current-run artifact handoff checked."
+  ],
+  "screenshots": [
+    ".flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/idle-six-player.png",
+    ".flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/tube-crossing.png",
+    ".flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/turn.png",
+    ".flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/return.png",
+    ".flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/tag-role-swap.png"
+  ],
+  "tests": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "details": [
+      {
+        "criterionId": "scene-environment-root",
+        "description": "Matterhorn environment root exists",
+        "checkType": "node_exists",
+        "target": "MatterhornEnvironment",
+        "expected": true,
+        "actual": true,
+        "outcome": "passed",
+        "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\\.flyrail\\evidence\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene\\evidence-bundle.json",
+        "executionId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+        "timestamp": "2026-09-24T20:45:37.555Z"
+      },
+      {
+        "criterionId": "scene-player-count",
+        "description": "Six Yun players are visible",
+        "checkType": "property_equals",
+        "target": "playerCount",
+        "expected": 6,
+        "actual": 6,
+        "outcome": "passed",
+        "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\\.flyrail\\evidence\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene\\evidence-bundle.json",
+        "executionId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+        "timestamp": "2026-09-24T20:45:37.555Z"
+      },
+      {
+        "criterionId": "scene-route-return",
+        "description": "Yun route returns to home",
+        "checkType": "property_equals",
+        "target": "route.returned_to_yun",
+        "expected": true,
+        "actual": true,
+        "outcome": "passed",
+        "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\\.flyrail\\evidence\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene\\evidence-bundle.json",
+        "executionId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+        "timestamp": "2026-09-24T20:45:37.555Z"
+      },
+      {
+        "criterionId": "scene-tag-role-swap",
+        "description": "Yun tag and role swap succeeds",
+        "checkType": "property_equals",
+        "target": "tagGameplayOk",
+        "expected": true,
+        "actual": true,
+        "outcome": "passed",
+        "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\\.flyrail\\evidence\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene\\evidence-bundle.json",
+        "executionId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+        "timestamp": "2026-09-24T20:45:37.555Z"
+      }
+    ]
+  },
+  "playtestOk": true,
+  "playtestRunId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+  "decisionTrace": null,
+  "incidentCount": 0,
+  "replayMovie": null,
+  "terminalOutcome": "passed",
+  "seed": null,
+  "reproduction": null,
+  "incidentKinds": [],
+  "primaryIncident": null,
+  "repairComparisons": [],
+  "criterionResults": [
+    {
+      "criterionId": "scene-environment-root",
+      "description": "Matterhorn environment root exists",
+      "checkType": "node_exists",
+      "target": "MatterhornEnvironment",
+      "expected": true,
+      "actual": true,
+      "outcome": "passed",
+      "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\\.flyrail\\evidence\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene\\evidence-bundle.json",
+      "executionId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+      "timestamp": "2026-09-24T20:45:37.555Z"
+    },
+    {
+      "criterionId": "scene-player-count",
+      "description": "Six Yun players are visible",
+      "checkType": "property_equals",
+      "target": "playerCount",
+      "expected": 6,
+      "actual": 6,
+      "outcome": "passed",
+      "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\\.flyrail\\evidence\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene\\evidence-bundle.json",
+      "executionId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+      "timestamp": "2026-09-24T20:45:37.555Z"
+    },
+    {
+      "criterionId": "scene-route-return",
+      "description": "Yun route returns to home",
+      "checkType": "property_equals",
+      "target": "route.returned_to_yun",
+      "expected": true,
+      "actual": true,
+      "outcome": "passed",
+      "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\\.flyrail\\evidence\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene\\evidence-bundle.json",
+      "executionId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+      "timestamp": "2026-09-24T20:45:37.555Z"
+    },
+    {
+      "criterionId": "scene-tag-role-swap",
+      "description": "Yun tag and role swap succeeds",
+      "checkType": "property_equals",
+      "target": "tagGameplayOk",
+      "expected": true,
+      "actual": true,
+      "outcome": "passed",
+      "evidenceUri": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\\.flyrail\\evidence\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene\\evidence-bundle.json",
+      "executionId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene",
+      "timestamp": "2026-09-24T20:45:37.555Z"
+    }
+  ],
+  "dependencyArtifact": {
+    "blenderTaskId": "yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment",
+    "sourceGlbPath": "D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1.glb",
+    "installedGlbPath": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\\assets\\matterhorn\\yun_street_block_noche_v1.glb",
+    "sourceSha256": "bcd5bcd907c561bf0145828ebbbb4f966d333457469e77e90a56eff64ef279f2",
+    "installedSha256": "bcd5bcd907c561bf0145828ebbbb4f966d333457469e77e90a56eff64ef279f2",
+    "exactArtifactIdentity": true
+  },
+  "runtime": {
+    "assetId": "yun_street_block_noche_v1",
+    "cameraCurrent": true,
+    "cameraVisibleEnvironmentMeshes": 64,
+    "configuredEnvironmentProvider": "matterhorn",
+    "courtGeometryInvariant": true,
+    "environmentMeshCount": 64,
+    "environmentRootPresent": true,
+    "expectedAssetExists": true,
+    "expectedAssetPath": "res://assets/matterhorn/yun_street_block_noche_v1.glb",
+    "importedNodeCount": 65,
+    "mapId": 3,
+    "ok": true,
+    "playerCount": 6,
+    "route": {
+      "crossed_tube": true,
+      "returned_to_yun": true,
+      "turned_at_turn": true,
+      "walked": true
+    },
+    "runtimeObservationMs": 27046,
+    "screenshots": [
+      "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/idle-six-player.png",
+      "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/tube-crossing.png",
+      "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/turn.png",
+      "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/return.png",
+      "res://.flyrail/evidence/yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-assemble-validate-scene/screenshots/tag-role-swap.png"
+    ],
+    "tagCanResolve": false,
+    "tagGameplayOk": true,
+    "tagOverlapCount": 1
+  },
+  "featureText": "Assemble and validate a Yun Noche — Matterhorn Night Block full scene. Use the dependency GLB artifact yun_street_block_noche_v1.glb produced by Blender. Target mode: disposable. Preserve authoritative YunCourt geometry and gameplay rules. Use six visible Yun players and the production match camera. Run the YUN → tube → TURN → YUN route and production tag/role-swap probe. Do not report completion unless the dependency environment artifact is actually imported and instantiated.\n\nInput artifacts:\n- [godot-project] (Yun disposable project) C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-scene-noche-v1-E4bkxo\\yun-disposable\n- [blend] (yun_street_block_noche_v1.blend) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1.blend\n- [glb] (yun_street_block_noche_v1.glb) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1.glb\n- [report] (yun_street_block_noche_v1-report.json) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1-report.json\n- [preview] (yun_street_block_noche_v1-overview.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1-overview.png\n- [preview] (yun_street_block_noche_v1-left.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1-left.png\n- [preview] (yun_street_block_noche_v1-right.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1-right.png\n- [preview] (yun_street_block_noche_v1-yun_side.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1-yun_side.png\n- [preview] (yun_street_block_noche_v1-turn_side.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1-turn_side.png\n- [preview] (yun_street_block_noche_v1-gameplay.png) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\yun_street_block_noche_v1-gameplay.png\n- [report] (blender-result.json) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\blender-result.json\n- [report] (blender-task.json) D:\\dev\\Northern Step Studio\\apps\\matterhorn\\artifacts\\yun-autonomous-scene\\noche-v1\\blender-work\\yun-auto-78e05aac-7ea4-4862-81d1-3294a4dc5c76-generate-environment\\blender-task.json\n\nAcceptance criteria:\n- Godot validation passes\n- Scenario checks pass\n- QA checks pass\n- {\"id\":\"scene-environment-root\",\"description\":\"Matterhorn environment root exists\",\"checkType\":\"node_exists\",\"target\":\"MatterhornEnvironment\",\"expected\":true}\n- {\"id\":\"scene-player-count\",\"description\":\"Six Yun players are visible\",\"checkType\":\"property_equals\",\"target\":\"playerCount\",\"expected\":6}\n- {\"id\":\"scene-route-return\",\"description\":\"Yun route returns to home\",\"checkType\":\"property_equals\",\"target\":\"route.returned_to_yun\",\"expected\":true}\n- {\"id\":\"scene-tag-role-swap\",\"description\":\"Yun tag and role swap succeeds\",\"checkType\":\"property_equals\",\"target\":\"tagGameplayOk\",\"expected\":true}",
+  "error": null,
+  "timingsMs": {
+    "total": 35566,
+    "godotRuntimeObservation": 27046
+  }
+}

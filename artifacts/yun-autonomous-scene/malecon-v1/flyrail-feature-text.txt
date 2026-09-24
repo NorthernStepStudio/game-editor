@@ -1,0 +1,24 @@
+Assemble and validate a Yun Malecón — Matterhorn Waterfront Block full scene. Use the dependency GLB artifact yun_street_block_malecon_v1.glb produced by Blender. Target mode: disposable. Preserve authoritative YunCourt geometry and gameplay rules. Use six visible Yun players and the production match camera. Run the YUN → tube → TURN → YUN route and production tag/role-swap probe. Do not report completion unless the dependency environment artifact is actually imported and instantiated.
+
+Input artifacts:
+- [godot-project] (Yun disposable project) C:\Users\winst\AppData\Local\Temp\matterhorn-yun-scene-malecon-v1-pqCuKQ\yun-disposable
+- [blend] (yun_street_block_malecon_v1.blend) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\yun_street_block_malecon_v1.blend
+- [glb] (yun_street_block_malecon_v1.glb) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\yun_street_block_malecon_v1.glb
+- [report] (yun_street_block_malecon_v1-report.json) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\yun_street_block_malecon_v1-report.json
+- [preview] (yun_street_block_malecon_v1-overview.png) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\yun_street_block_malecon_v1-overview.png
+- [preview] (yun_street_block_malecon_v1-left.png) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\yun_street_block_malecon_v1-left.png
+- [preview] (yun_street_block_malecon_v1-right.png) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\yun_street_block_malecon_v1-right.png
+- [preview] (yun_street_block_malecon_v1-yun_side.png) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\yun_street_block_malecon_v1-yun_side.png
+- [preview] (yun_street_block_malecon_v1-turn_side.png) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\yun_street_block_malecon_v1-turn_side.png
+- [preview] (yun_street_block_malecon_v1-gameplay.png) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\yun_street_block_malecon_v1-gameplay.png
+- [report] (blender-result.json) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\blender-result.json
+- [report] (blender-task.json) D:\dev\Northern Step Studio\apps\matterhorn\artifacts\yun-autonomous-scene\malecon-v1\blender-work\yun-auto-7ada3229-2e1e-44e1-bf5d-5d4f10ef37c0-generate-environment\blender-task.json
+
+Acceptance criteria:
+- Godot validation passes
+- Scenario checks pass
+- QA checks pass
+- {"id":"scene-environment-root","description":"Matterhorn environment root exists","checkType":"node_exists","target":"MatterhornEnvironment","expected":true}
+- {"id":"scene-player-count","description":"Six Yun players are visible","checkType":"property_equals","target":"playerCount","expected":6}
+- {"id":"scene-route-return","description":"Yun route returns to home","checkType":"property_equals","target":"route.returned_to_yun","expected":true}
+- {"id":"scene-tag-role-swap","description":"Yun tag and role swap succeeds","checkType":"property_equals","target":"tagGameplayOk","expected":true}

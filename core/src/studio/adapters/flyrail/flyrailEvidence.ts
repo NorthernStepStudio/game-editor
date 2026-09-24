@@ -51,7 +51,9 @@ export function verifyFlyrailEvidence(
       evidenceUri: item.evidenceUri ?? uri,
       executionId: item.executionId ?? result.taskId,
       timestamp: item.timestamp,
-      criterion: item.description ?? item.criterion,
+      criterion: taskAcceptanceCriteria?.find(raw => {
+        try { return JSON.parse(raw)?.id === (item.criterionId ?? item.id); } catch { return false; }
+      }) ?? item.description ?? item.criterion,
     }));
 
     const combinedReturnedResults = [...genericChecks, ...customBundleResults];
@@ -60,12 +62,13 @@ export function verifyFlyrailEvidence(
     if (taskAcceptanceCriteria && taskAcceptanceCriteria.length > 0) {
       const validation = validateTaskCriteria(result.taskId, taskAcceptanceCriteria, combinedReturnedResults, uri);
       const finalStatus = bundle.ok === false ? 'failed' : validation.status;
+      const criterionResults = validation.criterionResults.map((check, index) => ({ ...check, criterion: taskAcceptanceCriteria[index] }));
       return {
         ...result,
         status: finalStatus,
         summary: result.summary && result.summary !== 'Task completed' ? `${result.summary} — ${validation.summary}` : validation.summary,
-        criterionResults: validation.criterionResults,
-        evidence: [...result.evidence ?? [], ...validation.criterionResults.map(check => ({ kind: 'test' as const, summary: check.description ?? check.criterion ?? 'Criterion', outcome: check.outcome, uri: check.evidenceUri }))],
+        criterionResults,
+        evidence: [...result.evidence ?? [], ...criterionResults.map(check => ({ kind: 'test' as const, summary: check.description ?? check.criterion ?? 'Criterion', outcome: check.outcome, uri: check.evidenceUri }))],
       };
     }
 

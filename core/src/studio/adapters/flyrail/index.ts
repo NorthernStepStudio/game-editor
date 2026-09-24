@@ -12,12 +12,17 @@ export { fromJsonRpcError, fromTransportError } from "./flyrailErrors.js";
 export {
   FlyrailVerificationClient,
   deriveFlyrailVerificationCapabilities,
+  extractFlyrailRuntimeSessionId,
   mapFlyrailRuntimeSnapshot,
   mapFlyrailAgentRunToReplayBundle,
   type FlyrailVerificationCapabilities,
   type FlyrailVerificationClientOptions,
   type FlyrailRuntimeLaunchOptions,
   type FlyrailAgentPlaytestOptions,
+  type FlyrailAgentStepStatus,
+  type FlyrailAgentStepAccepted,
+  type FlyrailAgentObserveResult,
+  type FlyrailViewportCaptureResult,
 } from "./flyrailVerification.js";
 export {
   validateGlbThroughFlyrail,

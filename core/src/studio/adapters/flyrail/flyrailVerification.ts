@@ -1,4 +1,5 @@
 import type {
+  FoundryInputEvent,
   FoundryReplayBundle,
   FoundryRuntimeNode,
   FoundryRuntimeSnapshot,
@@ -13,6 +14,9 @@ export interface FlyrailVerificationCapabilities {
   readonly screenshot: boolean;
   readonly performance: boolean;
   readonly agentPlaytest: boolean;
+  readonly agentStep: boolean;
+  readonly viewportCapture: boolean;
+  readonly runtimeEvents: boolean;
 }
 
 export interface FlyrailVerificationClientOptions extends FlyrailClientOptions {
@@ -31,6 +35,45 @@ export interface FlyrailAgentPlaytestOptions {
   readonly seed?: number;
   readonly captureScreenshots?: boolean;
   readonly budget?: Readonly<Record<string, number>>;
+}
+
+export interface FlyrailAgentStepStatus {
+  readonly active: boolean;
+  readonly paused: boolean;
+  readonly stepId: number;
+  readonly remainingFrames: number;
+  readonly simulationFrames: number;
+}
+
+export interface FlyrailAgentStepAccepted {
+  readonly ok: boolean;
+  readonly stepId: number;
+  readonly frames: number;
+}
+
+export interface FlyrailAgentObserveResult {
+  readonly status: FlyrailAgentStepStatus;
+  readonly scenePath: string | null;
+  readonly performance: {
+    readonly fps: number;
+    readonly frameTimeMs: number;
+    readonly memoryMb: number;
+    readonly objectCount: number;
+  };
+  readonly nodes: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  readonly events: readonly {
+    readonly name: string;
+    readonly frame: number;
+    readonly payload?: Readonly<Record<string, unknown>>;
+  }[];
+}
+
+export interface FlyrailViewportCaptureResult {
+  readonly ok: boolean;
+  readonly path?: string;
+  readonly width?: number;
+  readonly height?: number;
+  readonly error?: string;
 }
 
 interface FlyrailCapabilitiesResponse {
@@ -82,6 +125,14 @@ interface FlyrailAgentRunShape {
   };
 }
 
+interface FlyrailRuntimeLaunchShape {
+  readonly sessionId?: string;
+  readonly runtimeSessionId?: string;
+  readonly runtime?: {
+    readonly sessionId?: string;
+  };
+}
+
 export function deriveFlyrailVerificationCapabilities(
   response: FlyrailCapabilitiesResponse,
 ): FlyrailVerificationCapabilities {
@@ -98,7 +149,27 @@ export function deriveFlyrailVerificationCapabilities(
     screenshot: has("godot.screenshot.capture", 7),
     performance: has("godot.performance.capture", 11),
     agentPlaytest: has("godot.explore.run", 13),
+    agentStep: caps.has("godot.runtime.agent_step"),
+    viewportCapture: caps.has("godot.runtime.viewport_capture"),
+    runtimeEvents: caps.has("godot.runtime.events"),
   };
+}
+
+export function extractFlyrailRuntimeSessionId(
+  response: FlyrailRuntimeLaunchShape,
+): string {
+  const runtimeSessionId =
+    response.runtimeSessionId ??
+    response.runtime?.sessionId ??
+    response.sessionId ??
+    "";
+  if (!runtimeSessionId) {
+    throw new SpecialistError(
+      "EXECUTION_FAILED",
+      "Flyrail runtime.launch did not return a runtime session id.",
+    );
+  }
+  return runtimeSessionId;
 }
 
 export function mapFlyrailRuntimeSnapshot(
@@ -229,16 +300,9 @@ export class FlyrailVerificationClient {
         ? { agentAutopause: options.agentAutopause }
         : {}),
       ...(options.quitAfter !== undefined ? { quitAfter: options.quitAfter } : {}),
-    })) as { sessionId?: string; runtimeSessionId?: string };
+    })) as FlyrailRuntimeLaunchShape;
 
-    const runtimeSessionId = response.runtimeSessionId ?? response.sessionId;
-    if (!runtimeSessionId) {
-      throw new SpecialistError(
-        "EXECUTION_FAILED",
-        "Flyrail runtime.launch did not return a runtime session id.",
-      );
-    }
-    return runtimeSessionId;
+    return extractFlyrailRuntimeSessionId(response);
   }
 
   async snapshot(runtimeSessionId: string): Promise<FoundryRuntimeSnapshot> {
@@ -272,12 +336,7 @@ export class FlyrailVerificationClient {
     frames: number,
   ): Promise<{ frame: number }> {
     await this.requireCapability("frameAdvance");
-    if (!Number.isInteger(frames) || frames <= 0) {
-      throw new SpecialistError(
-        "INVALID_TASK",
-        "Frame advance requires a positive integer frame count.",
-      );
-    }
+    this.validateFrameCount(frames);
     return (await this.client.call("scenario.advance", {
       runtimeSessionId,
       frames,
@@ -305,6 +364,74 @@ export class FlyrailVerificationClient {
         ? { timeoutFrames: condition.timeoutFrames }
         : {}),
     })) as { frame: number; ok: boolean };
+  }
+
+  async beginAgent(runtimeSessionId: string): Promise<FlyrailAgentStepStatus> {
+    await this.requireCapability("agentStep");
+    return (await this.client.call("runtime.agent_begin", {
+      runtimeSessionId,
+    })) as FlyrailAgentStepStatus;
+  }
+
+  async getAgentStatus(runtimeSessionId: string): Promise<FlyrailAgentStepStatus> {
+    await this.requireCapability("agentStep");
+    return (await this.client.call("runtime.agent_status", {
+      runtimeSessionId,
+    })) as FlyrailAgentStepStatus;
+  }
+
+  async stepAgent(
+    runtimeSessionId: string,
+    frames: number,
+    inputs: readonly FoundryInputEvent[] = [],
+  ): Promise<FlyrailAgentStepAccepted> {
+    await this.requireCapability("agentStep");
+    this.validateFrameCount(frames);
+    return (await this.client.call("runtime.agent_step", {
+      runtimeSessionId,
+      frames,
+      inputs,
+    })) as FlyrailAgentStepAccepted;
+  }
+
+  async observeAgent(
+    runtimeSessionId: string,
+    paths: readonly string[],
+    drainEvents = false,
+  ): Promise<FlyrailAgentObserveResult> {
+    await this.requireCapability("agentStep");
+    return (await this.client.call("runtime.agent_observe", {
+      runtimeSessionId,
+      paths,
+      drainEvents,
+    })) as FlyrailAgentObserveResult;
+  }
+
+  async endAgent(runtimeSessionId: string): Promise<FlyrailAgentStepStatus> {
+    await this.requireCapability("agentStep");
+    return (await this.client.call("runtime.agent_end", {
+      runtimeSessionId,
+    })) as FlyrailAgentStepStatus;
+  }
+
+  async captureViewport(
+    runtimeSessionId: string,
+    name = "foundry-proof",
+  ): Promise<FlyrailViewportCaptureResult> {
+    await this.requireCapability("viewportCapture");
+    return (await this.client.call("runtime.capture_viewport", {
+      runtimeSessionId,
+      name,
+    })) as FlyrailViewportCaptureResult;
+  }
+
+  async drainRuntimeEvents(
+    runtimeSessionId: string,
+  ): Promise<FlyrailAgentObserveResult["events"]> {
+    await this.requireCapability("runtimeEvents");
+    return (await this.client.call("runtime.events", {
+      runtimeSessionId,
+    })) as FlyrailAgentObserveResult["events"];
   }
 
   async runAgentPlaytest(
@@ -351,6 +478,15 @@ export class FlyrailVerificationClient {
       throw new SpecialistError(
         "UNSUPPORTED_CAPABILITY",
         `Flyrail does not expose Foundry verification capability: ${capability}.`,
+      );
+    }
+  }
+
+  private validateFrameCount(frames: number): void {
+    if (!Number.isInteger(frames) || frames <= 0) {
+      throw new SpecialistError(
+        "INVALID_TASK",
+        "Frame advance requires a positive integer frame count.",
       );
     }
   }

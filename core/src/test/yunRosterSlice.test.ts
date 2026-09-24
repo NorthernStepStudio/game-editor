@@ -42,16 +42,15 @@ import {
   writeYunWrapperMotionProbe,
 } from "../studio/adapters/flyrail/index.js";
 
-function resolveFlyrailRoot(): string {
+function resolveFlyrailRoot(): string | undefined {
   const candidates = [
-    process.env.FLYRAIL_REPO_ROOT ?? "",
+    process.env.FLYRAIL_REPO_ROOT?.trim() ?? "",
     resolve(process.cwd(), "..", "flyrail"),
-    "D:\\dev\\Northern Step Studio\\apps\\flyrail",
   ].filter(Boolean);
   for (const c of candidates) {
     if (existsSync(join(c, "games", "yun", "scripts", "mini_figure.gd"))) return c;
   }
-  return candidates[candidates.length - 1]!;
+  return undefined;
 }
 
 function rosterArchiveRoot(): string {
@@ -271,6 +270,10 @@ test("Yun roster Flyrail disposable validation + team colors per character", asy
 
 test("Yun roster production model list + install + six-player/lineup probes", async (t) => {
   const flyrailRoot = resolveFlyrailRoot();
+  if (!flyrailRoot) {
+    t.skip("Flyrail checkout unavailable; set FLYRAIL_REPO_ROOT or place it beside Matterhorn");
+    return;
+  }
   const yun = join(flyrailRoot, "games", "yun");
   const mini = readFileSync(join(yun, "scripts", "mini_figure.gd"), "utf8");
   assert.match(mini, /yun_player_02\.glb/);

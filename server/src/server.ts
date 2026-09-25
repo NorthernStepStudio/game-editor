@@ -68,7 +68,7 @@ export async function startNssWorkspaceAiServer(
         await respondJson(response, 415, { error: "Content-Type must be application/json." }); return;
       }
       if (await workspaceRoutes(request, response, () => readJsonBody(request))) return;
-      if (await foundryRoutes(request, response, studio)) return;
+      if (await foundryRoutes(request, response, studio, () => readJsonBody(request))) return;
       if (await studioRoutes(request, response, studio, () => readJsonBody(request))) return;
 
       if (request.method === "GET" && request.url === "/health") {

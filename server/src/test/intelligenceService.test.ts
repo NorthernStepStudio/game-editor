@@ -265,6 +265,135 @@ describe("IntelligenceService", () => {
   });
 });
 
+describe("durable intelligence sessions", () => {
+  it("persists and resumes multi-turn state across service restart", async () => {
+    const root = await mkdtemp(join(tmpdir(), "matterhorn-intelligence-session-"));
+    const dataDirectory = join(root, ".matterhorn-test");
+    const projects = [{ id: "demo", name: "Demo", path: root }];
+    try {
+      const makeProvider = (): MatterhornModelProvider => ({
+        id: "fake-local",
+        models: [localModel],
+        describe: () => "fake",
+        async invoke(_modelId, request) {
+          const users = request.messages.filter(
+            (message) => message.role === "user",
+          );
+          return {
+            text: `users=${users.length}; last=${users.at(-1)?.content ?? ""}`,
+            toolCalls: [],
+            finishReason: "stop",
+            usage: {
+              inputTokens: 2,
+              outputTokens: 1,
+              totalTokens: 3,
+            },
+          };
+        },
+      });
+
+      const firstService = new IntelligenceService(
+        projects,
+        config(),
+        {
+          providers: [makeProvider()],
+          dataDirectory,
+        },
+      );
+      const first = await firstService.startSession({
+        projectId: "demo",
+        prompt: "First question",
+        role: "coding",
+        providerId: "fake-local",
+        modelId: "fake-coder",
+      });
+      assert.equal(first.status, "completed");
+      assert.match(first.text, /users=1/);
+
+      const restarted = new IntelligenceService(
+        projects,
+        config(),
+        {
+          providers: [makeProvider()],
+          dataDirectory,
+        },
+      );
+      assert.equal(restarted.listSessions().length, 1);
+      assert.equal(restarted.getSession(first.id).modelId, "fake-coder");
+
+      const second = await restarted.continueSession(first.id, {
+        prompt: "Second question",
+      });
+      assert.equal(second.status, "completed");
+      assert.equal(second.providerId, "fake-local");
+      assert.equal(second.modelId, "fake-coder");
+      assert.match(second.text, /users=2/);
+      assert.match(second.text, /Second question/);
+      assert.equal(second.usage.totalTokens, 6);
+      assert.ok(second.turns > first.turns);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not expose persisted tool transcript contents in public session metadata", async () => {
+    const root = await mkdtemp(join(tmpdir(), "matterhorn-intelligence-session-"));
+    const dataDirectory = join(root, ".matterhorn-test");
+    try {
+      await writeFile(
+        join(root, "secret-name.ts"),
+        "export const nonSecretSource = 'visible-to-project-owner';\n",
+        "utf8",
+      );
+      const provider: MatterhornModelProvider = {
+        id: "fake-local",
+        models: [localModel],
+        describe: () => "fake",
+        async invoke(_modelId, request) {
+          const result = request.messages.find(
+            (message) => message.role === "tool",
+          );
+          if (!result) {
+            return {
+              text: "",
+              toolCalls: [
+                {
+                  id: "read-1",
+                  name: "read_file",
+                  args: { path: "secret-name.ts" },
+                },
+              ],
+              finishReason: "tool_calls",
+            };
+          }
+          return {
+            text: "Inspected the requested source file.",
+            toolCalls: [],
+            finishReason: "stop",
+          };
+        },
+      };
+      const service = new IntelligenceService(
+        [{ id: "demo", name: "Demo", path: root }],
+        config(),
+        { providers: [provider], dataDirectory },
+      );
+      const session = await service.startSession({
+        projectId: "demo",
+        prompt: "Inspect the source file.",
+        providerId: "fake-local",
+        modelId: "fake-coder",
+      });
+
+      const publicJson = JSON.stringify(service.getSession(session.id));
+      assert.doesNotMatch(publicJson, /visible-to-project-owner/);
+      assert.doesNotMatch(publicJson, /secret-name\.ts/);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+});
+
 describe("intelligence workspace tools", () => {
   it("exposes bounded read-only repository tools", async () => {
     const root = await mkdtemp(join(tmpdir(), "matterhorn-intelligence-"));

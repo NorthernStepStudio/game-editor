@@ -44,7 +44,8 @@ export class MatterhornAgentRuntime {
   async resume(
     input: MatterhornAgentRunInput,
     state: MatterhornAgentState,
-    decisions: readonly MatterhornAgentApprovalDecision[],
+    decisions: readonly MatterhornAgentApprovalDecision[] = [],
+    additionalMessages: readonly MatterhornAgentState["messages"][number][] = [],
   ): Promise<MatterhornAgentRunResult> {
     const route = this.gateway.route(
       {
@@ -65,7 +66,22 @@ export class MatterhornAgentRuntime {
       return failed(state, "Agent route changed while awaiting approval.");
     }
 
-    return this.continue(input, state, decisions);
+    if (state.pendingToolCalls.length && additionalMessages.length) {
+      return failed(
+        state,
+        "Resolve pending tool approvals before sending another message.",
+      );
+    }
+
+    const resumedState =
+      additionalMessages.length > 0
+        ? {
+            ...cloneState(state),
+            messages: [...state.messages, ...additionalMessages],
+          }
+        : state;
+
+    return this.continue(input, resumedState, decisions);
   }
 
   private async continue(

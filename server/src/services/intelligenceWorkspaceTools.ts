@@ -10,15 +10,23 @@ import {
   searchWorkspace,
 } from "../workspace/files.js";
 import { projectRoot } from "../workspace/paths.js";
+import { WorkspaceReviews } from "../workspace/reviews.js";
+
+export interface IntelligenceWorkspaceToolOptions {
+  readonly dataDirectory?: string;
+}
 
 export function createIntelligenceWorkspaceTools(
   projects: readonly StudioProject[],
   projectId: string,
+  options: IntelligenceWorkspaceToolOptions = {},
 ): MatterhornToolExecutor {
   const root = projectRoot(projects, projectId);
+  const reviews = options.dataDirectory
+    ? new WorkspaceReviews(projects, options.dataDirectory)
+    : undefined;
 
-  return {
-    tools: [
+  const tools: MatterhornToolExecutor["tools"][number][] = [
       {
         name: "list_files",
         description:
@@ -64,7 +72,37 @@ export function createIntelligenceWorkspaceTools(
         },
         risk: "read",
       },
-    ],
+  ];
+  if (reviews) {
+    tools.push({
+      name: "propose_file_edit",
+      description:
+        "Stage a complete replacement for one already-read file as a Matterhorn review proposal. This does not modify the project file; the user must approve the review separately.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          path: {
+            type: "string",
+            description: "Project-relative path returned by read_file.",
+          },
+          version: {
+            type: "string",
+            description: "Exact file version hash returned by read_file.",
+          },
+          content: {
+            type: "string",
+            description: "Complete proposed UTF-8 file content.",
+          },
+        },
+        required: ["path", "version", "content"],
+        additionalProperties: false,
+      },
+      risk: "proposal",
+    });
+  }
+
+  return {
+    tools,
 
     async execute(call: MatterhornToolCall): Promise<MatterhornToolResult> {
       try {
@@ -84,6 +122,28 @@ export function createIntelligenceWorkspaceTools(
             const query = stringArg(call, "query", 200);
             assertNoUnexpectedArgs(call, ["query"]);
             return success(call, searchWorkspace(root, query));
+          }
+          case "propose_file_edit": {
+            if (!reviews) {
+              throw new Error("Review proposals are not enabled.");
+            }
+            const path = stringArg(call, "path", 500);
+            const version = stringArg(call, "version", 128);
+            const content = stringArg(call, "content", 32_768, true);
+            assertNoUnexpectedArgs(call, ["path", "version", "content"]);
+            const review = reviews.stage(
+              projectId,
+              path,
+              version,
+              content,
+            );
+            return success(call, {
+              reviewId: review.id,
+              path: review.path,
+              status: review.status,
+              beforeVersion: review.beforeVersion,
+              afterVersion: review.afterVersion,
+            });
           }
           default:
             return {
@@ -124,11 +184,12 @@ function stringArg(
   call: MatterhornToolCall,
   name: string,
   maxLength: number,
+  allowWhitespaceOnly = false,
 ): string {
   const value = call.args[name];
   if (
     typeof value !== "string" ||
-    !value.trim() ||
+    (!allowWhitespaceOnly && !value.trim()) ||
     value.length > maxLength
   ) {
     throw new Error(

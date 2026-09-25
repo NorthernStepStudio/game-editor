@@ -39,6 +39,7 @@ const REUSE_POLICIES = new Set<FoundryReusePolicy>([
 export interface ComfyUiServerConfiguration {
   readonly configured: boolean;
   readonly provider?: FoundryAssetProvider;
+  readonly modelLabel?: string;
   readonly note: string;
 }
 
@@ -60,6 +61,9 @@ export function configureComfyUiProvider(
         'Configure a local ComfyUI checkpoint on the Matterhorn server to enable generation.',
     };
   }
+
+  validateCheckpoint(checkpoint);
+  const modelLabel = publicCheckpointLabel(checkpoint);
 
   const commercialUseAllowed = parseBoolean(
     env.MATTERHORN_COMFYUI_COMMERCIAL_USE_ALLOWED,
@@ -103,12 +107,13 @@ export function configureComfyUiProvider(
     commercialUseAllowed,
     supportsSeed: true,
     supportsReferences: false,
-    modelName: checkpoint,
+    modelName: modelLabel,
   });
 
   return {
     configured: true,
     provider,
+    modelLabel,
     note: commercialUseAllowed
       ? 'Configured locally with explicit commercial-use license approval.'
       : 'Configured locally. Commercial-use eligibility is not approved; review the checkpoint license before production use.',
@@ -187,6 +192,18 @@ export function createStandardComfyUiWorkflow(
       },
     },
   };
+}
+
+function validateCheckpoint(value: string): void {
+  if (value.length > 512 || /[\u0000-\u001f]/.test(value)) {
+    throw new Error('MATTERHORN_COMFYUI_CHECKPOINT is invalid.');
+  }
+}
+
+function publicCheckpointLabel(value: string): string {
+  const normalized = value.replace(/\\/g, '/');
+  const name = normalized.split('/').filter(Boolean).pop() ?? 'configured-model';
+  return name.slice(0, 160);
 }
 
 function parseOutputLicense(

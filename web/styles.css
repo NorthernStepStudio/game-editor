@@ -29,8 +29,8 @@
   --status-warning: #f59e0b;
   --status-danger: #ef4444;
 
-  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-main: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
   
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -1564,4 +1564,9 @@ input:disabled {
   place-items: center;
   padding: 16px;
   text-align: center;
+}
+
+
+.pill-btn.active:disabled {
+  opacity: 0.88;
 }

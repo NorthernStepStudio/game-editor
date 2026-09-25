@@ -20,6 +20,7 @@ import {
 import type { StudioProject } from './studioService.js';
 import type { FoundryAssetService } from './foundryAssetService.js';
 import { configureComfyUiProvider } from './comfyUiConfiguration.js';
+import type { StudioRoutingPreferences } from './studioRoutingPreferences.js';
 
 const ASSET_ID = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$/;
 const KINDS = new Set<FoundryAssetKind>([
@@ -77,6 +78,7 @@ export interface FoundryProviderStatus {
 export interface FoundryGenerationServiceOptions {
   readonly env?: NodeJS.ProcessEnv;
   readonly providers?: readonly FoundryAssetProvider[];
+  readonly routingPreferences?: () => StudioRoutingPreferences;
 }
 
 interface GenerationBody {
@@ -101,6 +103,7 @@ export class FoundryGenerationService {
   private readonly catalog = new FoundryAssetCatalog();
   private readonly forge: FoundryAssetForge;
   private readonly env: NodeJS.ProcessEnv;
+  private readonly routingPreferences?: () => StudioRoutingPreferences;
   private comfyConfigurationNote =
     'Configure a local ComfyUI checkpoint on the Matterhorn server to enable generation.';
   private comfyModelLabel?: string;
@@ -112,6 +115,7 @@ export class FoundryGenerationService {
     options: FoundryGenerationServiceOptions = {},
   ) {
     this.env = options.env ?? process.env;
+    this.routingPreferences = options.routingPreferences;
     this.catalog.registerMany(this.assets.store.list());
 
     if (options.providers) {
@@ -220,6 +224,15 @@ export class FoundryGenerationService {
     }
 
     const body = this.parseBody(raw);
+    const preferences = this.routingPreferences?.();
+    const preferredProviderId =
+      preferences?.assets && preferences.assets !== 'auto'
+        ? preferences.assets
+        : undefined;
+    const effectiveProviderId = body.providerId ?? preferredProviderId;
+    const effectiveRequireCommercialUse =
+      Boolean(preferences?.requireCommercialUse) || body.requireCommercialUse;
+
     const project = this.projects.find((candidate) => candidate.id === body.projectId);
     if (!project) throw new Error('Select a configured project for asset generation.');
     if (!existsSync(project.path)) {
@@ -263,10 +276,28 @@ export class FoundryGenerationService {
       }
     }
 
-    if (body.providerId) {
-      const requestedProvider = this.registry.get(body.providerId);
+    if (effectiveProviderId) {
+      const requestedProvider = this.registry.get(effectiveProviderId);
       if (!requestedProvider) {
-        throw new Error(`Foundry provider is not configured: ${body.providerId}`);
+        throw new Error(`Foundry provider is not configured: ${effectiveProviderId}`);
+      }
+      if (
+        requestedProvider.descriptor.requiresNetwork &&
+        preferences &&
+        !preferences.allowNetworkProviders
+      ) {
+        throw new Error(
+          `Provider ${requestedProvider.descriptor.name} is blocked by Studio routing settings because network providers are disabled.`,
+        );
+      }
+      if (
+        requestedProvider.descriptor.externalCost &&
+        preferences &&
+        !preferences.allowExternalCostProviders
+      ) {
+        throw new Error(
+          `Provider ${requestedProvider.descriptor.name} is blocked by Studio routing settings because external-cost providers are disabled.`,
+        );
       }
       if (requestedProvider.descriptor.requiresNetwork && !body.allowNetwork) {
         throw new Error(
@@ -291,8 +322,8 @@ export class FoundryGenerationService {
     const routing: FoundryAssetRoutingPolicy = {
       allowNetwork: body.allowNetwork,
       allowExternalCost: body.approveExternalCost,
-      requireCommercialUse: body.requireCommercialUse,
-      ...(body.providerId ? { allowedProviders: [body.providerId] } : {}),
+      requireCommercialUse: effectiveRequireCommercialUse,
+      ...(effectiveProviderId ? { allowedProviders: [effectiveProviderId] } : {}),
       ...(body.maxCost ? { maxEstimatedCost: body.maxCost } : {}),
     };
 

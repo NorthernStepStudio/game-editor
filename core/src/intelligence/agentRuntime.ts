@@ -78,6 +78,7 @@ export class MatterhornAgentRuntime {
         ? {
             ...cloneState(state),
             messages: [...state.messages, ...additionalMessages],
+            repeatedToolCallCounts: {},
           }
         : state;
 
@@ -103,6 +104,8 @@ export class MatterhornAgentRuntime {
     );
 
     let state = cloneState(initialState);
+    const segmentStartTurns = state.turns;
+    const segmentStartToolCalls = state.toolCalls;
 
     if (state.pendingToolCalls.length) {
       const decisionMap = new Map(
@@ -142,7 +145,9 @@ export class MatterhornAgentRuntime {
       input.toolExecutor.tools.map((tool) => [tool.name, tool]),
     );
 
-    while (state.turns < limits.maxTurns) {
+    while (
+      state.turns - segmentStartTurns < limits.maxTurns
+    ) {
       const response = await route.provider.invoke(
         route.model.modelId,
         {
@@ -181,7 +186,9 @@ export class MatterhornAgentRuntime {
       }
 
       if (
-        state.toolCalls + response.toolCalls.length >
+        state.toolCalls -
+          segmentStartToolCalls +
+          response.toolCalls.length >
         limits.maxToolCalls
       ) {
         return failed(

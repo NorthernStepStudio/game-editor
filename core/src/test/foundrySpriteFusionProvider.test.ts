@@ -186,7 +186,8 @@ describe("Sprite Fusion AssetForge provider", () => {
       );
       assert.match(result.outputs[0].contentHash ?? "", /^[a-f0-9]{64}$/);
       assert.equal(calls[0].authorization, "Bearer sf_live_test");
-      assert.deepEqual(JSON.parse(calls[0].body ?? "{}"), {
+      assert.equal(typeof calls[0].body, "string");
+      assert.deepEqual(JSON.parse(calls[0].body as string), {
         operation: "generate",
         prompt: "A small clockwork fox carrying a brass lantern",
         size: 32,

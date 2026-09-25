@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -14,6 +14,7 @@ import {
 import {
   createIntelligenceWorkspaceTools,
 } from "../services/intelligenceWorkspaceTools.js";
+import { WorkspaceReviews } from "../workspace/reviews.js";
 
 const localModel: MatterhornModelDescriptor = {
   providerId: "fake-local",
@@ -83,7 +84,10 @@ describe("IntelligenceService", () => {
       const service = new IntelligenceService(
         [{ id: "demo", name: "Demo", path: root }],
         config(),
-        { providers: [provider] },
+        {
+          providers: [provider],
+          dataDirectory: join(root, ".matterhorn-test"),
+        },
       );
 
       const result = await service.run({
@@ -101,6 +105,105 @@ describe("IntelligenceService", () => {
       assert.equal(result.toolCalls, 1);
       assert.equal(result.text, "example.ts exports answer = 42.");
       assert.equal(invocations, 2);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("stages a model edit as a pending review without changing the source file", async () => {
+    const root = await mkdtemp(join(tmpdir(), "matterhorn-intelligence-"));
+    const dataDirectory = join(root, ".matterhorn-test");
+    const projects = [{ id: "demo", name: "Demo", path: root }];
+    const original = "export const answer = 42;\n";
+    const proposed = "export const answer = 43;\n";
+    try {
+      await writeFile(join(root, "example.ts"), original, "utf8");
+
+      const provider: MatterhornModelProvider = {
+        id: "fake-local",
+        models: [localModel],
+        describe: () => "fake",
+        async invoke(_modelId, request) {
+          const read = request.messages.find(
+            (message) =>
+              message.role === "tool" &&
+              message.toolCallId === "read-1",
+          );
+          if (!read) {
+            return {
+              text: "",
+              toolCalls: [
+                {
+                  id: "read-1",
+                  name: "read_file",
+                  args: { path: "example.ts" },
+                },
+              ],
+              finishReason: "tool_calls",
+            };
+          }
+
+          const proposal = request.messages.find(
+            (message) =>
+              message.role === "tool" &&
+              message.toolCallId === "proposal-1",
+          );
+          if (!proposal) {
+            const parsed = JSON.parse(read.content) as {
+              output: { version: string };
+            };
+            return {
+              text: "",
+              toolCalls: [
+                {
+                  id: "proposal-1",
+                  name: "propose_file_edit",
+                  args: {
+                    path: "example.ts",
+                    version: parsed.output.version,
+                    content: proposed,
+                  },
+                },
+              ],
+              finishReason: "tool_calls",
+            };
+          }
+
+          assert.match(proposal.content, /reviewId/);
+          return {
+            text: "I staged a review proposal; the file is not applied.",
+            toolCalls: [],
+            finishReason: "stop",
+          };
+        },
+      };
+
+      const service = new IntelligenceService(
+        projects,
+        config(),
+        {
+          providers: [provider],
+          dataDirectory,
+        },
+      );
+      const result = await service.run({
+        projectId: "demo",
+        prompt: "Change answer to 43.",
+        role: "coding",
+        providerId: "fake-local",
+        modelId: "fake-coder",
+      });
+
+      assert.equal(result.status, "completed");
+      assert.equal(result.toolCalls, 2);
+      assert.match(result.text, /staged/i);
+      assert.equal(await readFile(join(root, "example.ts"), "utf8"), original);
+
+      const reviews = new WorkspaceReviews(projects, dataDirectory).list("demo");
+      assert.equal(reviews.reviews.length, 1);
+      assert.equal(reviews.reviews[0].status, "pending");
+      assert.equal(reviews.reviews[0].path, "example.ts");
+      assert.equal(reviews.reviews[0].after, proposed);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -136,7 +239,10 @@ describe("IntelligenceService", () => {
       const service = new IntelligenceService(
         [{ id: "demo", name: "Demo", path: root }],
         config(),
-        { providers: [cloudProvider] },
+        {
+          providers: [cloudProvider],
+          dataDirectory: join(root, ".matterhorn-test"),
+        },
       );
 
       await assert.rejects(

@@ -191,6 +191,7 @@ async function selectAsset(assetId) {
           : 'No external cost recorded',
       ),
     );
+    if (asset.model) meta.append(metadataRow('Model', asset.model));
     if (asset.contentHash) meta.append(metadataRow('Content hash', asset.contentHash));
     if (asset.parentAsset) meta.append(metadataRow('Parent', asset.parentAsset));
     if (asset.referenceAssets?.length) {
@@ -255,6 +256,7 @@ function updateGenerationControls() {
   const currency = document.querySelector('#asset-cost-currency');
   const submit = document.querySelector('#asset-generate-submit');
   const summary = document.querySelector('#asset-provider-summary');
+  const commercialOnly = document.querySelector('#asset-commercial-only');
 
   if (!provider) {
     fillSelect(kind, []);
@@ -288,12 +290,21 @@ function updateGenerationControls() {
   }
   maxCost.closest('label').hidden = !provider.externalCost;
 
-  submit.disabled = !provider.available || !provider.kinds?.length || !provider.operations?.length;
+  const blockedByCommercialPolicy =
+    commercialOnly.checked && !provider.commercialUseAllowed;
+  submit.disabled =
+    !provider.available ||
+    !provider.kinds?.length ||
+    !provider.operations?.length ||
+    blockedByCommercialPolicy;
   summary.textContent = provider.note;
   setGenerationStatus(
-    provider.externalCost && provider.estimatedCost
-      ? `Estimated provider cost: ${provider.estimatedCost.amount} ${provider.estimatedCost.currency}. Approval is required.`
-      : provider.note,
+    blockedByCommercialPolicy
+      ? 'This provider is not approved for commercial-use output. Turn off the commercial-only requirement for prototype/review generation, or configure reviewed license metadata on the server.'
+      : provider.externalCost && provider.estimatedCost
+        ? `Estimated provider cost: ${provider.estimatedCost.amount} ${provider.estimatedCost.currency}. Approval is required.`
+        : provider.note,
+    blockedByCommercialPolicy ? 'error-text' : 'muted-sm',
   );
 }
 
@@ -417,7 +428,7 @@ async function generateAsset(event) {
     approveExternalCost: provider.externalCost
       ? document.querySelector('#asset-approve-cost').checked
       : false,
-    requireCommercialUse: true,
+    requireCommercialUse: document.querySelector('#asset-commercial-only').checked,
     ...(widthValue && heightValue
       ? { width: Number(widthValue), height: Number(heightValue) }
       : {}),
@@ -493,6 +504,8 @@ export function initAssets() {
 
   const provider = document.querySelector('#asset-provider');
   if (provider) provider.onchange = updateGenerationControls;
+  const commercialOnly = document.querySelector('#asset-commercial-only');
+  if (commercialOnly) commercialOnly.onchange = updateGenerationControls;
 
   const form = document.querySelector('#asset-generate-form');
   if (form) form.addEventListener('submit', generateAsset);

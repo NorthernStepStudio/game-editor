@@ -67,6 +67,7 @@ export interface FoundryProviderStatus {
   readonly requiresNetwork: boolean;
   readonly externalCost: boolean;
   readonly commercialUseAllowed: boolean;
+  readonly model?: string;
   readonly operations: readonly FoundryAssetOperation[];
   readonly kinds: readonly FoundryAssetKind[];
   readonly note: string;
@@ -102,6 +103,7 @@ export class FoundryGenerationService {
   private readonly env: NodeJS.ProcessEnv;
   private comfyConfigurationNote =
     'Configure a local ComfyUI checkpoint on the Matterhorn server to enable generation.';
+  private comfyModelLabel?: string;
   private busy = false;
 
   constructor(
@@ -131,6 +133,7 @@ export class FoundryGenerationService {
 
       const comfy = configureComfyUiProvider(this.env);
       this.comfyConfigurationNote = comfy.note;
+      this.comfyModelLabel = comfy.modelLabel;
       if (comfy.provider) this.registry.register(comfy.provider);
     }
 
@@ -180,6 +183,7 @@ export class FoundryGenerationService {
       requiresNetwork: false,
       externalCost: false,
       commercialUseAllowed: comfy?.commercialUseAllowed ?? false,
+      ...(this.comfyModelLabel ? { model: this.comfyModelLabel } : {}),
       operations: comfy?.operations ?? [],
       kinds: comfy?.kinds ?? [],
       note: this.comfyConfigurationNote,

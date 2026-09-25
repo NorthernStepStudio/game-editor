@@ -19,6 +19,7 @@ const license = {
 
 function provider(
   descriptorOverrides: Partial<FoundryAssetProviderDescriptor> = {},
+  onExecute: () => void = () => undefined,
 ): FoundryAssetProvider {
   return {
     descriptor: {
@@ -36,6 +37,7 @@ function provider(
       ...descriptorOverrides,
     },
     async execute(request, context) {
+      onExecute();
       return {
         outputs: [
           {
@@ -135,5 +137,97 @@ test('Foundry generation service requires approval and budget for paid providers
   } finally {
     await rm(root, { recursive: true, force: true });
     await rm(project, { recursive: true, force: true });
+  }
+});
+
+
+test('Foundry generation rejects asset ID collisions before calling a paid provider', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-generation-'));
+  const project = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-project-'));
+  try {
+    const assets = new FoundryAssetService(root, [
+      { id: 'demo', name: 'Demo', path: project },
+    ]);
+    assets.store.register({
+      assetId: 'hero-01',
+      type: 'pixel_sprite',
+      sourceIds: ['provider:test'],
+      createdAt: '2026-09-25T10:00:00.000Z',
+    });
+
+    let calls = 0;
+    const paid = provider(
+      {
+        id: 'paid-test',
+        name: 'Paid Test',
+        local: false,
+        requiresNetwork: true,
+        externalCost: true,
+      },
+      () => {
+        calls += 1;
+      },
+    );
+    const generation = new FoundryGenerationService(
+      [{ id: 'demo', name: 'Demo', path: project }],
+      assets,
+      { providers: [paid] },
+    );
+
+    await assert.rejects(
+      () =>
+        generation.execute({
+          projectId: 'demo',
+          assetId: 'hero',
+          kind: 'pixel_sprite',
+          operation: 'generate',
+          providerId: 'paid-test',
+          allowNetwork: true,
+          approveExternalCost: true,
+          maxCost: { currency: 'CREDITS', amount: 3 },
+        }),
+      /would collide with existing asset hero-01/i,
+    );
+    assert.equal(calls, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test('Foundry generation rejects missing project output roots before provider execution', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-generation-'));
+  const missingProject = join(root, 'missing-project');
+  let calls = 0;
+  try {
+    const assets = new FoundryAssetService(root, [
+      { id: 'demo', name: 'Demo', path: missingProject },
+    ]);
+    const generation = new FoundryGenerationService(
+      [{ id: 'demo', name: 'Demo', path: missingProject }],
+      assets,
+      {
+        providers: [
+          provider({}, () => {
+            calls += 1;
+          }),
+        ],
+      },
+    );
+
+    await assert.rejects(
+      () =>
+        generation.execute({
+          projectId: 'demo',
+          assetId: 'hero',
+          kind: 'pixel_sprite',
+          operation: 'generate',
+          providerId: 'local-test',
+        }),
+      /project path does not exist/i,
+    );
+    assert.equal(calls, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
   }
 });

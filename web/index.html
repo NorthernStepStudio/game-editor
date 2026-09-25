@@ -752,6 +752,53 @@
         <p class="muted-sm">Current registry status of each specialist system.</p>
         <div class="settings-specialist-list" id="settings-specialists" style="margin-top:10px"></div>
 
+        <h2 style="margin-top:20px">Studio routing</h2>
+        <p class="muted-sm">Choose preferred specialists and asset providers. Asset-provider policy is enforced now. Game/3D preferences are persisted for the upcoming multi-domain planner and do not override the current Godot-only Create run yet.</p>
+        <form id="routing-form" class="routing-settings-grid" style="margin-top:12px">
+          <label>Game route
+            <select id="routing-game" class="select-sm">
+              <option value="auto">Auto</option>
+              <option value="flyrail">Flyrail (Godot)</option>
+            </select>
+          </label>
+          <label>3D route
+            <select id="routing-3d" class="select-sm">
+              <option value="auto">Auto</option>
+              <option value="blender-engine">Blender Engine</option>
+            </select>
+          </label>
+          <label>Asset route
+            <select id="routing-assets" class="select-sm">
+              <option value="auto">Auto (prefer local/no-cost)</option>
+              <option value="comfyui-local">ComfyUI Local</option>
+              <option value="sprite-fusion">Sprite Fusion</option>
+            </select>
+          </label>
+          <div class="routing-policy-list">
+            <label class="toggle-row">
+              <input id="routing-local-first" type="checkbox">
+              <span>Prefer local providers</span>
+            </label>
+            <label class="toggle-row">
+              <input id="routing-commercial-only" type="checkbox">
+              <span>Require commercial-use-approved outputs</span>
+            </label>
+            <label class="toggle-row">
+              <input id="routing-network" type="checkbox">
+              <span>Allow network providers</span>
+            </label>
+            <label class="toggle-row">
+              <input id="routing-external-cost" type="checkbox">
+              <span>Allow paid providers to be considered</span>
+            </label>
+          </div>
+          <div class="routing-actions">
+            <button id="routing-save" type="submit" class="btn-primary-sm">Save routing profile</button>
+            <span id="routing-status" class="muted-sm">Loading routing profile…</span>
+          </div>
+          <p class="muted-sm">Allowing a paid provider does not approve a purchase. Every paid generation still requires a per-request approval and budget.</p>
+        </form>
+
         <h2 style="margin-top:20px">Foundry providers</h2>
         <p class="muted-sm">Asset providers are configured server-side. Secrets never appear in this browser.</p>
         <div class="settings-provider-list" id="settings-foundry-providers" style="margin-top:10px">

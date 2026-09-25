@@ -442,18 +442,18 @@
           <!-- Filter Bar -->
           <div class="asset-top-bar">
             <div class="asset-category-pills">
-              <button class="cat-pill active" disabled>All</button>
-              <button class="cat-pill" disabled>Characters</button>
-              <button class="cat-pill" disabled>Environments</button>
-              <button class="cat-pill" disabled>Props</button>
-              <button class="cat-pill" disabled>UI</button>
-              <button class="cat-pill" disabled>3D Models</button>
-              <button class="cat-pill" disabled>Audio</button>
+              <button class="cat-pill active" data-asset-category="all">All</button>
+              <button class="cat-pill" data-asset-category="characters">Characters</button>
+              <button class="cat-pill" data-asset-category="environments">Environments</button>
+              <button class="cat-pill" data-asset-category="props">Props</button>
+              <button class="cat-pill" data-asset-category="ui">UI</button>
+              <button class="cat-pill" data-asset-category="3d">3D Models</button>
+              <button class="cat-pill" data-asset-category="audio">Audio</button>
             </div>
             
             <div class="asset-search-box">
-              <input type="text" class="search-input" placeholder="Asset catalog not connected yet" disabled>
-              <button class="icon-btn" disabled title="Asset filter settings are not connected yet.">⚙️</button>
+              <input type="search" class="search-input" id="asset-search" placeholder="Search assets..." autocomplete="off">
+              <button class="icon-btn" id="refresh-assets" title="Refresh asset catalog">↻</button>
             </div>
           </div>
 
@@ -461,7 +461,7 @@
             <!-- Asset Gallery Grid -->
             <div class="asset-gallery-panel">
               <div class="asset-cards-wrapper" id="asset-gallery">
-                <div class="empty-state">No asset catalog is connected yet. Generated assets will appear here once Foundry catalog APIs are exposed.</div>
+                <div class="empty-state">Loading Foundry asset catalog…</div>
               </div>
             </div>
 
@@ -469,7 +469,7 @@
             <div class="asset-inspector-panel">
               <div class="card" id="asset-inspector">
                 <h3>Asset Inspector</h3>
-                <p class="muted">Select a real generated asset after the Foundry asset-catalog endpoint is connected.</p>
+                <p class="muted">Select an asset to inspect provenance and lineage.</p>
               </div>
             </div>
           </div>

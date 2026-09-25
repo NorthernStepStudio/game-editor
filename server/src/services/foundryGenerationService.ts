@@ -233,6 +233,31 @@ export class FoundryGenerationService {
       }
     }
 
+    if (body.providerId) {
+      const requestedProvider = this.registry.get(body.providerId);
+      if (!requestedProvider) {
+        throw new Error(`Foundry provider is not configured: ${body.providerId}`);
+      }
+      if (requestedProvider.descriptor.requiresNetwork && !body.allowNetwork) {
+        throw new Error(
+          `Provider ${requestedProvider.descriptor.name} requires explicit network approval.`,
+        );
+      }
+      if (
+        requestedProvider.descriptor.externalCost &&
+        !body.approveExternalCost
+      ) {
+        throw new Error(
+          `Provider ${requestedProvider.descriptor.name} requires explicit external-cost approval.`,
+        );
+      }
+      if (requestedProvider.descriptor.externalCost && !body.maxCost) {
+        throw new Error(
+          `Provider ${requestedProvider.descriptor.name} requires an explicit cost budget.`,
+        );
+      }
+    }
+
     const routing: FoundryAssetRoutingPolicy = {
       allowNetwork: body.allowNetwork,
       allowExternalCost: body.approveExternalCost,
@@ -407,7 +432,11 @@ function optionalDimension(value: unknown, field: string): number | undefined {
 }
 
 function booleanField(value: unknown, fallback: boolean): boolean {
-  return value === undefined ? fallback : value === true;
+  if (value === undefined) return fallback;
+  if (typeof value !== 'boolean') {
+    throw new Error('Boolean generation settings must be true or false.');
+  }
+  return value;
 }
 
 function parseCost(value: unknown): FoundryAssetCost | undefined {

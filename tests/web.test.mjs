@@ -19,6 +19,8 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
       {id:'flyrail',title:'Flyrail',role:'Godot executor',executionMode:'executor',availability:'available',capabilities:[{id:'godot.project',description:'Godot work'}]},
       {id:'blender-engine',title:'Blender Engine',role:'3D executor',executionMode:'executor',availability:'available',capabilities:[{id:'blender.create',description:'3D work'}]},
     ];
+    else if(path==='/api/foundry/assets')data={count:1,assets:[{assetId:'hero-base',type:'pixel_sprite',operation:'generate',generationProvider:'sprite-fusion',createdAt:'2026-09-25T10:00:00.000Z',width:32,height:32,sourceLicenseIds:['Commercial'],previewUrl:'/api/foundry/assets/hero-base/preview'}]};
+    else if(path==='/api/foundry/assets/hero-base')data={asset:{assetId:'hero-base',type:'pixel_sprite',operation:'generate',generationProvider:'sprite-fusion',createdAt:'2026-09-25T10:00:00.000Z',width:32,height:32,sourceLicenseIds:['Commercial'],previewUrl:'/api/foundry/assets/hero-base/preview'},lineage:[{assetId:'hero-base',type:'pixel_sprite',operation:'generate',createdAt:'2026-09-25T10:00:00.000Z'}]};
     else if(path==='/api/projects')data=[{id:'fixture',name:'Fixture project'}];
     else if(path==='/api/studio/plan')data={goal:body.goal,tasks:[{title:'Implement',acceptanceCriteria:body.criteria}]};
     else if(path==='/api/studio/runs' && body){run={id:'fixture-run',status:'running',createdAt:'2026-09-25T03:00:00.000Z',plan:{goal:body.goal,tasks:[{id:'work',title:'Implement',goal:body.goal,domain:'godot',specialistId:'flyrail',status:'planned'}]},tasks:[{id:'work',status:'running',detail:'Building Godot scene'}]};data=run;}
@@ -36,10 +38,14 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     assert.equal(document.querySelector('#agent-selector'),null);
     assert.match(document.querySelector('#connection').textContent,/mock/);
     assert.equal(document.querySelectorAll('#specialist-list .specialist-card').length,3);
-    assert.match(document.querySelector('#asset-gallery').textContent,/No asset catalog/i);
+    assert.equal(document.querySelectorAll('#asset-gallery .asset-card').length,1);
+    assert.match(document.querySelector('#asset-gallery').textContent,/hero-base/);
     document.querySelector('#tab-btn-assets-sidebar').click();await flush();
     assert.equal(document.querySelector('#studio').hidden,false);
     assert.equal(document.querySelector('#studio-assets').hidden,false);
+    document.querySelector('#asset-gallery .asset-card').click();await flush();
+    assert.match(document.querySelector('#asset-inspector').textContent,/sprite-fusion/);
+    assert.match(document.querySelector('#asset-inspector').textContent,/Lineage/);
     document.querySelector('#tab-create').click();await flush();
     for(const page of ['chat','projects','evidence','settings','studio']){location.hash=`#${page}`;window.dispatchEvent(new window.Event('hashchange'));await flush();assert.equal(document.querySelector(`#${page}`).hidden,false);}
     document.querySelector('#project').value='fixture';document.querySelector('#goal').value='Verify fixture';document.querySelector('#criteria').value='Godot validation passes';

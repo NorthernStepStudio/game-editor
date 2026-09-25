@@ -18,8 +18,21 @@ export interface FoundryAssetForgeExecuteOptions {
   readonly createdAt?: string;
 }
 
+export interface FoundryAssetForgeOptions {
+  readonly onExecution?: (
+    execution: FoundryAssetExecution,
+  ) => void | Promise<void>;
+}
+
 export class FoundryAssetForge {
-  constructor(private readonly registry: FoundryAssetProviderRegistry) {}
+  private readonly onExecution?: FoundryAssetForgeOptions["onExecution"];
+
+  constructor(
+    private readonly registry: FoundryAssetProviderRegistry,
+    options: FoundryAssetForgeOptions = {},
+  ) {
+    this.onExecution = options.onExecution;
+  }
 
   async execute(
     request: FoundryAssetRequest,
@@ -79,12 +92,15 @@ export class FoundryAssetForge {
         }),
       );
 
-    return {
+    const execution: FoundryAssetExecution = {
       request,
       provider: provider.descriptor,
       generated,
       manifests,
     };
+
+    await this.onExecution?.(execution);
+    return execution;
   }
 }
 

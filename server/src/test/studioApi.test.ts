@@ -65,6 +65,84 @@ test('standalone APIs enforce local origin, body limits and static boundaries', 
     );
     assert(specialists.every((specialist) => specialist.availability === 'available'));
     assert(!JSON.stringify(specialists).includes('apiKey'));
+    const routingDefaults = await readJson<{
+      game: string;
+      threeD: string;
+      assets: string;
+      localFirst: boolean;
+      requireCommercialUse: boolean;
+      allowNetworkProviders: boolean;
+      allowExternalCostProviders: boolean;
+    }>(await fetch(base + '/api/studio/routing'));
+    assert.deepEqual(
+      {
+        game: routingDefaults.game,
+        threeD: routingDefaults.threeD,
+        assets: routingDefaults.assets,
+        localFirst: routingDefaults.localFirst,
+        requireCommercialUse: routingDefaults.requireCommercialUse,
+        allowNetworkProviders: routingDefaults.allowNetworkProviders,
+        allowExternalCostProviders: routingDefaults.allowExternalCostProviders,
+      },
+      {
+        game: 'auto',
+        threeD: 'auto',
+        assets: 'auto',
+        localFirst: true,
+        requireCommercialUse: true,
+        allowNetworkProviders: false,
+        allowExternalCostProviders: false,
+      },
+    );
+
+    const updatedRouting = await readJson<{
+      game: string;
+      threeD: string;
+      assets: string;
+      requireCommercialUse: boolean;
+      allowNetworkProviders: boolean;
+      allowExternalCostProviders: boolean;
+    }>(
+      await fetch(base + '/api/studio/routing', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          game: 'flyrail',
+          threeD: 'blender-engine',
+          assets: 'comfyui-local',
+          localFirst: true,
+          requireCommercialUse: false,
+          allowNetworkProviders: true,
+          allowExternalCostProviders: false,
+        }),
+      }),
+    );
+    assert.equal(updatedRouting.game, 'flyrail');
+    assert.equal(updatedRouting.threeD, 'blender-engine');
+    assert.equal(updatedRouting.assets, 'comfyui-local');
+    assert.equal(updatedRouting.requireCommercialUse, false);
+    assert.equal(updatedRouting.allowNetworkProviders, true);
+    assert.equal(updatedRouting.allowExternalCostProviders, false);
+
+    assert.equal(
+      (
+        await fetch(base + '/api/studio/routing', {
+          method: 'PUT',
+          body: JSON.stringify({ assets: 'sprite-fusion' }),
+        })
+      ).status,
+      415,
+    );
+    assert.equal(
+      (
+        await fetch(base + '/api/studio/routing', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ assets: 'unknown-provider' }),
+        })
+      ).status,
+      400,
+    );
     assert.deepEqual(await (await fetch(base + '/api/studio/runs')).json(), []);
     assert.equal((await fetch(base + '/api/studio/runs/missing')).status, 404);
     assert.equal((await fetch(base + '/api/studio/runs', { headers: { Origin: 'https://evil.example' } })).status, 403);

@@ -33,6 +33,7 @@ export interface ComfyUIProviderOptions {
   readonly kinds: readonly FoundryAssetKind[];
   readonly outputLicense?: FoundryLicenseRecord;
   readonly modelLicense?: FoundryLicenseRecord;
+  readonly modelName?: string;
   readonly commercialUseAllowed?: boolean;
   readonly supportsSeed?: boolean;
   readonly supportsReferences?: boolean;
@@ -52,6 +53,7 @@ export class ComfyUIAssetProvider implements FoundryAssetProvider {
   private readonly baseUrl: string;
   private readonly fetchImpl: SpriteFusionFetch;
   private readonly workflows: ComfyUIProviderOptions["workflows"];
+  private readonly modelName?: string;
   private readonly pollIntervalMs: number;
   private readonly timeoutMs: number;
 
@@ -70,6 +72,7 @@ export class ComfyUIAssetProvider implements FoundryAssetProvider {
     assertLoopbackComfyUrl(this.baseUrl);
     this.fetchImpl = options.fetchImpl ?? defaultComfyFetch;
     this.workflows = options.workflows;
+    this.modelName = options.modelName?.trim() || undefined;
     this.pollIntervalMs = options.pollIntervalMs ?? 250;
     this.timeoutMs = options.timeoutMs ?? 300_000;
 
@@ -168,6 +171,7 @@ export class ComfyUIAssetProvider implements FoundryAssetProvider {
           filename: image.filename,
           subfolder: image.subfolder,
           type: image.type,
+          ...(this.modelName ? { model: this.modelName } : {}),
         },
       });
     }
@@ -179,6 +183,7 @@ export class ComfyUIAssetProvider implements FoundryAssetProvider {
         workflowHash: createHash("sha256")
           .update(JSON.stringify(workflow))
           .digest("hex"),
+        ...(this.modelName ? { model: this.modelName } : {}),
       },
     };
   }

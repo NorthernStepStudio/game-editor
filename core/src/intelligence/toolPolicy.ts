@@ -9,6 +9,7 @@ export function defaultMatterhornToolPolicy(
 ): MatterhornToolPolicy {
   switch (tool.risk) {
     case "read":
+    case "proposal":
       return { mode: "auto" };
     case "write":
     case "execute":

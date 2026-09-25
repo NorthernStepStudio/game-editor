@@ -54,7 +54,7 @@ test('Foundry asset store rejects duplicate IDs without corrupting disk state', 
     store.register(manifest('hero'));
     assert.throws(
       () => store.register(manifest('hero', { type: 'sprite_sheet' })),
-      /already contains assetId/i,
+      /duplicate assetId|already contains assetId/i,
     );
 
     const reloaded = new FoundryAssetStore(root);

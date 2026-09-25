@@ -14,9 +14,14 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     if(path==='/health')data={mode:'mock'};
     else if(path==='/providers')data={current:'mock',providers:[{id:'mock',label:'Mock',available:true}]};
     else if(path==='/api/studio/health')data={available:false};
+    else if(path==='/api/studio/specialists')data=[
+      {id:'matterhorn',title:'Matterhorn',role:'Orchestrator',executionMode:'orchestrator',availability:'available',capabilities:[{id:'studio.plan',description:'Plan work'}]},
+      {id:'flyrail',title:'Flyrail',role:'Godot executor',executionMode:'executor',availability:'available',capabilities:[{id:'godot.project',description:'Godot work'}]},
+      {id:'blender-engine',title:'Blender Engine',role:'3D executor',executionMode:'executor',availability:'available',capabilities:[{id:'blender.create',description:'3D work'}]},
+    ];
     else if(path==='/api/projects')data=[{id:'fixture',name:'Fixture project'}];
     else if(path==='/api/studio/plan')data={goal:body.goal,tasks:[{title:'Implement',acceptanceCriteria:body.criteria}]};
-    else if(path==='/api/studio/runs' && body){run={id:'fixture-run',status:'running',plan:{goal:body.goal},tasks:[{id:'work',status:'running'}]};data=run;}
+    else if(path==='/api/studio/runs' && body){run={id:'fixture-run',status:'running',createdAt:'2026-09-25T03:00:00.000Z',plan:{goal:body.goal,tasks:[{id:'work',title:'Implement',goal:body.goal,domain:'godot',specialistId:'flyrail',status:'planned'}]},tasks:[{id:'work',status:'running',detail:'Building Godot scene'}]};data=run;}
     else if(path==='/api/studio/runs')data=run?[run]:[];
     else if(path==='/api/studio/runs/fixture-run/cancel'){run={...run,status:'cancel-requested'};data=run;}
     else if(path==='/api/studio/runs/fixture-run')data=run;
@@ -30,10 +35,18 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     assert.equal(document.querySelector('#project').options.length,2);
     assert.equal(document.querySelector('#agent-selector'),null);
     assert.match(document.querySelector('#connection').textContent,/mock/);
+    assert.equal(document.querySelectorAll('#specialist-list .specialist-card').length,3);
+    assert.match(document.querySelector('#asset-gallery').textContent,/No asset catalog/i);
+    document.querySelector('#tab-btn-assets-sidebar').click();await flush();
+    assert.equal(document.querySelector('#studio').hidden,false);
+    assert.equal(document.querySelector('#studio-assets').hidden,false);
+    document.querySelector('#tab-create').click();await flush();
     for(const page of ['chat','projects','evidence','settings','studio']){location.hash=`#${page}`;window.dispatchEvent(new window.Event('hashchange'));await flush();assert.equal(document.querySelector(`#${page}`).hidden,false);}
     document.querySelector('#project').value='fixture';document.querySelector('#goal').value='Verify fixture';document.querySelector('#criteria').value='Godot validation passes';
     document.querySelector('#run-form').dispatchEvent(new window.Event('submit',{cancelable:true}));await flush();assert.equal(document.querySelector('#plan-review').hidden,false);
     document.querySelector('#start').click();await flush();assert.match(document.querySelector('#active-run').textContent,/running/);
+    assert.equal(document.querySelector('#step-node-4').classList.contains('active'),true);
+    assert.match(document.querySelector('#project-run-engine').textContent,/Flyrail/);
     [...document.querySelectorAll('#active-run button')].find(b=>b.textContent==='Request cancellation').click();await flush();assert.match(document.querySelector('#active-run').textContent,/cancel-requested/);
     for(const text of ['First question','Second question']){document.querySelector('#prompt').value=text;document.querySelector('#chat-form').dispatchEvent(new window.Event('submit',{cancelable:true}));await flush();}
     assert.equal(chatBodies[1].history.length,2);assert.equal(chatBodies[1].preferredAgentId,undefined);

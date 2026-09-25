@@ -31,8 +31,10 @@ export function createStudioService() {
   const dataDirectory = process.env.MATTERHORN_DATA_DIR ?? resolve(__dirname, '../../../.matterhorn');
   const history = new StudioHistory(dataDirectory);
   const foundryAssets = new FoundryAssetService(dataDirectory, projects);
-  const foundryGeneration = new FoundryGenerationService(projects, foundryAssets);
   const routingPreferences = new StudioRoutingPreferencesStore(dataDirectory);
+  const foundryGeneration = new FoundryGenerationService(projects, foundryAssets, {
+    routingPreferences: () => routingPreferences.get(),
+  });
   const controller = new StudioRunController({ registry, initialRuns: history.load() });
   const stopHistory = controller.store.subscribe(({ run }) => history.persist(run));
 

@@ -126,7 +126,7 @@ describe("Sprite Fusion AssetForge provider", () => {
 
   it("downloads every generated output and preserves batch provenance", async () => {
     const root = mkdtempSync(join(tmpdir(), "matterhorn-sprite-fusion-"));
-    const calls: Array<{ url: string; body?: string; authorization?: string }> = [];
+    const calls: Array<{ url: string; body?: string | Uint8Array; authorization?: string }> = [];
     const sse = [
       'data: {"type":"started","request_id":"req_sf_1","operation":"generate","credits":{"reserved":15,"remaining":270}}',
       '',

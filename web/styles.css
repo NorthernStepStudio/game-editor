@@ -1811,3 +1811,52 @@ input:disabled {
     justify-content: flex-start;
   }
 }
+
+
+/* ── Studio routing settings ────────────────────────────────────── */
+.routing-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.routing-settings-grid > label {
+  display: grid;
+  gap: 6px;
+}
+
+.routing-policy-list {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-input);
+}
+
+.toggle-row {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.routing-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 860px) {
+  .routing-settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .routing-policy-list {
+    grid-template-columns: 1fr;
+  }
+}

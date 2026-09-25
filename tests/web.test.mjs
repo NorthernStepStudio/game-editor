@@ -8,12 +8,27 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
   for (const key of ['window','document','location','Option','EventSource','fetch']) originals.set(key,globalThis[key]);
   Object.assign(globalThis, {window:dom.window,document:dom.window.document,location:dom.window.location,Option:dom.window.Option});
   let run=null, chatBodies=[];
+  let routing={
+    version:1,
+    game:'auto',
+    threeD:'auto',
+    assets:'auto',
+    localFirst:true,
+    requireCommercialUse:true,
+    allowNetworkProviders:false,
+    allowExternalCostProviders:false,
+    updatedAt:'1970-01-01T00:00:00.000Z',
+  };
   globalThis.EventSource=class { close(){} };
   globalThis.fetch=async (path,options) => {
     const body=options?.body && JSON.parse(options.body);let data;
     if(path==='/health')data={mode:'mock'};
     else if(path==='/providers')data={current:'mock',providers:[{id:'mock',label:'Mock',available:true}]};
     else if(path==='/api/studio/health')data={available:false};
+    else if(path==='/api/studio/routing' && options?.method==='PUT'){
+      routing={...routing,...body,version:1,updatedAt:'2026-09-25T12:30:00.000Z'};data=routing;
+    }
+    else if(path==='/api/studio/routing')data=routing;
     else if(path==='/api/studio/specialists')data=[
       {id:'matterhorn',title:'Matterhorn',role:'Orchestrator',executionMode:'orchestrator',availability:'available',capabilities:[{id:'studio.plan',description:'Plan work'}]},
       {id:'flyrail',title:'Flyrail',role:'Godot executor',executionMode:'executor',availability:'available',capabilities:[{id:'godot.project',description:'Godot work'}]},
@@ -44,15 +59,27 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     assert.match(document.querySelector('#settings-foundry-providers').textContent,/local-model\.safetensors/);
     const assetProvider=document.querySelector('#asset-provider');
     const commercialOnly=document.querySelector('#asset-commercial-only');
-    assert.equal(assetProvider.value,'');
-    assetProvider.value='comfyui-local';assetProvider.dispatchEvent(new window.Event('change'));await flush();
+    assert.equal(document.querySelector('#routing-assets').value,'auto');
+    assert.equal(document.querySelector('#routing-local-first').checked,true);
+    assert.equal(document.querySelector('#routing-commercial-only').checked,true);
+    assert.equal(assetProvider.value,'comfyui-local');
     assert.equal(commercialOnly.checked,true);
+    assert.equal(commercialOnly.disabled,true);
     assert.equal(document.querySelector('#asset-generate-submit').disabled,true);
     assert.match(document.querySelector('#asset-generate-status').textContent,/not approved for commercial-use/i);
-    commercialOnly.checked=false;commercialOnly.dispatchEvent(new window.Event('change'));await flush();
+
+    document.querySelector('#routing-commercial-only').checked=false;
+    document.querySelector('#routing-network').checked=true;
+    document.querySelector('#routing-external-cost').checked=true;
+    document.querySelector('#routing-assets').value='comfyui-local';
+    document.querySelector('#routing-form').dispatchEvent(new window.Event('submit',{cancelable:true}));
+    await flush();
+    assert.equal(commercialOnly.disabled,false);
+    assert.equal(assetProvider.value,'comfyui-local');
     assert.equal(document.querySelector('#asset-generate-submit').disabled,false);
     assert.equal(document.querySelector('#asset-cost-panel').hidden,true);
-    assetProvider.value='sprite-fusion';commercialOnly.checked=true;assetProvider.dispatchEvent(new window.Event('change'));await flush();
+
+    assetProvider.value='sprite-fusion';assetProvider.dispatchEvent(new window.Event('change'));await flush();
     assert.equal(document.querySelector('#asset-cost-panel').hidden,false);
     assert.equal(document.querySelector('#asset-max-cost').value,'15');
     document.querySelector('#asset-generate-form').dispatchEvent(new window.Event('submit',{cancelable:true}));

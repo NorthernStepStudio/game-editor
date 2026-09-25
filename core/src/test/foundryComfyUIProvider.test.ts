@@ -107,7 +107,7 @@ describe("ComfyUI Local AssetForge provider", () => {
 
   it("queues a workflow, reads history, and copies every image locally", async () => {
     const root = mkdtempSync(join(tmpdir(), "matterhorn-comfyui-"));
-    const calls: Array<{ url: string; body?: string }> = [];
+    const calls: Array<{ url: string; body?: string | Uint8Array }> = [];
     const fetchImpl: SpriteFusionFetch = async (url, init) => {
       calls.push({ url, body: init?.body });
       if (url.endsWith("/prompt")) {

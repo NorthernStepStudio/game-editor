@@ -98,9 +98,12 @@ export class FoundryAssetService {
       return undefined;
     }
 
+    const contentType = PREVIEW_MIME[extname(path).toLowerCase()];
+    if (!contentType) return undefined;
+
     return {
       bytes: readFileSync(path),
-      contentType: PREVIEW_MIME[extname(path).toLowerCase()],
+      contentType,
       contentLength: info.size,
       ...(manifest.contentHash ? { contentHash: manifest.contentHash } : {}),
     };

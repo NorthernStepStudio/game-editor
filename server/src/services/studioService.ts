@@ -3,6 +3,7 @@ import { isAbsolute, resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { createStudioPlan, FlyrailAdapter, StudioAdapterRegistry, StudioRunController, type NssStudioPlan } from '../../../core/out/index.js';
 import { StudioHistory } from './studioHistory.js';
+import { FoundryAssetService } from './foundryAssetService.js';
 
 export interface StudioProject { id: string; name: string; path: string }
 
@@ -27,6 +28,7 @@ export function createStudioService() {
 
   const dataDirectory = process.env.MATTERHORN_DATA_DIR ?? resolve(__dirname, '../../../.matterhorn');
   const history = new StudioHistory(dataDirectory);
+  const foundryAssets = new FoundryAssetService(dataDirectory, projects);
   const controller = new StudioRunController({ registry, initialRuns: history.load() });
   const stopHistory = controller.store.subscribe(({ run }) => history.persist(run));
 
@@ -73,6 +75,7 @@ export function createStudioService() {
     controller,
     plan,
     history,
+    foundryAssets,
     ensureRecovered,
     getRecoveryState: () => recoveryState,
     dispose: () => stopHistory(),

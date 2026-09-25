@@ -19,6 +19,7 @@ import {
 } from '../../../core/out/index.js';
 import type { StudioProject } from './studioService.js';
 import type { FoundryAssetService } from './foundryAssetService.js';
+import { configureComfyUiProvider } from './comfyUiConfiguration.js';
 
 const ASSET_ID = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$/;
 const KINDS = new Set<FoundryAssetKind>([
@@ -99,6 +100,8 @@ export class FoundryGenerationService {
   private readonly catalog = new FoundryAssetCatalog();
   private readonly forge: FoundryAssetForge;
   private readonly env: NodeJS.ProcessEnv;
+  private comfyConfigurationNote =
+    'Configure a local ComfyUI checkpoint on the Matterhorn server to enable generation.';
   private busy = false;
 
   constructor(
@@ -111,6 +114,10 @@ export class FoundryGenerationService {
 
     if (options.providers) {
       for (const provider of options.providers) this.registry.register(provider);
+      if (this.registry.get('comfyui-local')) {
+        this.comfyConfigurationNote =
+          'Configured with an injected server-owned ComfyUI workflow.';
+      }
     } else {
       const spriteFusionApiKey = this.env.SPRITE_FUSION_API_KEY?.trim();
       if (spriteFusionApiKey) {
@@ -121,6 +128,10 @@ export class FoundryGenerationService {
           }),
         );
       }
+
+      const comfy = configureComfyUiProvider(this.env);
+      this.comfyConfigurationNote = comfy.note;
+      if (comfy.provider) this.registry.register(comfy.provider);
     }
 
     this.forge = new FoundryAssetForge(this.registry, {
@@ -171,9 +182,7 @@ export class FoundryGenerationService {
       commercialUseAllowed: comfy?.commercialUseAllowed ?? false,
       operations: comfy?.operations ?? [],
       kinds: comfy?.kinds ?? [],
-      note: comfy
-        ? 'Configured with server-owned workflows.'
-        : 'Local adapter is installed, but no server-owned ComfyUI workflows are configured yet.',
+      note: this.comfyConfigurationNote,
     });
 
     for (const descriptor of configured.values()) {

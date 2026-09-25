@@ -55,6 +55,15 @@ test('standalone APIs enforce local origin, body limits and static boundaries', 
   try {
     assert.equal((await fetch(base + '/')).status, 200);
     assert.equal((await fetch(base + '/api/projects')).status, 200);
+    const specialists = await readJson<Array<{ id: string; availability: string }>>(
+      await fetch(base + '/api/studio/specialists'),
+    );
+    assert.deepEqual(
+      specialists.map((specialist) => specialist.id),
+      ['matterhorn', 'flyrail', 'blender-engine'],
+    );
+    assert(specialists.every((specialist) => specialist.availability === 'available'));
+    assert(!JSON.stringify(specialists).includes('apiKey'));
     assert.deepEqual(await (await fetch(base + '/api/studio/runs')).json(), []);
     assert.equal((await fetch(base + '/api/studio/runs/missing')).status, 404);
     assert.equal((await fetch(base + '/api/studio/runs', { headers: { Origin: 'https://evil.example' } })).status, 403);

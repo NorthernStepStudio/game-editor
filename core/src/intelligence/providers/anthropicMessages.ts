@@ -19,7 +19,7 @@ export interface AnthropicIntelligenceProviderOptions {
 }
 
 interface AnthropicPayload {
-  readonly content?: readonly AnthropicContentBlock[];
+  readonly content?: readonly unknown[];
   readonly stop_reason?: string;
   readonly error?: { readonly message?: string };
   readonly usage?: {
@@ -27,16 +27,6 @@ interface AnthropicPayload {
     readonly output_tokens?: number;
   };
 }
-
-type AnthropicContentBlock =
-  | { readonly type?: "text"; readonly text?: string }
-  | {
-      readonly type?: "tool_use";
-      readonly id?: string;
-      readonly name?: string;
-      readonly input?: unknown;
-    }
-  | { readonly type?: string; readonly [key: string]: unknown };
 
 export function createAnthropicIntelligenceProvider(
   options: AnthropicIntelligenceProviderOptions,
@@ -198,21 +188,21 @@ function normalizeAnthropicResponse(
   const text: string[] = [];
   const toolCalls: MatterhornToolCall[] = [];
 
-  for (const block of payload.content ?? []) {
-    if (block.type === "text" && block.text) {
+  for (const raw of payload.content ?? []) {
+    const block = asRecord(raw);
+    if (!block) continue;
+    if (block.type === "text" && typeof block.text === "string") {
       text.push(block.text);
       continue;
     }
     if (block.type === "tool_use") {
-      if (!block.id || !block.name) {
+      if (
+        typeof block.id !== "string" ||
+        typeof block.name !== "string"
+      ) {
         throw new Error("Anthropic returned an incomplete tool_use block.");
       }
-      const input =
-        block.input &&
-        typeof block.input === "object" &&
-        !Array.isArray(block.input)
-          ? (block.input as Readonly<Record<string, unknown>>)
-          : {};
+      const input = asRecord(block.input) ?? {};
       toolCalls.push({
         id: block.id,
         name: block.name,
@@ -271,4 +261,15 @@ function toolResultIsError(content: string): boolean {
 
 function ensureTrailingSlash(value: string): string {
   return value.endsWith("/") ? value : `${value}/`;
+}
+
+
+function asRecord(
+  value: unknown,
+): Readonly<Record<string, unknown>> | undefined {
+  return value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+    ? (value as Readonly<Record<string, unknown>>)
+    : undefined;
 }

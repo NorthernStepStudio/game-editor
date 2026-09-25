@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import {
   MatterhornAgentRuntime,
   MatterhornModelGateway,
@@ -23,6 +24,7 @@ const SUPPORTED_ROLES = new Set<MatterhornModelRole>([
 
 export interface IntelligenceServiceOptions {
   readonly providers?: readonly MatterhornModelProvider[];
+  readonly dataDirectory?: string;
 }
 
 export interface IntelligenceRunRequest {
@@ -62,12 +64,17 @@ export interface PublicIntelligenceRun {
 export class IntelligenceService {
   private readonly gateway = new MatterhornModelGateway();
   private readonly runtime: MatterhornAgentRuntime;
+  private readonly dataDirectory: string;
 
   constructor(
     private readonly projects: readonly StudioProject[],
     config: NssWorkspaceAiServerConfig,
     options: IntelligenceServiceOptions = {},
   ) {
+    this.dataDirectory =
+      options.dataDirectory ??
+      process.env.MATTERHORN_DATA_DIR ??
+      resolve(__dirname, "../../../.matterhorn");
     for (const provider of options.providers ?? providersFromConfig(config)) {
       this.gateway.register(provider);
     }
@@ -106,13 +113,15 @@ export class IntelligenceService {
         "You are Matterhorn, the AI development agent for Northern Step Studio.",
         "Work only inside the selected project and only through the tools provided by Matterhorn.",
         "Use tools when repository facts are needed. Never invent file contents or claim a tool ran when it did not.",
-        "This intelligence endpoint is read-only. Inspect and explain; do not claim that files were modified.",
+        "You may stage a file edit as a review proposal only after reading the current file version. A staged proposal does not modify the source file and still requires explicit user approval in Matterhorn.",
+        "Never claim that a staged proposal was applied.",
         "Keep the final answer concise and actionable.",
       ].join(" "),
       messages: [{ role: "user", content: request.prompt }],
       toolExecutor: createIntelligenceWorkspaceTools(
         this.projects,
         request.projectId,
+        { dataDirectory: this.dataDirectory },
       ),
       limits: {
         maxTurns: 10,

@@ -22,7 +22,9 @@ Branch: `feat/multidomain-studio-planner-20260925`, based on `feat/studio-routin
 
 Supported graph shapes: Godot-only -> Flyrail -> QA; 2D assets plus game work -> Foundry -> Flyrail -> QA; 3D game work -> optional Foundry reference assets -> Blender -> Flyrail -> QA; Blender-only -> Blender -> QA. Only planned domains add stages. Arbitrary Blender work requires either a supported fixture or a validated structured Blender task spec. Planner language inference remains heuristic; callers can supply structured domains/assets to avoid that uncertainty. Visual claims and live-provider correctness remain unverified without the corresponding real execution evidence. The Create/Pipeline UI integration is being handled separately by the user.
 
-Local result: `npm run compile` PASS; `npm run check` PASS (197 pass, 0 fail, 3 optional Flyrail-repository skips); all 28 Flyrail adapter tests PASS. Planner tests PASS (12/12), Studio API tests PASS (5/5), and the API test pins Flyrail to a closed local endpoint to avoid work against a live developer daemon. GitHub Actions run `36140822247` PASS on Ubuntu and Windows for implementation SHA `1abbbf48c189fdf14f41a9efcc502849bae491e7`. The final docs-only follow-up is separately checked by its own PR run.
+Review follow-up: QA accepts multiple evidence-backed passing proofs, retains all source execution IDs and evidence, and blocks or fails on blocked/failed evidence or contradictory measured values. Required outputs now match every specified kind, asset ID, label, and producer and reject empty or control-character URIs. Regression tests cover duplicate consistent proofs, contradictory proofs, missing proof, Foundry asset ID mismatch, Blender label mismatch, producer mismatch, and blank URIs.
+
+Local result for this follow-up: `npm run compile` PASS; `npm run check` PASS (205 pass, 0 fail, 3 optional Flyrail-repository skips); all 28 Flyrail adapter tests PASS. GitHub Actions are pending for this follow-up SHA.
 ## Delivered in this change
 
 - Canonical Matterhorn package identity, standalone README/start path and default core/server build. Optional extension retained but excluded from default workspaces.

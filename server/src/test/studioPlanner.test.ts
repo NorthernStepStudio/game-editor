@@ -233,7 +233,7 @@ test('failed upstream specialist blocks Flyrail and QA dependencies', async () =
   assert.equal(run.taskRuns['matterhorn-qa']?.status, 'blocked');
 });
 
-test('QA aggregation blocks when final criteria lack unique specialist evidence', async () => {
+test('QA aggregation blocks when final criteria lack specialist evidence', async () => {
   const criterion = 'The attack animation plays without clipping.';
   const registry = new StudioAdapterRegistry();
   registry.register(stubAdapter('foundry', {
@@ -245,7 +245,7 @@ test('QA aggregation blocks when final criteria lack unique specialist evidence'
         specialistId: 'foundry',
         status: 'completed',
         summary: 'Generated artifact file and manifest verified.',
-        artifacts: [{ kind: 'foundry-asset', uri: 'C:\\assets\\generated.png', assetId: 'generated-art', producedBy: 'foundry' }],
+        artifacts: [{ kind: 'foundry-asset', uri: 'C:\\assets\\generated.png', assetId: 'generated-art', label: 'generated-art', producedBy: 'foundry' }],
         evidence: [{ kind: 'artifact', outcome: 'passed', summary: 'hash verified', uri: 'foundry://asset/generated-art' }],
         criterionResults: [{ criterion: outputCriterion, description: outputCriterion, outcome: 'passed', evidenceUri: 'foundry://asset/generated-art' }],
       };
@@ -256,7 +256,52 @@ test('QA aggregation blocks when final criteria lack unique specialist evidence'
   const run = await new StudioRunController({ registry, taskTimeoutMs: 200, requestTimeoutMs: 50, pollIntervalMs: 1 }).executeRun(plan);
   assert.equal(run.status, 'blocked');
   assert.equal(run.taskRuns['matterhorn-qa']?.status, 'blocked');
-  assert.match(run.taskRuns['matterhorn-qa']?.error ?? '', /lacks unique, passing specialist evidence/);
+  assert.match(run.taskRuns['matterhorn-qa']?.error ?? '', /lacks consistent, passing specialist evidence/);
+});
+
+test('QA accepts multiple consistent passing proofs and preserves every source execution ID', async () => {
+  const criterion = 'The attack animation plays without clipping.';
+  const result = await aggregateQa(criterion, [
+    qaProof(criterion, 'run-blender-model', 'blender-engine', 'proof://blender', 'No clipping observed'),
+    qaProof(criterion, 'run-flyrail-gameplay', 'flyrail', 'proof://flyrail', 'No clipping observed'),
+  ]);
+  assert.equal(result.status, 'completed');
+  assert.deepEqual(result.criterionResults?.[0]?.sourceExecutionIds, ['run-blender-model', 'run-flyrail-gameplay']);
+  assert.equal(result.criterionResults?.[0]?.sourceExecutionId, 'run-blender-model');
+  assert.deepEqual(result.evidence?.map(item => item.uri), ['proof://blender', 'proof://flyrail']);
+});
+
+test('QA fails closed when a valid pass conflicts with failed evidence', async () => {
+  const criterion = 'The attack animation plays without clipping.';
+  const result = await aggregateQa(criterion, [
+    qaProof(criterion, 'run-blender-model', 'blender-engine', 'proof://blender', 'No clipping observed'),
+    qaProof(criterion, 'run-flyrail-gameplay', 'flyrail', 'proof://flyrail', 'Clipping observed', 'failed'),
+  ]);
+  assert.equal(result.status, 'failed');
+  assert.equal(result.criterionResults?.[0]?.outcome, 'failed');
+  assert.deepEqual(result.criterionResults?.[0]?.sourceExecutionIds, ['run-blender-model', 'run-flyrail-gameplay']);
+  assert.deepEqual(result.evidence?.map(item => item.outcome), ['passed', 'failed']);
+});
+
+test('QA blocks when a passing proof conflicts with blocked evidence', async () => {
+  const criterion = 'The attack animation plays without clipping.';
+  const result = await aggregateQa(criterion, [
+    qaProof(criterion, 'run-blender-model', 'blender-engine', 'proof://blender', 'No clipping observed'),
+    qaProof(criterion, 'run-flyrail-gameplay', 'flyrail', 'proof://flyrail', 'Could not inspect animation', 'blocked'),
+  ]);
+  assert.equal(result.status, 'blocked');
+  assert.equal(result.criterionResults?.[0]?.outcome, 'blocked');
+  assert.deepEqual(result.criterionResults?.[0]?.sourceExecutionIds, ['run-blender-model', 'run-flyrail-gameplay']);
+});
+
+test('QA fails closed when passing proofs report contradictory actual values', async () => {
+  const criterion = 'Player health remains 100 after the attack.';
+  const result = await aggregateQa(criterion, [
+    qaProof(criterion, 'run-blender-model', 'blender-engine', 'proof://blender', 100),
+    qaProof(criterion, 'run-flyrail-gameplay', 'flyrail', 'proof://flyrail', 75),
+  ]);
+  assert.equal(result.status, 'failed');
+  assert.equal(result.criterionResults?.[0]?.outcome, 'failed');
 });
 
 test('multi-specialist plan and structured task specifications survive Studio restart persistence', async () => {
@@ -305,8 +350,58 @@ function genericPassedResult(taskId: string, specialistId: SpecialistAdapter['sp
     specialistId,
     status: 'completed',
     summary: 'Generated artifact file and manifest verified.',
-    artifacts: [{ kind: 'foundry-asset', uri: 'C:\\assets\\generated.png', assetId: 'generated-art', producedBy: 'foundry' }],
+    artifacts: [{ kind: 'foundry-asset', uri: 'C:\\assets\\generated.png', assetId: 'generated-art', label: 'generated-art', producedBy: 'foundry' }],
     evidence: [{ kind: 'artifact', outcome: 'passed', summary: 'hash verified', uri: 'foundry://asset/generated-art' }],
     criterionResults: [],
+  };
+}
+
+async function aggregateQa(criterion: string, dependencyResults: readonly NssStudioExecutionResult[]): Promise<NssStudioExecutionResult> {
+  const adapter = new MatterhornQaAdapter();
+  const taskId = 'run-matterhorn-qa';
+  await adapter.submitTask({
+    protocol: 'nss.studio-handoff.v1',
+    id: taskId,
+    taskId,
+    from: 'matterhorn',
+    to: 'matterhorn',
+    goal: 'Aggregate specialist evidence.',
+    acceptanceCriteria: [criterion],
+    inputArtifacts: [],
+    taskSpec: {
+      protocol: 'nss.studio-task-spec.v1',
+      specialist: 'matterhorn',
+      action: 'aggregate_evidence',
+      dependencyTaskIds: ['blender-model', 'flyrail-gameplay'],
+      criteria: [criterion],
+    },
+    dependencyResults,
+  });
+  return adapter.getResult(taskId);
+}
+
+function qaProof(
+  criterion: string,
+  taskId: string,
+  specialistId: 'blender-engine' | 'flyrail',
+  evidenceUri: string,
+  actual: unknown,
+  outcome: 'passed' | 'failed' | 'blocked' = 'passed',
+): NssStudioExecutionResult {
+  return {
+    taskId,
+    specialistId,
+    status: 'completed',
+    summary: 'Specialist criterion evidence.',
+    evidence: [{ kind: 'test', summary: 'Criterion proof.', outcome: outcome === 'passed' ? 'passed' : outcome, uri: evidenceUri }],
+    criterionResults: [{
+      criterion,
+      description: criterion,
+      checkType: 'generic',
+      expected: criterion.includes('health') ? 100 : 'No clipping observed',
+      actual,
+      outcome,
+      evidenceUri,
+    }],
   };
 }

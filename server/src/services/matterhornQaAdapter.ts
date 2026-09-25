@@ -3,6 +3,7 @@ import type {
   NssStudioHandoff,
   NssStudioQaTaskSpec,
 } from '../../../core/out/index.js';
+import { isDeepStrictEqual } from 'node:util';
 import {
   SpecialistError,
   type SpecialistAdapter,
@@ -70,20 +71,35 @@ function aggregate(handoff: NssStudioHandoff): NssStudioExecutionResult {
     return blocked(handoff, 'QA task is missing a valid structured aggregation specification.');
   }
   const dependencyResults = handoff.dependencyResults ?? [];
-  const sourceResults = dependencyResults.filter(result => result.status === 'completed' && spec.dependencyTaskIds.some(id => result.taskId.endsWith(`-${id}`)));
-  if (sourceResults.length !== spec.dependencyTaskIds.length) {
+  const sourceResults = dependencyResults.filter(result => spec.dependencyTaskIds.some(id => result.taskId.endsWith(`-${id}`)));
+  if (sourceResults.length !== spec.dependencyTaskIds.length || sourceResults.some(result => result.status !== 'completed')) {
     return blocked(handoff, 'QA is missing one or more successful dependency results.');
   }
 
-  const evidence = sourceResults.flatMap(result => result.evidence ?? []).filter(item => item.outcome === 'passed' && item.uri);
-  const uniqueEvidence = [...new Map(evidence.map(item => [item.uri!, item])).values()];
+  const evidence = sourceResults.flatMap(result => result.evidence ?? []).filter(item => item.uri?.trim());
+  const uniqueEvidence = [...new Map(evidence.map(item => [`${item.kind}\u0000${item.outcome ?? ''}\u0000${item.uri}`, item])).values()];
   const criterionResults = spec.criteria.map((criterion, index) => {
-    const matches = sourceResults.flatMap(result => (result.criterionResults ?? [])
+    const reported = sourceResults.flatMap(result => (result.criterionResults ?? [])
       .filter(check => check.criterion === criterion || check.description === criterion)
-      .filter(check => check.outcome === 'passed' && Boolean(check.evidenceUri) &&
-        result.evidence?.some(item => item.uri === check.evidenceUri && item.outcome === 'passed'))
       .map(check => ({ result, check })));
-    if (matches.length !== 1) {
+    const negative = reported.filter(({ check }) => check.outcome === 'failed' || check.outcome === 'blocked');
+    const passing = reported.filter(({ result, check }) => check.outcome === 'passed' && Boolean(check.evidenceUri?.trim()) &&
+      result.evidence?.some(item => item.uri === check.evidenceUri && item.outcome === 'passed'));
+    const sourceExecutionIds = [...new Set(reported.map(({ result }) => result.taskId))];
+    if (negative.length) {
+      const outcome = negative.some(({ check }) => check.outcome === 'failed') ? 'failed' as const : 'blocked' as const;
+      return {
+        criterionId: `qa-criterion-${index + 1}`,
+        description: criterion,
+        criterion,
+        checkType: 'generic' as const,
+        outcome,
+        executionId: handoff.taskId,
+        sourceExecutionId: sourceExecutionIds[0],
+        sourceExecutionIds,
+      };
+    }
+    if (!passing.length) {
       return {
         criterionId: `qa-criterion-${index + 1}`,
         description: criterion,
@@ -91,9 +107,23 @@ function aggregate(handoff: NssStudioHandoff): NssStudioExecutionResult {
         checkType: 'generic' as const,
         outcome: 'blocked' as const,
         executionId: handoff.taskId,
+        sourceExecutionId: sourceExecutionIds[0],
+        sourceExecutionIds,
       };
     }
-    const { result, check } = matches[0]!;
+    if (hasContradictoryPassingValues(passing)) {
+      return {
+        criterionId: `qa-criterion-${index + 1}`,
+        description: criterion,
+        criterion,
+        checkType: 'generic' as const,
+        outcome: 'failed' as const,
+        executionId: handoff.taskId,
+        sourceExecutionId: sourceExecutionIds[0],
+        sourceExecutionIds,
+      };
+    }
+    const { result, check } = passing[0]!;
     return {
       ...check,
       criterion,
@@ -101,22 +131,39 @@ function aggregate(handoff: NssStudioHandoff): NssStudioExecutionResult {
       evidenceUri: check.evidenceUri,
       executionId: handoff.taskId,
       sourceExecutionId: result.taskId,
+      sourceExecutionIds,
       outcome: 'passed' as const,
     };
   });
 
   const blockedCriteria = criterionResults.filter(item => item.outcome !== 'passed');
-  const status = blockedCriteria.length ? 'blocked' : 'completed';
+  const failedCriteria = criterionResults.filter(item => item.outcome === 'failed');
+  const status = failedCriteria.length ? 'failed' : blockedCriteria.length ? 'blocked' : 'completed';
   return {
     taskId: handoff.taskId,
     specialistId: 'matterhorn',
     status,
     summary: blockedCriteria.length
-      ? `QA blocked: ${blockedCriteria.map(item => item.description).join('; ')} lacks unique, passing specialist evidence.`
+      ? `QA ${status}: ${blockedCriteria.map(item => item.description).join('; ')} lacks consistent, passing specialist evidence.`
       : `QA verified ${criterionResults.length} acceptance criteria against specialist evidence.`,
     evidence: uniqueEvidence,
     criterionResults,
   };
+}
+
+function hasContradictoryPassingValues(
+  proofs: readonly { check: NonNullable<NssStudioExecutionResult['criterionResults']>[number] }[],
+): boolean {
+  for (let i = 0; i < proofs.length; i += 1) {
+    for (let j = i + 1; j < proofs.length; j += 1) {
+      const left = proofs[i]!.check;
+      const right = proofs[j]!.check;
+      for (const field of ['expected', 'actual'] as const) {
+        if (left[field] !== undefined && right[field] !== undefined && !isDeepStrictEqual(left[field], right[field])) return true;
+      }
+    }
+  }
+  return false;
 }
 
 function blocked(handoff: NssStudioHandoff, summary: string): NssStudioExecutionResult {

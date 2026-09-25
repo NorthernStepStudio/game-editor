@@ -8,6 +8,7 @@ import { createStudioPlan } from '../studio/orchestrator.js';
 import { SpecialistError, type SpecialistAdapter } from '../studio/adapters/types.js';
 import type { StudioRunEvent } from '../studio/run/types.js';
 import type { StudioRun } from '../studio/runTypes.js';
+import type { NssStudioArtifactRef } from '../studio/types.js';
 
 const makePlan = () => createStudioPlan({
   goal: 'Verify change',
@@ -42,6 +43,41 @@ function setup(overrides: Partial<SpecialistAdapter> = {}) {
     ...overrides,
   });
   return registry;
+}
+
+async function runArtifactTask(
+  specialistId: 'foundry' | 'blender-engine',
+  domain: 'art' | 'blender',
+  expected: NssStudioArtifactRef,
+  actual: NssStudioArtifactRef,
+): ReturnType<StudioRunController['executeRun']> {
+  const registry = new SpecialistAdapterRegistry();
+  registry.register({
+    specialistId,
+    health: async () => ({ available: true, specialistId }),
+    getCapabilities: async () => ({ specialistId, protocolVersion: 'test', capabilities: [] }),
+    submitTask: async handoff => ({ taskId: handoff.taskId, specialistId, accepted: true }),
+    getTaskStatus: async taskId => ({ taskId, specialistId, phase: 'completed' }),
+    getResult: async taskId => ({
+      taskId,
+      specialistId,
+      status: 'completed',
+      summary: 'Output and acceptance evidence verified.',
+      artifacts: [actual],
+      evidence: [{ kind: 'test', summary: 'Works', outcome: 'passed', uri: 'fixture:works' }],
+      criterionResults: [{ criterion: 'Works', outcome: 'passed', evidenceUri: 'fixture:works' }],
+    }),
+    cancelTask: async taskId => ({ taskId, cancelled: true }),
+  });
+  const plan = createStudioPlan({
+    goal: 'Produce the requested asset.',
+    tasks: [{
+      id: 'check', title: 'Produce asset', goal: 'Produce the requested asset.', domain, specialistId,
+      acceptanceCriteria: ['Works'], outputArtifacts: [expected],
+    }],
+    finalAcceptanceCriteria: ['Works'],
+  });
+  return new StudioRunController({ registry, pollIntervalMs: 1 }).executeRun(plan, 'artifact-identity-run');
 }
 
 test('Phase 3 executeRun mirrors final state and ordered events into injected store', async () => {
@@ -124,6 +160,41 @@ test('required artifacts are enforced', async () => {
     tasks: plan.tasks.map(task => ({ ...task, outputArtifacts: [{ kind: 'export', uri: 'required' }] })),
   });
   assert.equal(run.status, 'failed');
+});
+
+test('required output artifact accepts matching identity fields and a non-empty URI', async () => {
+  const artifact: NssStudioArtifactRef = {
+    kind: 'foundry-asset', uri: 'C:\\assets\\hero.png', assetId: 'hero-sprite', label: 'hero-sprite', producedBy: 'foundry',
+  };
+  const run = await runArtifactTask('foundry', 'art', { ...artifact, uri: '' }, artifact);
+  assert.equal(run.status, 'completed');
+});
+
+test('required Foundry output rejects a different asset ID even when kind matches', async () => {
+  const expected: NssStudioArtifactRef = {
+    kind: 'foundry-asset', uri: '', assetId: 'expected-sprite', label: 'expected-sprite', producedBy: 'foundry',
+  };
+  const actual: NssStudioArtifactRef = {
+    kind: 'foundry-asset', uri: 'C:\\assets\\wrong.png', assetId: 'wrong-sprite', label: 'expected-sprite', producedBy: 'foundry',
+  };
+  const run = await runArtifactTask('foundry', 'art', expected, actual);
+  assert.equal(run.status, 'failed');
+  assert.match(run.taskRuns.check?.error ?? '', /identity/);
+});
+
+test('required Blender output rejects a wrong artifact label even when kind matches', async () => {
+  const expected: NssStudioArtifactRef = { kind: 'glb', uri: '', label: 'hero.glb', producedBy: 'blender-engine' };
+  const actual: NssStudioArtifactRef = { kind: 'glb', uri: 'C:\\assets\\enemy.glb', label: 'enemy.glb', producedBy: 'blender-engine' };
+  const run = await runArtifactTask('blender-engine', 'blender', expected, actual);
+  assert.equal(run.status, 'failed');
+});
+
+test('required output rejects a wrong producer and a blank artifact URI', async () => {
+  const expected: NssStudioArtifactRef = { kind: 'glb', uri: '', label: 'hero.glb', producedBy: 'blender-engine' };
+  const wrongProducer: NssStudioArtifactRef = { ...expected, uri: 'C:\\assets\\hero.glb', producedBy: 'flyrail' };
+  const blankUri: NssStudioArtifactRef = { ...expected, uri: '   ' };
+  assert.equal((await runArtifactTask('blender-engine', 'blender', expected, wrongProducer)).status, 'failed');
+  assert.equal((await runArtifactTask('blender-engine', 'blender', expected, blankUri)).status, 'failed');
 });
 
 test('additional validators can reject but cannot replace the strict evidence gate', async () => {

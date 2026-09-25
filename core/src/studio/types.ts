@@ -186,6 +186,7 @@ export interface NssStudioCriterionResult {
   readonly evidenceUri?: string;
   readonly executionId?: string;
   readonly sourceExecutionId?: string;
+  readonly sourceExecutionIds?: readonly string[];
   readonly timestamp?: string;
   readonly criterion?: string;
 }

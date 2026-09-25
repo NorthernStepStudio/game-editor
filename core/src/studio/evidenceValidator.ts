@@ -1,4 +1,4 @@
-import type { NssStudioExecutionResult } from "./types.js";
+import type { NssStudioArtifactRef, NssStudioExecutionResult } from "./types.js";
 import {
   findStudioCriterionResult,
   parseFoundryStudioCriterion,
@@ -9,6 +9,17 @@ export interface EvidenceValidation {
   valid: boolean;
   failed: boolean;
   detail: string;
+}
+
+export function studioArtifactMatchesExpected(
+  expected: NssStudioArtifactRef,
+  actual: NssStudioArtifactRef,
+): boolean {
+  return typeof actual.uri === "string" && actual.uri.trim().length > 0 && !/[\u0000-\u001f\u007f]/.test(actual.uri) &&
+    actual.kind === expected.kind &&
+    (expected.assetId === undefined || actual.assetId === expected.assetId) &&
+    (expected.label === undefined || actual.label === expected.label) &&
+    (expected.producedBy === undefined || actual.producedBy === expected.producedBy);
 }
 
 export function validateStudioEvidence(

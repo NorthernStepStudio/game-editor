@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { SpecialistAdapterRegistry } from './run/registry.js';
 import { SpecialistError } from './adapters/types.js';
-import { validateStudioEvidence } from './evidenceValidator.js';
+import { studioArtifactMatchesExpected, validateStudioEvidence } from './evidenceValidator.js';
 import { createStudioHandoff, validateStudioPlan } from './orchestrator.js';
 import { StudioSnapshotStore } from './runStore.js';
 import { terminalRun, type StudioRun, type StudioTaskRun } from './runTypes.js';
@@ -185,10 +185,10 @@ export class StudioExecutionEngine {
       return;
     }
     const validation = validateStudioEvidence(task.result, task.executionId, planTask.specialistId, planTask.acceptanceCriteria);
-    if (validation.valid && planTask.outputArtifacts?.some(expected => !task.result?.artifacts?.some(actual => actual.kind === expected.kind && actual.uri))) {
+    if (validation.valid && planTask.outputArtifacts?.some(expected => !task.result?.artifacts?.some(actual => studioArtifactMatchesExpected(expected, actual)))) {
       validation.valid = false;
       validation.failed = true;
-      validation.detail = 'Required output artifacts are missing.';
+      validation.detail = 'Required output artifacts are missing or have mismatched identity.';
     }
     if (validation.valid && this.additionalValidation) {
       const extra = this.additionalValidation({ ...planTask, id: task.executionId }, task.result);

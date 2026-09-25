@@ -3,7 +3,7 @@ import { api, notice, clearNotice } from './api.js';
 import { initStudio, loadProjects, refreshRuns } from './studio.js';
 import { initChat } from './chat.js';
 import { initSpecialists, loadSpecialists } from './specialists.js';
-import { initAssets, loadAssets } from './assets.js';
+import { initAssets, loadAssets, loadAssetProviders } from './assets.js';
 
 const pages = ['chat', 'studio', 'projects', 'evidence', 'settings'];
 const studioTabs = ['create', 'pipeline', 'output', 'assets', 'specialists'];
@@ -52,7 +52,9 @@ function selectStudioTab(target) {
     if (section) section.hidden = id !== target;
   }
   if (location.hash === '#studio' || !location.hash) updateSidebarSelection('studio');
-  if (target === 'assets') void loadAssets().catch(notice);
+  if (target === 'assets') {
+    void Promise.all([loadAssets(), loadAssetProviders()]).catch(notice);
+  }
 }
 
 function initStudioTabs() {
@@ -123,4 +125,4 @@ initAssets();
 route();
 window.addEventListener('hashchange', route);
 document.querySelector('#recheck').onclick = () => health().catch(notice);
-for (const task of [health, providers, loadProjects, refreshRuns, loadSpecialists, loadAssets]) task().catch(notice);
+for (const task of [health, providers, loadProjects, refreshRuns, loadSpecialists, loadAssets, loadAssetProviders]) task().catch(notice);

@@ -1,6 +1,7 @@
 import { createWorkspaceRoutes } from "./workspace/routes.js";
 import { createStudioService } from "./services/studioService.js";
 import { studioRoutes } from "./services/studioRoutes.js";
+import { foundryRoutes } from "./services/foundryRoutes.js";
 import * as fs from "node:fs";
 import * as http from "node:http";
 import * as path from "node:path";
@@ -67,6 +68,7 @@ export async function startNssWorkspaceAiServer(
         await respondJson(response, 415, { error: "Content-Type must be application/json." }); return;
       }
       if (await workspaceRoutes(request, response, () => readJsonBody(request))) return;
+      if (await foundryRoutes(request, response, studio)) return;
       if (await studioRoutes(request, response, studio, () => readJsonBody(request))) return;
 
       if (request.method === "GET" && request.url === "/health") {

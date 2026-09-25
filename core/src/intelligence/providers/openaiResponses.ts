@@ -22,7 +22,7 @@ export interface OpenAIResponsesIntelligenceProviderOptions {
 }
 
 interface OpenAIResponsesPayload {
-  readonly output?: readonly OpenAIResponseOutput[];
+  readonly output?: readonly unknown[];
   readonly output_text?: string;
   readonly status?: string;
   readonly error?: {
@@ -34,27 +34,6 @@ interface OpenAIResponsesPayload {
     readonly total_tokens?: number;
   };
 }
-
-type OpenAIResponseOutput =
-  | {
-      readonly type?: "message";
-      readonly content?: readonly {
-        readonly type?: string;
-        readonly text?: string;
-        readonly refusal?: string;
-      }[];
-    }
-  | {
-      readonly type?: "function_call";
-      readonly id?: string;
-      readonly call_id?: string;
-      readonly name?: string;
-      readonly arguments?: string;
-    }
-  | {
-      readonly type?: string;
-      readonly [key: string]: unknown;
-    };
 
 export function createOpenAIResponsesIntelligenceProvider(
   options: OpenAIResponsesIntelligenceProviderOptions,
@@ -207,12 +186,26 @@ function normalizeResponse(
   const textParts: string[] = [];
   const toolCalls: MatterhornToolCall[] = [];
 
-  for (const item of payload.output ?? []) {
+  for (const raw of payload.output ?? []) {
+    const item = asRecord(raw);
+    if (!item) continue;
+
     if (item.type === "message") {
-      for (const content of item.content ?? []) {
-        if (content.type === "output_text" && content.text) {
+      const contentBlocks = Array.isArray(item.content)
+        ? item.content
+        : [];
+      for (const rawContent of contentBlocks) {
+        const content = asRecord(rawContent);
+        if (!content) continue;
+        if (
+          content.type === "output_text" &&
+          typeof content.text === "string"
+        ) {
           textParts.push(content.text);
-        } else if (content.type === "refusal" && content.refusal) {
+        } else if (
+          content.type === "refusal" &&
+          typeof content.refusal === "string"
+        ) {
           textParts.push(content.refusal);
         }
       }
@@ -220,22 +213,34 @@ function normalizeResponse(
     }
 
     if (item.type === "function_call") {
-      if (!item.name || !(item.call_id ?? item.id)) {
+      const name =
+        typeof item.name === "string" ? item.name : undefined;
+      const callId =
+        typeof item.call_id === "string"
+          ? item.call_id
+          : typeof item.id === "string"
+            ? item.id
+            : undefined;
+      if (!name || !callId) {
         throw new Error("Responses API returned an incomplete function call.");
       }
       let args: Readonly<Record<string, unknown>> = {};
-      if (item.arguments?.trim()) {
+      if (
+        typeof item.arguments === "string" &&
+        item.arguments.trim()
+      ) {
         const parsed = JSON.parse(item.arguments) as unknown;
-        if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        const parsedRecord = asRecord(parsed);
+        if (!parsedRecord) {
           throw new Error(
-            `Responses function call ${item.name} arguments were not an object.`,
+            `Responses function call ${name} arguments were not an object.`,
           );
         }
-        args = parsed as Readonly<Record<string, unknown>>;
+        args = parsedRecord;
       }
       toolCalls.push({
-        id: item.call_id ?? item.id!,
-        name: item.name,
+        id: callId,
+        name,
         args,
       });
     }
@@ -299,4 +304,15 @@ function validateBaseUrl(value: string, local: boolean): void {
 
 function ensureTrailingSlash(value: string): string {
   return value.endsWith("/") ? value : `${value}/`;
+}
+
+
+function asRecord(
+  value: unknown,
+): Readonly<Record<string, unknown>> | undefined {
+  return value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+    ? (value as Readonly<Record<string, unknown>>)
+    : undefined;
 }

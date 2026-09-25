@@ -151,7 +151,7 @@ export class FoundryGenerationService {
         kinds: SPRITE_FUSION_PROVIDER_DESCRIPTOR.kinds,
         note: spriteFusion
           ? 'Configured. Paid generation still requires an explicit per-request credit budget.'
-          : 'Set SPRITE_FUSION_API_KEY on the Matterhorn server to enable this provider.',
+          : 'Configure Sprite Fusion API credentials on the Matterhorn server to enable this provider.',
         estimatedCost: {
           currency: SPRITE_FUSION_CREDIT_CURRENCY,
           amount: SPRITE_FUSION_REQUEST_CREDITS,

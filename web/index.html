@@ -439,6 +439,82 @@
       <!-- ── Assets Tab ──────────────────────────────────────── -->
       <div id="studio-assets" class="studio-section" hidden>
         <div class="assets-layout">
+          <div class="card asset-generation-card">
+            <div class="card-header-compact space-between">
+              <div>
+                <span class="card-tag">ASSETFORGE</span>
+                <h2>Generate Asset</h2>
+              </div>
+              <span id="asset-provider-summary" class="muted-sm">Loading providers…</span>
+            </div>
+
+            <form id="asset-generate-form">
+              <div class="asset-generation-grid">
+                <label>Project
+                  <select id="asset-project" required>
+                    <option value="">Choose a configured project</option>
+                  </select>
+                </label>
+                <label>Provider
+                  <select id="asset-provider" required>
+                    <option value="">Auto</option>
+                  </select>
+                </label>
+                <label>Asset ID
+                  <input id="asset-id" required maxlength="120" pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,119}" placeholder="hero-walk">
+                </label>
+                <label>Type
+                  <select id="asset-kind" required></select>
+                </label>
+                <label>Operation
+                  <select id="asset-operation" required></select>
+                </label>
+                <label>Dimensions
+                  <div class="dimension-row">
+                    <input id="asset-width" type="number" min="1" max="4096" placeholder="32" aria-label="Asset width">
+                    <span>×</span>
+                    <input id="asset-height" type="number" min="1" max="4096" placeholder="32" aria-label="Asset height">
+                  </div>
+                </label>
+              </div>
+
+              <label style="margin-top:12px">Prompt
+                <textarea id="asset-prompt" rows="3" maxlength="8000" placeholder="Describe the asset to generate…"></textarea>
+              </label>
+
+              <div class="asset-generation-grid compact" style="margin-top:12px">
+                <label>Parent asset <span class="muted-sm">(optional)</span>
+                  <input id="asset-parent" maxlength="120" placeholder="hero-base">
+                </label>
+                <label>Reference asset IDs <span class="muted-sm">(comma separated)</span>
+                  <input id="asset-references" maxlength="2000" placeholder="hero-base, palette-reference">
+                </label>
+              </div>
+
+              <div id="asset-cost-panel" class="asset-cost-panel" hidden>
+                <label class="check-row">
+                  <input id="asset-allow-network" type="checkbox">
+                  Allow this network provider
+                </label>
+                <label class="check-row">
+                  <input id="asset-approve-cost" type="checkbox">
+                  Approve external provider cost for this request
+                </label>
+                <label>Maximum budget
+                  <div class="budget-row">
+                    <input id="asset-max-cost" type="number" min="0.01" step="0.01">
+                    <span id="asset-cost-currency">credits</span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="asset-generate-actions">
+                <p id="asset-generate-status" class="muted-sm" role="status">Provider availability is checked server-side.</p>
+                <button id="asset-generate-submit" type="submit" class="btn-primary-gradient">Generate Asset ✨</button>
+              </div>
+            </form>
+          </div>
+
           <!-- Filter Bar -->
           <div class="asset-top-bar">
             <div class="asset-category-pills">

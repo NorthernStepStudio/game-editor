@@ -19,6 +19,7 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
       {id:'flyrail',title:'Flyrail',role:'Godot executor',executionMode:'executor',availability:'available',capabilities:[{id:'godot.project',description:'Godot work'}]},
       {id:'blender-engine',title:'Blender Engine',role:'3D executor',executionMode:'executor',availability:'available',capabilities:[{id:'blender.create',description:'3D work'}]},
     ];
+    else if(path==='/api/foundry/providers')data={providers:[{id:'sprite-fusion',name:'Sprite Fusion',configured:true,available:true,local:false,requiresNetwork:true,externalCost:true,commercialUseAllowed:true,operations:['generate'],kinds:['pixel_sprite'],note:'Configured',estimatedCost:{currency:'SPRITE_FUSION_CREDITS',amount:15}},{id:'comfyui-local',name:'ComfyUI Local',configured:false,available:false,local:true,requiresNetwork:false,externalCost:false,commercialUseAllowed:false,operations:[],kinds:[],note:'Setup required'}]};
     else if(path==='/api/foundry/assets')data={count:1,assets:[{assetId:'hero-base',type:'pixel_sprite',operation:'generate',generationProvider:'sprite-fusion',createdAt:'2026-09-25T10:00:00.000Z',width:32,height:32,sourceLicenseIds:['Commercial'],previewUrl:'/api/foundry/assets/hero-base/preview'}]};
     else if(path==='/api/foundry/assets/hero-base')data={asset:{assetId:'hero-base',type:'pixel_sprite',operation:'generate',generationProvider:'sprite-fusion',createdAt:'2026-09-25T10:00:00.000Z',width:32,height:32,sourceLicenseIds:['Commercial'],previewUrl:'/api/foundry/assets/hero-base/preview'},lineage:[{assetId:'hero-base',type:'pixel_sprite',operation:'generate',createdAt:'2026-09-25T10:00:00.000Z'}]};
     else if(path==='/api/projects')data=[{id:'fixture',name:'Fixture project'}];
@@ -38,6 +39,12 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     assert.equal(document.querySelector('#agent-selector'),null);
     assert.match(document.querySelector('#connection').textContent,/mock/);
     assert.equal(document.querySelectorAll('#specialist-list .specialist-card').length,3);
+    assert.equal(document.querySelector('#asset-provider').value,'sprite-fusion');
+    assert.equal(document.querySelector('#asset-cost-panel').hidden,false);
+    assert.equal(document.querySelector('#asset-max-cost').value,'15');
+    document.querySelector('#asset-generate-form').dispatchEvent(new window.Event('submit',{cancelable:true}));
+    await flush();
+    assert.match(document.querySelector('#asset-generate-status').textContent,/Approve network access/i);
     assert.equal(document.querySelectorAll('#asset-gallery .asset-card').length,1);
     assert.match(document.querySelector('#asset-gallery').textContent,/hero-base/);
     document.querySelector('#tab-btn-assets-sidebar').click();await flush();

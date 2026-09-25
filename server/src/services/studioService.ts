@@ -5,6 +5,7 @@ import { createStudioPlan, FlyrailAdapter, StudioAdapterRegistry, StudioRunContr
 import { StudioHistory } from './studioHistory.js';
 import { FoundryAssetService } from './foundryAssetService.js';
 import { FoundryGenerationService } from './foundryGenerationService.js';
+import { StudioRoutingPreferencesStore } from './studioRoutingPreferences.js';
 
 export interface StudioProject { id: string; name: string; path: string }
 
@@ -31,6 +32,7 @@ export function createStudioService() {
   const history = new StudioHistory(dataDirectory);
   const foundryAssets = new FoundryAssetService(dataDirectory, projects);
   const foundryGeneration = new FoundryGenerationService(projects, foundryAssets);
+  const routingPreferences = new StudioRoutingPreferencesStore(dataDirectory);
   const controller = new StudioRunController({ registry, initialRuns: history.load() });
   const stopHistory = controller.store.subscribe(({ run }) => history.persist(run));
 
@@ -79,6 +81,7 @@ export function createStudioService() {
     history,
     foundryAssets,
     foundryGeneration,
+    routingPreferences,
     ensureRecovered,
     getRecoveryState: () => recoveryState,
     dispose: () => stopHistory(),

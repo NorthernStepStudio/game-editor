@@ -15,6 +15,7 @@ export type MatterhornModelCapability =
 
 export type MatterhornToolRisk =
   | "read"
+  | "proposal"
   | "write"
   | "execute"
   | "network"

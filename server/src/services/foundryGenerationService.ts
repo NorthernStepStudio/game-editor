@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { existsSync, lstatSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   FoundryAssetCatalog,
@@ -208,6 +209,22 @@ export class FoundryGenerationService {
     const body = this.parseBody(raw);
     const project = this.projects.find((candidate) => candidate.id === body.projectId);
     if (!project) throw new Error('Select a configured project for asset generation.');
+    if (!existsSync(project.path)) {
+      throw new Error('The configured project path does not exist.');
+    }
+    const projectInfo = lstatSync(project.path);
+    if (!projectInfo.isDirectory() || projectInfo.isSymbolicLink()) {
+      throw new Error('The configured project path must be a real directory.');
+    }
+
+    const collision = this.assets.store
+      .list()
+      .find((asset) => assetIdCollides(body.assetId, asset.assetId));
+    if (collision) {
+      throw new Error(
+        `Asset ID ${body.assetId} would collide with existing asset ${collision.assetId}. Choose a new asset ID before generation.`,
+      );
+    }
 
     const request: FoundryAssetRequest = {
       requestId: randomUUID(),
@@ -399,6 +416,15 @@ export class FoundryGenerationService {
       requireCommercialUse,
     };
   }
+}
+
+
+function assetIdCollides(baseAssetId: string, existingAssetId: string): boolean {
+  if (existingAssetId === baseAssetId) return true;
+  const prefix = `${baseAssetId}-`;
+  if (!existingAssetId.startsWith(prefix)) return false;
+  const suffix = existingAssetId.slice(prefix.length);
+  return /^[0-9]+$/.test(suffix);
 }
 
 function stringField(value: unknown, field: string, max: number): string {

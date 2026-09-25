@@ -1,19 +1,691 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Matterhorn Studio</title><link rel="stylesheet" href="/styles.css"></head>
-<body><aside><a class="brand" href="#studio"><span>△</span> Matterhorn</a><p class="eyebrow">NORTHERN STEP STUDIO</p><nav aria-label="Main"><a href="#chat">Chat</a><a href="#studio">Studio</a><a href="#projects">Projects</a><a href="#evidence">Evidence</a><a href="#settings">Settings</a></nav><div class="aside-footer">Your idea. A visible plan.<br>Evidence at every step.</div></aside>
-<main><header><span id="breadcrumb">Workspace / Studio</span><span id="connection" role="status">Checking connection…</span></header><div id="notice" role="alert" hidden></div>
-<section id="studio" class="page"><p class="eyebrow">BUILD WITH MATTERHORN</p><h1>Turn intent into working software.</h1><p class="lede">Describe a Godot change. Review the plan, follow execution, and inspect the proof.</p><div class="workspace-grid"><div class="panel"><h2>Start a studio run</h2><form id="run-form"><label>Project<select id="project" required><option value="">Choose a configured project</option></select></label><label>What do you want to build?<textarea id="goal" rows="5" required minlength="3" maxlength="8000" placeholder="Describe the change you want Matterhorn to coordinate…"></textarea></label><label>Acceptance criteria <small>One check per line</small><textarea id="criteria" rows="4" required placeholder="Godot validation passes&#10;Scenario checks pass&#10;QA checks pass"></textarea></label><p class="muted">Custom criteria require explicit evidence from the execution service. Missing proof blocks completion.</p><button id="review" type="submit">Review plan <span>→</span></button></form><div id="plan-review" hidden><h3>Execution plan</h3><pre id="plan-text"></pre><button id="start" type="button">Start reviewed run</button></div></div><div class="panel"><div class="panel-heading"><h2>Run activity</h2><button class="secondary" id="refresh-runs">Refresh</button></div><div id="runs"><p class="muted">No runs yet.</p></div><div id="active-run" aria-live="polite"></div></div></div></section>
-<section id="chat" class="page" hidden><p class="eyebrow">THINK IT THROUGH</p><h1>Talk to Matterhorn.</h1><p class="lede">Plan and discuss changes. Use Studio to execute a reviewed Godot task.</p><div class="panel"><div id="messages" aria-live="polite"></div><form id="chat-form"><label>Your message<textarea id="prompt" rows="4" required maxlength="12000"></textarea></label><button id="send">Send message →</button></form></div></section>
-<section id="projects" class="page" hidden><p class="eyebrow">YOUR WORKSPACE</p><h1>Projects</h1><p class="lede">Browse, review, validate, and apply local project changes without hiding file mutations.</p><div id="project-list" class="panel"></div>
-<div class="workspace-grid workspace-tools">
-<div class="panel"><h2>Workspace files</h2><label>Active project<select id="workspace-project"><option value="">Choose a project</option></select></label><form id="workspace-search-form"><label>Search source text<input id="workspace-query" maxlength="200" required placeholder="Find a function, error, or setting"></label><button type="submit">Search</button> <button id="workspace-refresh" type="button" class="secondary">Browse files</button></form><p id="workspace-scope" class="muted">Choose a project to browse source files.</p><div id="workspace-files" class="file-list"></div></div>
-<div class="panel"><h2 id="workspace-file-title">Open a file</h2><label>File contents<textarea id="workspace-editor" rows="16" spellcheck="false" disabled></textarea></label><div class="workspace-actions"><button id="workspace-stage" type="button" disabled>Review this file</button><button id="workspace-add-change" type="button" class="secondary" disabled>Add to change set</button></div><hr><label>Ask about this file<textarea id="workspace-prompt" rows="3" maxlength="8000" placeholder="Describe your change, question, or error…"></textarea></label><div class="workspace-actions"><button data-assist="explain" disabled>Explain</button><button data-assist="plan" disabled>Plan change</button><button data-assist="propose" disabled>Propose edit</button><button data-assist="diagnose" disabled>Diagnose error</button></div><p class="muted">Assistance sends the saved file and a source-file inventory to your configured chat provider. Proposed edits remain review-only.</p><pre id="workspace-answer" hidden></pre></div>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Matterhorn Studio Control Center — unified command surface for game creation, specialist orchestration, and evidence-based validation.">
+  <title>Matterhorn Studio · Control Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="theme-dark">
+
+<!-- Top Navigation Bar -->
+<header class="top-nav">
+  <div class="brand-group">
+    <a class="brand" href="#studio">
+      <div class="brand-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">Matterhorn</span>
+        <span class="brand-subtitle">NStep AI Studio</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="top-specialist-pills">
+    <button class="pill-btn active" data-spec-filter="auto"><span class="pill-dot green"></span> Auto</button>
+    <button class="pill-btn" data-spec-filter="flyrail"><span>⚡</span> Flyrail (Godot)</button>
+    <button class="pill-btn" data-spec-filter="blender" disabled title="Routing to Blender is not connected yet."><span>🎨</span> Blender</button>
+    <button class="pill-btn" data-spec-filter="foundry" disabled title="Routing to Foundry (Assets) is not connected yet."><span>📦</span> Foundry (Assets)</button>
+    <button class="pill-btn" data-spec-filter="audio" disabled title="Routing to Audio is not connected yet."><span>🎵</span> Audio</button>
+    <button class="pill-btn" data-spec-filter="world" disabled title="Routing to World is not connected yet."><span>🌐</span> World</button>
+    <button class="pill-btn more" disabled title="Additional routing controls are not connected yet."><span>⋯</span> More</button>
+  </div>
+
+  <div class="top-nav-right">
+    <span id="breadcrumb" class="breadcrumb-tag">Workspace / Studio</span>
+    <span id="connection" class="status-badge" role="status">Checking connection…</span>
+    <button class="icon-btn" id="top-settings-btn" title="Settings" onclick="location.hash='settings'">⚙️</button>
+  </div>
+</header>
+
+<div class="app-layout">
+  <!-- Left Sidebar -->
+  <aside class="sidebar">
+    <nav class="sidebar-nav" aria-label="Main">
+      <a href="#chat" class="nav-item" id="tab-btn-chat">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label">Chat</span>
+      </a>
+      <a href="#studio" class="nav-item active" id="tab-btn-studio">
+        <span class="nav-icon">🎛️</span>
+        <span class="nav-label">Create</span>
+      </a>
+      <a href="#projects" class="nav-item" id="tab-btn-projects">
+        <span class="nav-icon">📁</span>
+        <span class="nav-label">Projects</span>
+      </a>
+      <a href="#studio" class="nav-item" id="tab-btn-assets-sidebar" data-studio-link="assets">
+        <span class="nav-icon">🖼️</span>
+        <span class="nav-label">Assets</span>
+      </a>
+      <a href="#studio" class="nav-item" id="tab-btn-specialists-sidebar" data-studio-link="specialists">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Specialists</span>
+      </a>
+      <a href="#studio" class="nav-item" id="tab-btn-pipeline-sidebar" data-studio-link="pipeline">
+        <span class="nav-icon">🔄</span>
+        <span class="nav-label">Runs</span>
+      </a>
+      <a href="#evidence" class="nav-item" id="tab-btn-evidence">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-label">QA &amp; Tests</span>
+      </a>
+      <a href="#settings" class="nav-item" id="tab-btn-settings">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="footer-badge" id="system-state">
+        <span class="dot"></span> Checking systems…
+      </div>
+      <p class="muted-small">Matterhorn v0.1.0 · Standalone</p>
+    </div>
+  </aside>
+
+  <!-- Main Workspace Surface -->
+  <main class="main-content">
+    <div id="notice" role="alert" hidden></div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         STUDIO — Control Center (Dark Studio Dashboard)
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="studio" class="page">
+      <!-- Studio Sub-Tab Bar -->
+      <div class="studio-subnav">
+        <div class="studio-tabs" role="tablist" aria-label="Studio sections">
+          <button class="studio-tab active" role="tab" aria-selected="true" data-studio-tab="create" id="tab-create">Create</button>
+          <button class="studio-tab" role="tab" aria-selected="false" data-studio-tab="pipeline" id="tab-pipeline">Pipeline</button>
+          <button class="studio-tab" role="tab" aria-selected="false" data-studio-tab="output" id="tab-output">Output</button>
+          <button class="studio-tab" role="tab" aria-selected="false" data-studio-tab="assets" id="tab-assets">Assets</button>
+          <button class="studio-tab" role="tab" aria-selected="false" data-studio-tab="specialists" id="tab-specialists">Specialists</button>
+        </div>
+      </div>
+
+      <!-- ── Create Tab (Dashboard View) ──────────────────────── -->
+      <div id="studio-create" class="studio-section">
+        <div class="dashboard-grid">
+          
+          <!-- Main Left Column: Prompt Input, Live Pipeline, Live Output -->
+          <div class="dashboard-main">
+            
+            <!-- Prompt Creation Card -->
+            <div class="card create-card">
+              <div class="card-header-compact">
+                <span class="card-tag">NEW RUN</span>
+                <h2>Describe what you want to create...</h2>
+              </div>
+              
+              <form id="run-form">
+                <div class="form-group-compact">
+                  <label>Project</label>
+                  <select id="project" required>
+                    <option value="">Choose a configured project</option>
+                  </select>
+                </div>
+
+                <div class="prompt-box-wrapper">
+                  <textarea id="goal" rows="3" required minlength="3" maxlength="8000" placeholder="Example: 'A 2D pixel art farming game with seasons, NPCs and simple combat.'"></textarea>
+                  
+                  <div class="prompt-action-bar">
+                    <div class="prompt-options">
+                      <button type="button" class="btn-ghost-sm" id="btn-attach-ref" disabled title="Reference upload is not wired to the backend yet.">📎 Attach Reference · soon</button>
+                      <button type="button" class="btn-ghost-sm" id="btn-advanced-toggle">⚙️ Advanced</button>
+                    </div>
+                    
+                    <button id="review" type="submit" class="btn-primary-gradient">
+                      Review Plan <span>✨</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Advanced options (collapsible) -->
+                <div id="advanced-options" class="advanced-panel" hidden>
+                  <label>Acceptance criteria <small>One check per line</small></label>
+                  <textarea id="criteria" rows="3" required placeholder="Godot validation passes&#10;Scenario checks pass&#10;QA checks pass"></textarea>
+                  <p class="muted-sm">Custom criteria require explicit evidence from execution service.</p>
+                </div>
+              </form>
+
+              <div id="plan-review" class="plan-review-box" hidden>
+                <h3>Execution plan ready</h3>
+                <pre id="plan-text"></pre>
+                <button id="start" type="button" class="btn-success">Start reviewed run 🚀</button>
+              </div>
+            </div>
+
+            <!-- Live Pipeline Visualizer Card -->
+            <div class="card pipeline-card">
+              <div class="card-header-compact">
+                <span class="live-dot" id="pipeline-live-dot"></span>
+                <h3>Live Pipeline</h3>
+                <span class="card-subtitle">Real-time specialist workflow</span>
+              </div>
+
+              <div class="pipeline-stepper">
+                <div class="step-card pending" id="step-node-1">
+                  <div class="step-header">
+                    <span class="step-num">1</span>
+                    <span class="step-title">Plan</span>
+                  </div>
+                  <div class="step-status">No active run</div>
+                  <div class="step-badge">--</div>
+                </div>
+                
+                <div class="step-connector"></div>
+
+                <div class="step-card pending" id="step-node-2">
+                  <div class="step-header">
+                    <span class="step-num">2</span>
+                    <span class="step-title">Assets (Foundry)</span>
+                  </div>
+                  <div class="step-status">Waiting for a routed task</div>
+                  <div class="step-badge">--</div>
+                </div>
+
+                <div class="step-connector"></div>
+
+                <div class="step-card pending" id="step-node-3">
+                  <div class="step-header">
+                    <span class="step-num">3</span>
+                    <span class="step-title">3D (Blender)</span>
+                  </div>
+                  <div class="step-status">Waiting...</div>
+                  <div class="step-badge">Pending</div>
+                </div>
+
+                <div class="step-connector"></div>
+
+                <div class="step-card pending" id="step-node-4">
+                  <div class="step-header">
+                    <span class="step-num">4</span>
+                    <span class="step-title">Build (Flyrail)</span>
+                  </div>
+                  <div class="step-status">Waiting...</div>
+                  <div class="step-badge">Pending</div>
+                </div>
+
+                <div class="step-connector"></div>
+
+                <div class="step-card pending" id="step-node-5">
+                  <div class="step-header">
+                    <span class="step-num">5</span>
+                    <span class="step-title">Test (QA)</span>
+                  </div>
+                  <div class="step-status">Waiting...</div>
+                  <div class="step-badge">Pending</div>
+                </div>
+
+                <div class="step-connector"></div>
+
+                <div class="step-card pending" id="step-node-6">
+                  <div class="step-header">
+                    <span class="step-num">6</span>
+                    <span class="step-title">Complete</span>
+                  </div>
+                  <div class="step-status">Pending</div>
+                  <div class="step-badge">--</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Output Card -->
+            <div class="card output-card">
+              <div class="card-header-compact space-between">
+                <div class="output-tab-group">
+                  <h3>Live Output</h3>
+                  <div class="output-pills">
+                    <button class="out-pill active" disabled title="Output filtering will be enabled when artifact serving is connected.">Images</button>
+                    <button class="out-pill" disabled title="Output filtering will be enabled when artifact serving is connected.">Models</button>
+                    <button class="out-pill" disabled title="Output filtering will be enabled when artifact serving is connected.">Game Preview</button>
+                    <button class="out-pill" disabled title="Output filtering will be enabled when artifact serving is connected.">Logs</button>
+                  </div>
+                </div>
+                <span class="output-status-text" id="create-output-status">No live output yet</span>
+              </div>
+
+              <div class="output-viewport-strip" id="create-output-preview">
+                <div class="empty-state">Start or select a Studio run to see evidence-backed output here.</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Sidebar Column: Project Settings & Active Project Card -->
+          <div class="dashboard-sidebar">
+            
+            <!-- Project Settings Card -->
+            <div class="card settings-summary-card">
+              <h3>Project Settings</h3>
+              <p class="muted-sm">Routing presets are visual only for now; current execution still uses the configured Godot/Flyrail project.</p>
+              
+              <div class="setting-row">
+                <span class="setting-label">Style</span>
+                <select class="select-sm" id="preset-style" disabled title="Backend routing for this setting is not connected yet.">
+                  <option value="pixel">Pixel Art</option>
+                  <option value="stylized">Stylized 3D</option>
+                  <option value="lowpoly">Low Poly</option>
+                  <option value="realistic">Realistic</option>
+                </select>
+              </div>
+
+              <div class="setting-row">
+                <span class="setting-label">Engine</span>
+                <select class="select-sm" id="preset-engine" disabled title="Backend routing for this setting is not connected yet.">
+                  <option value="godot">Godot (Flyrail)</option>
+                  <option value="unity">Unity</option>
+                  <option value="unreal">Unreal</option>
+                </select>
+              </div>
+
+              <div class="setting-row">
+                <span class="setting-label">Resolution</span>
+                <select class="select-sm" id="preset-res" disabled title="Backend routing for this setting is not connected yet.">
+                  <option value="1280x720">1280 x 720</option>
+                  <option value="1920x1080">1920 x 1080</option>
+                  <option value="800x600">800 x 600</option>
+                </select>
+              </div>
+
+              <div class="setting-row">
+                <span class="setting-label">Mode</span>
+                <select class="select-sm" id="preset-mode" disabled title="Backend routing for this setting is not connected yet.">
+                  <option value="auto">Full Game (Auto)</option>
+                  <option value="asset">Asset Only</option>
+                  <option value="slice">Scene Slice</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Active Project Overview Card -->
+            <div class="card project-overview-card">
+              <div class="card-header-compact space-between">
+                <h3>Project</h3>
+                <span class="badge-status" id="project-run-status">No active run</span>
+              </div>
+
+              <div class="project-preview-thumb">
+                <div class="thumb-placeholder-game"></div>
+              </div>
+
+              <div class="project-info-list">
+                <div class="info-item">
+                  <span class="lbl">Name</span>
+                  <span class="val highlight" id="project-run-name">—</span>
+                </div>
+                <div class="info-item">
+                  <span class="lbl">Type</span>
+                  <span class="val" id="project-run-type">—</span>
+                </div>
+                <div class="info-item">
+                  <span class="lbl">Engine</span>
+                  <span class="val" id="project-run-engine">—</span>
+                </div>
+                <div class="info-item">
+                  <span class="lbl">Style</span>
+                  <span class="val" id="project-run-style">—</span>
+                </div>
+                <div class="info-item">
+                  <span class="lbl">Started</span>
+                  <span class="val muted" id="project-run-started">—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Runs Card -->
+            <div class="card runs-history-card">
+              <div class="card-header-compact space-between">
+                <h3>Run Activity</h3>
+                <button class="btn-ghost-xs" id="refresh-runs">Refresh</button>
+              </div>
+              <div id="runs"><p class="muted-sm">No runs in this server session.</p></div>
+              <div id="active-run" aria-live="polite"></div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Pipeline Tab ────────────────────────────────────── -->
+      <div id="studio-pipeline" class="studio-section" hidden>
+        <div class="pipeline-page-grid">
+          <div class="card">
+            <h2>Scene Creation Pipeline</h2>
+            <div class="pipeline-visual-full">
+              <div class="p-step pending">
+                <div class="p-step-badge">1</div>
+                <div class="p-step-content">
+                  <strong>Plan</strong>
+                  <span class="badge-muted">Waiting</span>
+                  <p>No active run</p>
+                </div>
+              </div>
+              <div class="p-step pending">
+                <div class="p-step-badge">2</div>
+                <div class="p-step-content">
+                  <strong>Assets</strong>
+                  <span class="badge-muted">Waiting</span>
+                  <p>No routed asset task</p>
+                </div>
+              </div>
+              <div class="p-step pending">
+                <div class="p-step-badge">3</div>
+                <div class="p-step-content">
+                  <strong>3D (Optional)</strong>
+                  <span class="badge-muted">Waiting</span>
+                  <p>Models and renders</p>
+                </div>
+              </div>
+              <div class="p-step pending">
+                <div class="p-step-badge">4</div>
+                <div class="p-step-content">
+                  <strong>Build (Flyrail)</strong>
+                  <span class="badge-muted">Waiting</span>
+                  <p>Import to Godot and setup scenes</p>
+                </div>
+              </div>
+              <div class="p-step pending">
+                <div class="p-step-badge">5</div>
+                <div class="p-step-content">
+                  <strong>Test (QA)</strong>
+                  <span class="badge-muted">Waiting</span>
+                  <p>Playtest and validate</p>
+                </div>
+              </div>
+              <div class="p-step pending">
+                <div class="p-step-badge">6</div>
+                <div class="p-step-content">
+                  <strong>Complete</strong>
+                  <span class="badge-muted">Pending</span>
+                  <p>Finalize build</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pipeline-split-view">
+            <div class="card" id="pipeline-current-task">
+              <h3>Current Task</h3>
+              <p class="muted">No active pipeline. Select or start a Studio run.</p>
+            </div>
+            <div class="card" id="pipeline-results">
+              <h3>Generated Results</h3>
+              <p class="muted">Evidence-backed artifacts and previews will appear here when the backend exposes them.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Active Task Details</h3>
+            <div id="pipeline-tasks"><p class="muted">No active pipeline. Start a studio run to see specialist task flow.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Output Tab ──────────────────────────────────────── -->
+      <div id="studio-output" class="studio-section" hidden>
+        <div class="card">
+          <h2>Live output &amp; preview</h2>
+          <p class="muted" style="margin-bottom:16px">Execution output, render previews, and specialist logs appear here during active runs.</p>
+          <div class="output-area" id="output-preview">No active output. Run a Studio task to see evidence-backed results here.</div>
+        </div>
+      </div>
+
+      <!-- ── Assets Tab ──────────────────────────────────────── -->
+      <div id="studio-assets" class="studio-section" hidden>
+        <div class="assets-layout">
+          <!-- Filter Bar -->
+          <div class="asset-top-bar">
+            <div class="asset-category-pills">
+              <button class="cat-pill active" disabled>All</button>
+              <button class="cat-pill" disabled>Characters</button>
+              <button class="cat-pill" disabled>Environments</button>
+              <button class="cat-pill" disabled>Props</button>
+              <button class="cat-pill" disabled>UI</button>
+              <button class="cat-pill" disabled>3D Models</button>
+              <button class="cat-pill" disabled>Audio</button>
+            </div>
+            
+            <div class="asset-search-box">
+              <input type="text" class="search-input" placeholder="Asset catalog not connected yet" disabled>
+              <button class="icon-btn" disabled title="Asset filter settings are not connected yet.">⚙️</button>
+            </div>
+          </div>
+
+          <div class="assets-main-grid">
+            <!-- Asset Gallery Grid -->
+            <div class="asset-gallery-panel">
+              <div class="asset-cards-wrapper" id="asset-gallery">
+                <div class="empty-state">No asset catalog is connected yet. Generated assets will appear here once Foundry catalog APIs are exposed.</div>
+              </div>
+            </div>
+
+            <!-- Asset Side Inspector -->
+            <div class="asset-inspector-panel">
+              <div class="card" id="asset-inspector">
+                <h3>Asset Inspector</h3>
+                <p class="muted">Select a real generated asset after the Foundry asset-catalog endpoint is connected.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Specialists Tab ─────────────────────────────────── -->
+      <div id="studio-specialists" class="studio-section" hidden>
+        <div class="specialists-page-layout">
+          
+          <div class="specialists-top-bar card">
+            <div class="space-between">
+              <div>
+                <h2>Studio Specialists</h2>
+                <p class="muted">Manage and monitor all AI specialists in one place with real-time status.</p>
+              </div>
+              <div class="auto-mode-toggle">
+                <span>Auto Mode</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked disabled title="Automatic multi-specialist routing is not connected yet.">
+                  <span class="slider"></span>
+                </label>
+                <button class="btn-secondary-sm" id="refresh-specialists">Refresh</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic Specialist Cards Container -->
+          <div class="specialist-grid" id="specialist-list">
+            <p class="muted">Loading specialists…</p>
+          </div>
+
+          <!-- Live Activity & Preview Split Section -->
+          <div class="specialists-bottom-split">
+            <div class="card">
+              <h3>Current Project Activity</h3>
+              <div class="activity-log-table" id="specialist-activity">
+                <p class="muted">No live specialist activity yet. Start a Studio run to populate this feed.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>Live Game Preview</h3>
+              <div class="live-preview-window">
+                <div class="game-view-placeholder" id="specialist-preview"><span class="muted">No live game preview yet.</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CHAT
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="chat" class="page" hidden>
+      <div class="page-header">
+        <p class="eyebrow">THINK IT THROUGH</p>
+        <h1>Talk to Matterhorn.</h1>
+        <p class="lede">Plan and discuss changes. Use Studio to execute a reviewed Godot task.</p>
+      </div>
+      <div class="card">
+        <div id="messages" aria-live="polite"></div>
+        <form id="chat-form">
+          <label>Your message</label>
+          <textarea id="prompt" rows="4" required maxlength="12000" placeholder="Type your message to Matterhorn..."></textarea>
+          <button id="send" class="btn-primary" style="margin-top:12px">Send message →</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         PROJECTS — Workspace / File Review tools (preserved)
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="projects" class="page" hidden>
+      <div class="page-header">
+        <p class="eyebrow">YOUR WORKSPACE</p>
+        <h1>Projects</h1>
+        <p class="lede">Browse, review, validate, and apply local project changes without hiding file mutations.</p>
+      </div>
+      <div id="project-list" class="card" style="margin-bottom:20px"></div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <h2>Workspace files</h2>
+          <label>Active project
+            <select id="workspace-project">
+              <option value="">Choose a project</option>
+            </select>
+          </label>
+          <form id="workspace-search-form" style="margin-top:12px">
+            <label>Search source text
+              <input id="workspace-query" maxlength="200" required placeholder="Find a function, error, or setting">
+            </label>
+            <div style="margin-top:8px; display:flex; gap:8px;">
+              <button type="submit" class="btn-primary-sm">Search</button>
+              <button id="workspace-refresh" type="button" class="btn-secondary-sm">Browse files</button>
+            </div>
+          </form>
+          <p id="workspace-scope" class="muted-sm" style="margin-top:8px">Choose a project to browse source files.</p>
+          <div id="workspace-files" class="file-list"></div>
+        </div>
+
+        <div class="card">
+          <h2 id="workspace-file-title">Open a file</h2>
+          <label>File contents
+            <textarea id="workspace-editor" rows="14" spellcheck="false" disabled class="code-editor"></textarea>
+          </label>
+          <div class="workspace-actions" style="margin-top:8px">
+            <button id="workspace-stage" type="button" class="btn-primary-sm" disabled>Review this file</button>
+            <button id="workspace-add-change" type="button" class="btn-secondary-sm" disabled>Add to change set</button>
+          </div>
+          <hr style="border-color: var(--border-color); margin: 16px 0;">
+          <label>Ask about this file
+            <textarea id="workspace-prompt" rows="3" maxlength="8000" placeholder="Describe your change, question, or error…"></textarea>
+          </label>
+          <div class="workspace-actions" style="margin-top:8px">
+            <button data-assist="explain" disabled class="btn-ghost-xs">Explain</button>
+            <button data-assist="plan" disabled class="btn-ghost-xs">Plan change</button>
+            <button data-assist="propose" disabled class="btn-ghost-xs">Propose edit</button>
+            <button data-assist="diagnose" disabled class="btn-ghost-xs">Diagnose error</button>
+          </div>
+          <p class="muted-sm" style="margin-top:6px">Assistance sends saved file to chat provider.</p>
+          <pre id="workspace-answer" hidden class="code-block"></pre>
+        </div>
+      </div>
+
+      <div class="dashboard-grid" style="margin-top:20px">
+        <div class="card">
+          <h2>Multi-file change set</h2>
+          <p class="muted-sm">Add edits from two or more existing files. Matterhorn checks every saved version.</p>
+          <div id="workspace-change-set"></div>
+          <button id="workspace-stage-transaction" type="button" class="btn-primary-sm" disabled style="margin-top:10px">Review multi-file change set</button>
+          <h3 style="margin-top:16px">Transaction history</h3>
+          <div id="workspace-transactions"></div>
+          <div id="workspace-transaction" hidden>
+            <div id="workspace-transaction-files"></div>
+            <div id="workspace-transaction-actions" class="workspace-actions"></div>
+            <p id="workspace-transaction-status" role="status"></p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Configured validation</h2>
+          <p class="muted-sm">Only commands configured in <code>MATTERHORN_VALIDATIONS</code> can run.</p>
+          <div id="workspace-validations" class="workspace-actions"></div>
+          <pre id="workspace-validation-output" hidden class="code-block"></pre>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <h2>Single-file review center</h2>
+        <p class="muted-sm">Every edit is reviewed before applying. Backups persist across restarts.</p>
+        <div id="workspace-reviews"></div>
+        <div id="workspace-review" hidden>
+          <h3 id="workspace-review-title"></h3>
+          <div class="dashboard-grid">
+            <div><h3>Before</h3><pre id="workspace-before" class="code-block"></pre></div>
+            <div><h3>Proposed content</h3><pre id="workspace-after" class="code-block"></pre></div>
+          </div>
+          <div id="workspace-review-actions" class="workspace-actions" style="margin-top:12px"></div>
+          <p id="workspace-review-status" role="status"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         EVIDENCE
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="evidence" class="page" hidden>
+      <div class="page-header">
+        <p class="eyebrow">VERIFY THE RESULT</p>
+        <h1>Evidence</h1>
+        <p class="lede">Execution results and acceptance checks, including failures and missing proof. Every run must demonstrate its outcome.</p>
+      </div>
+      <div id="evidence-list" class="card"></div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SETTINGS
+         ═══════════════════════════════════════════════════════════ -->
+    <section id="settings" class="page" hidden>
+      <div class="page-header">
+        <p class="eyebrow">LOCAL CONNECTIONS</p>
+        <h1>Settings</h1>
+      </div>
+      <div class="card">
+        <label>Chat provider
+          <select id="provider" class="select-sm" style="width:100%; max-width:320px; margin-top:4px"></select>
+        </label>
+        <p id="provider-detail" class="muted-sm" style="margin-top:6px"></p>
+        
+        <h2 style="margin-top:20px">Execution service</h2>
+        <p id="daemon-detail"></p>
+        <button class="btn-secondary-sm" id="recheck" style="margin-top:8px">Check connection</button>
+        
+        <h2 style="margin-top:20px">Specialist health</h2>
+        <p class="muted-sm">Current registry status of each specialist system.</p>
+        <div class="settings-specialist-list" id="settings-specialists" style="margin-top:10px"></div>
+        
+        <h2 style="margin-top:20px">Project configuration</h2>
+        <p class="muted-sm">Set <code>MATTERHORN_PROJECTS</code> in the server environment to a JSON array of project IDs, names, and absolute paths.</p>
+        
+        <h2 style="margin-top:20px">Run history</h2>
+        <p class="muted-sm">Studio run/evidence metadata is stored under <code>MATTERHORN_DATA_DIR</code>.</p>
+      </div>
+    </section>
+
+    <footer class="app-footer">Matterhorn coordinates. Flyrail executes Godot work. Completion requires evidence.</footer>
+  </main>
 </div>
-<div class="workspace-grid workspace-tools">
-<div class="panel"><h2>Multi-file change set</h2><p class="muted">Add edits from two or more existing files. Matterhorn checks every saved version before writing any file.</p><div id="workspace-change-set"></div><button id="workspace-stage-transaction" type="button" disabled>Review multi-file change set</button><h3>Transaction history</h3><div id="workspace-transactions"></div><div id="workspace-transaction" hidden><div id="workspace-transaction-files"></div><div id="workspace-transaction-actions" class="workspace-actions"></div><p id="workspace-transaction-status" role="status"></p></div></div>
-<div class="panel"><h2>Configured validation</h2><p class="muted">Only commands configured in <code>MATTERHORN_VALIDATIONS</code> on the server can run. Browser input cannot supply a shell command.</p><div id="workspace-validations" class="workspace-actions"></div><pre id="workspace-validation-output" hidden></pre></div>
-</div>
-<div class="panel workspace-tools"><h2>Single-file review center</h2><p class="muted">Every edit is reviewed before applying. Backups persist across server restarts. Restore is blocked if the file changed afterward.</p><div id="workspace-reviews"></div><div id="workspace-review" hidden><h3 id="workspace-review-title"></h3><div class="workspace-grid"><div><h3>Before</h3><pre id="workspace-before"></pre></div><div><h3>Proposed content</h3><pre id="workspace-after"></pre></div></div><div id="workspace-review-actions" class="workspace-actions"></div><p id="workspace-review-status" role="status"></p></div></div></section>
-<section id="evidence" class="page" hidden><p class="eyebrow">VERIFY THE RESULT</p><h1>Evidence</h1><p class="lede">Execution results and acceptance checks, including failures and missing proof.</p><div id="evidence-list" class="panel"></div></section>
-<section id="settings" class="page" hidden><p class="eyebrow">LOCAL CONNECTIONS</p><h1>Settings</h1><div class="panel"><label>Chat provider<select id="provider"></select></label><p id="provider-detail" class="muted"></p><h2>Execution service</h2><p id="daemon-detail"></p><button class="secondary" id="recheck">Check connection</button><h2>Project configuration</h2><p>Set <code>MATTERHORN_PROJECTS</code> in the server environment to a JSON array of project IDs, names, and absolute paths. Restart Matterhorn after editing. Credentials belong in the server environment.</p><h2>Run history</h2><p>Studio run/evidence metadata is stored under <code>MATTERHORN_DATA_DIR</code>. After restart, Matterhorn queries recovered remote work read-only and blocks overlapping execution while its outcome remains uncertain; it never resubmits an uncertain mutation automatically.</p></div></section>
-<footer>Matterhorn coordinates. Flyrail executes Godot work. Completion requires evidence.</footer></main><script type="module" src="/main.js"></script></body></html>
+
+<script type="module" src="/main.js"></script>
+</body>
+</html>

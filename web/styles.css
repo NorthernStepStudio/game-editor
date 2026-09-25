@@ -1658,3 +1658,112 @@ input:disabled {
   color: var(--text-dim);
   line-height: 1;
 }
+
+
+/* ── AssetForge generation controls ───────────────────────── */
+.asset-generation-card {
+  margin-bottom: 16px;
+}
+
+.asset-generation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.asset-generation-grid.compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.asset-generation-grid label,
+.asset-generation-card > form > label,
+.asset-cost-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dimension-row,
+.budget-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dimension-row input {
+  min-width: 0;
+  flex: 1;
+}
+
+.budget-row input {
+  width: 160px;
+}
+
+.asset-cost-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px 22px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.05);
+  border-radius: var(--radius-md);
+}
+
+.asset-cost-panel[hidden] {
+  display: none;
+}
+
+.check-row {
+  flex-direction: row !important;
+  align-items: center;
+}
+
+.check-row input {
+  width: auto;
+}
+
+.asset-generate-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+}
+
+.success-text {
+  color: #34d399;
+  font-size: 12px;
+}
+
+.error-text {
+  color: #f87171;
+  font-size: 12px;
+}
+
+@media (max-width: 1000px) {
+  .asset-generation-grid,
+  .asset-generation-grid.compact {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .asset-generation-grid,
+  .asset-generation-grid.compact {
+    grid-template-columns: 1fr;
+  }
+
+  .asset-generate-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .asset-generate-actions button {
+    width: 100%;
+  }
+}

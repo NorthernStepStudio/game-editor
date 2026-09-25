@@ -64,7 +64,10 @@ export async function startNssWorkspaceAiServer(
       if (!/^(127\.0\.0\.1|localhost|\[::1\])(?::[0-9]+)?$/.test(hostHeader) || (request.headers.origin && request.headers.origin !== `http://${hostHeader}`) || request.headers['sec-fetch-site'] === 'cross-site') {
         await respondJson(response, 403, { error: "Only same-origin local requests are accepted." }); return;
       }
-      if (request.method === 'POST' && !request.headers['content-type']?.startsWith('application/json')) {
+      if (
+        ['POST', 'PUT', 'PATCH'].includes(request.method ?? '') &&
+        !request.headers['content-type']?.startsWith('application/json')
+      ) {
         await respondJson(response, 415, { error: "Content-Type must be application/json." }); return;
       }
       if (await workspaceRoutes(request, response, () => readJsonBody(request))) return;

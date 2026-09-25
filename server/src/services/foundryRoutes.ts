@@ -29,12 +29,40 @@ export async function foundryRoutes(
   request: IncomingMessage,
   response: ServerResponse,
   service: StudioService,
+  readBody: () => Promise<unknown>,
 ): Promise<boolean> {
   const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
   if (!pathname.startsWith('/api/foundry/')) return false;
 
+  if (request.method === 'GET' && pathname === '/api/foundry/providers') {
+    sendJson(response, 200, {
+      providers: service.foundryGeneration.providers(),
+    });
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/foundry/generate') {
+    const execution = await service.foundryGeneration.execute(await readBody());
+    const assets = execution.manifests.map((manifest) =>
+      service.foundryAssets.get(manifest.assetId),
+    ).filter((asset) => asset !== undefined);
+
+    sendJson(response, 201, {
+      requestId: execution.request.requestId,
+      provider: {
+        id: execution.provider.id,
+        name: execution.provider.name,
+      },
+      ...(execution.generated.cost
+        ? { cost: execution.generated.cost }
+        : {}),
+      assets,
+    });
+    return true;
+  }
+
   if (request.method !== 'GET') {
-    sendJson(response, 405, { error: 'Foundry browser routes are read-only.' });
+    sendJson(response, 405, { error: 'Foundry route does not support this method.' });
     return true;
   }
 

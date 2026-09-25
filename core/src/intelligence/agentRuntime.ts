@@ -310,6 +310,7 @@ function toolFingerprint(call: MatterhornToolCall): string {
 }
 
 function stableSerialize(value: unknown): string {
+  if (value === undefined) return "undefined";
   if (value === null || typeof value !== "object") {
     return JSON.stringify(value);
   }

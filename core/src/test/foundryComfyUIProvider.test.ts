@@ -188,9 +188,11 @@ describe("ComfyUI Local AssetForge provider", () => {
         /^[a-f0-9]{64}$/,
       );
 
-      const queuedBody = JSON.parse(
-        calls.find((call) => call.url.endsWith("/prompt"))?.body ?? "{}",
-      );
+      const queuedRequestBody = calls.find((call) =>
+        call.url.endsWith("/prompt"),
+      )?.body;
+      assert.equal(typeof queuedRequestBody, "string");
+      const queuedBody = JSON.parse(queuedRequestBody as string);
       assert.equal(
         queuedBody.prompt["1"].inputs.text,
         "A moonlit forest",

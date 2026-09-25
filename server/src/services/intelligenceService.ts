@@ -6,6 +6,8 @@ import {
   createGeminiIntelligenceProvider,
   createOllamaIntelligenceProvider,
   createOpenAIResponsesIntelligenceProvider,
+  type MatterhornAgentApprovalDecision,
+  type MatterhornAgentRunInput,
   type MatterhornAgentRunResult,
   type MatterhornModelDescriptor,
   type MatterhornModelProvider,
@@ -13,6 +15,12 @@ import {
 } from "../../../core/out/index.js";
 import type { NssWorkspaceAiServerConfig } from "../config/env.js";
 import type { StudioProject } from "./studioService.js";
+import {
+  IntelligenceSessionStore,
+  publicIntelligenceSession,
+  type IntelligenceSessionRequestSnapshot,
+  type PublicIntelligenceSession,
+} from "./intelligenceSessionStore.js";
 import { createIntelligenceWorkspaceTools } from "./intelligenceWorkspaceTools.js";
 
 const MAX_PROMPT_LENGTH = 16_000;
@@ -21,6 +29,15 @@ const SUPPORTED_ROLES = new Set<MatterhornModelRole>([
   "coding",
   "fast",
 ]);
+
+const INTELLIGENCE_SYSTEM = [
+  "You are Matterhorn, the AI development agent for Northern Step Studio.",
+  "Work only inside the selected project and only through the tools provided by Matterhorn.",
+  "Use tools when repository facts are needed. Never invent file contents or claim a tool ran when it did not.",
+  "You may stage a file edit as a review proposal only after reading the current file version. A staged proposal does not modify the source file and still requires explicit user approval in Matterhorn.",
+  "Never claim that a staged proposal was applied.",
+  "Keep the final answer concise and actionable.",
+].join(" ");
 
 export interface IntelligenceServiceOptions {
   readonly providers?: readonly MatterhornModelProvider[];
@@ -38,6 +55,9 @@ export interface IntelligenceRunRequest {
   readonly allowExternalCost?: boolean;
   readonly allowFallback?: boolean;
 }
+
+interface NormalizedIntelligenceRunRequest
+  extends IntelligenceSessionRequestSnapshot {}
 
 export interface PublicIntelligenceModel {
   readonly providerId: string;
@@ -65,6 +85,7 @@ export class IntelligenceService {
   private readonly gateway = new MatterhornModelGateway();
   private readonly runtime: MatterhornAgentRuntime;
   private readonly dataDirectory: string;
+  private readonly sessions: IntelligenceSessionStore;
 
   constructor(
     private readonly projects: readonly StudioProject[],
@@ -75,6 +96,8 @@ export class IntelligenceService {
       options.dataDirectory ??
       process.env.MATTERHORN_DATA_DIR ??
       resolve(__dirname, "../../../.matterhorn");
+    this.sessions = new IntelligenceSessionStore(this.dataDirectory);
+
     for (const provider of options.providers ?? providersFromConfig(config)) {
       this.gateway.register(provider);
     }
@@ -85,38 +108,103 @@ export class IntelligenceService {
     return this.gateway.listModels().map(publicModel);
   }
 
+  listSessions(): readonly PublicIntelligenceSession[] {
+    return this.sessions.list().map(publicIntelligenceSession);
+  }
+
+  getSession(id: string): PublicIntelligenceSession {
+    return publicIntelligenceSession(this.sessions.get(id));
+  }
+
   async run(raw: unknown): Promise<PublicIntelligenceRun> {
     const request = parseRequest(raw);
-    const project = this.projects.find(
-      (candidate) => candidate.id === request.projectId,
+    this.assertProject(request.projectId);
+    const result = await this.runtime.run(this.buildInput(request));
+    return publicRun(result);
+  }
+
+  async startSession(raw: unknown): Promise<PublicIntelligenceSession> {
+    const request = parseRequest(raw);
+    this.assertProject(request.projectId);
+    const result = await this.runtime.run(this.buildInput(request));
+    return publicIntelligenceSession(
+      this.sessions.create(request, result),
     );
-    if (!project) {
-      throw new Error("Unknown Studio project.");
+  }
+
+  async continueSession(
+    id: string,
+    raw: unknown,
+  ): Promise<PublicIntelligenceSession> {
+    const record = this.sessions.get(id);
+    if (record.status === "approval_required") {
+      throw new Error(
+        "Resolve pending tool approvals before sending another message.",
+      );
+    }
+    if (record.status !== "completed") {
+      throw new Error(
+        "Only a completed intelligence session can accept another message.",
+      );
     }
 
-    const result = await this.runtime.run({
+    const prompt = parseContinuationPrompt(raw);
+    const result = await this.runtime.resume(
+      this.buildInput(record.request),
+      record.state,
+      [],
+      [{ role: "user", content: prompt }],
+    );
+    return publicIntelligenceSession(
+      this.sessions.update(id, result),
+    );
+  }
+
+  async resolveApprovals(
+    id: string,
+    raw: unknown,
+  ): Promise<PublicIntelligenceSession> {
+    const record = this.sessions.get(id);
+    if (record.status !== "approval_required") {
+      throw new Error(
+        "This intelligence session is not waiting for approval.",
+      );
+    }
+    const decisions = parseApprovalDecisions(
+      raw,
+      record.state.pendingToolCalls.map((call) => call.id),
+    );
+    const result = await this.runtime.resume(
+      this.buildInput(record.request),
+      record.state,
+      decisions,
+    );
+    return publicIntelligenceSession(
+      this.sessions.update(id, result),
+    );
+  }
+
+  private buildInput(
+    request: IntelligenceSessionRequestSnapshot,
+  ): MatterhornAgentRunInput {
+    return {
       route: {
-        role: request.role ?? "coding",
+        role: request.role,
         requiredCapabilities: ["text", "tools"],
         ...(request.providerId
           ? { preferredProviderId: request.providerId }
           : {}),
-        ...(request.modelId ? { preferredModelId: request.modelId } : {}),
+        ...(request.modelId
+          ? { preferredModelId: request.modelId }
+          : {}),
       },
       routingPolicy: {
-        preferLocal: request.preferLocal ?? true,
-        allowNetwork: request.allowNetwork ?? false,
-        allowExternalCost: request.allowExternalCost ?? false,
-        allowFallback: request.allowFallback ?? false,
+        preferLocal: request.preferLocal,
+        allowNetwork: request.allowNetwork,
+        allowExternalCost: request.allowExternalCost,
+        allowFallback: request.allowFallback,
       },
-      system: [
-        "You are Matterhorn, the AI development agent for Northern Step Studio.",
-        "Work only inside the selected project and only through the tools provided by Matterhorn.",
-        "Use tools when repository facts are needed. Never invent file contents or claim a tool ran when it did not.",
-        "You may stage a file edit as a review proposal only after reading the current file version. A staged proposal does not modify the source file and still requires explicit user approval in Matterhorn.",
-        "Never claim that a staged proposal was applied.",
-        "Keep the final answer concise and actionable.",
-      ].join(" "),
+      system: INTELLIGENCE_SYSTEM,
       messages: [{ role: "user", content: request.prompt }],
       toolExecutor: createIntelligenceWorkspaceTools(
         this.projects,
@@ -130,18 +218,17 @@ export class IntelligenceService {
       },
       temperature: 0.2,
       maxOutputTokens: 4_096,
-    });
-
-    return {
-      status: result.status,
-      text: result.text,
-      providerId: result.state.route.providerId,
-      modelId: result.state.route.modelId,
-      turns: result.state.turns,
-      toolCalls: result.state.toolCalls,
-      usage: result.state.accumulatedUsage,
-      ...(result.error ? { error: result.error } : {}),
     };
+  }
+
+  private assertProject(projectId: string): void {
+    if (
+      !this.projects.some(
+        (candidate) => candidate.id === projectId,
+      )
+    ) {
+      throw new Error("Unknown Studio project.");
+    }
   }
 }
 
@@ -221,7 +308,9 @@ function providersFromConfig(
         providerId: "lmstudio",
         label: "LM Studio",
         modelId: mc.lmstudioModel,
-        baseUrl: mc.lmstudioBaseUrl ?? "http://127.0.0.1:1234/v1/",
+        baseUrl:
+          mc.lmstudioBaseUrl ??
+          "http://127.0.0.1:1234/v1/",
         local: true,
         requiresNetwork: false,
         externalCost: false,
@@ -234,13 +323,21 @@ function providersFromConfig(
   return providers;
 }
 
-function parseRequest(raw: unknown): IntelligenceRunRequest {
+function parseRequest(raw: unknown): NormalizedIntelligenceRunRequest {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     throw new Error("Intelligence request must be an object.");
   }
   const body = raw as Record<string, unknown>;
-  const projectId = requiredString(body.projectId, "projectId", 80);
-  const prompt = requiredString(body.prompt, "prompt", MAX_PROMPT_LENGTH);
+  const projectId = requiredString(
+    body.projectId,
+    "projectId",
+    80,
+  );
+  const prompt = requiredString(
+    body.prompt,
+    "prompt",
+    MAX_PROMPT_LENGTH,
+  );
   const role =
     body.role === undefined
       ? "coding"
@@ -249,31 +346,86 @@ function parseRequest(raw: unknown): IntelligenceRunRequest {
     throw new Error("Unsupported intelligence role.");
   }
 
+  const providerId = optionalString(
+    body.providerId,
+    "providerId",
+    80,
+  );
+  const modelId = optionalString(body.modelId, "modelId", 160);
+
   return {
     projectId,
     prompt,
     role: role as MatterhornModelRole,
-    ...(optionalString(body.providerId, "providerId", 80)
-      ? {
-          providerId: optionalString(
-            body.providerId,
-            "providerId",
-            80,
-          ),
-        }
-      : {}),
-    ...(optionalString(body.modelId, "modelId", 160)
-      ? { modelId: optionalString(body.modelId, "modelId", 160) }
-      : {}),
-    preferLocal: optionalBoolean(body.preferLocal, "preferLocal") ?? true,
+    ...(providerId ? { providerId } : {}),
+    ...(modelId ? { modelId } : {}),
+    preferLocal:
+      optionalBoolean(body.preferLocal, "preferLocal") ?? true,
     allowNetwork:
       optionalBoolean(body.allowNetwork, "allowNetwork") ?? false,
     allowExternalCost:
-      optionalBoolean(body.allowExternalCost, "allowExternalCost") ??
-      false,
+      optionalBoolean(
+        body.allowExternalCost,
+        "allowExternalCost",
+      ) ?? false,
     allowFallback:
-      optionalBoolean(body.allowFallback, "allowFallback") ?? false,
+      optionalBoolean(body.allowFallback, "allowFallback") ??
+      false,
   };
+}
+
+function parseContinuationPrompt(raw: unknown): string {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("Session message must be an object.");
+  }
+  return requiredString(
+    (raw as Record<string, unknown>).prompt,
+    "prompt",
+    MAX_PROMPT_LENGTH,
+  );
+}
+
+function parseApprovalDecisions(
+  raw: unknown,
+  pendingIds: readonly string[],
+): readonly MatterhornAgentApprovalDecision[] {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("Approval request must be an object.");
+  }
+  const value = (raw as Record<string, unknown>).decisions;
+  if (
+    !Array.isArray(value) ||
+    value.length !== pendingIds.length ||
+    value.length > 24
+  ) {
+    throw new Error(
+      "Approval decisions must cover every pending tool call exactly once.",
+    );
+  }
+
+  const pending = new Set(pendingIds);
+  const seen = new Set<string>();
+  const decisions: MatterhornAgentApprovalDecision[] = [];
+  for (const item of value) {
+    if (!item || typeof item !== "object" || Array.isArray(item)) {
+      throw new Error("Invalid approval decision.");
+    }
+    const record = item as Record<string, unknown>;
+    if (
+      typeof record.callId !== "string" ||
+      !pending.has(record.callId) ||
+      seen.has(record.callId) ||
+      typeof record.approved !== "boolean"
+    ) {
+      throw new Error("Invalid or duplicate approval decision.");
+    }
+    seen.add(record.callId);
+    decisions.push({
+      callId: record.callId,
+      approved: record.approved,
+    });
+  }
+  return decisions;
 }
 
 function requiredString(
@@ -327,5 +479,20 @@ function publicModel(
     local: model.local,
     requiresNetwork: model.requiresNetwork,
     externalCost: model.externalCost,
+  };
+}
+
+function publicRun(
+  result: MatterhornAgentRunResult,
+): PublicIntelligenceRun {
+  return {
+    status: result.status,
+    text: result.text,
+    providerId: result.state.route.providerId,
+    modelId: result.state.route.modelId,
+    turns: result.state.turns,
+    toolCalls: result.state.toolCalls,
+    usage: result.state.accumulatedUsage,
+    ...(result.error ? { error: result.error } : {}),
   };
 }

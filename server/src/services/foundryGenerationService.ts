@@ -5,6 +5,7 @@ import {
   FoundryAssetForge,
   FoundryAssetProviderRegistry,
   SPRITE_FUSION_CREDIT_CURRENCY,
+  SPRITE_FUSION_REQUEST_CREDITS,
   SPRITE_FUSION_PROVIDER_DESCRIPTOR,
   SpriteFusionAssetProvider,
   type FoundryAssetCost,
@@ -67,6 +68,7 @@ export interface FoundryProviderStatus {
   readonly operations: readonly FoundryAssetOperation[];
   readonly kinds: readonly FoundryAssetKind[];
   readonly note: string;
+  readonly estimatedCost?: FoundryAssetCost;
 }
 
 export interface FoundryGenerationServiceOptions {
@@ -149,6 +151,10 @@ export class FoundryGenerationService {
         note: spriteFusion
           ? 'Configured. Paid generation still requires an explicit per-request credit budget.'
           : 'Set SPRITE_FUSION_API_KEY on the Matterhorn server to enable this provider.',
+        estimatedCost: {
+          currency: SPRITE_FUSION_CREDIT_CURRENCY,
+          amount: SPRITE_FUSION_REQUEST_CREDITS,
+        },
       },
     ];
 

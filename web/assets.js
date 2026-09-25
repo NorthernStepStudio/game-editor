@@ -297,6 +297,48 @@ function updateGenerationControls() {
   );
 }
 
+function renderSettingsProviders() {
+  const container = document.querySelector('#settings-foundry-providers');
+  if (!container) return;
+  container.replaceChildren();
+
+  if (!providers.length) {
+    container.append(el('p', 'No Foundry providers reported by the server.', 'muted-sm'));
+    return;
+  }
+
+  for (const provider of providers) {
+    const row = el('div', undefined, 'provider-status-row');
+    const identity = el('div', undefined, 'provider-status-identity');
+    identity.append(
+      el('strong', provider.name),
+      el('span', provider.note, 'muted-sm'),
+    );
+
+    const badges = el('div', undefined, 'provider-status-badges');
+    badges.append(
+      el(
+        'span',
+        provider.available ? 'Available' : 'Setup required',
+        `badge-availability ${provider.available ? 'available' : 'planned'}`,
+      ),
+      el('span', provider.local ? 'Local' : 'Network', 'spec-tag'),
+      el('span', provider.externalCost ? 'Paid' : 'No external cost', 'spec-tag'),
+    );
+    if (provider.estimatedCost) {
+      badges.append(
+        el(
+          'span',
+          `~${provider.estimatedCost.amount} ${provider.estimatedCost.currency}/request`,
+          'spec-tag',
+        ),
+      );
+    }
+    row.append(identity, badges);
+    container.append(row);
+  }
+}
+
 function renderProviderOptions() {
   const select = document.querySelector('#asset-provider');
   if (!select) return;
@@ -325,6 +367,7 @@ export async function loadAssetProviders() {
   const response = await api('/api/foundry/providers');
   providers = Array.isArray(response.providers) ? response.providers : [];
   renderProviderOptions();
+  renderSettingsProviders();
   return providers;
 }
 

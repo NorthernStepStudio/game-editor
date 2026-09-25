@@ -69,7 +69,6 @@ export function createOpenAIResponsesIntelligenceProvider(
     roles: options.roles,
     capabilities: [
       "text",
-      "streaming",
       "tools",
       "structured_output",
       "reasoning",

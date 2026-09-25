@@ -94,6 +94,17 @@ test('standalone APIs enforce local origin, body limits and static boundaries', 
     assert.equal(providers.current, 'mock');
     assert(providers.providers.some((p) => p.id === 'mock'));
     assert(!JSON.stringify(providers).includes('apiKey'));
+    const foundryProvidersResponse = await fetch(base + '/api/foundry/providers');
+    assert.equal(foundryProvidersResponse.status, 200);
+    const foundryProvidersText = await foundryProvidersResponse.text();
+    const foundryProviders = JSON.parse(foundryProvidersText) as {
+      providers: Array<{ id: string; available: boolean; estimatedCost?: { amount: number; currency: string } }>;
+    };
+    assert(foundryProviders.providers.some((provider) => provider.id === 'sprite-fusion'));
+    assert(foundryProviders.providers.some((provider) => provider.id === 'comfyui-local'));
+    assert(!foundryProvidersText.includes('apiKey'));
+    assert(!foundryProvidersText.includes('SPRITE_FUSION_API_KEY'));
+    assert(!foundryProvidersText.includes('localPath'));
   } finally {
     await app.close();
   }

@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Matterhorn Studio Control Center — unified command surface for game creation, specialist orchestration, and evidence-based validation.">
   <title>Matterhorn Studio · Control Center</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="theme-dark">
@@ -29,8 +26,8 @@
   </div>
 
   <div class="top-specialist-pills">
-    <button class="pill-btn active" data-spec-filter="auto"><span class="pill-dot green"></span> Auto</button>
-    <button class="pill-btn" data-spec-filter="flyrail"><span>⚡</span> Flyrail (Godot)</button>
+    <button class="pill-btn active" data-spec-filter="auto" disabled title="Automatic specialist routing is not connected yet. Current Studio runs use the configured Flyrail path."><span class="pill-dot green"></span> Auto</button>
+    <button class="pill-btn" data-spec-filter="flyrail" disabled title="Current Studio runs use Flyrail. Manual specialist routing is not connected yet."><span>⚡</span> Flyrail (Godot)</button>
     <button class="pill-btn" data-spec-filter="blender" disabled title="Routing to Blender is not connected yet."><span>🎨</span> Blender</button>
     <button class="pill-btn" data-spec-filter="foundry" disabled title="Routing to Foundry (Assets) is not connected yet."><span>📦</span> Foundry (Assets)</button>
     <button class="pill-btn" data-spec-filter="audio" disabled title="Routing to Audio is not connected yet."><span>🎵</span> Audio</button>

@@ -24,7 +24,7 @@ Supported graph shapes: Godot-only -> Flyrail -> QA; 2D assets plus game work ->
 
 Review follow-up: QA accepts multiple evidence-backed passing proofs, retains all source execution IDs and evidence, and blocks or fails on blocked/failed evidence or contradictory measured values. Required outputs now match every specified kind, asset ID, label, and producer and reject empty or control-character URIs. Regression tests cover duplicate consistent proofs, contradictory proofs, missing proof, Foundry asset ID mismatch, Blender label mismatch, producer mismatch, and blank URIs.
 
-Local result for this follow-up: `npm run compile` PASS; `npm run check` PASS (205 pass, 0 fail, 3 optional Flyrail-repository skips); all 28 Flyrail adapter tests PASS. GitHub Actions are pending for this follow-up SHA.
+Local result for this follow-up: `npm run compile` PASS; `npm run check` PASS (205 pass, 0 fail, 3 optional Flyrail-repository skips); all 28 Flyrail adapter tests PASS. GitHub Actions run `36155430449` PASS on Ubuntu and Windows for exact SHA `38917bac9eaf8daab9071fe611bfa3eabb7947e9`.
 ## Delivered in this change
 
 - Canonical Matterhorn package identity, standalone README/start path and default core/server build. Optional extension retained but excluded from default workspaces.

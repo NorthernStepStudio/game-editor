@@ -17,7 +17,7 @@ At this handoff (September 25, 2026), standalone Chat/Studio/Projects/Evidence/S
 
 Current continuation order:
 
-1. Finish the multi-domain planner handoff: keep UI wiring in the active UI change, and record exact final local and GitHub CI results for this branch. Keep Foundry, Blender and QA evidence-gated.
+1. Complete Create/Pipeline UI wiring in the active UI work: derive stage state from actual tasks and show omitted stages as skipped. Keep Foundry, Blender and QA evidence-gated.
 2. Continue autonomous full-scene creation using the four-map generation/import/runtime gate as its first end-to-end proof. Keep Kenney as default until stakeholders promote Matterhorn assets; refine opt-in art from PC play feedback. Continue broader workspace migration without making VS Code a dependency.
 
 Broader workspace migrations remain tracked in `docs/WORKSPACE-MIGRATION.md`. Update this handoff and the implementation plan as milestones change, keeping the standalone direction explicit.

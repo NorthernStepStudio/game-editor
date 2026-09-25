@@ -146,10 +146,13 @@ export class MatterhornAgentRuntime {
         ),
       };
 
-      if (response.text.trim()) {
+      if (response.text.trim() || response.toolCalls.length) {
         state = appendMessage(state, {
           role: "assistant",
           content: response.text,
+          ...(response.toolCalls.length
+            ? { toolCalls: response.toolCalls }
+            : {}),
         });
       }
 

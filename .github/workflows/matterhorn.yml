@@ -2,7 +2,13 @@ name: Matterhorn standalone checks
 on:
   pull_request:
   push:
-    branches: [master, 'feat/**']
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: matterhorn-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deterministic-checks:
     strategy:
@@ -18,4 +24,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
-# Real Flyrail/Godot and visual PC acceptance are separate gates; no green skip substitutes for them.
+# Feature branches validate through their pull request so the same commit is not
+# checked twice by both push and pull_request events. Newer commits cancel stale
+# in-progress checks. Master still validates on direct pushes.
+# Real Flyrail/Godot and visual PC acceptance remain separate gates.

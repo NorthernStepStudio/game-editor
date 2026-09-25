@@ -5,6 +5,8 @@ let providers = [];
 let selectedAssetId = null;
 let activeCategory = 'all';
 let query = '';
+let routingPreferences = null;
+let providerSelectionTouched = false;
 
 const categoryTypes = {
   characters: new Set(['pixel_sprite', 'sprite_sheet', 'animation']),
@@ -230,6 +232,29 @@ function currentProvider() {
   return providers.find((provider) => provider.id === id);
 }
 
+function preferredProviderId() {
+  if (!routingPreferences) return undefined;
+  if (routingPreferences.assets && routingPreferences.assets !== 'auto') {
+    return routingPreferences.assets;
+  }
+  const available = providers.filter((provider) => provider.available);
+  if (routingPreferences.localFirst) {
+    return available.find((provider) => provider.local)?.id ?? available[0]?.id;
+  }
+  return available[0]?.id;
+}
+
+function providerBlockedByRouting(provider) {
+  if (!provider || !routingPreferences) return undefined;
+  if (provider.requiresNetwork && !routingPreferences.allowNetworkProviders) {
+    return 'Network providers are disabled in Studio routing settings.';
+  }
+  if (provider.externalCost && !routingPreferences.allowExternalCostProviders) {
+    return 'Paid providers are disabled in Studio routing settings.';
+  }
+  return undefined;
+}
+
 function labelFor(value) {
   return value.replaceAll('_', ' ').replace(/\b\w/g, (match) => match.toUpperCase());
 }
@@ -290,21 +315,47 @@ function updateGenerationControls() {
   }
   maxCost.closest('label').hidden = !provider.externalCost;
 
+  if (routingPreferences?.requireCommercialUse) {
+    commercialOnly.checked = true;
+    commercialOnly.disabled = true;
+    commercialOnly.title =
+      'Commercial-use-only is enforced by Studio routing settings.';
+  } else {
+    commercialOnly.disabled = false;
+    commercialOnly.title = '';
+  }
+
   const blockedByCommercialPolicy =
     commercialOnly.checked && !provider.commercialUseAllowed;
+  const routingBlock = providerBlockedByRouting(provider);
+
+  network.disabled = Boolean(
+    provider.requiresNetwork &&
+      routingPreferences &&
+      !routingPreferences.allowNetworkProviders,
+  );
+  approval.disabled = Boolean(
+    provider.externalCost &&
+      routingPreferences &&
+      !routingPreferences.allowExternalCostProviders,
+  );
+
   submit.disabled =
     !provider.available ||
     !provider.kinds?.length ||
     !provider.operations?.length ||
-    blockedByCommercialPolicy;
+    blockedByCommercialPolicy ||
+    Boolean(routingBlock);
   summary.textContent = provider.note;
   setGenerationStatus(
-    blockedByCommercialPolicy
-      ? 'This provider is not approved for commercial-use output. Turn off the commercial-only requirement for prototype/review generation, or configure reviewed license metadata on the server.'
-      : provider.externalCost && provider.estimatedCost
-        ? `Estimated provider cost: ${provider.estimatedCost.amount} ${provider.estimatedCost.currency}. Approval is required.`
-        : provider.note,
-    blockedByCommercialPolicy ? 'error-text' : 'muted-sm',
+    routingBlock
+      ? routingBlock
+      : blockedByCommercialPolicy
+        ? 'This provider is not approved for commercial-use output. Turn off the commercial-only requirement for prototype/review generation, or configure reviewed license metadata on the server.'
+        : provider.externalCost && provider.estimatedCost
+          ? `Estimated provider cost: ${provider.estimatedCost.amount} ${provider.estimatedCost.currency}. Per-request approval is still required.`
+          : provider.note,
+    routingBlock || blockedByCommercialPolicy ? 'error-text' : 'muted-sm',
   );
 }
 
@@ -368,11 +419,22 @@ function renderProviderOptions() {
     select.add(option);
   }
 
-  if (providers.some((provider) => provider.id === previous && provider.available)) {
+  if (
+    providerSelectionTouched &&
+    providers.some((provider) => provider.id === previous && provider.available)
+  ) {
     select.value = previous;
   } else {
-    const available = providers.filter((provider) => provider.available);
-    if (available.length === 1) select.value = available[0].id;
+    const preferred = preferredProviderId();
+    if (
+      preferred &&
+      providers.some((provider) => provider.id === preferred && provider.available)
+    ) {
+      select.value = preferred;
+    } else {
+      const available = providers.filter((provider) => provider.available);
+      if (available.length === 1) select.value = available[0].id;
+    }
   }
   updateGenerationControls();
 }
@@ -401,6 +463,11 @@ async function generateAsset(event) {
     return;
   }
 
+  const routingBlock = providerBlockedByRouting(provider);
+  if (routingBlock) {
+    setGenerationStatus(routingBlock, 'error-text');
+    return;
+  }
   if (provider.requiresNetwork && !document.querySelector('#asset-allow-network').checked) {
     setGenerationStatus('Approve network access for this provider first.', 'error-text');
     return;
@@ -486,6 +553,15 @@ export function initAssets() {
   window.addEventListener('workspace-projects', (event) => {
     populateProjectOptions(Array.isArray(event.detail) ? event.detail : []);
   });
+  window.addEventListener('studio-routing-preferences', (event) => {
+    routingPreferences = event.detail ?? null;
+    providerSelectionTouched = false;
+    const commercialOnly = document.querySelector('#asset-commercial-only');
+    if (commercialOnly && routingPreferences) {
+      commercialOnly.checked = Boolean(routingPreferences.requireCommercialUse);
+    }
+    renderProviderOptions();
+  });
 
   const search = document.querySelector('#asset-search');
   if (search) {
@@ -506,7 +582,12 @@ export function initAssets() {
   }
 
   const provider = document.querySelector('#asset-provider');
-  if (provider) provider.onchange = updateGenerationControls;
+  if (provider) {
+    provider.onchange = () => {
+      providerSelectionTouched = true;
+      updateGenerationControls();
+    };
+  }
   const commercialOnly = document.querySelector('#asset-commercial-only');
   if (commercialOnly) commercialOnly.onchange = updateGenerationControls;
 

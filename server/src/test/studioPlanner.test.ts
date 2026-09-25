@@ -15,7 +15,7 @@ import {
 import { StudioHistory } from '../services/studioHistory.js';
 import { FoundryStudioAdapter, foundryAssetOutputCriterion } from '../services/foundryStudioAdapter.js';
 import { MatterhornQaAdapter } from '../services/matterhornQaAdapter.js';
-import { createStudioPlannerPlan } from '../services/studioPlanner.js';
+import { createStudioPlannerPlan, createStudioPlannerPlanWithAssistant } from '../services/studioPlanner.js';
 import type { StudioRoutingPreferences } from '../services/studioRoutingPreferences.js';
 import type { FoundryProviderStatus } from '../services/foundryGenerationService.js';
 
@@ -132,6 +132,108 @@ test('commercial-use preference cannot be weakened by an asset request', () => {
   assert.equal(spec?.specialist, 'foundry');
   if (spec?.specialist !== 'foundry') throw new Error('Expected Foundry task spec.');
   assert.equal(spec.requireCommercialUse, true);
+});
+
+test('provider-neutral planner suggestions augment deterministic routing without changing criteria or policy', async () => {
+  let assistantRequest: Parameters<NonNullable<Parameters<typeof createStudioPlannerPlanWithAssistant>[3]>['proposePlan']>[0] | undefined;
+  const result = await createStudioPlannerPlanWithAssistant({
+    goal: 'Update my Godot game and make a pixel sprite.', project, criteria,
+  }, basePreferences, [spriteFusion, comfy], {
+    proposePlan: async request => {
+      assistantRequest = request;
+      return {
+        domains: ['assets', 'blender'],
+        assets: [{ kind: 'pixel_sprite', operation: 'generate', prompt: 'A clear test sprite.' }],
+      };
+    },
+  });
+
+  assert.equal(result.source, 'assistant-assisted');
+  assert.deepEqual(assistantRequest?.acceptanceCriteria, criteria);
+  assert.deepEqual(assistantRequest?.project, { id: project.id, name: project.name });
+  assert.equal('path' in (assistantRequest?.project ?? {}), false);
+  assert.deepEqual(result.plan.finalAcceptanceCriteria, criteria);
+  assert.deepEqual(result.plan.tasks.map(task => task.specialistId), ['foundry', 'blender-engine', 'flyrail', 'matterhorn']);
+  const foundryTask = result.plan.tasks[0]!;
+  assert.equal(foundryTask.taskSpec?.specialist, 'foundry');
+  if (foundryTask.taskSpec?.specialist !== 'foundry') throw new Error('Expected a Foundry task spec.');
+  assert.equal(foundryTask.taskSpec.allowNetwork, false);
+  assert.equal(foundryTask.taskSpec.approveExternalCost, false);
+  assert.equal(foundryTask.taskSpec.maxCost, undefined);
+  assert.equal(foundryTask.disclosure?.explicitApprovalRequired, true);
+  assert.deepEqual(result.plan.tasks.at(-1)?.dependsOn, ['foundry-assets-1', 'blender-work', 'flyrail-game-work']);
+});
+
+test('malformed or partial planner results fall back to the deterministic plan', async () => {
+  for (const proposed of [null, 'not-json', {}, { domains: ['godot'], assets: [{ kind: 'pixel_sprite' }] }]) {
+    const result = await createStudioPlannerPlanWithAssistant({ goal: 'Change gameplay in Godot.', project, criteria }, basePreferences, [], {
+      proposePlan: async () => proposed,
+    });
+    assert.equal(result.source, 'deterministic');
+    assert.equal(result.fallbackReason, 'invalid-assistant-result');
+    assert.deepEqual(result.plan.tasks.map(task => task.specialistId), ['flyrail', 'matterhorn']);
+    assert.deepEqual(result.plan.finalAcceptanceCriteria, criteria);
+  }
+});
+
+test('assistant failure deterministically falls back without blocking plan creation', async () => {
+  const result = await createStudioPlannerPlanWithAssistant({ goal: 'Change gameplay in Godot.', project, criteria }, basePreferences, [], {
+    proposePlan: async () => { throw new Error('provider-specific transport failure'); },
+  });
+  assert.equal(result.source, 'deterministic');
+  assert.equal(result.fallbackReason, 'assistant-failed');
+  assert.deepEqual(result.plan.tasks.map(task => task.specialistId), ['flyrail', 'matterhorn']);
+});
+
+test('unsupported domains and model-supplied specialist assignments are rejected to deterministic routing', async () => {
+  for (const proposed of [
+    { domains: ['audio'] },
+    { domains: ['blender'], specialists: ['unregistered-specialist'] },
+    { domains: ['godot'], tasks: [{ domain: 'godot', specialistId: 'missing' }] },
+  ]) {
+    const result = await createStudioPlannerPlanWithAssistant({ goal: 'Change gameplay in Godot.', project, criteria }, basePreferences, [], {
+      proposePlan: async () => proposed,
+    });
+    assert.equal(result.source, 'deterministic');
+    assert.equal(result.fallbackReason, 'invalid-assistant-result');
+    assert.equal(result.plan.tasks[0]?.specialistId, 'flyrail');
+  }
+});
+
+test('assistant cannot replace final acceptance criteria or weaken invalid caller criteria', async () => {
+  const changedCriteria = await createStudioPlannerPlanWithAssistant({ goal: 'Change gameplay in Godot.', project, criteria }, basePreferences, [], {
+    proposePlan: async () => ({ domains: ['godot'], finalAcceptanceCriteria: ['Looks good'] }),
+  });
+  assert.equal(changedCriteria.fallbackReason, 'invalid-assistant-result');
+  assert.deepEqual(changedCriteria.plan.finalAcceptanceCriteria, criteria);
+
+  let assistantCalled = false;
+  await assert.rejects(() => createStudioPlannerPlanWithAssistant({
+    goal: 'Change gameplay in Godot.', project, criteria: ['  '],
+  }, basePreferences, [], {
+    proposePlan: async () => { assistantCalled = true; return { domains: ['godot'] }; },
+  }), /Supply 1.20 nonempty acceptance criteria/);
+  assert.equal(assistantCalled, false);
+});
+
+test('assistant cannot override server-selected provider or request-level approval policy', async () => {
+  const result = await createStudioPlannerPlanWithAssistant({
+    goal: 'Make a pixel sprite.', project, criteria,
+  }, { ...basePreferences, assets: 'sprite-fusion' }, [spriteFusion, comfy], {
+    proposePlan: async () => ({ domains: ['assets'], assets: [{
+      kind: 'pixel_sprite', operation: 'generate', prompt: 'Sprite',
+      providerId: 'comfyui-local', allowNetwork: true, approveExternalCost: true, maxCost: { currency: 'USD', amount: 100 },
+    }] }),
+  });
+  assert.equal(result.source, 'deterministic');
+  assert.equal(result.fallbackReason, 'invalid-assistant-result');
+  const foundryTask = result.plan.tasks[0]!;
+  assert.equal(foundryTask.taskSpec?.specialist, 'foundry');
+  if (foundryTask.taskSpec?.specialist !== 'foundry') throw new Error('Expected a Foundry task spec.');
+  assert.equal(foundryTask.taskSpec.providerId, 'sprite-fusion');
+  assert.equal(foundryTask.taskSpec.allowNetwork, false);
+  assert.equal(foundryTask.taskSpec.approveExternalCost, false);
+  assert.equal(foundryTask.taskSpec.maxCost, undefined);
 });
 
 test('Foundry Studio adapter persists and verifies generated asset provenance before reporting completion', async () => {

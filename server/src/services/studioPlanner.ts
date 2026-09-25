@@ -43,6 +43,29 @@ export interface StudioPlannerRequest {
   readonly blenderTaskSpec?: unknown;
 }
 
+/**
+ * Provider-neutral request/result boundary for future Intelligence Layer
+ * planning. The assistant may suggest additional work domains and structured
+ * asset/Blender inputs; it never selects specialists, acceptance criteria,
+ * provider routing, or execution policy.
+ */
+export interface StudioPlanningAssistantRequest {
+  readonly goal: string;
+  readonly project: Pick<StudioProject, 'id' | 'name'>;
+  readonly acceptanceCriteria: readonly string[];
+  readonly deterministicDomains: readonly StudioPlanningDomain[];
+}
+
+export interface StudioPlanningAssistant {
+  proposePlan(request: StudioPlanningAssistantRequest): Promise<unknown>;
+}
+
+export interface StudioPlannerOutcome {
+  readonly plan: NssStudioPlan;
+  readonly source: 'deterministic' | 'assistant-assisted';
+  readonly fallbackReason?: 'assistant-failed' | 'invalid-assistant-result';
+}
+
 const ASSET_KINDS = new Set<FoundryAssetKind>([
   'pixel_sprite', 'sprite_sheet', 'texture', 'tile', 'tileset', 'ui_icon', 'ui_atlas',
   'concept_art', 'background', 'mesh_3d', 'material', 'rig', 'animation',
@@ -187,6 +210,101 @@ export function createStudioPlannerPlan(
   });
 
   return createStudioPlan({ id, goal, tasks, finalAcceptanceCriteria: [...request.criteria] });
+}
+
+/**
+ * Insert point for a provider-neutral structured result from
+ * core/src/intelligence. The existing deterministic planner remains the
+ * fallback and final authority for task routing, validation, and QA stages.
+ */
+export async function createStudioPlannerPlanWithAssistant(
+  request: StudioPlannerRequest,
+  preferences: StudioRoutingPreferences,
+  providers: readonly FoundryProviderStatus[],
+  assistant?: StudioPlanningAssistant,
+): Promise<StudioPlannerOutcome> {
+  const fallback = createStudioPlannerPlan(request, preferences, providers);
+  if (!assistant) return { plan: fallback, source: 'deterministic' };
+
+  let raw: unknown;
+  try {
+    raw = await assistant.proposePlan({
+      goal: request.goal,
+      project: { id: request.project.id, name: request.project.name },
+      acceptanceCriteria: [...request.criteria],
+      deterministicDomains: request.domains?.length ? [...request.domains] : [...inferDomains(request.goal)],
+    });
+  } catch {
+    return { plan: fallback, source: 'deterministic', fallbackReason: 'assistant-failed' };
+  }
+
+  try {
+    const suggestion = parseStudioPlanningSuggestion(raw);
+    // Suggestions can add a domain, never remove deterministic or caller-
+    // selected work. Final acceptance always comes from the caller's criteria.
+    const baseDomains = request.domains?.length ? request.domains : inferDomains(request.goal);
+    const domains = [...new Set([...baseDomains, ...suggestion.domains])];
+    const assets = request.assets?.length
+      ? [...request.assets]
+      : suggestion.assets;
+    const plan = createStudioPlannerPlan({
+      ...request,
+      domains,
+      ...(assets ? { assets } : {}),
+      ...(!request.blenderTaskSpec && suggestion.blenderTaskSpec !== undefined
+        ? { blenderTaskSpec: suggestion.blenderTaskSpec }
+        : {}),
+    }, preferences, providers);
+    return { plan, source: 'assistant-assisted' };
+  } catch {
+    return { plan: fallback, source: 'deterministic', fallbackReason: 'invalid-assistant-result' };
+  }
+}
+
+interface StudioPlanningSuggestion {
+  readonly domains: readonly StudioPlanningDomain[];
+  readonly assets?: readonly StudioAssetRequestInput[];
+  readonly blenderTaskSpec?: unknown;
+}
+
+function parseStudioPlanningSuggestion(value: unknown): StudioPlanningSuggestion {
+  const record = asRecord(value);
+  if (!record || Object.keys(record).some(key => !['domains', 'assets', 'blenderTaskSpec'].includes(key))) {
+    throw new Error('Assistant result must be a structured Studio planning suggestion.');
+  }
+  if (!Array.isArray(record.domains) || record.domains.length === 0 || record.domains.length > 3 ||
+      record.domains.some(domain => typeof domain !== 'string' || !['assets', 'blender', 'godot'].includes(domain))) {
+    throw new Error('Assistant result must contain supported planning domains.');
+  }
+  let assets: StudioAssetRequestInput[] | undefined;
+  if (record.assets !== undefined) {
+    if (!Array.isArray(record.assets) || record.assets.length > 16) throw new Error('Assistant assets must be an array of at most 16 entries.');
+    assets = record.assets.map((value, index) => {
+      const item = asRecord(value);
+      const allowed = ['assetId', 'kind', 'operation', 'prompt', 'parentAsset', 'referenceAssets', 'width', 'height'];
+      if (!item || Object.keys(item).some(key => !allowed.includes(key))) throw new Error(`Assistant asset ${index + 1} contains unsupported fields.`);
+      if (typeof item.kind !== 'string' || typeof item.operation !== 'string' || typeof item.prompt !== 'string' || !item.prompt.trim()) {
+        throw new Error(`Assistant asset ${index + 1} is incomplete.`);
+      }
+      // Only descriptive generation inputs cross this boundary. Provider and
+      // approval fields are server/user-owned and cannot come from the model.
+      return {
+        ...(item.assetId !== undefined ? { assetId: item.assetId } : {}),
+        kind: item.kind,
+        operation: item.operation,
+        prompt: item.prompt,
+        ...(item.parentAsset !== undefined ? { parentAsset: item.parentAsset } : {}),
+        ...(item.referenceAssets !== undefined ? { referenceAssets: item.referenceAssets } : {}),
+        ...(item.width !== undefined ? { width: item.width } : {}),
+        ...(item.height !== undefined ? { height: item.height } : {}),
+      };
+    });
+  }
+  return {
+    domains: record.domains as StudioPlanningDomain[],
+    ...(assets ? { assets } : {}),
+    ...(record.blenderTaskSpec !== undefined ? { blenderTaskSpec: record.blenderTaskSpec } : {}),
+  };
 }
 
 export function inferDomains(goal: string): readonly StudioPlanningDomain[] {

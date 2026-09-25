@@ -25,6 +25,16 @@ Supported graph shapes: Godot-only -> Flyrail -> QA; 2D assets plus game work ->
 Review follow-up: QA accepts multiple evidence-backed passing proofs, retains all source execution IDs and evidence, and blocks or fails on blocked/failed evidence or contradictory measured values. Required outputs now match every specified kind, asset ID, label, and producer and reject empty or control-character URIs. Regression tests cover duplicate consistent proofs, contradictory proofs, missing proof, Foundry asset ID mismatch, Blender label mismatch, producer mismatch, and blank URIs.
 
 Local result for this follow-up: `npm run compile` PASS; `npm run check` PASS (205 pass, 0 fail, 3 optional Flyrail-repository skips); all 28 Flyrail adapter tests PASS. GitHub Actions run `36155430449` PASS on Ubuntu and Windows for exact SHA `38917bac9eaf8daab9071fe611bfa3eabb7947e9`.
+
+## Intelligence planner integration readiness audit (September 25, 2026)
+
+Audited PR #10 at `7984b082c029c79c9a3854d58d103ab6d331165b` and PR #11 at `9b920fca805353d5af8d893dd2448e2fe375bae1`. PR #10's planner already constructs specialist-owned dependency graphs, caller-owned final criteria, server-owned Foundry policy/disclosures, and an evidence-gated Matterhorn QA stage. PR #11 exposes provider-neutral model and agent results, but no typed planner-result contract yet.
+
+Added an optional `StudioPlanningAssistant` boundary in `server/src/services/studioPlanner.ts`. Its untrusted structured suggestions can only add supported work domains and descriptive asset/Blender inputs. Deterministic routing, caller criteria, provider choice, network/cost approval, task validation, and final QA stay authoritative. Missing, malformed, partial, unsupported, or failing suggestions return the prebuilt deterministic plan. The existing Studio API remains deterministic until PR #11 explicitly wires a validated Intelligence result through this boundary.
+
+Windows verification on Node `v25.2.1`: `npm run compile` PASS; `npm run check` PASS (214 tests, 208 passed, 0 failed, 6 optional Flyrail-repository checks skipped); Flyrail adapter checks PASS (28/28). The six skips require a separately configured Flyrail repository; they are not represented as live acceptance evidence. The full check rewrote tracked Yun evidence assets, which were restored before committing. No Intelligence API, session, provider, tool, or UI files were modified.
+
+Stacking risk: PR #10 and PR #11 both edit the long `test:studio` command in root `package.json`; combine both additions when rebasing/stacking. Their other changed paths are currently disjoint. PR #11's generic agent result is not yet the planner contract, so its owner must provide a validated adapter to `StudioPlanningAssistant`; never cast raw text/tool calls into a plan.
 ## Delivered in this change
 
 - Canonical Matterhorn package identity, standalone README/start path and default core/server build. Optional extension retained but excluded from default workspaces.

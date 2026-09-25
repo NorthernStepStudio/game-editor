@@ -89,6 +89,15 @@ describe("Foundry AssetForge foundation", () => {
     assert.equal(route.selected?.id, "local-pixel");
   });
 
+  it("honors localFirst=false instead of retaining an unconditional local score bonus", () => {
+    const providers = [
+      provider(),
+      provider({ id: "a-remote-free", name: "Remote Free", local: false, priority: 1 }),
+    ];
+    assert.equal(routeFoundryAssetProvider(request(), providers, { localFirst: true }).selected?.id, "local-pixel");
+    assert.equal(routeFoundryAssetProvider(request(), providers, { localFirst: false }).selected?.id, "a-remote-free");
+  });
+
   it("rejects providers that violate policy or capability requirements", () => {
     const route = routeFoundryAssetProvider(
       request({ referenceAssets: ["style-ref"] }),

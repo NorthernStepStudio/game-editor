@@ -38,7 +38,7 @@ export function routeFoundryAssetProvider(
     const reasons: string[] = [];
     let score = provider.priority ?? 0;
 
-    if (provider.local) {
+    if (provider.local && policy.localFirst !== false) {
       score += 20;
       reasons.push("local provider");
     }

@@ -35,7 +35,7 @@ FLYRAIL_REPO_ROOT=D:/dev/Northern Step Studio/apps/flyrail
 
 The project must already contain `project.godot`. Flyrail must be running on the same machine with access to Godot and the project. The adapter discovers `.flyrail-daemon.json` from `FLYRAIL_REPO_ROOT`. You may instead configure `FLYRAIL_DAEMON_URL` and `FLYRAIL_DAEMON_TOKEN` on the server. Never put the daemon token in browser code or commit it.
 
-Studio currently creates a single reviewed Godot task from your goal. The core controller also supports multi-task dependency plans. General-purpose chat does not execute changes. Project generation, autonomous arbitrary feature implementation and visual correctness depend on Flyrail's supported capabilities and must not be inferred from this UI.
+Studio planning creates an ordered, reviewed specialist graph for supported work: Foundry for assets, Blender Engine for structured 3D tasks, Flyrail for Godot implementation, and Matterhorn for evidence aggregation. Godot work adds Flyrail and final QA; asset requests add Foundry; 3D game requests can add Blender; Blender-only work skips Flyrail. Task payloads and dependency evidence persist with Studio history. Provider selection follows server routing preferences, while per-request network and cost approvals remain off by default. Arbitrary Blender work still requires a supported fixture or a validated structured Blender task specification. The Create/Pipeline UI connection is tracked separately while its current UI work proceeds. General-purpose chat does not execute changes. Project generation, autonomous arbitrary feature implementation and visual correctness depend on Flyrail's supported capabilities and must not be inferred from this UI.
 
 ## Acceptance and evidence
 

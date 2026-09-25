@@ -320,6 +320,7 @@ export class FoundryGenerationService {
     }
 
     const routing: FoundryAssetRoutingPolicy = {
+      localFirst: preferences?.localFirst ?? true,
       allowNetwork: body.allowNetwork,
       allowExternalCost: body.approveExternalCost,
       requireCommercialUse: effectiveRequireCommercialUse,

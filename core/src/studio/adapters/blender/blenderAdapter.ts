@@ -126,6 +126,29 @@ export class BlenderAdapter implements SpecialistAdapter {
    * Crate generation is a fixture built from primitives — not the adapter itself.
    */
   resolveTaskSpec(handoff: NssStudioHandoff, taskWorkDir: string): BlenderTaskSpec {
+    const structuredSpec = handoff.taskSpec;
+    if (
+      structuredSpec?.protocol === "nss.studio-task-spec.v1" &&
+      structuredSpec.specialist === "blender-engine" &&
+      structuredSpec.action === "execute_spec"
+    ) {
+      const missingSources = (structuredSpec.sourceAssetIds ?? []).filter(
+        (assetId) => !handoff.inputArtifacts.some((artifact) => artifact.assetId === assetId),
+      );
+      if (missingSources.length > 0) {
+        throw new SpecialistError(
+          "INVALID_TASK",
+          `Blender handoff is missing Foundry asset IDs: ${missingSources.join(", ")}.`,
+        );
+      }
+      if (structuredSpec.specification) {
+        return validateBlenderTaskSpec({
+          ...structuredSpec.specification,
+          workingDirectory: taskWorkDir,
+        });
+      }
+    }
+
     const taskArtifact = handoff.inputArtifacts.find(
       (a) => a.kind === "json" || a.kind === "report" || a.label === "blender-task.json",
     );

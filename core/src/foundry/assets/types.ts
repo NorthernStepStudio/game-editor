@@ -85,6 +85,7 @@ export interface FoundryAssetProviderDescriptor {
 }
 
 export interface FoundryAssetRoutingPolicy {
+  readonly localFirst?: boolean;
   readonly requireLocal?: boolean;
   readonly allowNetwork?: boolean;
   readonly allowExternalCost?: boolean;

@@ -279,15 +279,16 @@ export class StudioExecutionEngine {
         const health = await this.read(() => adapter.health(), deadline);
         if (!health.available) {
           task.status = 'blocked';
-          task.detail = 'Execution service is unavailable. Check the daemon connection.';
+          task.detail = health.detail ?? 'Execution service is unavailable. Check the specialist connection and configuration.';
           this.save(run);
           continue;
         }
 
         const capabilities = await this.read(() => adapter.getCapabilities(), deadline);
-        if (next.requiredCapabilities?.some(capability => !capabilities.capabilities.includes(capability))) {
+        const missingCapabilities = next.requiredCapabilities?.filter(capability => !capabilities.capabilities.includes(capability)) ?? [];
+        if (missingCapabilities.length) {
           task.status = 'blocked';
-          task.detail = 'Execution service lacks required capabilities.';
+          task.detail = `Execution service lacks required capabilities: ${missingCapabilities.join(', ')}.`;
           this.save(run);
           continue;
         }
@@ -297,8 +298,18 @@ export class StudioExecutionEngine {
           return;
         }
 
-        const dependencyArtifacts = next.dependsOn.flatMap(dependency => run.tasks.find(candidate => candidate.id === dependency)?.result?.artifacts ?? []);
-        const handoff = createStudioHandoff({ ...next, id: task.executionId, inputArtifacts: [...next.inputArtifacts ?? [], ...dependencyArtifacts] });
+        const dependencyTasks = next.dependsOn
+          .map(dependency => run.tasks.find(candidate => candidate.id === dependency))
+          .filter((candidate): candidate is StudioTaskRun => candidate !== undefined);
+        const dependencyArtifacts = dependencyTasks.flatMap(candidate => candidate.result?.artifacts ?? []);
+        const dependencyResults = dependencyTasks
+          .map(candidate => candidate.result)
+          .filter((result): result is NssStudioExecutionResult => result !== undefined);
+        const handoff = createStudioHandoff(
+          { ...next, id: task.executionId, inputArtifacts: [...next.inputArtifacts ?? [], ...dependencyArtifacts] },
+          "matterhorn",
+          dependencyResults,
+        );
         task.status = 'running';
         task.startedAt = new Date().toISOString();
         this.save(run);

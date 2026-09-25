@@ -30,6 +30,8 @@ export function createStudioPlan(input: NssStudioPlanInput): NssStudioPlan {
     requiredCapabilities: task.requiredCapabilities?.map((cap) => cap.trim()),
     inputArtifacts: task.inputArtifacts,
     outputArtifacts: task.outputArtifacts,
+    taskSpec: task.taskSpec,
+    disclosure: task.disclosure,
   }));
 
   const plan: NssStudioPlan = {
@@ -134,6 +136,7 @@ export function validateStudioPlan(plan: NssStudioPlan): NssStudioPlanValidation
 export function createStudioHandoff(
   task: NssStudioTask,
   from: NssStudioSpecialistId = "matterhorn",
+  dependencyResults: NssStudioHandoff["dependencyResults"] = [],
 ): NssStudioHandoff {
   getStudioSpecialist(from);
   getStudioSpecialist(task.specialistId);
@@ -153,6 +156,8 @@ export function createStudioHandoff(
     goal: task.goal,
     acceptanceCriteria: task.acceptanceCriteria,
     inputArtifacts: task.inputArtifacts ?? [],
+    ...(task.taskSpec ? { taskSpec: task.taskSpec } : {}),
+    ...(dependencyResults.length ? { dependencyResults } : {}),
   };
 }
 

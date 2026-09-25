@@ -15,6 +15,14 @@ Phase 3H delivers the first Yun production-candidate `yun_player_base` (structur
 The production character gate refines that candidate to `yun_player_base_v2` and installs it as an **opt-in** production model (`games/yun/assets/matterhorn/yun_player_base.glb`, `YunMiniFigure` index 12 / display name `Yun`). Kenney models 0–11 remain; default `character_id = 0`. Rollback requires no asset deletion.
 Roster v1 adds three CharacterVariantSpec-generated players (`yun_player_02` Raya, `yun_player_03` Kade, `yun_player_04` Mira) at indexes 13–15 on the same contract. Archive: `artifacts/yun-character-candidate/yun_roster_v1/`.
 
+
+## Multi-domain Studio planner continuation (September 25, 2026)
+
+Branch: `feat/multidomain-studio-planner-20260925`, based on `feat/studio-routing-preferences-20260925` at `5d0fb40e248b8ab326e21713901d8f1023091124`. Scope adds a dedicated planner, a Foundry Studio adapter backed by `FoundryGenerationService` and the persisted asset store, a fail-closed Matterhorn QA adapter, structured task/handoff payloads, dependency artifact/provenance forwarding, and routing-policy enforcement. No web UI files or generated Blender/Yun outputs belong to this continuation.
+
+Supported graph shapes: Godot-only -> Flyrail -> QA; 2D assets plus game work -> Foundry -> Flyrail -> QA; 3D game work -> optional Foundry reference assets -> Blender -> Flyrail -> QA; Blender-only -> Blender -> QA. Only planned domains add stages. Arbitrary Blender work requires either a supported fixture or a validated structured Blender task spec. Planner language inference remains heuristic; callers can supply structured domains/assets to avoid that uncertainty. Visual claims and live-provider correctness remain unverified without the corresponding real execution evidence. The Create/Pipeline UI integration is being handled separately by the user.
+
+Local result: `npm run compile` PASS; `npm run check` PASS (197 pass, 0 fail, 3 optional Flyrail-repository skips); all 28 Flyrail adapter tests PASS. Planner tests PASS (12/12), Studio API tests PASS (5/5), and the API test pins Flyrail to a closed local endpoint to avoid work against a live developer daemon. GitHub Ubuntu/Windows CI is pending.
 ## Delivered in this change
 
 - Canonical Matterhorn package identity, standalone README/start path and default core/server build. Optional extension retained but excluded from default workspaces.

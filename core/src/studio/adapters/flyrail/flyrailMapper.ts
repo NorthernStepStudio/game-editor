@@ -135,7 +135,17 @@ function buildFeatureText(handoff: NssStudioHandoff): string {
     parts.push("Input artifacts:");
     for (const artifact of handoff.inputArtifacts) {
       const label = artifact.label ? ` (${artifact.label})` : "";
-      parts.push(`- [${artifact.kind}]${label} ${artifact.uri}`);
+      const assetId = artifact.assetId ? ` assetId=${artifact.assetId}` : "";
+      const provenance = artifact.provenance
+        ? ` provenance=${[
+            artifact.provenance.providerId ? `provider:${artifact.provenance.providerId}` : undefined,
+            artifact.provenance.requestId ? `request:${artifact.provenance.requestId}` : undefined,
+            artifact.provenance.contentHash ? `sha256:${artifact.provenance.contentHash}` : undefined,
+            artifact.provenance.parentAsset ? `parent:${artifact.provenance.parentAsset}` : undefined,
+            artifact.provenance.referenceAssets?.length ? `references:${artifact.provenance.referenceAssets.join(",")}` : undefined,
+          ].filter((value): value is string => Boolean(value)).join(";")}`
+        : "";
+      parts.push(`- [${artifact.kind}]${label}${assetId} ${artifact.uri}${provenance}`);
     }
   }
   if (handoff.acceptanceCriteria.length > 0) {

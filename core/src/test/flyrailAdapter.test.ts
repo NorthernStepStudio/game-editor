@@ -156,12 +156,24 @@ async function main(): Promise<void> {
   test("6. Structured task submission — handoff includes acceptance criteria in feature text", () => {
     const handoff = createTestHandoff({
       acceptanceCriteria: ["Jump height is 3 units", "Landing animation plays"],
+      inputArtifacts: [{
+        kind: "foundry-asset",
+        uri: "D:\\game\\assets\\hero.png",
+        assetId: "hero",
+        label: "hero",
+        producedBy: "foundry",
+        provenance: { requestId: "request-1", providerId: "comfyui-local", contentHash: "abc123" },
+      }],
     });
     const params = handoffToLoopRunParams(handoff, "/project");
     const text = params.text as string;
     assert(text.includes("Acceptance criteria:"));
     assert(text.includes("Jump height is 3 units"));
     assert(text.includes("Landing animation plays"));
+    assert(text.includes("assetId=hero"));
+    assert(text.includes("provider:comfyui-local"));
+    assert(text.includes("request:request-1"));
+    assert(text.includes("sha256:abc123"));
   });
 
   // ── 7. Successful result translation ────────────────────────────

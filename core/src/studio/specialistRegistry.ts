@@ -117,6 +117,20 @@ export const STUDIO_SPECIALISTS: readonly NssStudioSpecialist[] = [
       },
     ],
   },
+  {
+    id: "foundry",
+    title: "Foundry",
+    role: "Studio asset production coordinator using configured Foundry providers and provenance storage.",
+    executionMode: "executor",
+    availability: "available",
+    capabilities: [
+      {
+        id: "foundry.asset.generate",
+        domain: "art",
+        description: "Generate, edit, and register project assets through Matterhorn's Foundry services with provider policy and provenance.",
+      },
+    ],
+  },
 ];
 
 export function listStudioSpecialists(): readonly NssStudioSpecialist[] {
@@ -142,8 +156,9 @@ export function resolveDefaultStudioSpecialist(domain: NssStudioDomain): NssStud
     case "godot":
       return "flyrail";
     case "blender":
-    case "art":
       return "blender-engine";
+    case "art":
+      return "foundry";
     case "orchestration":
     case "software":
     case "qa":

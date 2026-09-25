@@ -13,14 +13,24 @@ async function readJson<T>(response: Response): Promise<T> {
 
 let testDataDir = '';
 let previousDataDir: string | undefined;
+let previousFlyrailUrl: string | undefined;
+let previousFlyrailToken: string | undefined;
 
 beforeEach(async () => {
   previousDataDir = process.env.MATTERHORN_DATA_DIR;
+  previousFlyrailUrl = process.env.FLYRAIL_DAEMON_URL;
+  previousFlyrailToken = process.env.FLYRAIL_DAEMON_TOKEN;
+  process.env.FLYRAIL_DAEMON_URL = 'ws://127.0.0.1:1';
+  delete process.env.FLYRAIL_DAEMON_TOKEN;
   testDataDir = await mkdtemp(join(tmpdir(), 'matterhorn-data-'));
   process.env.MATTERHORN_DATA_DIR = testDataDir;
 });
 
 afterEach(async () => {
+  if (previousFlyrailUrl === undefined) delete process.env.FLYRAIL_DAEMON_URL;
+  else process.env.FLYRAIL_DAEMON_URL = previousFlyrailUrl;
+  if (previousFlyrailToken === undefined) delete process.env.FLYRAIL_DAEMON_TOKEN;
+  else process.env.FLYRAIL_DAEMON_TOKEN = previousFlyrailToken;
   if (previousDataDir === undefined) delete process.env.MATTERHORN_DATA_DIR;
   else process.env.MATTERHORN_DATA_DIR = previousDataDir;
   await rm(testDataDir, { recursive: true, force: true });
@@ -240,9 +250,13 @@ test('studio plan/run APIs reject malformed bodies and support cancel + events',
         }),
       });
       assert.equal(planResponse.status, 200);
-      const plan = await readJson<{ tasks: Array<{ domain: string }> }>(planResponse);
-      assert.equal(plan.tasks.length, 1);
+      const plan = await readJson<{ tasks: Array<{ id: string; domain: string; specialistId: string; dependsOn: string[] }> }>(planResponse);
+      assert.equal(plan.tasks.length, 2);
       assert.equal(plan.tasks[0].domain, 'godot');
+      assert.equal(plan.tasks[0].specialistId, 'flyrail');
+      assert.equal(plan.tasks[1].domain, 'qa');
+      assert.equal(plan.tasks[1].specialistId, 'matterhorn');
+      assert.deepEqual(plan.tasks[1].dependsOn, [plan.tasks[0].id]);
 
       const create = await fetch(base + '/api/studio/runs', {
         method: 'POST',
@@ -274,7 +288,7 @@ test('studio plan/run APIs reject malformed bodies and support cancel + events',
       const events = await fetch(base + `/api/studio/runs/${run.id}/events`);
       assert.equal(events.status, 200);
       assert.equal(events.headers.get('content-type')?.startsWith('text/event-stream'), true);
-      events.body?.cancel();
+      await events.body?.cancel();
 
       const evidence = await readJson<{ runId: string; tasks: unknown[] }>(await fetch(base + `/api/studio/runs/${run.id}/evidence`));
       assert.equal(evidence.runId, run.id);

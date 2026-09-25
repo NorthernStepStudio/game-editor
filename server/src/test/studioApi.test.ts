@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, test } from 'node:test';
 import { getServerConfig } from '../config/env.js';
 import { startNssWorkspaceAiServer } from '../server.js';
+import { FoundryAssetStore } from '../services/foundryAssetStore.js';
 
 async function readJson<T>(response: Response): Promise<T> {
   return (await response.json()) as T;
@@ -213,6 +214,141 @@ test('studio plan/run APIs reject malformed bodies and support cancel + events',
     if (previousProjects === undefined) delete process.env.MATTERHORN_PROJECTS;
     else process.env.MATTERHORN_PROJECTS = previousProjects;
     await rm(projectRoot, { recursive: true, force: true });
+  }
+});
+
+
+test('Foundry asset browser exposes sanitized lineage and safe local previews', async () => {
+  const projectRoot = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-project-'));
+  const outsideRoot = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-outside-'));
+  const previousProjects = process.env.MATTERHORN_PROJECTS;
+  try {
+    await writeFile(join(projectRoot, 'project.godot'), '; stub\n', 'utf8');
+    const previewPath = join(projectRoot, 'hero.png');
+    const previewBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a]);
+    await writeFile(previewPath, previewBytes);
+    const outsidePath = join(outsideRoot, 'secret.png');
+    await writeFile(outsidePath, Buffer.from([1, 2, 3, 4]));
+
+    process.env.MATTERHORN_PROJECTS = JSON.stringify([
+      { id: 'demo', name: 'Demo Game', path: projectRoot },
+    ]);
+
+    const assets = new FoundryAssetStore(testDataDir);
+    assets.registerMany([
+      {
+        assetId: 'hero-base',
+        type: 'pixel_sprite',
+        operation: 'generate',
+        sourceIds: ['provider:sprite-fusion'],
+        sourceLicenseIds: ['Provider commercial license'],
+        generationProvider: 'sprite-fusion',
+        providerAssetId: 'remote-hero',
+        sourceUrl: 'https://provider.example/private?token=do-not-expose',
+        createdAt: '2026-09-25T10:00:00.000Z',
+        contentHash: 'abc123',
+        localPath: previewPath,
+        width: 32,
+        height: 32,
+      },
+      {
+        assetId: 'hero-run',
+        type: 'sprite_sheet',
+        operation: 'animate',
+        sourceIds: ['provider:sprite-fusion'],
+        sourceLicenseIds: ['Provider commercial license'],
+        generationProvider: 'sprite-fusion',
+        createdAt: '2026-09-25T10:01:00.000Z',
+        parentAsset: 'hero-base',
+        referenceAssets: ['hero-base'],
+      },
+      {
+        assetId: 'outside',
+        type: 'concept_art',
+        sourceIds: ['provider:test'],
+        createdAt: '2026-09-25T10:02:00.000Z',
+        localPath: outsidePath,
+      },
+    ]);
+
+    const app = await startNssWorkspaceAiServer(
+      { port: 0, mCore: { providerMode: 'mock', requestTimeoutMs: 1000 } },
+      { portStateFilePath: false },
+    );
+    const base = `http://127.0.0.1:${app.port}`;
+
+    try {
+      const listResponse = await fetch(base + '/api/foundry/assets');
+      assert.equal(listResponse.status, 200);
+      const listText = await listResponse.text();
+      const list = JSON.parse(listText) as {
+        assets: Array<{ assetId: string; previewUrl?: string }>;
+        count: number;
+      };
+      assert.equal(list.count, 3);
+      assert.equal(
+        list.assets.find((asset) => asset.assetId === 'hero-base')?.previewUrl,
+        '/api/foundry/assets/hero-base/preview',
+      );
+      assert.equal(
+        list.assets.find((asset) => asset.assetId === 'outside')?.previewUrl,
+        undefined,
+      );
+      assert(!listText.includes(projectRoot));
+      assert(!listText.includes(outsideRoot));
+      assert(!listText.includes('do-not-expose'));
+      assert(!listText.includes('localPath'));
+      assert(!listText.includes('sourceUrl'));
+
+      const detail = await readJson<{
+        asset: { assetId: string };
+        lineage: Array<{ assetId: string }>;
+      }>(await fetch(base + '/api/foundry/assets/hero-run'));
+      assert.equal(detail.asset.assetId, 'hero-run');
+      assert.deepEqual(
+        detail.lineage.map((asset) => asset.assetId),
+        ['hero-base', 'hero-run'],
+      );
+
+      const lineage = await readJson<{
+        lineage: Array<{ assetId: string }>;
+      }>(await fetch(base + '/api/foundry/assets/hero-run/lineage'));
+      assert.deepEqual(
+        lineage.lineage.map((asset) => asset.assetId),
+        ['hero-base', 'hero-run'],
+      );
+
+      const preview = await fetch(base + '/api/foundry/assets/hero-base/preview');
+      assert.equal(preview.status, 200);
+      assert.equal(preview.headers.get('content-type'), 'image/png');
+      assert.deepEqual(
+        [...new Uint8Array(await preview.arrayBuffer())],
+        [...previewBytes],
+      );
+
+      assert.equal(
+        (await fetch(base + '/api/foundry/assets/outside/preview')).status,
+        404,
+      );
+
+      assert.equal(
+        (
+          await fetch(base + '/api/foundry/assets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: '{}',
+          })
+        ).status,
+        405,
+      );
+    } finally {
+      await app.close();
+    }
+  } finally {
+    if (previousProjects === undefined) delete process.env.MATTERHORN_PROJECTS;
+    else process.env.MATTERHORN_PROJECTS = previousProjects;
+    await rm(projectRoot, { recursive: true, force: true });
+    await rm(outsideRoot, { recursive: true, force: true });
   }
 });
 

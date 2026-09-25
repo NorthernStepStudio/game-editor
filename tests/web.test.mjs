@@ -39,6 +39,8 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     assert.equal(document.querySelector('#agent-selector'),null);
     assert.match(document.querySelector('#connection').textContent,/mock/);
     assert.equal(document.querySelectorAll('#specialist-list .specialist-card').length,3);
+    assert.match(document.querySelector('#settings-foundry-providers').textContent,/Sprite Fusion/);
+    assert.match(document.querySelector('#settings-foundry-providers').textContent,/Paid/);
     assert.equal(document.querySelector('#asset-provider').value,'sprite-fusion');
     assert.equal(document.querySelector('#asset-cost-panel').hidden,false);
     assert.equal(document.querySelector('#asset-max-cost').value,'15');

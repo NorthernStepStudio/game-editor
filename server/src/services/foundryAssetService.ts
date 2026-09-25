@@ -31,6 +31,7 @@ export interface FoundryAssetView {
   readonly type: string;
   readonly operation?: string;
   readonly generationProvider?: string;
+  readonly model?: string;
   readonly outputIndex?: number;
   readonly parentAsset?: string;
   readonly referenceAssets?: readonly string[];
@@ -117,6 +118,7 @@ export class FoundryAssetService {
       ...(manifest.generationProvider
         ? { generationProvider: manifest.generationProvider }
         : {}),
+      ...(manifest.model ? { model: manifest.model } : {}),
       ...(manifest.outputIndex !== undefined
         ? { outputIndex: manifest.outputIndex }
         : {}),

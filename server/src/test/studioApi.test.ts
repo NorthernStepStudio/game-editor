@@ -71,7 +71,7 @@ test('standalone APIs enforce local origin, body limits and static boundaries', 
     );
     assert.deepEqual(
       specialists.map((specialist) => specialist.id),
-      ['matterhorn', 'flyrail', 'blender-engine'],
+      ['matterhorn', 'flyrail', 'blender-engine', 'foundry'],
     );
     assert(specialists.every((specialist) => specialist.availability === 'available'));
     assert(!JSON.stringify(specialists).includes('apiKey'));

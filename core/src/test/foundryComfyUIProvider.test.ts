@@ -160,6 +160,7 @@ describe("ComfyUI Local AssetForge provider", () => {
           reusePolicy: "direct",
         },
         commercialUseAllowed: true,
+        modelName: "local-model.safetensors",
       });
 
       const result = await provider.execute(
@@ -186,6 +187,11 @@ describe("ComfyUI Local AssetForge provider", () => {
       assert.match(
         String(result.metadata?.workflowHash ?? ""),
         /^[a-f0-9]{64}$/,
+      );
+      assert.equal(result.metadata?.model, "local-model.safetensors");
+      assert.equal(
+        result.outputs[0].metadata?.model,
+        "local-model.safetensors",
       );
 
       const queuedRequestBody = calls.find((call) =>

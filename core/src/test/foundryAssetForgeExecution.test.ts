@@ -107,6 +107,60 @@ describe("Foundry AssetForge execution", () => {
     );
   });
 
+  it("publishes successful executions to the persistence hook", async () => {
+    const registry = new FoundryAssetProviderRegistry();
+    registry.register({
+      descriptor: descriptor(),
+      async execute(req) {
+        return {
+          outputs: [
+            {
+              providerId: "local",
+              requestId: req.requestId,
+              outputIndex: 0,
+              contentHash: "persisted-hash",
+            },
+          ],
+        };
+      },
+    });
+
+    const seen: string[] = [];
+    const forge = new FoundryAssetForge(registry, {
+      onExecution(execution) {
+        seen.push(execution.manifests[0].assetId);
+      },
+    });
+    const result = await forge.execute(request);
+    assert.equal(result.manifests[0].assetId, "hero");
+    assert.deepEqual(seen, ["hero"]);
+  });
+
+  it("fails closed when successful output cannot be persisted", async () => {
+    const registry = new FoundryAssetProviderRegistry();
+    registry.register({
+      descriptor: descriptor(),
+      async execute(req) {
+        return {
+          outputs: [
+            {
+              providerId: "local",
+              requestId: req.requestId,
+              outputIndex: 0,
+            },
+          ],
+        };
+      },
+    });
+
+    const forge = new FoundryAssetForge(registry, {
+      onExecution() {
+        throw new Error("catalog unavailable");
+      },
+    });
+    await assert.rejects(() => forge.execute(request), /catalog unavailable/i);
+  });
+
   it("requires an explicit budget before calling a paid provider", async () => {
     let called = false;
     const paid: FoundryAssetProvider = {

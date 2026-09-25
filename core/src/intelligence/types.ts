@@ -37,6 +37,7 @@ export interface MatterhornModelMessage {
   readonly content: string;
   readonly toolCallId?: string;
   readonly name?: string;
+  readonly toolCalls?: readonly MatterhornToolCall[];
 }
 
 export interface MatterhornToolDefinition {

@@ -55,6 +55,12 @@ export interface FoundryAssetPreview {
   readonly contentHash?: string;
 }
 
+
+function publicModelLabel(value: string): string {
+  const normalized = value.replace(/\\/g, '/');
+  return (normalized.split('/').filter(Boolean).pop() ?? 'model').slice(0, 160);
+}
+
 export class FoundryAssetService {
   readonly store: FoundryAssetStore;
   private readonly allowedRoots: readonly string[];
@@ -118,7 +124,7 @@ export class FoundryAssetService {
       ...(manifest.generationProvider
         ? { generationProvider: manifest.generationProvider }
         : {}),
-      ...(manifest.model ? { model: manifest.model } : {}),
+      ...(manifest.model ? { model: publicModelLabel(manifest.model) } : {}),
       ...(manifest.outputIndex !== undefined
         ? { outputIndex: manifest.outputIndex }
         : {}),

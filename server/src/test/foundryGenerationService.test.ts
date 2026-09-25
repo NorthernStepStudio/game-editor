@@ -231,3 +231,168 @@ test('Foundry generation rejects missing project output roots before provider ex
     await rm(root, { recursive: true, force: true });
   }
 });
+
+
+test('Studio routing settings block network and paid providers before execution', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-routing-'));
+  const project = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-project-'));
+  let calls = 0;
+  try {
+    const assets = new FoundryAssetService(root, [
+      { id: 'demo', name: 'Demo', path: project },
+    ]);
+    const paid = provider(
+      {
+        id: 'sprite-fusion',
+        name: 'Sprite Fusion Test',
+        local: false,
+        requiresNetwork: true,
+        externalCost: true,
+      },
+      () => {
+        calls += 1;
+      },
+    );
+    const generation = new FoundryGenerationService(
+      [{ id: 'demo', name: 'Demo', path: project }],
+      assets,
+      {
+        providers: [paid],
+        routingPreferences: () => ({
+          version: 1,
+          game: 'auto',
+          threeD: 'auto',
+          assets: 'sprite-fusion',
+          localFirst: true,
+          requireCommercialUse: true,
+          allowNetworkProviders: false,
+          allowExternalCostProviders: false,
+          updatedAt: '2026-09-25T12:30:00.000Z',
+        }),
+      },
+    );
+
+    await assert.rejects(
+      () =>
+        generation.execute({
+          projectId: 'demo',
+          assetId: 'hero',
+          kind: 'pixel_sprite',
+          operation: 'generate',
+          providerId: 'sprite-fusion',
+          allowNetwork: true,
+          approveExternalCost: true,
+          maxCost: {
+            currency: 'SPRITE_FUSION_CREDITS',
+            amount: 15,
+          },
+        }),
+      /blocked by Studio routing settings/i,
+    );
+    assert.equal(calls, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test('Studio preferred asset provider is used when request omits providerId', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-routing-'));
+  const project = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-project-'));
+  try {
+    const assets = new FoundryAssetService(root, [
+      { id: 'demo', name: 'Demo', path: project },
+    ]);
+    const comfy = provider({
+      id: 'comfyui-local',
+      name: 'ComfyUI Local',
+      local: true,
+      requiresNetwork: false,
+      externalCost: false,
+    });
+    const generation = new FoundryGenerationService(
+      [{ id: 'demo', name: 'Demo', path: project }],
+      assets,
+      {
+        providers: [comfy],
+        routingPreferences: () => ({
+          version: 1,
+          game: 'auto',
+          threeD: 'auto',
+          assets: 'comfyui-local',
+          localFirst: true,
+          requireCommercialUse: true,
+          allowNetworkProviders: false,
+          allowExternalCostProviders: false,
+          updatedAt: '2026-09-25T12:30:00.000Z',
+        }),
+      },
+    );
+
+    const result = await generation.execute({
+      projectId: 'demo',
+      assetId: 'hero',
+      kind: 'pixel_sprite',
+      operation: 'generate',
+    });
+    assert.equal(result.provider.id, 'comfyui-local');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test('Studio commercial-use policy cannot be weakened per request', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-routing-'));
+  const project = await mkdtemp(join(tmpdir(), 'matterhorn-foundry-project-'));
+  let calls = 0;
+  try {
+    const assets = new FoundryAssetService(root, [
+      { id: 'demo', name: 'Demo', path: project },
+    ]);
+    const unreviewed = provider(
+      {
+        id: 'comfyui-local',
+        name: 'ComfyUI Local',
+        commercialUseAllowed: false,
+      },
+      () => {
+        calls += 1;
+      },
+    );
+    const generation = new FoundryGenerationService(
+      [{ id: 'demo', name: 'Demo', path: project }],
+      assets,
+      {
+        providers: [unreviewed],
+        routingPreferences: () => ({
+          version: 1,
+          game: 'auto',
+          threeD: 'auto',
+          assets: 'comfyui-local',
+          localFirst: true,
+          requireCommercialUse: true,
+          allowNetworkProviders: false,
+          allowExternalCostProviders: false,
+          updatedAt: '2026-09-25T12:30:00.000Z',
+        }),
+      },
+    );
+
+    await assert.rejects(
+      () =>
+        generation.execute({
+          projectId: 'demo',
+          assetId: 'hero',
+          kind: 'pixel_sprite',
+          operation: 'generate',
+          requireCommercialUse: false,
+        }),
+      /commercial-use/i,
+    );
+    assert.equal(calls, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+    await rm(project, { recursive: true, force: true });
+  }
+});

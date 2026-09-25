@@ -73,7 +73,7 @@ function parseStore(raw: unknown): readonly FoundryAssetManifest[] {
 
 export class FoundryAssetStore {
   private readonly path: string;
-  private readonly catalog = new FoundryAssetCatalog();
+  private catalog = new FoundryAssetCatalog();
 
   constructor(dataDirectory: string) {
     this.path = resolve(dataDirectory, 'foundry-assets', 'assets.json');
@@ -102,11 +102,18 @@ export class FoundryAssetStore {
   }
 
   registerMany(manifests: readonly FoundryAssetManifest[]): void {
-    if (this.catalog.list().length + manifests.length > MAX_ASSETS) {
+    const existing = this.catalog.list();
+    if (existing.length + manifests.length > MAX_ASSETS) {
       throw new Error('Foundry asset store retention limit reached.');
     }
-    this.catalog.registerMany(structuredClone(manifests));
-    this.persist();
+
+    const candidate = new FoundryAssetCatalog();
+    candidate.registerMany([
+      ...existing,
+      ...structuredClone(manifests),
+    ]);
+    this.persist(candidate.list());
+    this.catalog = candidate;
   }
 
   registerExecution(execution: FoundryAssetExecution): void {
@@ -124,10 +131,10 @@ export class FoundryAssetStore {
     this.catalog.registerMany(manifests);
   }
 
-  private persist(): void {
+  private persist(assets: readonly FoundryAssetManifest[]): void {
     const payload: FoundryAssetStoreFile = {
       version: STORE_VERSION,
-      assets: this.catalog.list(),
+      assets,
     };
     const serialized = JSON.stringify(payload);
     if (Buffer.byteLength(serialized, 'utf8') > MAX_STORE_BYTES) {

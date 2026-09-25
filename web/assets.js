@@ -336,6 +336,9 @@ function renderSettingsProviders() {
       el('span', provider.local ? 'Local' : 'Network', 'spec-tag'),
       el('span', provider.externalCost ? 'Paid' : 'No external cost', 'spec-tag'),
     );
+    if (provider.model) {
+      badges.append(el('span', provider.model, 'spec-tag'));
+    }
     if (provider.estimatedCost) {
       badges.append(
         el(

@@ -1,6 +1,7 @@
 import { api, el } from './api.js';
 
 let assets = [];
+let providers = [];
 let selectedAssetId = null;
 let activeCategory = 'all';
 let query = '';
@@ -39,10 +40,6 @@ function formatDate(value) {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 }
 
-function assetTitle(asset) {
-  return asset.assetId;
-}
-
 function previewNode(asset, large = false) {
   if (asset.previewUrl) {
     const img = document.createElement('img');
@@ -52,12 +49,11 @@ function previewNode(asset, large = false) {
     img.loading = 'lazy';
     return img;
   }
-  const placeholder = el(
+  return el(
     'div',
     asset.type.replaceAll('_', ' '),
     large ? 'asset-thumb asset-thumb-empty large' : 'asset-thumb asset-thumb-empty',
   );
-  return placeholder;
 }
 
 function metadataRow(label, value) {
@@ -97,7 +93,7 @@ function renderGallery() {
 
     const info = el('div', undefined, 'asset-card-info');
     info.append(
-      el('strong', assetTitle(asset)),
+      el('strong', asset.assetId),
       el(
         'span',
         [asset.type, asset.generationProvider].filter(Boolean).join(' · '),
@@ -195,18 +191,224 @@ async function selectAsset(assetId) {
           : 'No external cost recorded',
       ),
     );
-    if (asset.contentHash) {
-      meta.append(metadataRow('Content hash', asset.contentHash));
-    }
-    if (asset.parentAsset) {
-      meta.append(metadataRow('Parent', asset.parentAsset));
-    }
+    if (asset.contentHash) meta.append(metadataRow('Content hash', asset.contentHash));
+    if (asset.parentAsset) meta.append(metadataRow('Parent', asset.parentAsset));
     if (asset.referenceAssets?.length) {
       meta.append(metadataRow('References', asset.referenceAssets.join(', ')));
     }
     inspector.append(meta, renderLineage(detail.lineage ?? [], asset.assetId));
   } catch (error) {
     renderInspectorEmpty(error?.message || 'Could not load this asset.');
+  }
+}
+
+function setGenerationStatus(text, className = 'muted-sm') {
+  const status = document.querySelector('#asset-generate-status');
+  if (!status) return;
+  status.textContent = text;
+  status.className = className;
+}
+
+function populateProjectOptions(projectList) {
+  const select = document.querySelector('#asset-project');
+  if (!select) return;
+  const previous = select.value;
+  select.replaceChildren(new Option('Choose a configured project', ''));
+  for (const project of projectList) {
+    select.add(new Option(project.name, project.id));
+  }
+  if (projectList.some((project) => project.id === previous)) {
+    select.value = previous;
+  } else if (projectList.length === 1) {
+    select.value = projectList[0].id;
+  }
+}
+
+function currentProvider() {
+  const id = document.querySelector('#asset-provider')?.value;
+  return providers.find((provider) => provider.id === id);
+}
+
+function labelFor(value) {
+  return value.replaceAll('_', ' ').replace(/\b\w/g, (match) => match.toUpperCase());
+}
+
+function fillSelect(select, values) {
+  const previous = select.value;
+  select.replaceChildren();
+  for (const value of [...new Set(values)].sort()) {
+    select.add(new Option(labelFor(value), value));
+  }
+  if ([...select.options].some((option) => option.value === previous)) {
+    select.value = previous;
+  }
+}
+
+function updateGenerationControls() {
+  const provider = currentProvider();
+  const kind = document.querySelector('#asset-kind');
+  const operation = document.querySelector('#asset-operation');
+  const costPanel = document.querySelector('#asset-cost-panel');
+  const network = document.querySelector('#asset-allow-network');
+  const approval = document.querySelector('#asset-approve-cost');
+  const maxCost = document.querySelector('#asset-max-cost');
+  const currency = document.querySelector('#asset-cost-currency');
+  const submit = document.querySelector('#asset-generate-submit');
+  const summary = document.querySelector('#asset-provider-summary');
+
+  if (!provider) {
+    fillSelect(kind, []);
+    fillSelect(operation, []);
+    costPanel.hidden = true;
+    submit.disabled = true;
+    summary.textContent = 'Choose a configured provider';
+    setGenerationStatus('Choose a configured provider before generating.');
+    return;
+  }
+
+  fillSelect(kind, provider.kinds ?? []);
+  fillSelect(operation, provider.operations ?? []);
+
+  const needsGuard = provider.requiresNetwork || provider.externalCost;
+  costPanel.hidden = !needsGuard;
+  network.closest('label').hidden = !provider.requiresNetwork;
+  approval.closest('label').hidden = !provider.externalCost;
+
+  if (!provider.requiresNetwork) network.checked = false;
+  if (!provider.externalCost) approval.checked = false;
+
+  if (provider.estimatedCost) {
+    maxCost.value = String(provider.estimatedCost.amount);
+    maxCost.min = String(provider.estimatedCost.amount);
+    currency.textContent = provider.estimatedCost.currency;
+  } else {
+    maxCost.value = '';
+    maxCost.min = '0.01';
+    currency.textContent = 'budget units';
+  }
+  maxCost.closest('label').hidden = !provider.externalCost;
+
+  submit.disabled = !provider.available || !provider.kinds?.length || !provider.operations?.length;
+  summary.textContent = provider.note;
+  setGenerationStatus(
+    provider.externalCost && provider.estimatedCost
+      ? `Estimated provider cost: ${provider.estimatedCost.amount} ${provider.estimatedCost.currency}. Approval is required.`
+      : provider.note,
+  );
+}
+
+function renderProviderOptions() {
+  const select = document.querySelector('#asset-provider');
+  if (!select) return;
+  const previous = select.value;
+  select.replaceChildren(new Option('Choose provider', ''));
+
+  for (const provider of providers) {
+    const option = new Option(
+      `${provider.name}${provider.available ? '' : ' — setup required'}`,
+      provider.id,
+    );
+    option.disabled = !provider.available;
+    select.add(option);
+  }
+
+  if (providers.some((provider) => provider.id === previous && provider.available)) {
+    select.value = previous;
+  } else {
+    const available = providers.filter((provider) => provider.available);
+    if (available.length === 1) select.value = available[0].id;
+  }
+  updateGenerationControls();
+}
+
+export async function loadAssetProviders() {
+  const response = await api('/api/foundry/providers');
+  providers = Array.isArray(response.providers) ? response.providers : [];
+  renderProviderOptions();
+  return providers;
+}
+
+async function generateAsset(event) {
+  event.preventDefault();
+  const provider = currentProvider();
+  const submit = document.querySelector('#asset-generate-submit');
+  if (!provider) {
+    setGenerationStatus('Choose a configured provider.', 'error-text');
+    return;
+  }
+
+  const widthValue = document.querySelector('#asset-width').value;
+  const heightValue = document.querySelector('#asset-height').value;
+  if ((widthValue && !heightValue) || (!widthValue && heightValue)) {
+    setGenerationStatus('Width and height must be provided together.', 'error-text');
+    return;
+  }
+
+  if (provider.requiresNetwork && !document.querySelector('#asset-allow-network').checked) {
+    setGenerationStatus('Approve network access for this provider first.', 'error-text');
+    return;
+  }
+  if (provider.externalCost && !document.querySelector('#asset-approve-cost').checked) {
+    setGenerationStatus('Approve the external provider cost first.', 'error-text');
+    return;
+  }
+
+  const referenceAssets = document
+    .querySelector('#asset-references')
+    .value.split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const payload = {
+    projectId: document.querySelector('#asset-project').value,
+    assetId: document.querySelector('#asset-id').value.trim(),
+    kind: document.querySelector('#asset-kind').value,
+    operation: document.querySelector('#asset-operation').value,
+    prompt: document.querySelector('#asset-prompt').value.trim() || undefined,
+    parentAsset: document.querySelector('#asset-parent').value.trim() || undefined,
+    referenceAssets,
+    providerId: provider.id,
+    allowNetwork: provider.requiresNetwork
+      ? document.querySelector('#asset-allow-network').checked
+      : false,
+    approveExternalCost: provider.externalCost
+      ? document.querySelector('#asset-approve-cost').checked
+      : false,
+    requireCommercialUse: true,
+    ...(widthValue && heightValue
+      ? { width: Number(widthValue), height: Number(heightValue) }
+      : {}),
+    ...(provider.externalCost
+      ? {
+          maxCost: {
+            currency:
+              provider.estimatedCost?.currency ??
+              document.querySelector('#asset-cost-currency').textContent,
+            amount: Number(document.querySelector('#asset-max-cost').value),
+          },
+        }
+      : {}),
+  };
+
+  submit.disabled = true;
+  setGenerationStatus(`Generating ${payload.assetId} with ${provider.name}…`);
+  try {
+    const result = await api('/api/foundry/generate', payload);
+    await loadAssets();
+    const generated = result.assets?.[0];
+    if (generated?.assetId) await selectAsset(generated.assetId);
+    setGenerationStatus(
+      result.cost
+        ? `Generated successfully · ${result.cost.amount} ${result.cost.currency}`
+        : 'Generated successfully and added to the catalog.',
+      'success-text',
+    );
+    document.querySelector('#asset-approve-cost').checked = false;
+    document.querySelector('#asset-allow-network').checked = false;
+  } catch (error) {
+    setGenerationStatus(error?.message || 'Asset generation failed.', 'error-text');
+  } finally {
+    submit.disabled = false;
   }
 }
 
@@ -224,6 +426,10 @@ export async function loadAssets() {
 }
 
 export function initAssets() {
+  window.addEventListener('workspace-projects', (event) => {
+    populateProjectOptions(Array.isArray(event.detail) ? event.detail : []);
+  });
+
   const search = document.querySelector('#asset-search');
   if (search) {
     search.addEventListener('input', () => {
@@ -242,12 +448,18 @@ export function initAssets() {
     };
   }
 
+  const provider = document.querySelector('#asset-provider');
+  if (provider) provider.onchange = updateGenerationControls;
+
+  const form = document.querySelector('#asset-generate-form');
+  if (form) form.addEventListener('submit', generateAsset);
+
   const refresh = document.querySelector('#refresh-assets');
   if (refresh) {
     refresh.onclick = async () => {
       refresh.disabled = true;
       try {
-        await loadAssets();
+        await Promise.all([loadAssets(), loadAssetProviders()]);
         if (selectedAssetId) await selectAsset(selectedAssetId);
       } finally {
         refresh.disabled = false;
@@ -257,4 +469,5 @@ export function initAssets() {
 
   renderGallery();
   renderInspectorEmpty();
+  updateGenerationControls();
 }

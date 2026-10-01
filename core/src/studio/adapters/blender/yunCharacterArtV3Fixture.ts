@@ -80,16 +80,16 @@ function addHair(
       name: "Mesh_Hair",
       primitive: "uv_sphere",
       radius: 0.15 * hs,
-      location: [0, -0.012, z(h, 1.65)],
-      scale: [1.0, 0.9, 0.52],
+      location: [0, -0.012, z(h, 1.685)],
+      scale: [1.0, 0.9, 0.34],
     });
     add({
       op: "mesh.create_tapered_box",
       name: "Mesh_CapBrim",
-      location: [0, 0.135, z(h, 1.65)],
-      height: 0.025,
-      topSize: [0.17 * hs, 0.10],
-      bottomSize: [0.19 * hs, 0.12],
+      location: [0, 0.13, z(h, 1.665)],
+      height: 0.022,
+      topSize: [0.17 * hs, 0.085],
+      bottomSize: [0.19 * hs, 0.105],
       rotationEulerDeg: [0, 0, 0],
     });
     return;
@@ -199,9 +199,9 @@ export function buildYunCharacterArtV3Operations(spec: YunCharacterVariantSpec):
   const hs = Math.min(spec.headScale, 1.05);
   const prefix = `${spec.assetId}_v3`;
 
-  const shoulderX = 0.24 * body;
-  const elbowX = 0.34 * body;
-  const wristX = 0.39 * body;
+  const shoulderX = 0.205 * body;
+  const elbowX = 0.315 * body;
+  const wristX = 0.375 * body;
   const legX = 0.12 * body;
 
   const shoulderL: BlenderVec3 = [shoulderX, 0.015, z(h, 1.28)];
@@ -270,6 +270,8 @@ export function buildYunCharacterArtV3Operations(spec: YunCharacterVariantSpec):
     bottomSize: [0.29 * body, 0.20 * depth],
   }, "MAT_Shorts");
 
+  add({ op: "mesh.create_tapered_segment", name: "Mesh_Jersey_Collar", start: [0, 0.014, z(h, 1.31)], end: [0, 0.014, z(h, 1.355)], radiusStart: 0.112, radiusEnd: 0.092, sides: 12 }, "MAT_Accent");
+
   // Arms follow the actual shoulder→elbow→wrist vectors instead of vertical cylinders.
   const sleeved = spec.jerseyStyle === "sleeved";
   const sleevePointL: BlenderVec3 = [
@@ -288,17 +290,21 @@ export function buildYunCharacterArtV3Operations(spec: YunCharacterVariantSpec):
     add({ op: "mesh.create_tapered_segment", name: "Mesh_UpperArm_L", start: shoulderL, end: elbowL, radiusStart: 0.064 * lt, radiusEnd: 0.050 * lt, sides: 10 }, "MAT_Skin");
     add({ op: "mesh.create_tapered_segment", name: "Mesh_UpperArm_R", start: shoulderR, end: elbowR, radiusStart: 0.064 * lt, radiusEnd: 0.050 * lt, sides: 10 }, "MAT_Skin");
   }
-  add({ op: "mesh.create_tapered_segment", name: "Mesh_ForeArm_L", start: elbowL, end: wristL, radiusStart: 0.050 * lt, radiusEnd: 0.037 * lt, sides: 10 }, "MAT_Skin");
-  add({ op: "mesh.create_tapered_segment", name: "Mesh_ForeArm_R", start: elbowR, end: wristR, radiusStart: 0.050 * lt, radiusEnd: 0.037 * lt, sides: 10 }, "MAT_Skin");
+  const elbowOverlapL: BlenderVec3 = [elbowL[0] + (wristL[0] - elbowL[0]) * 0.12, elbowL[1] + (wristL[1] - elbowL[1]) * 0.12, elbowL[2] + (wristL[2] - elbowL[2]) * 0.12];
+  const elbowOverlapR: BlenderVec3 = [-elbowOverlapL[0], elbowOverlapL[1], elbowOverlapL[2]];
+  add({ op: "mesh.create_tapered_segment", name: "Mesh_ForeArm_L", start: elbowOverlapL, end: wristL, radiusStart: 0.052 * lt, radiusEnd: 0.037 * lt, sides: 10 }, "MAT_Skin");
+  add({ op: "mesh.create_tapered_segment", name: "Mesh_ForeArm_R", start: elbowOverlapR, end: wristR, radiusStart: 0.052 * lt, radiusEnd: 0.037 * lt, sides: 10 }, "MAT_Skin");
 
-  add({ op: "mesh.create_primitive", name: "Mesh_Hand_L", primitive: "uv_sphere", radius: 0.055 * lt, location: [wristL[0] + 0.012, wristL[1] + 0.025, wristL[2] - z(h, 0.055)], scale: [0.72, 0.52, 1.05] }, "MAT_Skin");
-  add({ op: "mesh.create_primitive", name: "Mesh_Hand_R", primitive: "uv_sphere", radius: 0.055 * lt, location: [wristR[0] - 0.012, wristR[1] + 0.025, wristR[2] - z(h, 0.055)], scale: [0.72, 0.52, 1.05] }, "MAT_Skin");
+  add({ op: "mesh.create_tapered_segment", name: "Mesh_Hand_L", start: [wristL[0] + 0.008, wristL[1] + 0.02, wristL[2] - 0.005], end: [wristL[0] + 0.018, wristL[1] + 0.035, wristL[2] - z(h, 0.105)], radiusStart: 0.034 * lt, radiusEnd: 0.024 * lt, sides: 8 }, "MAT_Skin");
+  add({ op: "mesh.create_tapered_segment", name: "Mesh_Hand_R", start: [wristR[0] - 0.008, wristR[1] + 0.02, wristR[2] - 0.005], end: [wristR[0] - 0.018, wristR[1] + 0.035, wristR[2] - z(h, 0.105)], radiusStart: 0.034 * lt, radiusEnd: 0.024 * lt, sides: 8 }, "MAT_Skin");
 
   // Legs taper naturally, eliminating knee-ball segmentation.
   add({ op: "mesh.create_tapered_segment", name: "Mesh_Thigh_L", start: hipL, end: kneeL, radiusStart: 0.082 * lt, radiusEnd: 0.064 * lt, sides: 10 }, "MAT_Shorts");
   add({ op: "mesh.create_tapered_segment", name: "Mesh_Thigh_R", start: hipR, end: kneeR, radiusStart: 0.082 * lt, radiusEnd: 0.064 * lt, sides: 10 }, "MAT_Shorts");
-  add({ op: "mesh.create_tapered_segment", name: "Mesh_Shin_L", start: kneeL, end: ankleL, radiusStart: 0.059 * lt, radiusEnd: 0.042 * lt, sides: 10 }, "MAT_Skin");
-  add({ op: "mesh.create_tapered_segment", name: "Mesh_Shin_R", start: kneeR, end: ankleR, radiusStart: 0.059 * lt, radiusEnd: 0.042 * lt, sides: 10 }, "MAT_Skin");
+  const kneeOverlapL: BlenderVec3 = [kneeL[0], kneeL[1], kneeL[2] + z(h, 0.025)];
+  const kneeOverlapR: BlenderVec3 = [-kneeOverlapL[0], kneeOverlapL[1], kneeOverlapL[2]];
+  add({ op: "mesh.create_tapered_segment", name: "Mesh_Shin_L", start: kneeOverlapL, end: ankleL, radiusStart: 0.061 * lt, radiusEnd: 0.042 * lt, sides: 10 }, "MAT_Skin");
+  add({ op: "mesh.create_tapered_segment", name: "Mesh_Shin_R", start: kneeOverlapR, end: ankleR, radiusStart: 0.061 * lt, radiusEnd: 0.042 * lt, sides: 10 }, "MAT_Skin");
 
   add({
     op: "mesh.create_tapered_box",
@@ -316,25 +322,29 @@ export function buildYunCharacterArtV3Operations(spec: YunCharacterVariantSpec):
     topSize: [0.135 * lt, 0.245],
     bottomSize: [0.145 * lt, 0.29],
   }, "MAT_Shoes");
+  add({ op: "mesh.create_tapered_box", name: "Mesh_Sole_L", location: [legX, 0.145, z(h, 0.025)], height: z(h, 0.035), topSize: [0.145 * lt, 0.28], bottomSize: [0.15 * lt, 0.30] }, "MAT_Accent");
+  add({ op: "mesh.create_tapered_box", name: "Mesh_Sole_R", location: [-legX, 0.145, z(h, 0.025)], height: z(h, 0.035), topSize: [0.145 * lt, 0.28], bottomSize: [0.15 * lt, 0.30] }, "MAT_Accent");
 
   // Small face features: readable close-up, not oversized balls at gameplay distance.
-  add({ op: "mesh.create_primitive", name: "Mesh_Eye_L", primitive: "uv_sphere", radius: 0.015 * hs, location: [0.048 * hs, 0.127, z(h, 1.605)], scale: [1.0, 0.42, 0.72] }, "MAT_Eyes");
-  add({ op: "mesh.create_primitive", name: "Mesh_Eye_R", primitive: "uv_sphere", radius: 0.015 * hs, location: [-0.048 * hs, 0.127, z(h, 1.605)], scale: [1.0, 0.42, 0.72] }, "MAT_Eyes");
+  add({ op: "mesh.create_primitive", name: "Mesh_Eye_L", primitive: "uv_sphere", radius: 0.018 * hs, location: [0.048 * hs, 0.136, z(h, 1.62)], scale: [1.0, 0.42, 0.72] }, "MAT_Eyes");
+  add({ op: "mesh.create_primitive", name: "Mesh_Eye_R", primitive: "uv_sphere", radius: 0.018 * hs, location: [-0.048 * hs, 0.136, z(h, 1.62)], scale: [1.0, 0.42, 0.72] }, "MAT_Eyes");
   add({ op: "mesh.create_tapered_box", name: "Mesh_Nose", location: [0, 0.137, z(h, 1.565)], height: 0.05 * h, topSize: [0.026, 0.024], bottomSize: [0.034, 0.03] }, "MAT_Skin");
 
   if (spec.browIndication) {
-    add({ op: "mesh.create_tapered_box", name: "Mesh_Brow_L", location: [0.048 * hs, 0.135, z(h, 1.635)], height: 0.012, topSize: [0.055, 0.012], bottomSize: [0.055, 0.012], rotationEulerDeg: [0, 0, -6] }, "MAT_Hair");
-    add({ op: "mesh.create_tapered_box", name: "Mesh_Brow_R", location: [-0.048 * hs, 0.135, z(h, 1.635)], height: 0.012, topSize: [0.055, 0.012], bottomSize: [0.055, 0.012], rotationEulerDeg: [0, 0, 6] }, "MAT_Hair");
+    add({ op: "mesh.create_tapered_box", name: "Mesh_Brow_L", location: [0.048 * hs, 0.135, z(h, 1.65)], height: 0.012, topSize: [0.055, 0.012], bottomSize: [0.055, 0.012], rotationEulerDeg: [0, 0, -6] }, "MAT_Hair");
+    add({ op: "mesh.create_tapered_box", name: "Mesh_Brow_R", location: [-0.048 * hs, 0.135, z(h, 1.65)], height: 0.012, topSize: [0.055, 0.012], bottomSize: [0.055, 0.012], rotationEulerDeg: [0, 0, 6] }, "MAT_Hair");
   }
 
   addHair(ops, meshes, spec, h, hs);
 
   // Light bevel only on major clothing/foot volumes before joining.
   ops.push(
-    { op: "mesh.bevel", target: "Mesh_Torso", width: 0.022, segments: 2 },
+    { op: "mesh.bevel", target: "Mesh_Torso", width: 0.035, segments: 3 },
     { op: "mesh.bevel", target: "Mesh_Pelvis", width: 0.018, segments: 2 },
-    { op: "mesh.bevel", target: "Mesh_Foot_L", width: 0.012, segments: 2 },
-    { op: "mesh.bevel", target: "Mesh_Foot_R", width: 0.012, segments: 2 },
+    { op: "mesh.bevel", target: "Mesh_Foot_L", width: 0.022, segments: 3 },
+    { op: "mesh.bevel", target: "Mesh_Foot_R", width: 0.022, segments: 3 },
+    { op: "mesh.bevel", target: "Mesh_Sole_L", width: 0.007, segments: 1 },
+    { op: "mesh.bevel", target: "Mesh_Sole_R", width: 0.007, segments: 1 },
   );
 
   // One deformable mesh means one skinning pass instead of auto-weighting ~30 disconnected objects.
@@ -371,12 +381,14 @@ export function buildYunCharacterArtV3Operations(spec: YunCharacterVariantSpec):
   appendV3Locomotion(ops);
 
   ops.push(
+    { op: "animation.activate_action", armature: "Armature", action: "idle", frame: 1 },
+    { op: "world.set_background", color: [0.18, 0.21, 0.26, 1], strength: 0.55 },
     { op: "light.create", name: "Light_Key", type: "SUN", location: [4, -4, 6], energy: 3.2, rotationEulerDeg: [45, 12, 40] },
     { op: "light.create", name: "Light_Fill", type: "AREA", location: [-2.4, 2.6, 2.2], energy: 35 },
-    { op: "camera.create", name: "Camera_Main", location: [2.4, -3.2, 1.55 * h], rotationEulerDeg: [70, 0, 38], setActive: true },
+    { op: "camera.create", name: "Camera_Main", location: [2.4, 3.2, 2.6], target: [0, 0, 0.88 * h], setActive: true },
     { op: "file.save_blend", outputName: `${prefix}.blend` },
     { op: "render.preview", outputName: `${prefix}-preview.png`, width: 800, height: 800 },
-    { op: "render.multi_view", outputPrefix: prefix, views: ["front", "side", "back", "three_quarter"], width: 720, height: 720 },
+    { op: "render.multi_view", outputPrefix: prefix, target: [0, 0, 0.88 * h], views: ["front", "side", "back", "three_quarter"], width: 720, height: 720 },
     { op: "export.character_glb", outputName: `${prefix}.glb` },
     { op: "animation.inspect" },
     { op: "character.inspect" },

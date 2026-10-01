@@ -28,6 +28,7 @@ export const BLENDER_OPERATION_KINDS = [
   "rig.assign_weights",
   "animation.create_action",
   "animation.insert_keyframe",
+  "animation.activate_action",
   "animation.inspect",
   "character.inspect",
   "export.character_glb",
@@ -139,6 +140,7 @@ export interface CameraCreateOp extends BlenderOperationBase {
   readonly name?: string;
   readonly location?: BlenderVec3;
   readonly rotationEulerDeg?: BlenderVec3;
+  readonly target?: BlenderVec3;
   readonly setActive?: boolean;
 }
 
@@ -231,6 +233,13 @@ export interface AnimationInsertKeyframeOp extends BlenderOperationBase {
   readonly rotationEulerDeg?: BlenderVec3;
 }
 
+export interface AnimationActivateActionOp extends BlenderOperationBase {
+  readonly op: "animation.activate_action";
+  readonly armature: string;
+  readonly action: string;
+  readonly frame?: number;
+}
+
 export interface AnimationInspectOp extends BlenderOperationBase {
   readonly op: "animation.inspect";
 }
@@ -269,6 +278,7 @@ export type BlenderOperation =
   | RigAssignWeightsOp
   | AnimationCreateActionOp
   | AnimationInsertKeyframeOp
+  | AnimationActivateActionOp
   | AnimationInspectOp
   | CharacterInspectOp
   | ExportCharacterGlbOp;
@@ -331,6 +341,7 @@ export function operationToCapability(op: BlenderOperationKind): string {
       return "blender.rig.skin";
     case "animation.create_action":
     case "animation.insert_keyframe":
+    case "animation.activate_action":
       return "blender.animation.create";
     case "animation.inspect":
       return "blender.animation.inspect";

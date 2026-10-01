@@ -223,7 +223,7 @@ completed.append("material.assign:${op.target}")
 bpy.ops.object.camera_add(location=${pyTuple(op.location ?? [3.2, -3.2, 2.6])})
 cam = bpy.context.active_object
 cam.name = ${pyStr(op.name ?? "Camera_Main")}
-${op.rotationEulerDeg ? `cam.rotation_euler = tuple(math.radians(v) for v in ${pyTuple(op.rotationEulerDeg)})` : "cam.rotation_euler = (math.radians(60), 0, math.radians(45))"}
+${op.target ? `cam.rotation_euler = (Vector(${pyTuple(op.target)}) - cam.location).to_track_quat('-Z', 'Y').to_euler()` : op.rotationEulerDeg ? `cam.rotation_euler = tuple(math.radians(v) for v in ${pyTuple(op.rotationEulerDeg)})` : "cam.rotation_euler = (math.radians(60), 0, math.radians(45))"}
 ${op.setActive !== false ? "bpy.context.scene.camera = cam" : ""}
 objects[cam.name] = cam
 completed.append("camera.create")
@@ -266,6 +266,25 @@ completed.append("render.preview:${op.outputName}")
       };
       const viewBlocks = views
         .map((view) => {
+          if (op.target && ["front", "side", "back", "three_quarter"].includes(view)) {
+            const center = op.target;
+            const location: readonly [number, number, number] =
+              view === "front" ? [center[0], center[1] + 4.8, center[2] + 0.08] :
+              view === "side" ? [center[0] + 4.8, center[1], center[2] + 0.08] :
+              view === "back" ? [center[0], center[1] - 4.8, center[2] + 0.08] :
+              [center[0] + 3.3, center[1] + 4.0, center[2] + 2.0];
+            const file = view === "three_quarter" ? `${op.outputPrefix}-three-quarter.png` : `${op.outputPrefix}-${view}.png`;
+            return `
+cam.location = ${pyTuple(location)}
+cam.rotation_euler = (Vector(${pyTuple(center)}) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+out_path = os.path.join(WORK_DIR, ${pyStr(file)})
+assert_under_work(out_path)
+scene.render.filepath = out_path
+bpy.ops.render.render(write_still=True)
+artifacts[${pyStr(file)}] = out_path
+previews.append(out_path)
+`;
+          }
           if (op.target && targetedOffsets[view]) {
             const offset = targetedOffsets[view];
             const center = targetedCenters[view] ?? op.target;
@@ -459,6 +478,25 @@ pbone.keyframe_insert(data_path="location", frame=${op.frame})
 pbone.keyframe_insert(data_path="rotation_euler", frame=${op.frame})
 bpy.ops.object.mode_set(mode="OBJECT")
 completed.append("animation.insert_keyframe:${op.action}:${op.bone}:${op.frame}")
+`;
+    case "animation.activate_action":
+      return `
+# op[${index}] animation.activate_action
+arm = armatures.get(${pyStr(op.armature)}) or bpy.data.objects.get(${pyStr(op.armature)})
+action = actions.get(${pyStr(op.action)}) or bpy.data.actions.get(${pyStr(op.action)})
+if arm is None or action is None:
+    raise RuntimeError("animation.activate_action missing armature/action")
+if arm.animation_data is None:
+    arm.animation_data_create()
+arm.animation_data.action = action
+for pbone in arm.pose.bones:
+    pbone.location = (0.0, 0.0, 0.0)
+    pbone.rotation_mode = "XYZ"
+    pbone.rotation_euler = (0.0, 0.0, 0.0)
+    pbone.scale = (1.0, 1.0, 1.0)
+bpy.context.scene.frame_set(${op.frame ?? 1})
+bpy.context.view_layer.update()
+completed.append("animation.activate_action:${op.action}")
 `;
     case "animation.inspect":
     case "character.inspect":

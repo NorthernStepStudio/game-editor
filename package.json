@@ -24,6 +24,7 @@
     "test:blender-live": "npm run compile && node core/out/test/blenderLiveRunner.js",
     "test:character-live": "npm run test:blender-live",
     "test:yun-character-live": "npm run compile && node core/out/test/yunCharacterLiveRunner.js",
+    "test:yun-character-v3-live": "npm run compile && node core/out/test/yunCharacterArtV3LiveRunner.js",
     "test:yun-roster-live": "npm run compile && node core/out/test/yunRosterLiveRunner.js",
     "test:yun-environment-live": "npm run compile && node core/out/test/yunEnvironmentLiveRunner.js",
     "test:yun-environment-set-live": "npm run compile && node core/out/test/yunEnvironmentSetLiveRunner.js",

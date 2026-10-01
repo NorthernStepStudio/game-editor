@@ -22,6 +22,7 @@ test("Yun V3 character generator replaces mannequin joint fillers with aligned t
   assert.equal(ops.filter((op) => op.op === "mesh.join").length, 1);
   assert.equal(ops.filter((op) => op.op === "rig.assign_weights").length, 1);
   assert.ok(ops.some((op) => op.op === "mesh.smooth" && op.target === "Mesh_Character"));
+  assert.ok(ops.some((op) => op.op === "animation.activate_action" && op.action === "idle"));
 
   const names = ops
     .filter((op): op is Extract<(typeof ops)[number], { name: string }> => "name" in op && typeof op.name === "string")
@@ -44,6 +45,7 @@ test("Yun V3 task remains bounded, validates, and compiles without arbitrary Pyt
   assert.match(compiled.pythonCode, /mesh\.create_tapered_segment/);
   assert.match(compiled.pythonCode, /bpy\.ops\.object\.join\(\)/);
   assert.match(compiled.pythonCode, /poly\.use_smooth/);
+  assert.match(compiled.pythonCode, /animation\.activate_action/);
 });
 
 test("Yun V3 routing is explicit and does not replace production roster requests", () => {

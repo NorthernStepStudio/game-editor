@@ -256,7 +256,16 @@ function validateOperation(raw: unknown, index: number): BlenderOperation {
       return op as unknown as BlenderOperation;
     }
 
-    case "camera.create":
+    case "camera.create": {
+      if (op.name !== undefined && (typeof op.name !== "string" || !SAFE_NAME.test(op.name))) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid object name`);
+      }
+      if (op.location !== undefined) assertVec3(op.location, "location");
+      if (op.rotationEulerDeg !== undefined) assertVec3(op.rotationEulerDeg, "rotationEulerDeg");
+      if (op.target !== undefined) assertVec3(op.target, "target");
+      return op as unknown as BlenderOperation;
+    }
+
     case "light.create": {
       if (op.name !== undefined && (typeof op.name !== "string" || !SAFE_NAME.test(op.name))) {
         throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid object name`);
@@ -364,6 +373,17 @@ function validateOperation(raw: unknown, index: number): BlenderOperation {
       }
       if (op.location !== undefined) assertVec3(op.location, "location");
       if (op.rotationEulerDeg !== undefined) assertVec3(op.rotationEulerDeg, "rotationEulerDeg");
+      return op as unknown as BlenderOperation;
+    }
+
+    case "animation.activate_action": {
+      if (typeof op.armature !== "string" || !SAFE_NAME.test(op.armature)) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid armature`);
+      }
+      if (typeof op.action !== "string" || !SAFE_NAME.test(op.action)) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid action`);
+      }
+      assertOptionalFinite(op.frame, "frame", 0, 100_000);
       return op as unknown as BlenderOperation;
     }
 

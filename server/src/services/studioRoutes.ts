@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { StudioService } from './studioService.js';
+import { listStudioSpecialists } from '@nss/m-core';
 
 const send = (response: ServerResponse, status: number, body: unknown) => {
   response.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
@@ -15,6 +16,11 @@ export async function studioRoutes(
   const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
   if (!pathname.startsWith('/api/')) return false;
   const { controller, adapter } = service;
+
+  if (request.method === 'GET' && pathname === '/api/studio/specialists') {
+    send(response, 200, listStudioSpecialists());
+    return true;
+  }
 
   if (request.method === 'GET' && pathname === '/api/projects') {
     send(response, 200, service.projects.map(({ id, name }) => ({ id, name })));

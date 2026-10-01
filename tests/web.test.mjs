@@ -30,7 +30,7 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     assert.equal(document.querySelector('#project').options.length,2);
     assert.equal(document.querySelector('#agent-selector'),null);
     assert.match(document.querySelector('#connection').textContent,/mock/);
-    for(const page of ['chat','projects','evidence','settings','studio']){location.hash=`#${page}`;window.dispatchEvent(new window.Event('hashchange'));await flush();assert.equal(document.querySelector(`#${page}`).hidden,false);}
+    for(const page of ['chat','projects','evidence','settings','studio','pipeline','output','assets','specialists']){location.hash=`#${page}`;window.dispatchEvent(new window.Event('hashchange'));await flush();const mainId=['pipeline','output','assets','specialists'].includes(page)?'studio':page;assert.equal(document.querySelector(`#${mainId}`).hidden,false);}
     document.querySelector('#project').value='fixture';document.querySelector('#goal').value='Verify fixture';document.querySelector('#criteria').value='Godot validation passes';
     document.querySelector('#run-form').dispatchEvent(new window.Event('submit',{cancelable:true}));await flush();assert.equal(document.querySelector('#plan-review').hidden,false);
     document.querySelector('#start').click();await flush();assert.match(document.querySelector('#active-run').textContent,/running/);

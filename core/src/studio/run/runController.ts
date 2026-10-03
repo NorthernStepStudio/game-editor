@@ -7,6 +7,7 @@ import { InMemoryStudioRunStore, type StudioRunStore } from './store.js';
 import type { StudioRetryPolicy, StudioRetryPolicyOptions } from './retryPolicy.js';
 import type { StudioTaskValidator } from './validator.js';
 import type { NssStudioRun, StudioEventListener, StudioRunEvent } from './types.js';
+import type { MatterhornRuntimeCapabilityRegistry } from '../../integrations/runtimeCapabilities.js';
 
 export interface StudioRunControllerOptions extends StudioRunOptions {
   registry: SpecialistAdapterRegistry;
@@ -15,6 +16,7 @@ export interface StudioRunControllerOptions extends StudioRunOptions {
   retryPolicy?: StudioRetryPolicyOptions | StudioRetryPolicy;
   listeners?: StudioEventListener[];
   initialRuns?: readonly StudioRun[];
+  runtime?: MatterhornRuntimeCapabilityRegistry;
 }
 
 export class StudioRunController {
@@ -24,9 +26,11 @@ export class StudioRunController {
   private readonly previous = new Map<string, StudioRun>();
   private persistence = Promise.resolve();
   private persistenceError: unknown;
+  private readonly runtime?: MatterhornRuntimeCapabilityRegistry;
   readonly store;
 
   constructor(options: StudioRunControllerOptions) {
+    this.runtime = options.runtime;
     this.engine = new StudioExecutionEngine(
       options.registry,
       {
@@ -35,6 +39,8 @@ export class StudioRunController {
         ...(options.pollIntervalMs === undefined ? {} : { pollIntervalMs: options.pollIntervalMs }),
         maxReadRetries: options.maxReadRetries ?? Math.max(0, (options.retryPolicy?.maxTaskAttempts ?? 3) - 1),
         ...(options.maxRuns === undefined ? {} : { maxRuns: options.maxRuns }),
+        ...(options.maxRunDurationMs === undefined ? {} : { maxRunDurationMs: options.maxRunDurationMs }),
+        ...(options.maxTasksPerPlan === undefined ? {} : { maxTasksPerPlan: options.maxTasksPerPlan }),
       },
       options.validator ? (task, result) => options.validator!.validate(task, result) : undefined,
       options.initialRuns ?? [],
@@ -102,8 +108,10 @@ export class StudioRunController {
   }
 
   private emit(event: Omit<StudioRunEvent, 'timestamp'>): void {
+    const stamped = { ...event, timestamp: new Date().toISOString() } satisfies StudioRunEvent;
+    this.runtime?.recordStudioEvent(stamped);
     for (const listener of this.listeners) {
-      try { listener({ ...event, timestamp: new Date().toISOString() }); } catch { /* Observers do not control execution. */ }
+      try { listener(stamped); } catch { /* Observers do not control execution. */ }
     }
   }
 

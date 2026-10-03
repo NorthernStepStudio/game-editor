@@ -1,6 +1,68 @@
 import { api, el, notice, download } from './api.js';
 let reviewed = null, source = null, activeId = null, runs = [];
 const terminal = r => ['completed', 'failed', 'blocked', 'cancelled'].includes(r.status);
+const FLOW_TITLES = ['Ask', 'Plan', 'Build · Flyrail', 'Verify · Sentinel', 'Repair', 'Complete'];
+
+function configureAutonomyLabels() {
+  FLOW_TITLES.forEach((title, index) => {
+    const node = document.querySelector('#step-node-' + (index + 1));
+    const label = node?.querySelector('.step-title');
+    if (label) label.textContent = title;
+  });
+}
+
+function paintFlowStep(index, state, status, badge) {
+  const node = document.querySelector('#step-node-' + index);
+  if (!node) return;
+  node.classList.remove('pending', 'active', 'completed');
+  if (state) node.classList.add(state);
+  const statusNode = node.querySelector('.step-status');
+  const badgeNode = node.querySelector('.step-badge');
+  if (statusNode) statusNode.textContent = status;
+  if (badgeNode) {
+    badgeNode.textContent = badge;
+    badgeNode.classList.remove('success', 'progress');
+    if (state === 'completed') badgeNode.classList.add('success');
+    if (state === 'active') badgeNode.classList.add('progress');
+  }
+}
+
+function renderAutonomyDraft(stage = 'ask') {
+  configureAutonomyLabels();
+  const active = stage === 'plan' ? 2 : 1;
+  for (let i = 1; i <= 6; i++) {
+    const state = i < active ? 'completed' : i === active ? 'active' : 'pending';
+    const status = i === 1 ? (stage === 'plan' ? 'Goal captured' : 'Describe the result you want') :
+      i === 2 ? (stage === 'plan' ? 'Review acceptance criteria and specialist handoff' : 'Waiting for a goal') :
+      i === 3 ? 'Flyrail executes Godot work' :
+      i === 4 ? 'Sentinel requires criterion-specific evidence' :
+      i === 5 ? 'Bounded repair only when verification fails' : 'Matterhorn accepts only verified completion';
+    paintFlowStep(i, state, status, state === 'completed' ? 'Done' : state === 'active' ? 'Active' : 'Pending');
+  }
+}
+
+function updateAutonomyFlow(run) {
+  configureAutonomyLabels();
+  const statuses = run.tasks.map(task => task.status);
+  const verifying = run.status === 'validating' || statuses.includes('validating');
+  const needsRepair = run.status === 'failed' || run.status === 'blocked' || statuses.includes('failed') || statuses.includes('blocked');
+  const completed = run.status === 'completed';
+  let active = completed ? 6 : needsRepair ? 5 : verifying ? 4 : 3;
+
+  paintFlowStep(1, 'completed', 'Goal captured', 'Done');
+  paintFlowStep(2, 'completed', 'Reviewed plan and acceptance criteria', 'Done');
+  paintFlowStep(3, active > 3 || completed ? 'completed' : 'active', statuses.join(', ') || run.status, active > 3 || completed ? 'Done' : 'Running');
+  paintFlowStep(4, active > 4 || completed ? 'completed' : active === 4 ? 'active' : 'pending',
+    completed ? 'Sentinel evidence gate passed' : verifying ? 'Checking deterministic evidence' : active > 4 ? 'Verification returned issues' : 'Waiting for execution evidence',
+    completed ? 'Passed' : active === 4 ? 'Checking' : active > 4 ? 'Checked' : 'Pending');
+  paintFlowStep(5, completed ? 'completed' : active === 5 ? 'active' : 'pending',
+    completed ? 'No unresolved repair remains' : needsRepair ? (run.detail || 'Verification requires repair or review') : 'Only used when verification fails',
+    completed ? 'Clear' : needsRepair ? 'Attention' : 'Pending');
+  paintFlowStep(6, completed ? 'completed' : 'pending',
+    completed ? 'Matterhorn accepted verified completion' : 'Waiting for verified acceptance',
+    completed ? 'Complete' : 'Pending');
+}
+
 export async function loadProjects() {
   const projects = await api('/api/projects');
   const select = document.querySelector('#project'), list = document.querySelector('#project-list');
@@ -11,6 +73,7 @@ export async function loadProjects() {
   window.dispatchEvent(new window.CustomEvent('workspace-projects', { detail: projects }));
 }
 function renderRun(run) {
+  updateAutonomyFlow(run);
   const container = document.querySelector('#active-run'); container.replaceChildren(el('h3', run.plan.goal), el('p', run.status, 'badge'));
   if (run.detail) container.append(el('p', run.detail, 'muted'));
   for (const task of run.tasks) {
@@ -18,7 +81,7 @@ function renderRun(run) {
     if (task.detail) node.append(el('p', task.detail));
     if (task.result?.criterionResults && task.result.criterionResults.length > 0) {
       const criteriaBox = el('div', undefined, 'criterion-results');
-      criteriaBox.append(el('h4', 'Acceptance Criteria Evidence'));
+      criteriaBox.append(el('h4', 'Sentinel · Acceptance Criteria Evidence'));
       for (const res of task.result.criterionResults) {
         const item = el('div', undefined, 'criterion-item');
         const label = res.description ?? res.criterion ?? res.criterionId ?? 'Criterion';
@@ -56,8 +119,10 @@ async function watch(id) {
   }
 }
 export function initStudio() {
+  configureAutonomyLabels();
+  renderAutonomyDraft('ask');
   const form = document.querySelector('#run-form');
-  form.addEventListener('input', () => { reviewed = null; document.querySelector('#plan-review').hidden = true; });
+  form.addEventListener('input', () => { reviewed = null; document.querySelector('#plan-review').hidden = true; renderAutonomyDraft('ask'); });
   form.addEventListener('submit', async event => {
     event.preventDefault(); const button = document.querySelector('#review'); button.disabled = true;
     try {
@@ -65,6 +130,7 @@ export function initStudio() {
       const plan = await api('/api/studio/plan', payload); reviewed = payload;
       document.querySelector('#plan-text').textContent = `${plan.goal}\n\n${plan.tasks.map(t => `${t.title}\n${t.acceptanceCriteria.map(c => '• ' + c).join('\n')}`).join('\n\n')}`;
       document.querySelector('#plan-review').hidden = false;
+      renderAutonomyDraft('plan');
     } catch(e) { notice(e); } finally { button.disabled = false; }
   });
   document.querySelector('#start').onclick = async () => {

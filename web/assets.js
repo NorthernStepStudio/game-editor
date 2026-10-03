@@ -273,9 +273,9 @@ function fillSelect(select, values) {
 function updateGenerationControls() {
   const providerSelect = document.querySelector('#asset-provider');
   const kind = document.querySelector('#asset-kind');
+  const operation = document.querySelector('#asset-operation');
   if (!providerSelect || !kind || !operation) return;
   const provider = currentProvider();
-  const operation = document.querySelector('#asset-operation');
   const costPanel = document.querySelector('#asset-cost-panel');
   const network = document.querySelector('#asset-allow-network');
   const approval = document.querySelector('#asset-approve-cost');

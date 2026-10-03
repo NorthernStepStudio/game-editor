@@ -37,7 +37,7 @@ Environment fixture generation proves asset creation and import. Autonomous full
 
 ## October 3 autonomy integration
 
-The active consolidation line is `integration/studio-autonomy-20261003`. Read `docs/MATTERHORN-AUTONOMY-INTEGRATION.md` and `docs/ADOPT-BEFORE-BUILD-LEDGER.md` before extending Studio autonomy.
+The active consolidation line is `integration/studio-autonomy-20261003`. Read `docs/MATTERHORN-AUTONOMY-INTEGRATION.md`, `docs/ADOPT-BEFORE-BUILD-LEDGER.md`, and `docs/OSS-ADOPTION-MASTER-PLAN.md` before extending Studio autonomy.
 
 Apply **adopt before build**: prefer mature permissively licensed infrastructure over duplicating unfinished generic plumbing. Godot AI is an optional editor/MCP backend behind Flyrail; Matterhorn must not bypass Flyrail to call Godot AI directly. Sentinel is the independent validator and Matterhorn remains final completion authority.
 

@@ -84,8 +84,8 @@ export function createStudioPlannerPlan(
 ): NssStudioPlan {
   const goal = request.goal.trim();
   if (goal.length < 3 || goal.length > 8_000) throw new Error('Enter a goal between 3 and 8000 characters.');
-  if (!request.criteria.length || request.criteria.length > 20 || request.criteria.some(value => !value.trim() || value.length > 1_000)) {
-    throw new Error('Supply 1–20 nonempty acceptance criteria.');
+  if (request.criteria.length > 20 || request.criteria.some(value => !value.trim() || value.length > 1_000)) {
+    throw new Error('Supply at most 20 nonempty acceptance criteria.');
   }
 
   const id = request.id ?? `studio-plan-${createHash('sha256').update(`${goal}\n${Date.now()}`).digest('hex').slice(0, 20)}`;
@@ -191,25 +191,40 @@ export function createStudioPlannerPlan(
 
   const upstreamIds = tasks.map(task => task.id);
   if (upstreamIds.length === 0) throw new Error('The planner could not resolve this request to an executable specialist domain. Add a structured asset, Blender, or Godot task.');
+
+  const automaticAssetCriteria = !request.criteria.length && domains.size === 1 && domains.has('assets')
+    ? tasks.flatMap(task => task.specialistId === 'foundry' ? task.acceptanceCriteria : [])
+    : [];
+  const automaticBlenderCriteria = !request.criteria.length && domains.size === 1 && domains.has('blender')
+    ? (blenderSpec?.specification?.acceptanceCriteria ?? [])
+    : [];
+  const finalCriteria = request.criteria.length
+    ? [...request.criteria]
+    : [...new Set([...automaticAssetCriteria, ...automaticBlenderCriteria])];
+
+  if (!finalCriteria.length) {
+    throw new Error('This plan needs at least one measurable acceptance criterion before it can run.');
+  }
+
   tasks.push({
     id: 'matterhorn-qa',
     title: 'Aggregate specialist evidence and verify acceptance',
-    goal: `Verify the requested acceptance criteria using only evidence returned by: ${upstreamIds.join(', ')}. Do not infer missing results.`,
+    goal: `Verify the acceptance criteria using only evidence returned by: ${upstreamIds.join(', ')}. Do not infer missing results.`,
     domain: 'qa',
     specialistId: 'matterhorn',
     dependsOn: upstreamIds,
-    acceptanceCriteria: [...request.criteria],
+    acceptanceCriteria: finalCriteria,
     requiredCapabilities: ['studio.qa', 'studio.evidence.aggregate'],
     taskSpec: {
       protocol: 'nss.studio-task-spec.v1',
       specialist: 'matterhorn',
       action: 'aggregate_evidence',
       dependencyTaskIds: upstreamIds,
-      criteria: [...request.criteria],
+      criteria: finalCriteria,
     },
   });
 
-  return createStudioPlan({ id, goal, tasks, finalAcceptanceCriteria: [...request.criteria] });
+  return createStudioPlan({ id, goal, tasks, finalAcceptanceCriteria: finalCriteria });
 }
 
 /**

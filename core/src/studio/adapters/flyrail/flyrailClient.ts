@@ -41,6 +41,12 @@ export interface FlyrailHealthResponse {
   bridge: string;
   runtime: string;
   panel: boolean;
+  agentId?: string;
+  role?: string;
+  autonomy?: {
+    codex?: { configured?: boolean; command?: string; prefixArgs?: number; sandbox?: string };
+    godotAi?: { configured?: boolean; pluginInstalled?: boolean; transport?: string; command?: string; argsCount?: number; allowedTools?: string[] };
+  };
 }
 
 interface JsonRpcResponse {

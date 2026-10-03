@@ -56,6 +56,13 @@ test('standalone APIs enforce local origin, body limits and static boundaries', 
     assert.equal((await fetch(base + '/')).status, 200);
     assert.equal((await fetch(base + '/api/projects')).status, 200);
     assert.deepEqual(await (await fetch(base + '/api/studio/runs')).json(), []);
+    const runtime = await readJson<Array<{ capability: string; title: string; state: string }>>(
+      await fetch(base + '/api/studio/runtime'),
+    );
+    const browser = runtime.find(item => item.capability === 'browser-control');
+    assert.equal(browser?.title, 'Local browser');
+    assert.ok(['ready', 'degraded', 'unavailable'].includes(browser?.state ?? ''));
+    assert(!JSON.stringify(runtime).includes('Browser Harness'));
     assert.equal((await fetch(base + '/api/studio/runs/missing')).status, 404);
     assert.equal((await fetch(base + '/api/studio/runs', { headers: { Origin: 'https://evil.example' } })).status, 403);
     assert.equal((await fetch(base + '/api/studio/runs', { method: 'POST', body: '{}' })).status, 415);
@@ -246,5 +253,117 @@ test('projects without project.godot are rejected at plan time', async () => {
     if (previousProjects === undefined) delete process.env.MATTERHORN_PROJECTS;
     else process.env.MATTERHORN_PROJECTS = previousProjects;
     await rm(projectRoot, { recursive: true, force: true });
+  }
+});
+
+
+test('promotion approval is explicit and survives a standalone server restart', async () => {
+  const runsDir = join(testDataDir, 'studio-runs');
+  await mkdir(runsDir, { recursive: true });
+  const createdAt = '2026-10-03T18:00:00.000Z';
+  const completedRun = {
+    id: 'promotion-run',
+    status: 'completed',
+    createdAt,
+    updatedAt: '2026-10-03T18:10:00.000Z',
+    detail: 'All task and final acceptance checks passed.',
+    plan: {
+      id: 'promotion-plan',
+      goal: 'Verified release candidate',
+      createdAt,
+      tasks: [{
+        id: 'work',
+        title: 'Implement',
+        goal: 'Implement and verify',
+        domain: 'godot',
+        specialistId: 'flyrail',
+        status: 'planned',
+        dependsOn: [],
+        acceptanceCriteria: ['Godot validation passes'],
+      }],
+      finalAcceptanceCriteria: ['Godot validation passes'],
+    },
+    tasks: [{
+      id: 'work',
+      executionId: 'promotion-run-work',
+      status: 'completed',
+      startedAt: '2026-10-03T18:01:00.000Z',
+      finishedAt: '2026-10-03T18:09:00.000Z',
+      detail: 'Accepted by Sentinel.',
+      result: {
+        taskId: 'promotion-run-work',
+        specialistId: 'flyrail',
+        status: 'completed',
+        summary: 'Verified',
+        criterionResults: [{
+          criterionId: 'criterion-1',
+          criterion: 'Godot validation passes',
+          outcome: 'passed',
+          executionId: 'promotion-run-work',
+        }],
+      },
+    }],
+  };
+  await writeFile(join(runsDir, 'promotion-run.json'), JSON.stringify(completedRun), 'utf8');
+
+  const jsonHeaders = { 'Content-Type': 'application/json' };
+  const first = await startNssWorkspaceAiServer(
+    { port: 0, mCore: { providerMode: 'mock', requestTimeoutMs: 1000 } },
+    { portStateFilePath: false },
+  );
+  try {
+    const base = `http://127.0.0.1:${first.port}`;
+    const initial = await readJson<{ state: string; eligible: boolean }>(
+      await fetch(base + '/api/studio/runs/promotion-run/promotion'),
+    );
+    assert.equal(initial.state, 'approval-required');
+    assert.equal(initial.eligible, true);
+
+    const bad = await fetch(base + '/api/studio/runs/promotion-run/promotion/approve', {
+      method: 'POST',
+      headers: jsonHeaders,
+      body: JSON.stringify({ confirmation: 'yes' }),
+    });
+    assert.equal(bad.status, 400);
+
+    const approved = await readJson<{ runId: string; runSnapshotHash: string }>(
+      await fetch(base + '/api/studio/runs/promotion-run/promotion/approve', {
+        method: 'POST',
+        headers: jsonHeaders,
+        body: JSON.stringify({ confirmation: 'APPROVE', note: 'Human-reviewed release candidate.' }),
+      }),
+    );
+    assert.equal(approved.runId, 'promotion-run');
+    assert.match(approved.runSnapshotHash, /^[0-9a-f]{64}$/);
+
+    const status = await readJson<{ state: string }>(
+      await fetch(base + '/api/studio/runs/promotion-run/promotion'),
+    );
+    assert.equal(status.state, 'approved');
+  } finally {
+    await first.close();
+  }
+
+  const second = await startNssWorkspaceAiServer(
+    { port: 0, mCore: { providerMode: 'mock', requestTimeoutMs: 1000 } },
+    { portStateFilePath: false },
+  );
+  try {
+    const base = `http://127.0.0.1:${second.port}`;
+    const recovered = await readJson<{ state: string }>(
+      await fetch(base + '/api/studio/runs/promotion-run/promotion'),
+    );
+    assert.equal(recovered.state, 'approved');
+
+    const revoked = await readJson<{ state: string }>(
+      await fetch(base + '/api/studio/runs/promotion-run/promotion/revoke', {
+        method: 'POST',
+        headers: jsonHeaders,
+        body: '{}',
+      }),
+    );
+    assert.equal(revoked.state, 'approval-required');
+  } finally {
+    await second.close();
   }
 });

@@ -1,7 +1,12 @@
 import { api, el, notice, download } from './api.js';
-let reviewed = null, source = null, activeId = null, runs = [];
-const terminal = r => ['completed', 'failed', 'blocked', 'cancelled'].includes(r.status);
-const FLOW_TITLES = ['Ask', 'Plan', 'Build · Specialists', 'Verify · Sentinel', 'Repair', 'Verified'];
+
+let reviewed = null;
+let source = null;
+let activeId = null;
+let runs = [];
+
+const terminal = run => ['completed', 'failed', 'blocked', 'cancelled'].includes(run.status);
+const FLOW_TITLES = ['Plan', 'Build', 'Validate', 'Repair', 'Verified', 'Promote'];
 
 function configureAutonomyLabels() {
   FLOW_TITLES.forEach((title, index) => {
@@ -19,112 +24,116 @@ function paintFlowStep(index, state, status, badge) {
   const statusNode = node.querySelector('.step-status');
   const badgeNode = node.querySelector('.step-badge');
   if (statusNode) statusNode.textContent = status;
-  if (badgeNode) {
-    badgeNode.textContent = badge;
-    badgeNode.classList.remove('success', 'progress');
-    if (state === 'completed') badgeNode.classList.add('success');
-    if (state === 'active') badgeNode.classList.add('progress');
-  }
+  if (badgeNode) badgeNode.textContent = badge;
 }
 
-function renderAutonomyDraft(stage = 'ask') {
+function renderAutonomyDraft(stage = 'goal') {
   configureAutonomyLabels();
-  const active = stage === 'plan' ? 2 : 1;
-  for (let i = 1; i <= 6; i++) {
-    const state = i < active ? 'completed' : i === active ? 'active' : 'pending';
-    const status = i === 1 ? (stage === 'plan' ? 'Goal captured' : 'Describe the result you want') :
-      i === 2 ? (stage === 'plan' ? 'Review acceptance criteria and specialist handoff' : 'Waiting for a goal') :
-      i === 3 ? 'Matterhorn routes work to Canvas, Forge, Flyrail, or local QA as required' :
-      i === 4 ? 'Sentinel requires criterion-specific evidence' :
-      i === 5 ? 'Bounded repair only when verification fails' : 'Matterhorn accepts only verified completion';
-    paintFlowStep(i, state, status, state === 'completed' ? 'Done' : state === 'active' ? 'Active' : 'Pending');
-  }
+  paintFlowStep(1, stage === 'plan' ? 'completed' : 'active',
+    stage === 'plan' ? 'Plan generated and waiting for your review' : 'Describe the result you want',
+    stage === 'plan' ? 'Ready' : 'Current');
+  paintFlowStep(2, 'pending', 'Specialists start only after reviewed execution', 'Pending');
+  paintFlowStep(3, 'pending', 'Sentinel checks criterion-specific evidence', 'Pending');
+  paintFlowStep(4, 'pending', 'Used only when verification requires repair', 'Pending');
+  paintFlowStep(5, 'pending', 'Matterhorn accepts only verified completion', 'Pending');
+  paintFlowStep(6, 'pending', 'Human approval is separate from verification', 'Pending');
 }
 
 function updateAutonomyFlow(run) {
   configureAutonomyLabels();
   const statuses = run.tasks.map(task => task.status);
   const verifying = run.status === 'validating' || statuses.includes('validating');
-  const needsRepair = run.status === 'failed' || run.status === 'blocked' || statuses.includes('failed') || statuses.includes('blocked');
+  const needsRepair =
+    run.status === 'failed' ||
+    run.status === 'blocked' ||
+    statuses.includes('failed') ||
+    statuses.includes('blocked');
   const completed = run.status === 'completed';
-  let active = completed ? 6 : needsRepair ? 5 : verifying ? 4 : 3;
 
-  paintFlowStep(1, 'completed', 'Goal captured', 'Done');
-  paintFlowStep(2, 'completed', 'Reviewed plan and acceptance criteria', 'Done');
-  const routed = run.plan.tasks.map(task => task.specialistId).filter((value, index, all) => all.indexOf(value) === index);
-  paintFlowStep(3, active > 3 || completed ? 'completed' : 'active', `${routed.join(' → ') || 'specialists'} · ${statuses.join(', ') || run.status}`, active > 3 || completed ? 'Done' : 'Running');
-  paintFlowStep(4, active > 4 || completed ? 'completed' : active === 4 ? 'active' : 'pending',
-    completed ? 'Sentinel evidence gate passed' : verifying ? 'Checking deterministic evidence' : active > 4 ? 'Verification returned issues' : 'Waiting for execution evidence',
-    completed ? 'Passed' : active === 4 ? 'Checking' : active > 4 ? 'Checked' : 'Pending');
-  paintFlowStep(5, completed ? 'completed' : active === 5 ? 'active' : 'pending',
-    completed ? 'No unresolved repair remains' : needsRepair ? (run.detail || 'Verification requires repair or review') : 'Only used when verification fails',
-    completed ? 'Clear' : needsRepair ? 'Attention' : 'Pending');
-  paintFlowStep(6, completed ? 'completed' : 'pending',
-    completed ? 'Matterhorn accepted verified completion · promotion still requires human approval' : 'Waiting for verified acceptance',
-    completed ? 'Verified' : 'Pending');
+  paintFlowStep(1, 'completed', 'Reviewed plan and acceptance criteria', 'Done');
+  paintFlowStep(
+    2,
+    completed || verifying || needsRepair ? 'completed' : 'active',
+    completed ? 'Specialist execution complete' : verifying ? 'Execution produced evidence' : needsRepair ? 'Execution needs attention' : 'Specialists are working',
+    completed || verifying || needsRepair ? 'Done' : 'Running',
+  );
+  paintFlowStep(
+    3,
+    completed ? 'completed' : verifying ? 'active' : needsRepair ? 'completed' : 'pending',
+    completed ? 'Sentinel evidence gate passed' : verifying ? 'Checking deterministic evidence' : needsRepair ? 'Validation identified issues' : 'Waiting for execution evidence',
+    completed ? 'Passed' : verifying ? 'Checking' : needsRepair ? 'Checked' : 'Pending',
+  );
+  paintFlowStep(
+    4,
+    completed ? 'completed' : needsRepair ? 'active' : 'pending',
+    completed ? 'No unresolved repair remains' : needsRepair ? (run.detail || 'Repair or human review is required') : 'Only used after failed verification',
+    completed ? 'Clear' : needsRepair ? 'Attention' : 'Pending',
+  );
+  paintFlowStep(
+    5,
+    completed ? 'completed' : 'pending',
+    completed ? 'Verified successfully' : 'Waiting for acceptance',
+    completed ? 'Verified' : 'Pending',
+  );
+  paintFlowStep(6, 'pending', completed ? 'Human promotion approval required' : 'Available after verified completion', 'Pending');
+}
+
+function projectCard(project) {
+  const card = el('div', undefined, 'project-chip');
+  card.append(el('strong', project.name), el('span', project.id, 'subtle'));
+  return card;
 }
 
 export async function loadProjects() {
   const projects = await api('/api/projects');
-  const select = document.querySelector('#project'), list = document.querySelector('#project-list');
-  select.replaceChildren(new Option('Choose a configured project', '')); list.replaceChildren();
-  for (const project of projects) { select.add(new Option(project.name, project.id)); list.append(el('h2', project.name), el('p', project.id, 'muted')); }
-  if (!projects.length) list.append(el('p', 'No projects configured. Add MATTERHORN_PROJECTS to the server environment, then restart.'));
+  const select = document.querySelector('#project');
+  const list = document.querySelector('#project-list');
+  select.replaceChildren(new Option('Choose a configured project', ''));
+  list.replaceChildren();
+
+  for (const project of projects) {
+    select.add(new Option(project.name, project.id));
+    list.append(projectCard(project));
+  }
+  if (projects.length === 1) select.value = projects[0].id;
+  if (!projects.length) {
+    list.append(el('p', 'No projects configured. Add MATTERHORN_PROJECTS to the server environment, then restart.', 'empty-state'));
+  }
+
   document.querySelector('#review').disabled = !projects.length;
   window.dispatchEvent(new window.CustomEvent('workspace-projects', { detail: projects }));
 }
+
+function taskTitle(run, task) {
+  return run.plan.tasks.find(candidate => candidate.id === task.id)?.title ?? task.id;
+}
+
+function taskSpecialist(run, task) {
+  return run.plan.tasks.find(candidate => candidate.id === task.id)?.specialistId ?? 'specialist';
+}
+
 async function renderPromotionControls(run, container) {
   if (run.status !== 'completed') return;
+
   const box = el('div', undefined, 'task promotion-gate');
-  box.append(el('h3', 'Promotion'));
-  const statusLine = el('p', 'Checking approval…', 'muted');
-  box.append(statusLine);
+  const head = el('div', undefined, 'section-title-row');
+  head.append(el('h3', 'Promotion'), el('span', 'Checking…', 'badge'));
+  const detail = el('p', 'Checking approval…', 'muted');
+  box.append(head, detail);
   container.append(box);
 
   const promotion = await api(`/api/studio/runs/${run.id}/promotion`);
   if (!box.isConnected) return;
 
-  statusLine.textContent = promotion.detail;
-  const badge = el(
-    'span',
-    promotion.state === 'approved'
-      ? 'Approved for promotion'
-      : promotion.state === 'stale'
-        ? 'Approval stale'
-        : 'Approval required',
-    'badge',
-  );
-  box.append(badge);
+  head.lastChild.textContent =
+    promotion.state === 'approved' ? 'Approved' :
+    promotion.state === 'stale' ? 'Stale' :
+    'Approval required';
+  detail.textContent = promotion.detail;
 
-  if (promotion.state === 'approval-required' || promotion.state === 'stale') {
-    const label = el('label', 'Type APPROVE to authorize promotion');
-    const confirmation = document.createElement('input');
-    confirmation.type = 'text';
-    confirmation.autocomplete = 'off';
-    confirmation.spellcheck = false;
-    confirmation.placeholder = 'APPROVE';
-    confirmation.maxLength = 7;
-    const approve = el('button', promotion.state === 'stale' ? 'Renew promotion approval' : 'Approve for promotion');
-    approve.disabled = true;
-    confirmation.addEventListener('input', () => {
-      approve.disabled = confirmation.value !== 'APPROVE';
-    });
-    approve.onclick = async () => {
-      if (confirmation.value !== 'APPROVE') return;
-      approve.disabled = true;
-      confirmation.disabled = true;
-      try {
-        await api(`/api/studio/runs/${run.id}/promotion/approve`, { confirmation: confirmation.value });
-        renderRun(await api(`/api/studio/runs/${run.id}`));
-      } catch (error) {
-        notice(error);
-        confirmation.disabled = false;
-        approve.disabled = confirmation.value !== 'APPROVE';
-      }
-    };
-    box.append(label, confirmation, approve);
-  } else if (promotion.state === 'approved') {
-    const revoke = el('button', 'Revoke promotion approval', 'secondary');
+  if (promotion.state === 'approved') {
+    paintFlowStep(6, 'completed', 'Human approved this exact verified snapshot', 'Approved');
+    const revoke = el('button', 'Revoke promotion approval', 'secondary-action');
     revoke.onclick = async () => {
       revoke.disabled = true;
       try {
@@ -136,81 +145,357 @@ async function renderPromotionControls(run, container) {
       }
     };
     box.append(revoke);
+    return;
   }
+
+  paintFlowStep(6, 'active', promotion.state === 'stale' ? 'Approval must be renewed for the current snapshot' : 'Type APPROVE to authorize promotion', promotion.state === 'stale' ? 'Stale' : 'Approval');
+
+  const confirmation = document.createElement('input');
+  confirmation.type = 'text';
+  confirmation.autocomplete = 'off';
+  confirmation.spellcheck = false;
+  confirmation.placeholder = 'Type APPROVE to confirm';
+  confirmation.maxLength = 7;
+
+  const approve = el('button', promotion.state === 'stale' ? 'Renew promotion approval' : 'Approve for promotion', 'primary-action');
+  approve.disabled = true;
+  confirmation.addEventListener('input', () => {
+    approve.disabled = confirmation.value !== 'APPROVE';
+  });
+  approve.onclick = async () => {
+    if (confirmation.value !== 'APPROVE') return;
+    approve.disabled = true;
+    confirmation.disabled = true;
+    try {
+      await api(`/api/studio/runs/${run.id}/promotion/approve`, { confirmation: confirmation.value });
+      renderRun(await api(`/api/studio/runs/${run.id}`));
+      await refreshRuns();
+    } catch (error) {
+      notice(error);
+      confirmation.disabled = false;
+      approve.disabled = confirmation.value !== 'APPROVE';
+    }
+  };
+
+  box.append(confirmation, approve);
 }
 
 function renderRun(run) {
   updateAutonomyFlow(run);
-  const container = document.querySelector('#active-run'); container.replaceChildren(el('h3', run.plan.goal), el('p', run.status, 'badge'));
+  const container = document.querySelector('#active-run');
+  container.replaceChildren();
+
+  const header = el('div', undefined, 'active-run-header');
+  const title = document.createElement('div');
+  title.append(
+    el('span', `#${run.id.slice(0, 8)}`, 'status-kicker'),
+    el('h2', run.plan.goal),
+  );
+  header.append(title, el('span', run.status, 'badge'));
+  container.append(header);
+
   if (run.detail) container.append(el('p', run.detail, 'muted'));
+
+  const taskList = el('div', undefined, 'current-work-list');
   for (const task of run.tasks) {
-    const node = el('div', undefined, 'task'); node.append(el('strong', task.id), el('p', task.status, 'badge'));
-    if (task.detail) node.append(el('p', task.detail));
-    if (task.result?.criterionResults && task.result.criterionResults.length > 0) {
+    const node = el('div', undefined, 'task');
+    const taskHead = el('div', undefined, 'section-title-row');
+    const identity = document.createElement('div');
+    identity.append(
+      el('strong', taskTitle(run, task)),
+      el('p', taskSpecialist(run, task), 'muted-sm'),
+    );
+    taskHead.append(identity, el('span', task.status, 'badge'));
+    node.append(taskHead);
+
+    if (task.detail) node.append(el('p', task.detail, 'muted'));
+
+    if (task.result?.criterionResults?.length) {
       const criteriaBox = el('div', undefined, 'criterion-results');
-      criteriaBox.append(el('h4', 'Sentinel · Acceptance Criteria Evidence'));
-      for (const res of task.result.criterionResults) {
+      for (const result of task.result.criterionResults) {
         const item = el('div', undefined, 'criterion-item');
-        const label = res.description ?? res.criterion ?? res.criterionId ?? 'Criterion';
-        const extra = (res.actual !== undefined || res.expected !== undefined) ? ` [expected: ${JSON.stringify(res.expected)}, actual: ${JSON.stringify(res.actual)}]` : '';
-        item.append(el('span', `${label}${extra} · `), el('span', res.outcome, 'badge'));
+        const label = result.description ?? result.criterion ?? result.criterionId ?? 'Criterion';
+        item.append(el('span', label), el('span', result.outcome, 'badge'));
         criteriaBox.append(item);
       }
       node.append(criteriaBox);
     }
-    container.append(node);
+    taskList.append(node);
   }
-  if (!terminal(run)) { const cancel = el('button', 'Request cancellation', 'secondary'); cancel.disabled = run.status === 'cancel-requested'; cancel.onclick = async () => { cancel.disabled = true; try { renderRun(await api(`/api/studio/runs/${run.id}/cancel`, {})); } catch(e) { notice(e); cancel.disabled = false; } }; container.append(cancel); }
-  const save = el('button', 'Download run evidence', 'secondary'); save.onclick = () => download(`matterhorn-${run.id}.json`, run); container.append(save); void renderPromotionControls(run, container).catch(notice);
-  if (terminal(run)) { source?.close(); source = null; void refreshRuns().catch(notice); }
+  container.append(taskList);
+
+  const actions = el('div', undefined, 'button-row');
+  if (!terminal(run)) {
+    const cancel = el('button', 'Cancel run', 'secondary-action');
+    cancel.disabled = run.status === 'cancel-requested';
+    cancel.onclick = async () => {
+      cancel.disabled = true;
+      try {
+        renderRun(await api(`/api/studio/runs/${run.id}/cancel`, {}));
+      } catch (error) {
+        notice(error);
+        cancel.disabled = false;
+      }
+    };
+    actions.append(cancel);
+  }
+  const save = el('button', 'Download evidence', 'secondary-action');
+  save.onclick = () => download(`matterhorn-${run.id}.json`, run);
+  actions.append(save);
+  container.append(actions);
+
+  void renderPromotionControls(run, container).catch(notice);
+
+  if (terminal(run)) {
+    source?.close();
+    source = null;
+  }
 }
+
+function runRow(run, compact = false) {
+  const row = el('div', undefined, compact ? 'run home-run-row' : 'run');
+  const button = el('button', run.plan.goal);
+  button.onclick = () => {
+    location.hash = '#runs';
+    watch(run.id).catch(notice);
+  };
+  row.append(button, el('span', run.status, 'badge'));
+  return row;
+}
+
+function validationState(run) {
+  if (run.status === 'completed') return 'passed';
+  if (['failed', 'blocked', 'cancelled'].includes(run.status)) return 'attention';
+  return 'all';
+}
+
+function validationCard(run) {
+  const card = el('div', undefined, 'task validation-card');
+  card.dataset.validationState = validationState(run);
+
+  let passed = 0;
+  let failed = 0;
+  let unknown = 0;
+  for (const task of run.tasks) {
+    for (const criterion of task.result?.criterionResults ?? []) {
+      if (criterion.outcome === 'passed') passed++;
+      else if (criterion.outcome === 'failed') failed++;
+      else unknown++;
+    }
+  }
+
+  const head = el('div', undefined, 'section-title-row');
+  const identity = document.createElement('div');
+  identity.append(el('h3', run.plan.goal), el('p', `Run ${run.id.slice(0, 8)} · ${run.status}`, 'muted-sm'));
+  const summary = el('div', undefined, 'validation-counts');
+  summary.append(
+    el('span', `✓ ${passed} passed`, 'validation-pass'),
+    el('span', `! ${unknown} pending`, 'validation-warn'),
+    el('span', `× ${failed} failed`, 'validation-fail'),
+  );
+  head.append(identity, summary);
+  card.append(head);
+
+  const details = document.createElement('details');
+  details.append(el('summary', 'View evidence'));
+  for (const task of run.tasks) {
+    const block = el('div', undefined, 'validation-detail');
+    block.append(el('strong', taskTitle(run, task)), el('span', task.status, 'badge'));
+    for (const criterion of task.result?.criterionResults ?? []) {
+      block.append(el('p', `${criterion.description ?? criterion.criterion ?? criterion.criterionId}: ${criterion.outcome}`, 'muted-sm'));
+    }
+    details.append(block);
+  }
+  const save = el('button', 'Download evidence', 'secondary-action');
+  save.onclick = async () => {
+    try {
+      download(`matterhorn-evidence-${run.id}.json`, await api(`/api/studio/runs/${run.id}/evidence`));
+    } catch (error) {
+      notice(error);
+    }
+  };
+  details.append(save);
+  card.append(details);
+  return card;
+}
+
+async function renderHomeAttention() {
+  const container = document.querySelector('#home-attention');
+  container.replaceChildren();
+
+  const attentionRuns = runs.filter(run => ['failed', 'blocked', 'cancel-requested'].includes(run.status));
+  for (const run of attentionRuns.slice(0, 4)) {
+    const row = el('a', `${run.plan.goal} · ${run.status}`, run.status === 'failed' || run.status === 'blocked' ? 'attention-row danger' : 'attention-row warning');
+    row.href = '#runs';
+    row.onclick = () => watch(run.id).catch(notice);
+    container.append(row);
+  }
+
+  const completed = runs.filter(run => run.status === 'completed').slice(-3);
+  for (const run of completed) {
+    try {
+      const promotion = await api(`/api/studio/runs/${run.id}/promotion`);
+      if (promotion.state !== 'approved') {
+        const row = el('a', `${run.plan.goal} · promotion ${promotion.state === 'stale' ? 'stale' : 'approval required'}`, 'attention-row warning');
+        row.href = '#runs';
+        row.onclick = () => watch(run.id).catch(notice);
+        container.append(row);
+      }
+    } catch {
+      // Promotion visibility must not prevent the dashboard from rendering.
+    }
+  }
+
+  if (!container.children.length) {
+    container.append(el('div', 'Nothing needs you right now.', 'attention-row neutral'));
+  }
+}
+
+function renderHome() {
+  const active = document.querySelector('#home-active');
+  const recent = document.querySelector('#home-runs');
+  active.replaceChildren();
+  recent.replaceChildren();
+
+  const activeRun = [...runs].reverse().find(run => !terminal(run));
+  if (activeRun) active.append(runRow(activeRun, true));
+  else active.append(el('p', 'No active work right now.', 'empty-state'));
+
+  const recentRuns = [...runs].reverse().slice(0, 5);
+  if (recentRuns.length) {
+    for (const run of recentRuns) recent.append(runRow(run, true));
+  } else {
+    recent.append(el('p', 'No Studio runs yet.', 'empty-state'));
+  }
+
+  void renderHomeAttention();
+}
+
 export async function refreshRuns() {
   runs = await api('/api/studio/runs');
-  const list = document.querySelector('#runs'), evidence = document.querySelector('#evidence-list'); list.replaceChildren(); evidence.replaceChildren();
-  if (!runs.length) { list.append(el('p', 'No Studio runs yet.', 'muted')); evidence.append(el('p', 'Evidence appears here after a Studio run. Run history is persisted on disk.')); }
+
+  const list = document.querySelector('#runs');
+  const evidence = document.querySelector('#evidence-list');
+  list.replaceChildren();
+  evidence.replaceChildren();
+
+  if (!runs.length) {
+    list.append(el('p', 'No Studio runs yet.', 'empty-state'));
+    evidence.append(el('p', 'Evidence appears here after a Studio run.', 'empty-state'));
+  }
+
   for (const run of [...runs].reverse()) {
-    const row = el('div', undefined, 'run'), button = el('button', run.plan.goal); button.onclick = () => watch(run.id).catch(notice); row.append(button, el('span', run.status, 'badge')); list.append(row);
-    const card = el('div', undefined, 'task'); card.append(el('h3', run.plan.goal), el('p', run.status, 'badge'));
-    const save = el('button', 'Download evidence', 'secondary'); save.onclick = async () => { try { download(`matterhorn-evidence-${run.id}.json`, await api(`/api/studio/runs/${run.id}/evidence`)); } catch(e) { notice(e); } };
-    card.append(save, el('pre', JSON.stringify(run.tasks.map(t => ({ task: t.id, detail: t.detail, result: t.result })), null, 2))); evidence.append(card);
+    list.append(runRow(run));
+    evidence.append(validationCard(run));
+  }
+
+  renderHome();
+
+  if (!activeId) {
+    const candidate = [...runs].reverse().find(run => !terminal(run)) ?? [...runs].reverse()[0];
+    if (candidate) {
+      activeId = candidate.id;
+      renderRun(candidate);
+    } else {
+      renderAutonomyDraft('goal');
+    }
   }
 }
+
 async function watch(id) {
-  activeId = id; source?.close(); source = null;
-  const run = await api(`/api/studio/runs/${id}`); renderRun(run);
+  activeId = id;
+  source?.close();
+  source = null;
+
+  const run = await api(`/api/studio/runs/${id}`);
+  renderRun(run);
+
   if (!terminal(run)) {
     source = new EventSource(`/api/studio/runs/${id}/events`);
-    source.onmessage = event => { const data = JSON.parse(event.data); if (data.run.id === activeId) renderRun(data.run); };
-    source.onerror = () => { document.querySelector('#connection').textContent = 'Live stream reconnecting…'; };
-    source.onopen = () => { document.querySelector('#connection').textContent = 'Connected · live updates'; };
+    source.onmessage = event => {
+      const data = JSON.parse(event.data);
+      if (data.run.id === activeId) {
+        renderRun(data.run);
+        const index = runs.findIndex(candidate => candidate.id === data.run.id);
+        if (index >= 0) runs[index] = data.run;
+        renderHome();
+      }
+    };
+    source.onerror = () => {
+      document.querySelector('#connection').textContent = 'Live stream reconnecting…';
+    };
+    source.onopen = () => {
+      document.querySelector('#connection').textContent = 'System Ready';
+      document.querySelector('#connection').classList.add('connected');
+    };
   }
 }
+
 export function initStudio() {
   configureAutonomyLabels();
-  renderAutonomyDraft('ask');
+  renderAutonomyDraft('goal');
+
   const form = document.querySelector('#run-form');
-  form.addEventListener('input', () => { reviewed = null; document.querySelector('#plan-review').hidden = true; renderAutonomyDraft('ask'); });
+  form.addEventListener('input', () => {
+    reviewed = null;
+    document.querySelector('#plan-review').hidden = true;
+    renderAutonomyDraft('goal');
+  });
+
   form.addEventListener('submit', async event => {
-    event.preventDefault(); const button = document.querySelector('#review'); button.disabled = true;
+    event.preventDefault();
+    const button = document.querySelector('#review');
+    button.disabled = true;
+
     try {
-      const payload = { projectId: document.querySelector('#project').value, goal: document.querySelector('#goal').value, criteria: document.querySelector('#criteria').value.split('\n').map(x => x.trim()).filter(Boolean), allowDirty: document.querySelector('#allow-dirty-project')?.checked === true };
-      const plan = await api('/api/studio/plan', payload); reviewed = payload;
+      const payload = {
+        projectId: document.querySelector('#project').value,
+        goal: document.querySelector('#goal').value,
+        criteria: document.querySelector('#criteria').value.split('\n').map(value => value.trim()).filter(Boolean),
+        allowDirty: document.querySelector('#allow-dirty-project')?.checked === true,
+      };
+
+      const plan = await api('/api/studio/plan', payload);
+      reviewed = payload;
+
       const planLines = plan.tasks.map((task, index) => {
         const dependencies = task.dependsOn?.length ? `\nDepends on: ${task.dependsOn.join(', ')}` : '';
         const disclosure = task.disclosure
           ? `\nPolicy: ${task.disclosure.providerId ? `provider=${task.disclosure.providerId}; ` : ''}${task.disclosure.networkMayBeRequired ? 'network may be required; ' : ''}${task.disclosure.externalCostMayBeIncurred ? 'external cost may be incurred; ' : ''}${task.disclosure.explicitApprovalRequired ? 'explicit approval required' : 'no extra approval required'}`
           : '';
-        return `${index + 1}. [${task.specialistId}] ${task.title}${dependencies}${disclosure}\n${task.acceptanceCriteria.map(c => '• ' + c).join('\n')}`;
+        return `${index + 1}. [${task.specialistId}] ${task.title}${dependencies}${disclosure}\n${task.acceptanceCriteria.map(criterion => '• ' + criterion).join('\n')}`;
       });
-      document.querySelector('#plan-text').textContent = `${plan.goal}\n\n${planLines.join('\n\n')}\n\nFinal acceptance:\n${plan.finalAcceptanceCriteria.map(c => '• ' + c).join('\n')}`;
+
+      document.querySelector('#plan-text').textContent =
+        `${plan.goal}\n\n${planLines.join('\n\n')}\n\nFinal acceptance:\n${plan.finalAcceptanceCriteria.map(criterion => '• ' + criterion).join('\n')}`;
       document.querySelector('#plan-review').hidden = false;
       renderAutonomyDraft('plan');
-    } catch(e) { notice(e); } finally { button.disabled = false; }
+    } catch (error) {
+      notice(error);
+    } finally {
+      button.disabled = false;
+    }
   });
+
   document.querySelector('#start').onclick = async () => {
-    if (!reviewed) return; const button = document.querySelector('#start'); button.disabled = true;
-    try { const run = await api('/api/studio/runs', reviewed); reviewed = null; document.querySelector('#plan-review').hidden = true; await refreshRuns(); await watch(run.id); } catch(e) { notice(e); } finally { button.disabled = false; }
+    if (!reviewed) return;
+    const button = document.querySelector('#start');
+    button.disabled = true;
+
+    try {
+      const run = await api('/api/studio/runs', reviewed);
+      reviewed = null;
+      document.querySelector('#plan-review').hidden = true;
+      location.hash = '#runs';
+      await refreshRuns();
+      await watch(run.id);
+    } catch (error) {
+      notice(error);
+    } finally {
+      button.disabled = false;
+    }
   };
+
   document.querySelector('#refresh-runs').onclick = () => refreshRuns().catch(notice);
   window.addEventListener('beforeunload', () => source?.close());
 }

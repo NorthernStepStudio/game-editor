@@ -65,6 +65,7 @@ test("isolated workspace refuses dirty source and dirty removal", async () => {
   const repo = join(root, "repo");
   const project = join(repo, "game");
   const workspaceRoot = join(root, "workspaces");
+  let createdWorkspaceRoot: string | undefined;
   await mkdir(project, { recursive: true });
   await writeFile(join(project, "project.godot"), "; baseline\n", "utf8");
 
@@ -88,6 +89,7 @@ test("isolated workspace refuses dirty source and dirty removal", async () => {
       runId: "run-clean",
       taskId: "asset",
     });
+    createdWorkspaceRoot = workspace.workspaceRoot;
     await writeFile(join(workspace.projectPath, "project.godot"), "; dirty workspace\n", "utf8");
 
     const review = await manager.review(workspace);
@@ -96,10 +98,8 @@ test("isolated workspace refuses dirty source and dirty removal", async () => {
     await assert.rejects(() => manager.remove(workspace), /will not remove a dirty isolated workspace/i);
   } finally {
     try {
-      for (const line of git("-C", repo, "worktree", "list", "--porcelain").split("\n")) {
-        if (line.startsWith("worktree ") && !line.endsWith(repo)) {
-          try { git("-C", repo, "worktree", "remove", "--force", line.slice(9)); } catch {}
-        }
+      if (createdWorkspaceRoot) {
+        try { git("-C", repo, "worktree", "remove", "--force", createdWorkspaceRoot); } catch {}
       }
       git("-C", repo, "worktree", "prune");
     } catch {}

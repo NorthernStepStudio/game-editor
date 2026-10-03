@@ -271,3 +271,59 @@ test('restart recovery safely resumes a run that was still queued and never muta
   assert.equal(controller.store.get(recovered.id)?.status, 'completed');
   assert.equal(submissions, 1);
 });
+
+
+test('plan task ceiling rejects oversized plans before any specialist submission', async () => {
+  let submissions = 0;
+  const registry = setup({
+    submitTask: async handoff => {
+      submissions++;
+      return { taskId: handoff.taskId, specialistId: 'flyrail', accepted: true };
+    },
+  });
+  const controller = new StudioRunController({ registry, maxTasksPerPlan: 1 });
+  const plan = createStudioPlan({
+    goal: 'Two independent tasks',
+    tasks: [
+      {
+        id: 'one',
+        title: 'One',
+        goal: 'First',
+        domain: 'godot',
+        acceptanceCriteria: ['Works'],
+      },
+      {
+        id: 'two',
+        title: 'Two',
+        goal: 'Second',
+        domain: 'godot',
+        acceptanceCriteria: ['Works'],
+      },
+    ],
+  });
+
+  await assert.rejects(() => controller.executeRun(plan), /exceeds the 1-task execution ceiling/i);
+  assert.equal(submissions, 0);
+});
+
+test('whole-run duration ceiling stops an active task and does not start more work', async () => {
+  let cancellations = 0;
+  const controller = new StudioRunController({
+    registry: setup({
+      getTaskStatus: async id => ({ taskId: id, specialistId: 'flyrail', phase: 'running' }),
+      cancelTask: async id => {
+        cancellations++;
+        return { taskId: id, cancelled: true };
+      },
+    }),
+    maxRunDurationMs: 30,
+    taskTimeoutMs: 5_000,
+    requestTimeoutMs: 10,
+    pollIntervalMs: 2,
+  });
+
+  const run = await controller.executeRun(makePlan());
+  assert.equal(run.status, 'failed');
+  assert.equal(cancellations, 1);
+  assert.match(run.taskRuns.check.error ?? '', /run duration ceiling/i);
+});

@@ -102,9 +102,6 @@ export function createStudioService() {
       if (gameplayGoal && existsSync(resolve(project.path, 'playtest.manifest.json'))) automaticCriteria.push('Playtest passes');
     }
     const criteria = [...new Set([...requestedCriteria, ...automaticCriteria])];
-    if (!criteria.length) {
-      throw new Error('Add at least one measurable acceptance criterion for asset/Blender-only work.');
-    }
 
     if (input.assets !== undefined && (!Array.isArray(input.assets) || input.assets.length < 1 || input.assets.length > 16 || input.assets.some(asset => !asset || typeof asset !== 'object' || Array.isArray(asset)))) {
       throw new Error('assets must contain between 1 and 16 structured Foundry asset requests.');

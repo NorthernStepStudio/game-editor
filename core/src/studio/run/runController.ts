@@ -118,7 +118,9 @@ export class StudioRunController {
   async executeRun(plan: NssStudioPlan, customRunId?: string): Promise<NssStudioRun> {
     const initial = this.engine.start(plan, customRunId);
     const final = await new Promise<StudioRun>(resolve => {
-      const settled = (run: StudioRun) => terminalRun(run.status) || (run.status === 'cancel-requested' && run.tasks.some(task => task.status === 'failed'));
+      const settled = (run: StudioRun) => terminalRun(run.status) || (
+        run.status === 'cancel-requested' && run.tasks.some(task => ['failed', 'unknown'].includes(task.status))
+      );
       const current = this.store.get(initial.id)!;
       if (settled(current)) {
         resolve(current);

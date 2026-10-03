@@ -22,6 +22,8 @@ test("isolated specialist workspace preserves source and produces a reviewable b
     git("init", repo);
     git("-C", repo, "config", "user.email", "matterhorn-test@example.invalid");
     git("-C", repo, "config", "user.name", "Matterhorn Test");
+    git("-C", repo, "config", "core.autocrlf", "false");
+    git("-C", repo, "config", "core.eol", "lf");
     git("-C", repo, "add", ".");
     git("-C", repo, "commit", "-m", "baseline");
     const sourceHead = git("-C", repo, "rev-parse", "HEAD");
@@ -73,6 +75,8 @@ test("isolated workspace refuses dirty source and dirty removal", async () => {
     git("init", repo);
     git("-C", repo, "config", "user.email", "matterhorn-test@example.invalid");
     git("-C", repo, "config", "user.name", "Matterhorn Test");
+    git("-C", repo, "config", "core.autocrlf", "false");
+    git("-C", repo, "config", "core.eol", "lf");
     git("-C", repo, "add", ".");
     git("-C", repo, "commit", "-m", "baseline");
 

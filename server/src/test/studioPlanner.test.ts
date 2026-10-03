@@ -212,7 +212,7 @@ test('assistant cannot replace final acceptance criteria or weaken invalid calle
     goal: 'Change gameplay in Godot.', project, criteria: ['  '],
   }, basePreferences, [], {
     proposePlan: async () => { assistantCalled = true; return { domains: ['godot'] }; },
-  }), /Supply 1.20 nonempty acceptance criteria/);
+  }), /Supply at most 20 nonempty acceptance criteria/);
   assert.equal(assistantCalled, false);
 });
 

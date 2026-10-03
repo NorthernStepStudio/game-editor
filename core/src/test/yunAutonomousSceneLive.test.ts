@@ -11,6 +11,7 @@ import type { NssStudioExecutionResult, NssStudioHandoff, NssStudioPlan } from '
 import { terminalRun, type StudioRun } from '../studio/runTypes.js';
 
 type Scenario = { omitGlb?: boolean; playerCount?: number; removeGlb?: boolean };
+const FIXTURE_GLB_LABEL = 'yun_street_block_noche_v1.glb';
 
 function resultFor(handoff: NssStudioHandoff, artifactPath: string, scenario: Scenario): NssStudioExecutionResult {
   if (handoff.to === 'blender-engine') {
@@ -19,7 +20,7 @@ function resultFor(handoff: NssStudioHandoff, artifactPath: string, scenario: Sc
       specialistId: 'blender-engine',
       status: 'completed',
       summary: 'Generated current-run environment.',
-      ...(scenario.omitGlb ? {} : { artifacts: [{ kind: 'glb', uri: artifactPath, label: 'generated.glb', producedBy: 'blender-engine' as const }] }),
+      ...(scenario.omitGlb ? {} : { artifacts: [{ kind: 'glb', uri: artifactPath, label: FIXTURE_GLB_LABEL, producedBy: 'blender-engine' as const }] }),
       evidence: handoff.acceptanceCriteria.map((criterion, index) => ({ kind: 'test', summary: criterion, outcome: 'passed', uri: `fixture:blender:${index}` })),
       criterionResults: handoff.acceptanceCriteria.map((criterion, index) => ({ criterion, criterionId: `criterion-${index + 1}`, outcome: 'passed', evidenceUri: `fixture:blender:${index}`, executionId: handoff.taskId })),
     };

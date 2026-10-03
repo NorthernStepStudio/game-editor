@@ -169,11 +169,12 @@ test("agent-evaluation adapter validates a local sidecar result without owning c
   const root = await mkdtemp(join(tmpdir(), "matterhorn-eval-"));
   const runner = join(root, "runner.mjs");
   const runnerSource = [
-    'import { readFile } from "node:fs/promises";',
     'if (process.argv.includes("--health")) {',
     '  process.stdout.write(JSON.stringify({ ok: true, engine: "Matterhorn Agent Validation", version: "test" }));',
     '} else {',
-    '  const input = JSON.parse(await readFile(0, "utf8"));',
+    '  let raw = "";',
+    '  for await (const chunk of process.stdin) raw += chunk;',
+    '  const input = JSON.parse(raw);',
     '  process.stdout.write(JSON.stringify({',
     '    passed: input.goal.includes("ship"),',
     '    score: 0.82,',

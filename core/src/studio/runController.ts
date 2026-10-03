@@ -47,11 +47,11 @@ export class StudioExecutionEngine {
     if (plan.tasks.length > this.options.maxTasksPerPlan) {
       throw new Error(`Studio plan exceeds the ${this.options.maxTasksPerPlan}-task execution ceiling.`);
     }
-    const unsafeRecovered = this.store.list().some(run =>
+    const unsafeActive = this.store.list().some(run =>
       run.status === 'cancel-requested' &&
       run.tasks.some(task => ['accepted', 'running', 'validating', 'unknown'].includes(task.status)),
     );
-    if (unsafeRecovered) throw new Error('A recovered remote run may still be active. Reconcile or stop it before starting new work.');
+    if (unsafeActive) throw new Error('A remote run is already active or may still be active. Reconcile or stop it before starting new work.');
     this.store.pruneTerminal(Math.max(0, this.options.maxRuns - 1));
     if (this.store.list().length >= this.options.maxRuns) throw new Error('Run history limit reached; archive older history before starting another run.');
     if (customRunId && (!/^[a-zA-Z0-9_-]{1,100}$/.test(customRunId) || this.store.get(customRunId))) throw new Error('Invalid or duplicate run ID.');
@@ -439,6 +439,8 @@ export class StudioExecutionEngine {
             confirmed = cancellation.cancelled && cancellation.taskId === task.executionId;
           } catch { /* Preserve uncertain state. */ }
           if (!confirmed) {
+            task.status = 'unknown';
+            task.detail = 'Remote execution may still be active because cancellation could not be confirmed.';
             run.status = 'cancel-requested';
             run.detail = 'Remote execution could not be confirmed stopped. Check the daemon before restarting Matterhorn.';
             this.save(run);

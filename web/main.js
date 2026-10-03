@@ -7,90 +7,126 @@ import { initAssets, loadAssets, loadAssetProviders } from './assets.js';
 import { initRoutingPreferences, loadRoutingPreferences } from './routing.js';
 import { loadCompletionScorecard } from './completion.js';
 
-const pages = ['chat', 'studio', 'projects', 'evidence', 'settings'];
-const studioTabs = ['create', 'pipeline', 'output', 'assets', 'specialists'];
-let selectedStudioTab = 'create';
+const routeMap = {
+  home: 'home',
+  studio: 'home',
+  create: 'home',
+  runs: 'runs-page',
+  pipeline: 'runs-page',
+  output: 'runs-page',
+  projects: 'projects',
+  assets: 'assets-page',
+  validation: 'validation',
+  evidence: 'validation',
+  settings: 'settings',
+};
+
+const titleMap = {
+  home: 'Home',
+  studio: 'Home',
+  create: 'Home',
+  runs: 'Runs',
+  pipeline: 'Runs',
+  output: 'Runs',
+  projects: 'Projects',
+  assets: 'Assets',
+  validation: 'Validation',
+  evidence: 'Validation',
+  settings: 'Settings',
+};
 
 function updateSidebarSelection(hash) {
-  for (const link of document.querySelectorAll('.sidebar-nav a, nav a')) {
-    link.removeAttribute('aria-current');
-    link.classList.remove('active');
-  }
+  const normalized =
+    ['studio', 'create'].includes(hash) ? 'home' :
+    ['pipeline', 'output'].includes(hash) ? 'runs' :
+    hash === 'evidence' ? 'validation' : hash;
 
-  let matchedLink = document.querySelector(`.sidebar-nav a[href="#${hash}"], nav a[href="#${hash}"]`);
-  if (!matchedLink && (hash === 'studio' || hash === 'create')) {
-    matchedLink = document.querySelector('.sidebar-nav a[href="#create"], nav a[href="#create"], .sidebar-nav a[href="#studio"], nav a[href="#studio"]');
-  }
-
-  if (matchedLink) {
-    matchedLink.setAttribute('aria-current', 'page');
-    matchedLink.classList.add('active');
+  for (const link of document.querySelectorAll('.sidebar-nav a')) {
+    const selected = link.getAttribute('href') === `#${normalized}`;
+    link.classList.toggle('active', selected);
+    if (selected) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
   }
 }
 
 function route() {
-  const hash = location.hash.slice(1) || 'studio';
+  const hash = location.hash.slice(1) || 'home';
 
-  let pageName = 'studio';
-  let activeStudioTab = 'create';
-
-  if (pages.includes(hash)) {
-    pageName = hash;
-    if (hash === 'studio') activeStudioTab = 'create';
-  } else if (studioTabs.includes(hash)) {
-    pageName = 'studio';
-    activeStudioTab = hash;
+  if (hash === 'chat') {
+    openAssistant();
+    location.hash = '#home';
+    return;
   }
 
-  selectedStudioTab = activeStudioTab;
-
-  for (const page of pages) {
-    const el = document.querySelector(`#${page}`);
-    if (el) el.hidden = page !== pageName;
-  }
-
-  if (pageName === 'studio') {
-    selectStudioTab(activeStudioTab);
+  const pageId = routeMap[hash] || 'home';
+  for (const page of document.querySelectorAll('.page')) {
+    page.hidden = page.id !== pageId;
   }
 
   updateSidebarSelection(hash);
+  const breadcrumb = document.querySelector('#breadcrumb');
+  if (breadcrumb) breadcrumb.textContent = titleMap[hash] || 'Home';
 
-  const titleMap = {
-    studio: 'Studio / Create',
-    create: 'Studio / Create',
-    pipeline: 'Studio / Pipeline',
-    output: 'Studio / Live Output',
-    assets: 'Studio / Asset Gallery',
-    specialists: 'Studio / Specialists',
-    chat: 'Workspace / Chat',
-    projects: 'Workspace / Projects',
-    evidence: 'Workspace / Evidence',
-    settings: 'Workspace / Settings'
-  };
-
-  document.querySelector('#breadcrumb').textContent = titleMap[hash] || `Workspace / ${hash[0].toUpperCase() + hash.slice(1)}`;
-  if (pageName === 'evidence') refreshRuns().catch(notice);
+  if (pageId === 'validation') refreshRuns().catch(notice);
+  if (pageId === 'runs-page') refreshRuns().catch(notice);
 }
 
-function selectStudioTab(target) {
-  if (!studioTabs.includes(target)) return;
-  selectedStudioTab = target;
-  for (const tab of document.querySelectorAll('.studio-tab')) {
-    const selected = tab.dataset.studioTab === target;
-    tab.setAttribute('aria-selected', selected ? 'true' : 'false');
-    tab.classList.toggle('active', selected);
+function switchPanel(group, target) {
+  const buttonSelector = `[data-${group}-tab]`;
+  for (const button of document.querySelectorAll(buttonSelector)) {
+    button.classList.toggle('active', button.dataset[`${group}Tab`] === target);
   }
-  for (const id of studioTabs) {
-    const section = document.getElementById(`studio-${id}`);
-    if (section) section.hidden = id !== target;
+  for (const panel of document.querySelectorAll(`#${group}-tab-${target}, [id^="${group}-tab-"]`)) {
+    if (panel.id?.startsWith(`${group}-tab-`)) panel.hidden = panel.id !== `${group}-tab-${target}`;
   }
 }
 
-function initStudioTabs() {
-  for (const tab of document.querySelectorAll('.studio-tab')) {
-    tab.onclick = () => {
-      const target = tab.dataset.studioTab;
-      location.hash = `#${target}`;
+function initInternalTabs() {
+  for (const button of document.querySelectorAll('[data-settings-tab]')) {
+    button.onclick = () => switchPanel('settings', button.dataset.settingsTab);
+  }
+  for (const button of document.querySelectorAll('[data-project-tab]')) {
+    button.onclick = () => switchPanel('project', button.dataset.projectTab);
+  }
+}
+
+function openAssistant() {
+  const drawer = document.querySelector('#chat-drawer');
+  if (drawer) drawer.hidden = false;
+}
+function closeAssistant() {
+  const drawer = document.querySelector('#chat-drawer');
+  if (drawer) drawer.hidden = true;
+}
+
+function initDrawers() {
+  document.querySelector('#assistant-toggle')?.addEventListener('click', openAssistant);
+  document.querySelector('#assistant-close')?.addEventListener('click', closeAssistant);
+
+  const assetDrawer = document.querySelector('#asset-generator');
+  document.querySelector('#open-asset-generator')?.addEventListener('click', () => {
+    if (assetDrawer) assetDrawer.hidden = false;
+  });
+  document.querySelector('#close-asset-generator')?.addEventListener('click', () => {
+    if (assetDrawer) assetDrawer.hidden = true;
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    closeAssistant();
+    if (assetDrawer) assetDrawer.hidden = true;
+  });
+}
+
+function initQuickActions() {
+  for (const button of document.querySelectorAll('[data-goal-prefix]')) {
+    button.onclick = () => {
+      const goal = document.querySelector('#goal');
+      if (!goal) return;
+      const prefix = button.dataset.goalPrefix || '';
+      if (!goal.value.trim()) goal.value = prefix;
+      goal.focus();
+      goal.setSelectionRange(goal.value.length, goal.value.length);
     };
   }
 }
@@ -98,18 +134,20 @@ function initStudioTabs() {
 async function health() {
   const [server, daemon] = await Promise.all([api('/health'), api('/api/studio/health')]);
   const connection = document.querySelector('#connection');
-  connection.textContent = `Connected · ${server.mode === 'mock' ? 'mock chat' : server.mode}`;
-  connection.classList.add('connected');
+  connection.textContent = daemon.available ? 'System Ready' : `Connected · ${server.mode === 'mock' ? 'mock' : server.mode}`;
+  connection.classList.toggle('connected', daemon.available);
+
   const systemState = document.querySelector('#system-state');
   if (systemState) {
     systemState.innerHTML = daemon.available
-      ? '<span class="dot live"></span> Studio services ready'
+      ? '<span class="dot live"></span> System ready'
       : '<span class="dot"></span> Flyrail offline';
   }
+
   const godotAi = daemon.executionBackends?.godotAi;
   const codex = daemon.executionBackends?.codex;
   document.querySelector('#daemon-detail').textContent = daemon.available
-    ? `Flyrail connected (${daemon.version}) · Godot AI ${godotAi?.configured ? 'configured' : 'not configured'}${godotAi?.pluginInstalled ? ' + plugin detected' : ''} · Codex ${codex?.configured ? 'ready' : 'not configured'} · Sentinel validator active. Remote cancellation is currently unsupported.`
+    ? `Flyrail connected (${daemon.version}) · Godot AI ${godotAi?.configured ? 'configured' : 'not configured'}${godotAi?.pluginInstalled ? ' + plugin detected' : ''} · Codex ${codex?.configured ? 'ready' : 'not configured'} · Sentinel active.`
     : 'Flyrail is offline. Start the daemon on this PC and check its server-side configuration.';
   clearNotice();
 }
@@ -123,9 +161,14 @@ async function runtimeCapabilities() {
   for (const capability of capabilities) {
     const row = document.createElement('div');
     row.className = 'setting-row';
-    const name = document.createElement('span');
+
+    const identity = document.createElement('div');
+    identity.className = 'runtime-identity';
+    const name = document.createElement('strong');
     name.className = 'setting-label';
     name.textContent = capability.title;
+    identity.append(name);
+
     const state = document.createElement('span');
     state.className = 'status-badge';
     state.textContent = capability.state === 'ready'
@@ -134,7 +177,8 @@ async function runtimeCapabilities() {
         ? 'Needs attention'
         : 'Not configured';
     if (capability.state === 'ready') state.classList.add('connected');
-    row.append(name, state);
+
+    row.append(identity, state);
     container.append(row);
   }
 }
@@ -150,8 +194,9 @@ async function providers() {
   }
   select.value = data.current;
   const describe = () => {
-    const p = data.providers.find(p => p.id === select.value);
-    document.querySelector('#provider-detail').textContent = `${p?.model || select.value}. ${select.value === 'mock' ? 'Mock responses do not execute or validate work.' : 'Provider credentials are configured on the server.'}`;
+    const provider = data.providers.find(candidate => candidate.id === select.value);
+    document.querySelector('#provider-detail').textContent =
+      `${provider?.model || select.value}. ${select.value === 'mock' ? 'Mock responses do not execute or validate work.' : 'Provider credentials are configured on the server.'}`;
   };
   select.onchange = describe;
   describe();
@@ -160,11 +205,27 @@ async function providers() {
 initStudio();
 initChat();
 initWorkspace();
-initStudioTabs();
 initSpecialists();
 initAssets();
 initRoutingPreferences();
+initInternalTabs();
+initDrawers();
+initQuickActions();
 route();
+
 window.addEventListener('hashchange', route);
-document.querySelector('#recheck').onclick = () => Promise.all([health(), runtimeCapabilities()]).catch(notice);
-for (const task of [health, runtimeCapabilities, providers, loadProjects, refreshRuns, loadSpecialists, loadRoutingPreferences, loadAssetProviders, loadAssets, loadCompletionScorecard]) task().catch(notice);
+document.querySelector('#recheck').onclick = () =>
+  Promise.all([health(), runtimeCapabilities()]).catch(notice);
+
+for (const task of [
+  health,
+  runtimeCapabilities,
+  providers,
+  loadProjects,
+  refreshRuns,
+  loadSpecialists,
+  loadRoutingPreferences,
+  loadAssetProviders,
+  loadAssets,
+  loadCompletionScorecard,
+]) task().catch(notice);

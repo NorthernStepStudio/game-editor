@@ -17,7 +17,7 @@ function atomicWrite(path: string, text: string, mode = 0o600): void {
 }
 export class WorkspaceReviews {
   private readonly directory: string;
-  constructor(private readonly projects: StudioProject[], dataDirectory: string, private readonly assertIdle: () => void = () => {}) {
+  constructor(private readonly projects: readonly StudioProject[], dataDirectory: string, private readonly assertIdle: () => void = () => {}) {
     this.directory = resolve(dataDirectory,'workspace-reviews');
   }
   private persist(review: WorkspaceReview): void {

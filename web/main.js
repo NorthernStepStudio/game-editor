@@ -5,6 +5,7 @@ import { initChat } from './chat.js';
 import { initSpecialists, loadSpecialists } from './specialists.js';
 import { initAssets, loadAssets, loadAssetProviders } from './assets.js';
 import { initRoutingPreferences, loadRoutingPreferences } from './routing.js';
+import { loadCompletionScorecard } from './completion.js';
 
 const pages = ['chat', 'studio', 'projects', 'evidence', 'settings'];
 const studioTabs = ['create', 'pipeline', 'output', 'assets', 'specialists'];
@@ -141,4 +142,4 @@ initRoutingPreferences();
 route();
 window.addEventListener('hashchange', route);
 document.querySelector('#recheck').onclick = () => health().catch(notice);
-for (const task of [health, providers, loadProjects, refreshRuns, loadSpecialists, loadRoutingPreferences, loadAssetProviders, loadAssets]) task().catch(notice);
+for (const task of [health, providers, loadProjects, refreshRuns, loadSpecialists, loadRoutingPreferences, loadAssetProviders, loadAssets, loadCompletionScorecard]) task().catch(notice);

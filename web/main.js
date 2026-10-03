@@ -19,6 +19,7 @@ const routeMap = {
   validation: 'validation',
   evidence: 'validation',
   settings: 'settings',
+  specialists: 'settings',
 };
 
 const titleMap = {
@@ -33,6 +34,7 @@ const titleMap = {
   validation: 'Validation',
   evidence: 'Validation',
   settings: 'Settings',
+  specialists: 'Settings / Specialists',
 };
 
 function updateSidebarSelection(hash) {
@@ -69,6 +71,7 @@ function route() {
 
   if (pageId === 'validation') refreshRuns().catch(notice);
   if (pageId === 'runs-page') refreshRuns().catch(notice);
+  if (hash === 'specialists') switchPanel('settings', 'advanced');
 }
 
 function switchPanel(group, target) {
@@ -97,6 +100,20 @@ function openAssistant() {
 function closeAssistant() {
   const drawer = document.querySelector('#chat-drawer');
   if (drawer) drawer.hidden = true;
+}
+
+function initValidationFilters() {
+  for (const button of document.querySelectorAll('[data-validation-filter]')) {
+    button.onclick = () => {
+      const filter = button.dataset.validationFilter;
+      for (const peer of document.querySelectorAll('[data-validation-filter]')) {
+        peer.classList.toggle('active', peer === button);
+      }
+      for (const card of document.querySelectorAll('[data-validation-state]')) {
+        card.hidden = filter !== 'all' && card.dataset.validationState !== filter;
+      }
+    };
+  }
 }
 
 function initDrawers() {
@@ -209,6 +226,7 @@ initSpecialists();
 initAssets();
 initRoutingPreferences();
 initInternalTabs();
+initValidationFilters();
 initDrawers();
 initQuickActions();
 route();

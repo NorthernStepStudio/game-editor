@@ -113,12 +113,22 @@ test('studio plan/run APIs reject malformed bodies and support cancel + events',
       });
       assert.equal(badGoal.status, 400);
 
-      const badCriteria = await fetch(base + '/api/studio/plan', {
+      const automaticCriteria = await fetch(base + '/api/studio/plan', {
         method: 'POST',
         headers: jsonHeaders,
         body: JSON.stringify({ goal: 'Validate the disposable project', projectId: 'demo', criteria: [] }),
       });
-      assert.equal(badCriteria.status, 400);
+      assert.equal(automaticCriteria.status, 200);
+      const automaticPlan = await readJson<{ finalAcceptanceCriteria: string[] }>(automaticCriteria);
+      assert.deepEqual(automaticPlan.finalAcceptanceCriteria, [
+        'Godot validation passes',
+        'Scenario checks pass',
+        'QA checks pass',
+      ]);
+
+      const agents = await readJson<Array<{ id: string; kind: string }>>(await fetch(base + '/api/studio/agents'));
+      assert.equal(agents.find(agent => agent.id === 'matterhorn')?.kind, 'orchestrator');
+      assert.equal(agents.find(agent => agent.id === 'sentinel')?.kind, 'validator');
 
       const unknownProject = await fetch(base + '/api/studio/plan', {
         method: 'POST',

@@ -507,3 +507,18 @@ function qaProof(
     }],
   };
 }
+
+
+test('asset-only planning derives Foundry hash/provenance acceptance when the user supplies no extra criterion', () => {
+  const plan = createStudioPlannerPlan({
+    goal: 'Generate concept art for the project.',
+    project,
+    criteria: [],
+    domains: ['assets'],
+    assets: [{ assetId: 'concept-auto-proof', kind: 'concept_art', operation: 'generate', prompt: 'Project concept art' }],
+  }, basePreferences, [comfy]);
+
+  assert.deepEqual(plan.tasks.map(task => task.specialistId), ['foundry', 'matterhorn']);
+  assert.deepEqual(plan.finalAcceptanceCriteria, [foundryAssetOutputCriterion('concept-auto-proof')]);
+  assert.deepEqual(plan.tasks.at(-1)?.acceptanceCriteria, plan.finalAcceptanceCriteria);
+});

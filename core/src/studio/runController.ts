@@ -1,7 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { SpecialistAdapterRegistry } from './run/registry.js';
 import { SpecialistError } from './adapters/types.js';
-import { validateStudioEvidence } from './evidenceValidator.js';
 import { runSentinelValidation } from './sentinelValidator.js';
 import { createStudioHandoff, validateStudioPlan } from './orchestrator.js';
 import { StudioSnapshotStore } from './runStore.js';
@@ -205,7 +204,7 @@ export class StudioExecutionEngine {
 
   private finalAcceptanceCovered(run: StudioRun): boolean {
     return run.plan.finalAcceptanceCriteria.every(criterion =>
-      run.tasks.some(task => task.result && validateStudioEvidence(task.result, task.executionId, task.result.specialistId, [criterion]).valid),
+      run.tasks.some(task => task.result && runSentinelValidation(task.result, task.executionId, task.result.specialistId, [criterion]).valid),
     );
   }
 

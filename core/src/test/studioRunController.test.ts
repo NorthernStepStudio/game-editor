@@ -238,3 +238,36 @@ test('queued Studio runs can be cancelled before specialist mutation starts', as
   assert.equal(submissions, 1);
   release = true;
 });
+
+
+test('restart recovery safely resumes a run that was still queued and never mutated', async () => {
+  const plan = makePlan();
+  const recovered: StudioRun = {
+    id: 'queued-recovered-run',
+    plan,
+    status: 'queued',
+    createdAt: new Date(Date.now() - 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 500).toISOString(),
+    tasks: [{ id: 'check', executionId: 'queued-recovered-run-check', status: 'planned' }],
+  };
+  let submissions = 0;
+  const controller = new StudioRunController({
+    registry: setup({
+      submitTask: async handoff => {
+        submissions++;
+        return { taskId: handoff.taskId, specialistId: 'flyrail', accepted: true };
+      },
+    }),
+    initialRuns: [recovered],
+    pollIntervalMs: 2,
+  });
+
+  const [restored] = await controller.reconcileRecoveredRuns();
+  assert.equal(restored.id, recovered.id);
+  for (let attempt = 0; attempt < 100; attempt++) {
+    if (controller.store.get(recovered.id)?.status === 'completed') break;
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+  assert.equal(controller.store.get(recovered.id)?.status, 'completed');
+  assert.equal(submissions, 1);
+});

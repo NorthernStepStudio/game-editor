@@ -33,7 +33,13 @@ export async function studioRoutes(
   }
 
   if (request.method === 'GET' && pathname === '/api/studio/health') {
-    const health = await adapter.health();
+    const [health, executionBackends] = await Promise.all([
+      adapter.health(),
+      adapter.getExecutionBackends().catch(() => ({
+        codex: { configured: false },
+        godotAi: { configured: false, pluginInstalled: false, allowedTools: [] as readonly string[] },
+      })),
+    ]);
     send(response, 200, {
       available: health.available,
       version: health.version,
@@ -43,6 +49,7 @@ export async function studioRoutes(
       executionSpecialist: 'flyrail',
       validatorAgent: 'sentinel',
       workflow: STUDIO_WORKFLOW_STAGES,
+      executionBackends,
     });
     return true;
   }

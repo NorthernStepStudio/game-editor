@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { StudioService } from './studioService.js';
-import { listStudioSpecialists } from '@nss/m-core';
+import { listStudioAgents, listStudioSpecialists, STUDIO_WORKFLOW_STAGES } from '@nss/m-core';
 
 const send = (response: ServerResponse, status: number, body: unknown) => {
   response.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
@@ -16,6 +16,11 @@ export async function studioRoutes(
   const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
   if (!pathname.startsWith('/api/')) return false;
   const { controller, adapter } = service;
+
+  if (request.method === 'GET' && pathname === '/api/studio/agents') {
+    send(response, 200, listStudioAgents());
+    return true;
+  }
 
   if (request.method === 'GET' && pathname === '/api/studio/specialists') {
     send(response, 200, listStudioSpecialists());
@@ -35,6 +40,9 @@ export async function studioRoutes(
       storage: 'disk',
       restartRecovery: service.getRecoveryState(),
       cancellationSupported: false,
+      executionSpecialist: 'flyrail',
+      validatorAgent: 'sentinel',
+      workflow: STUDIO_WORKFLOW_STAGES,
     });
     return true;
   }

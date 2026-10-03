@@ -14,6 +14,7 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     if(path==='/health')data={mode:'mock'};
     else if(path==='/providers')data={current:'mock',providers:[{id:'mock',label:'Mock',available:true}]};
     else if(path==='/api/studio/health')data={available:false};
+    else if(path==='/api/studio/runtime')data=[{capability:'browser-control',title:'Local browser',state:'ready'},{capability:'project-memory',title:'Project memory',state:'unavailable'},{capability:'sandbox-execution',title:'Safe execution',state:'unavailable'},{capability:'telemetry',title:'Run insights',state:'unavailable'},{capability:'agent-evaluation',title:'Agent validation',state:'unavailable'}];
     else if(path==='/api/projects')data=[{id:'fixture',name:'Fixture project'}];
     else if(path==='/api/studio/plan')data={goal:body.goal,tasks:[{title:'Implement',acceptanceCriteria:body.criteria}]};
     else if(path==='/api/studio/runs' && body){run={id:'fixture-run',status:'running',plan:{goal:body.goal},tasks:[{id:'work',status:'running'}]};data=run;}
@@ -29,7 +30,7 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     await import('../web/main.js');await flush();
     assert.equal(document.querySelector('#project').options.length,2);
     assert.equal(document.querySelector('#agent-selector'),null);
-    assert.match(document.querySelector('#connection').textContent,/mock/);
+    assert.match(document.querySelector('#connection').textContent,/mock/);assert.match(document.querySelector('#runtime-capabilities').textContent,/Local browser/);assert.doesNotMatch(document.querySelector('#runtime-capabilities').textContent,/Graphiti|DeepEval|Langfuse|Browser Harness/);
     for(const page of ['chat','projects','evidence','settings','studio','pipeline','output','assets','specialists']){location.hash=`#${page}`;window.dispatchEvent(new window.Event('hashchange'));await flush();const mainId=['pipeline','output','assets','specialists'].includes(page)?'studio':page;assert.equal(document.querySelector(`#${mainId}`).hidden,false);}
     document.querySelector('#project').value='fixture';document.querySelector('#goal').value='Verify fixture';document.querySelector('#criteria').value='Godot validation passes';
     document.querySelector('#run-form').dispatchEvent(new window.Event('submit',{cancelable:true}));await flush();assert.equal(document.querySelector('#plan-review').hidden,false);

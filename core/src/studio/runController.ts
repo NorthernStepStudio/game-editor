@@ -14,6 +14,8 @@ export interface StudioRunOptions {
   pollIntervalMs?: number;
   maxReadRetries?: number;
   maxRuns?: number;
+  maxRunDurationMs?: number;
+  maxTasksPerPlan?: number;
 }
 
 export class StudioExecutionEngine {
@@ -29,9 +31,12 @@ export class StudioExecutionEngine {
     private readonly additionalValidation?: (task: NssStudioTask, result: NssStudioExecutionResult) => { passed: boolean; failures: readonly string[] },
     initialRuns: readonly StudioRun[] = [],
   ) {
-    this.options = { taskTimeoutMs: 300000, requestTimeoutMs: 30000, pollIntervalMs: 1000, maxReadRetries: 2, maxRuns: 100, ...options };
+    this.options = { taskTimeoutMs: 300000, requestTimeoutMs: 30000, pollIntervalMs: 1000, maxReadRetries: 2, maxRuns: 100, maxRunDurationMs: 1800000, maxTasksPerPlan: 32, ...options };
     for (const [key, value] of Object.entries(this.options)) {
       if (!Number.isFinite(value) || value < (key === 'maxReadRetries' ? 0 : 1)) throw new Error(`Invalid ${key}`);
+    }
+    if (!Number.isInteger(this.options.maxReadRetries) || !Number.isInteger(this.options.maxRuns) || !Number.isInteger(this.options.maxTasksPerPlan)) {
+      throw new Error('Retry, history, and plan task ceilings must be integers.');
     }
     this.store = new StudioSnapshotStore(initialRuns);
   }
@@ -39,6 +44,9 @@ export class StudioExecutionEngine {
   start(plan: NssStudioPlan, customRunId?: string): StudioRun {
     const validation = validateStudioPlan(plan);
     if (!validation.valid) throw new Error(validation.errors.join(' '));
+    if (plan.tasks.length > this.options.maxTasksPerPlan) {
+      throw new Error(`Studio plan exceeds the ${this.options.maxTasksPerPlan}-task execution ceiling.`);
+    }
     const unsafeRecovered = this.store.list().some(run =>
       run.status === 'cancel-requested' &&
       run.tasks.some(task => ['accepted', 'running', 'validating', 'unknown'].includes(task.status)),
@@ -296,8 +304,19 @@ export class StudioExecutionEngine {
   private async execute(run: StudioRun): Promise<void> {
     run.status = 'running';
     this.save(run);
+    const runDeadline = Date.now() + this.options.maxRunDurationMs;
 
     while (run.tasks.some(task => task.status === 'planned')) {
+      if (Date.now() >= runDeadline) {
+        for (const task of run.tasks.filter(candidate => candidate.status === 'planned')) {
+          task.status = 'blocked';
+          task.detail = 'Run duration ceiling reached before this task could start.';
+          task.finishedAt = new Date().toISOString();
+        }
+        run.detail = 'Matterhorn stopped scheduling because the run duration ceiling was reached.';
+        this.save(run);
+        break;
+      }
       if (this.cancellations.has(run.id)) {
         this.finishCancellation(run);
         return;
@@ -324,7 +343,7 @@ export class StudioExecutionEngine {
         continue;
       }
 
-      const deadline = Date.now() + this.options.taskTimeoutMs;
+      const deadline = Math.min(runDeadline, Date.now() + this.options.taskTimeoutMs);
       let submitted = false;
       let cancellationSent = false;
       try {
@@ -410,7 +429,9 @@ export class StudioExecutionEngine {
         this.validateTask(task, next);
       } catch (error) {
         task.status = 'failed';
-        task.detail = error instanceof SpecialistError ? error.code : 'Execution failed; inspect the daemon logs.';
+        task.detail = Date.now() >= runDeadline
+          ? 'Run duration ceiling reached while this task was active.'
+          : error instanceof SpecialistError ? error.code : 'Execution failed; inspect the daemon logs.';
         if (submitted) {
           let confirmed = false;
           try {

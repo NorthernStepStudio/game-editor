@@ -47,8 +47,8 @@ export const STUDIO_AGENTS: readonly NssStudioAgentDefinition[] = [
   {
     id: "canvas", title: "Canvas", kind: "specialist",
     role: "2D art and UI-asset specialist for concepts, sprites, textures, icons, style references, and interface assets.",
-    availability: "planned", canCreateAgents: false, canValidateOwnWork: false,
-    adapters: [{ adapterId: "visual-generation", status: "planned", description: "Provider-neutral image and 2D generation adapter." }],
+    availability: "active", canCreateAgents: false, canValidateOwnWork: false,
+    adapters: [{ adapterId: "foundry.assets", specialistId: "foundry", status: "bound", description: "Matterhorn Foundry provider router with provenance, local-first policy, and explicit network/cost approvals." }],
     skills: [{ id: "art.generate", domain: "art", description: "Generate and refine 2D game art, concepts, sprites, textures, icons, and UI assets." }],
   },
   {
@@ -82,7 +82,7 @@ export const STUDIO_AGENTS: readonly NssStudioAgentDefinition[] = [
 ];
 
 const EXECUTION_SPECIALIST_TO_AGENT: Readonly<Record<NssStudioSpecialistId, NssStudioAgentId>> = {
-  matterhorn: "matterhorn", flyrail: "flyrail", "blender-engine": "forge",
+  matterhorn: "matterhorn", flyrail: "flyrail", "blender-engine": "forge", foundry: "canvas",
 };
 
 export function listStudioAgents(): readonly NssStudioAgentDefinition[] { return STUDIO_AGENTS; }

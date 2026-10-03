@@ -97,18 +97,32 @@ async function renderPromotionControls(run, container) {
   box.append(badge);
 
   if (promotion.state === 'approval-required' || promotion.state === 'stale') {
+    const label = el('label', 'Type APPROVE to authorize promotion');
+    const confirmation = document.createElement('input');
+    confirmation.type = 'text';
+    confirmation.autocomplete = 'off';
+    confirmation.spellcheck = false;
+    confirmation.placeholder = 'APPROVE';
+    confirmation.maxLength = 7;
     const approve = el('button', promotion.state === 'stale' ? 'Renew promotion approval' : 'Approve for promotion');
+    approve.disabled = true;
+    confirmation.addEventListener('input', () => {
+      approve.disabled = confirmation.value !== 'APPROVE';
+    });
     approve.onclick = async () => {
+      if (confirmation.value !== 'APPROVE') return;
       approve.disabled = true;
+      confirmation.disabled = true;
       try {
-        await api(`/api/studio/runs/${run.id}/promotion/approve`, { confirmation: 'APPROVE' });
+        await api(`/api/studio/runs/${run.id}/promotion/approve`, { confirmation: confirmation.value });
         renderRun(await api(`/api/studio/runs/${run.id}`));
       } catch (error) {
         notice(error);
-        approve.disabled = false;
+        confirmation.disabled = false;
+        approve.disabled = confirmation.value !== 'APPROVE';
       }
     };
-    box.append(approve);
+    box.append(label, confirmation, approve);
   } else if (promotion.state === 'approved') {
     const revoke = el('button', 'Revoke promotion approval', 'secondary');
     revoke.onclick = async () => {

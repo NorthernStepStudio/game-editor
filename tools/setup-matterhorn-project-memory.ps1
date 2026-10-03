@@ -40,7 +40,7 @@ $packages = @(
 if ($LASTEXITCODE -ne 0) { throw "Could not install the pinned Project Memory runtime." }
 
 $serviceSource = Join-Path $PSScriptRoot "runtime\matterhorn-project-memory.py"
-$serviceTarget = Join-Path $InstallRoot "matterhorn-project-memory.py"
+$serviceTarget = Join-Path $InstallRoot "matterhorn_project_memory.py"
 Copy-Item -Force $serviceSource $serviceTarget
 
 $stateDir = Join-Path $InstallRoot "state"
@@ -68,7 +68,7 @@ try {
 
 $process = Start-Process -FilePath $venvPython -ArgumentList @(
   "-m", "uvicorn",
-  "matterhorn-project-memory:app",
+  "matterhorn_project_memory:app",
   "--app-dir", $InstallRoot,
   "--host", "127.0.0.1",
   "--port", "$Port",

@@ -1,11 +1,10 @@
 import { api, el } from './api.js';
 
-let specialists = [];
+let agents = [];
 
 function badgeClass(availability) {
   switch (availability) {
-    case 'active':
-    case 'available': return 'badge-success';
+    case 'active': return 'badge-success';
     case 'integration-pending': return 'badge-warning';
     case 'planned': return 'badge-pending';
     default: return '';
@@ -14,89 +13,79 @@ function badgeClass(availability) {
 
 function dotClass(availability) {
   switch (availability) {
-    case 'active':
-    case 'available': return 'available';
+    case 'active': return 'available';
     case 'integration-pending': return 'pending';
     case 'planned': return 'planned';
     default: return 'offline';
   }
 }
 
-function capabilitiesOf(spec) {
-  return spec.skills ?? spec.capabilities ?? [];
-}
-
-function renderSpecialistCards(target) {
+function renderAgentCards(target) {
   const container = document.getElementById(target);
   if (!container) return;
   container.replaceChildren();
-  if (!specialists.length) {
+  if (!agents.length) {
     container.append(el('p', 'No studio agents registered.', 'muted'));
     return;
   }
-  for (const spec of specialists) {
+
+  for (const agent of agents) {
     const card = document.createElement('div');
     card.className = 'specialist-card';
 
     const header = document.createElement('div');
     header.className = 'specialist-header';
-    const title = el('span', spec.title, 'specialist-title');
-    const badge = el('span', spec.availability.replace('-', ' '), `badge ${badgeClass(spec.availability)}`);
-    header.append(title, badge);
+    header.append(
+      el('span', agent.title, 'specialist-title'),
+      el('span', agent.availability.replace('-', ' '), `badge ${badgeClass(agent.availability)}`),
+    );
 
-    const role = el('p', spec.role, 'specialist-role');
-    const meta = el('p', spec.kind ? `${spec.kind} · ${spec.id}` : `${spec.executionMode} · ${spec.id}`, 'muted-sm');
+    const role = el('p', agent.role, 'specialist-role');
+    const meta = el('p', `${agent.kind} · ${agent.adapters.filter(a => a.status === 'bound').length} bound adapter(s)`, 'muted-sm');
 
-    const capList = document.createElement('div');
-    capList.className = 'capability-list';
-    for (const cap of capabilitiesOf(spec)) {
-      const tag = el('span', cap.id, 'capability-tag');
-      tag.title = cap.description;
-      capList.append(tag);
+    const skillList = document.createElement('div');
+    skillList.className = 'capability-list';
+    for (const skill of agent.skills) {
+      const tag = el('span', skill.id, 'capability-tag');
+      tag.title = skill.description;
+      skillList.append(tag);
     }
 
-    if (spec.adapters?.length) {
-      const adapters = el('p', `Adapters: ${spec.adapters.map(adapter => adapter.adapterId + ' · ' + adapter.status).join(', ')}`, 'muted-sm');
-      card.append(header, role, meta, capList, adapters);
-    } else {
-      card.append(header, role, meta, capList);
-    }
+    card.append(header, role, meta, skillList);
     container.append(card);
   }
 }
 
-function renderSettingsSpecialists() {
+function renderSettingsAgents() {
   const container = document.getElementById('settings-specialists');
   if (!container) return;
   container.replaceChildren();
-  for (const spec of specialists) {
+  for (const agent of agents) {
     const row = document.createElement('div');
     row.className = 'settings-specialist-row';
     const dot = document.createElement('span');
-    dot.className = `avail-dot ${dotClass(spec.availability)}`;
-    const name = el('span', spec.title, 'specialist-name');
-    const mode = el('span', `${spec.kind ?? spec.executionMode} · ${spec.availability.replace('-', ' ')}`, 'muted');
-    row.append(dot, name, mode);
+    dot.className = `avail-dot ${dotClass(agent.availability)}`;
+    row.append(
+      dot,
+      el('span', agent.title, 'specialist-name'),
+      el('span', `${agent.kind} · ${agent.availability.replace('-', ' ')}`, 'muted'),
+    );
     container.append(row);
   }
 }
 
 export async function loadSpecialists() {
   try {
-    specialists = await api('/api/studio/agents');
+    agents = await api('/api/studio/agents');
   } catch {
-    try {
-      specialists = await api('/api/studio/specialists');
-    } catch {
-      specialists = [];
-    }
+    agents = [];
   }
-  renderSpecialistCards('specialist-list');
-  renderSettingsSpecialists();
+  renderAgentCards('specialist-list');
+  renderSettingsAgents();
 }
 
 export function getSpecialists() {
-  return specialists;
+  return agents;
 }
 
 export function initSpecialists() {

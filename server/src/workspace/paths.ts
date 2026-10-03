@@ -7,7 +7,7 @@ export function visibleName(name: string): boolean {
   return !name.startsWith('.') && !ignored.has(name.toLowerCase()) && !/(^|[-_.])(secrets?|credentials?|tokens?|passwords?|private[-_]?key|service[-_]?account)([-_.]|$)/i.test(name);
 }
 export function textFile(name: string): boolean { return visibleName(name) && extensions.has(extname(name).toLowerCase()); }
-export function projectRoot(projects: StudioProject[], id: string): string {
+export function projectRoot(projects: readonly StudioProject[], id: string): string {
   const project = projects.find(p => p.id === id);
   if (!project) throw new Error('Unknown workspace project.');
   const root = realpathSync(project.path);

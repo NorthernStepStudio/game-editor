@@ -4,6 +4,7 @@ let specialists = [];
 
 function badgeClass(availability) {
   switch (availability) {
+    case 'active':
     case 'available': return 'badge-success';
     case 'integration-pending': return 'badge-warning';
     case 'planned': return 'badge-pending';
@@ -13,6 +14,7 @@ function badgeClass(availability) {
 
 function dotClass(availability) {
   switch (availability) {
+    case 'active':
     case 'available': return 'available';
     case 'integration-pending': return 'pending';
     case 'planned': return 'planned';
@@ -20,12 +22,16 @@ function dotClass(availability) {
   }
 }
 
+function capabilitiesOf(spec) {
+  return spec.skills ?? spec.capabilities ?? [];
+}
+
 function renderSpecialistCards(target) {
   const container = document.getElementById(target);
   if (!container) return;
   container.replaceChildren();
   if (!specialists.length) {
-    container.append(el('p', 'No specialists registered.', 'muted'));
+    container.append(el('p', 'No studio agents registered.', 'muted'));
     return;
   }
   for (const spec of specialists) {
@@ -39,16 +45,22 @@ function renderSpecialistCards(target) {
     header.append(title, badge);
 
     const role = el('p', spec.role, 'specialist-role');
+    const meta = el('p', spec.kind ? `${spec.kind} · ${spec.id}` : `${spec.executionMode} · ${spec.id}`, 'muted-sm');
 
     const capList = document.createElement('div');
     capList.className = 'capability-list';
-    for (const cap of spec.capabilities) {
+    for (const cap of capabilitiesOf(spec)) {
       const tag = el('span', cap.id, 'capability-tag');
       tag.title = cap.description;
       capList.append(tag);
     }
 
-    card.append(header, role, capList);
+    if (spec.adapters?.length) {
+      const adapters = el('p', `Adapters: ${spec.adapters.map(adapter => adapter.adapterId + ' · ' + adapter.status).join(', ')}`, 'muted-sm');
+      card.append(header, role, meta, capList, adapters);
+    } else {
+      card.append(header, role, meta, capList);
+    }
     container.append(card);
   }
 }
@@ -63,7 +75,7 @@ function renderSettingsSpecialists() {
     const dot = document.createElement('span');
     dot.className = `avail-dot ${dotClass(spec.availability)}`;
     const name = el('span', spec.title, 'specialist-name');
-    const mode = el('span', `${spec.executionMode} · ${spec.availability.replace('-', ' ')}`, 'muted');
+    const mode = el('span', `${spec.kind ?? spec.executionMode} · ${spec.availability.replace('-', ' ')}`, 'muted');
     row.append(dot, name, mode);
     container.append(row);
   }
@@ -71,9 +83,13 @@ function renderSettingsSpecialists() {
 
 export async function loadSpecialists() {
   try {
-    specialists = await api('/api/studio/specialists');
+    specialists = await api('/api/studio/agents');
   } catch {
-    specialists = [];
+    try {
+      specialists = await api('/api/studio/specialists');
+    } catch {
+      specialists = [];
+    }
   }
   renderSpecialistCards('specialist-list');
   renderSettingsSpecialists();

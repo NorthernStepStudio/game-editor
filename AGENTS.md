@@ -1,5 +1,18 @@
 # Matterhorn: instructions for project agents
 
+## Mandatory first action — every agent session
+
+Before changing files, pushing commits, opening a pull request, rerunning CI, or recommending implementation work:
+
+1. Read `.agents/STARTUP.md`.
+2. Run `npm run agent:start`.
+3. Read `docs/GATE-0-AUTONOMY-VALIDATION.md` and obey its current gate state.
+4. For generic infrastructure/reuse work, read `docs/OSS-ACCELERATION.md`.
+
+This is a hard repository workflow rule. Re-run the preflight after switching branches or taking over another agent's work. Iterative autonomous work belongs on `integration/**`; do not use `feat/**` for speculative commits because those pushes trigger the Ubuntu + Windows CI matrix. Inspect a failed job/log before another intentional CI attempt.
+
+The current autonomy line requires Gate 0 before adding further autonomy features. Integrating already-reviewed work onto the canonical integration line does not authorize advancing to the next autonomy feature until the local Gate 0 commands pass.
+
 ## Main product direction
 
 Matterhorn is Northern Step Studio's **standalone AI assistant and Studio application**. It is not a VS Code extension product. This is the primary direction for architecture, implementation, planning and answers to “what next?”. VS Code must not be required to launch or use Matterhorn.

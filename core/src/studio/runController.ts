@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { SpecialistAdapterRegistry } from './run/registry.js';
 import { SpecialistError } from './adapters/types.js';
 import { validateStudioEvidence } from './evidenceValidator.js';
+import { runSentinelValidation } from './sentinelValidator.js';
 import { createStudioHandoff, validateStudioPlan } from './orchestrator.js';
 import { StudioSnapshotStore } from './runStore.js';
 import { terminalRun, type StudioRun, type StudioTaskRun } from './runTypes.js';
@@ -184,7 +185,7 @@ export class StudioExecutionEngine {
       task.detail = 'Execution result is missing.';
       return;
     }
-    const validation = validateStudioEvidence(task.result, task.executionId, planTask.specialistId, planTask.acceptanceCriteria);
+    const validation = runSentinelValidation(task.result, task.executionId, planTask.specialistId, planTask.acceptanceCriteria);
     if (validation.valid && planTask.outputArtifacts?.some(expected => !task.result?.artifacts?.some(actual => actual.kind === expected.kind && actual.uri))) {
       validation.valid = false;
       validation.failed = true;

@@ -2,13 +2,13 @@ import { existsSync, readFileSync } from "node:fs";
 
 const required = [
   ["AGENTS.md", [".agents/STARTUP.md", "npm run agent:start", "integration/**"]],
-  [".agents/STARTUP.md", ["CI budget rule", "integration/**", "reuse → integrate → customize → build only when needed"]],
+  [".agents/STARTUP.md", ["CI budget rule", "integration/**", "Mandatory Gate 0", "docs/GATE-0-AUTONOMY-VALIDATION.md", "reuse → integrate → customize → build only when needed"]],
   [".agents/rules/00-matterhorn-startup.md", ["trigger: always_on", "npm run agent:start"]],
   [".cursor/rules/00-matterhorn-startup.mdc", ["alwaysApply: true", "npm run agent:start"]],
   ["CLAUDE.md", ["AGENTS.md", ".agents/STARTUP.md", "npm run agent:start"]],
   ["GEMINI.md", ["AGENTS.md", ".agents/STARTUP.md", "npm run agent:start"]],
   [".github/copilot-instructions.md", ["AGENTS.md", ".agents/STARTUP.md", "integration/**"]],
-  ["tools/agent-startup.mjs", ["MATTERHORN_INTENTIONAL_CI", "feat/", "integration/**"]],
+  ["tools/agent-startup.mjs", ["MATTERHORN_INTENTIONAL_CI", "feat/", "integration/**", "docs/GATE-0-AUTONOMY-VALIDATION.md"]],
 ];
 
 const failures = [];

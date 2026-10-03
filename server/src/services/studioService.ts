@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { isAbsolute, resolve } from 'node:path';
 import { existsSync, lstatSync } from 'node:fs';
-import { BlenderAdapter, FlyrailAdapter, StudioAdapterRegistry, StudioRunController, type NssStudioPlan } from '../../../core/out/index.js';
+import { BlenderAdapter, FlyrailAdapter, MatterhornAssetLeaseStore, MatterhornLocalAgentEvaluationAdapter, MatterhornLocalBrowserAdapter, MatterhornOciSafeExecutionAdapter, MatterhornOtlpRunInsightsAdapter, MatterhornProjectMemoryGraphAdapter, MatterhornPromotionApprovalStore, MatterhornRuntimeCapabilityRegistry, requireProjectGitMutationSafety, StudioAdapterRegistry, StudioRunController, type MatterhornAgentEvaluationAdapter, type MatterhornProjectMemoryAdapter, type MatterhornSafeExecutionProfile, type NssStudioPlan } from '../../../core/out/index.js';
 import { StudioHistory } from './studioHistory.js';
 import { FoundryAssetService } from './foundryAssetService.js';
 import { FoundryGenerationService } from './foundryGenerationService.js';
@@ -31,7 +31,15 @@ export function createStudioService() {
   const registry = new StudioAdapterRegistry();
 
   const dataDirectory = process.env.MATTERHORN_DATA_DIR ?? resolve(__dirname, '../../../.matterhorn');
+  const assetLeaseStores = new Map(projects.map(project => [
+    project.id,
+    new MatterhornAssetLeaseStore({
+      projectRoot: project.path,
+      stateFile: resolve(dataDirectory, 'asset-leases', `${project.id}.json`),
+    }),
+  ]));
   const history = new StudioHistory(dataDirectory);
+  const promotionApprovals = new MatterhornPromotionApprovalStore(dataDirectory);
   const foundryAssets = new FoundryAssetService(dataDirectory, projects);
   const routingPreferences = new StudioRoutingPreferencesStore(dataDirectory);
   const foundryGeneration = new FoundryGenerationService(projects, foundryAssets, {
@@ -43,7 +51,40 @@ export function createStudioService() {
   registry.register(new FoundryStudioAdapter(foundryGeneration, foundryAssets));
   registry.register(new MatterhornQaAdapter());
 
-  const controller = new StudioRunController({ registry, initialRuns: history.load() });
+  const runtime = new MatterhornRuntimeCapabilityRegistry();
+  runtime.register(new MatterhornLocalBrowserAdapter(
+    process.env.MATTERHORN_BROWSER_BRIDGE_URL
+      ? { baseUrl: process.env.MATTERHORN_BROWSER_BRIDGE_URL }
+      : {},
+  ));
+  runtime.register(new MatterhornProjectMemoryGraphAdapter(
+    process.env.MATTERHORN_PROJECT_MEMORY_URL
+      ? { baseUrl: process.env.MATTERHORN_PROJECT_MEMORY_URL }
+      : {},
+  ));
+  if (process.env.MATTERHORN_SANDBOX_PROFILES) {
+    const parsedProfiles: unknown = JSON.parse(process.env.MATTERHORN_SANDBOX_PROFILES);
+    if (!Array.isArray(parsedProfiles)) throw new Error('MATTERHORN_SANDBOX_PROFILES must be a JSON array.');
+    runtime.register(new MatterhornOciSafeExecutionAdapter({
+      enginePath: process.env.MATTERHORN_SANDBOX_ENGINE || 'docker',
+      profiles: parsedProfiles as MatterhornSafeExecutionProfile[],
+    }));
+  }
+  if (process.env.MATTERHORN_OTLP_TRACES_URL) {
+    runtime.register(new MatterhornOtlpRunInsightsAdapter({
+      endpoint: process.env.MATTERHORN_OTLP_TRACES_URL,
+      ...(process.env.MATTERHORN_OTLP_AUTHORIZATION ? { authorization: process.env.MATTERHORN_OTLP_AUTHORIZATION } : {}),
+      serviceVersion: '0.1.0',
+    }));
+  }
+  if (process.env.MATTERHORN_AGENT_EVAL_RUNNER) {
+    runtime.register(new MatterhornLocalAgentEvaluationAdapter({
+      runnerPath: resolve(process.env.MATTERHORN_AGENT_EVAL_RUNNER),
+      ...(process.env.MATTERHORN_AGENT_EVAL_NODE ? { nodePath: process.env.MATTERHORN_AGENT_EVAL_NODE } : {}),
+    }));
+  }
+
+  const controller = new StudioRunController({ registry, runtime, initialRuns: history.load() });
   const stopHistory = controller.store.subscribe(({ run }) => history.persist(run));
 
   let recoveryState: 'running' | 'complete' | 'failed' = 'running';
@@ -60,7 +101,172 @@ export function createStudioService() {
     if (recoveryFailure) throw recoveryFailure;
   }
 
-  function plan(body: unknown): NssStudioPlan {
+  function requireProject(projectId: unknown): StudioProject {
+    if (typeof projectId !== 'string') throw new Error('Select a configured project.');
+    const project = projects.find(candidate => candidate.id === projectId);
+    if (!project) throw new Error('Select a configured project.');
+    return project;
+  }
+
+  function assetLeaseStore(projectId: unknown): MatterhornAssetLeaseStore {
+    const project = requireProject(projectId);
+    const store = assetLeaseStores.get(project.id);
+    if (!store) throw new Error('Asset lease store is not configured.');
+    return store;
+  }
+
+  function leaseInput(body: unknown) {
+    const input = body as {
+      projectId?: unknown;
+      path?: unknown;
+      agentId?: unknown;
+      runId?: unknown;
+      taskId?: unknown;
+      leaseMs?: unknown;
+    };
+    if (typeof input.path !== 'string') throw new Error('Asset path is required.');
+    if (typeof input.agentId !== 'string' || typeof input.runId !== 'string' || typeof input.taskId !== 'string') {
+      throw new Error('Asset lease holder identity is required.');
+    }
+    return {
+      projectId: input.projectId,
+      path: input.path,
+      holder: { agentId: input.agentId, runId: input.runId, taskId: input.taskId },
+      leaseMs: input.leaseMs,
+    };
+  }
+
+  async function acquireAssetLease(body: unknown) {
+    const input = leaseInput(body);
+    if (typeof input.leaseMs !== 'number' || !Number.isInteger(input.leaseMs)) throw new Error('Asset lease duration is required.');
+    return assetLeaseStore(input.projectId).acquire(input.path, input.holder, input.leaseMs);
+  }
+
+  async function renewAssetLease(body: unknown) {
+    const input = leaseInput(body);
+    if (typeof input.leaseMs !== 'number' || !Number.isInteger(input.leaseMs)) throw new Error('Asset lease duration is required.');
+    return assetLeaseStore(input.projectId).renew(input.path, input.holder, input.leaseMs);
+  }
+
+  async function releaseAssetLease(body: unknown) {
+    const input = leaseInput(body);
+    return assetLeaseStore(input.projectId).release(input.path, input.holder);
+  }
+
+  async function rebaselineAsset(body: unknown) {
+    const input = body as { projectId?: unknown; path?: unknown };
+    if (typeof input.path !== 'string') throw new Error('Asset path is required.');
+    return assetLeaseStore(input.projectId).rebaseline(input.path);
+  }
+
+  async function assetLeaseStatus(projectId: unknown) {
+    return assetLeaseStore(projectId).status();
+  }
+
+  async function verifyAssets(projectId: unknown) {
+    return assetLeaseStore(projectId).verify();
+  }
+
+  function projectMemory(): MatterhornProjectMemoryAdapter {
+    const memory = runtime.get<MatterhornProjectMemoryAdapter>('project-memory');
+    if (!memory) throw new Error('Matterhorn Project Memory is not configured.');
+    return memory;
+  }
+
+  async function remember(body: unknown): Promise<void> {
+    const input = body as { projectId?: unknown; content?: unknown; source?: unknown; timestamp?: unknown };
+    const project = requireProject(input?.projectId);
+    if (typeof input.content !== 'string' || !input.content.trim() || input.content.length > 50000) {
+      throw new Error('Memory content must be between 1 and 50000 characters.');
+    }
+    if (input.source != null && (typeof input.source !== 'string' || !input.source.trim() || input.source.length > 500)) {
+      throw new Error('Memory source must be a nonempty string up to 500 characters.');
+    }
+    if (input.timestamp != null && typeof input.timestamp !== 'string') throw new Error('Memory timestamp must be a string.');
+    await projectMemory().remember({
+      projectId: project.id,
+      content: input.content,
+      source: typeof input.source === 'string' ? input.source : 'matterhorn',
+      ...(typeof input.timestamp === 'string' ? { timestamp: input.timestamp } : {}),
+    });
+  }
+
+  async function searchMemory(body: unknown) {
+    const input = body as { projectId?: unknown; query?: unknown; maxFacts?: unknown };
+    const project = requireProject(input?.projectId);
+    if (typeof input.query !== 'string' || !input.query.trim() || input.query.length > 8000) {
+      throw new Error('Memory query must be between 1 and 8000 characters.');
+    }
+    if (input.maxFacts != null && (typeof input.maxFacts !== 'number' || !Number.isInteger(input.maxFacts) || input.maxFacts < 1 || input.maxFacts > 50)) {
+      throw new Error('Memory maxFacts must be an integer from 1 to 50.');
+    }
+    return projectMemory().search({
+      projectId: project.id,
+      query: input.query,
+      ...(typeof input.maxFacts === 'number' ? { maxFacts: input.maxFacts } : {}),
+    });
+  }
+
+  function promotionStatus(runId: string) {
+    const run = controller.store.get(runId);
+    if (!run) throw new Error('Run not found.');
+    return promotionApprovals.status(run);
+  }
+
+  function approvePromotion(runId: string, body: unknown) {
+    const run = controller.store.get(runId);
+    if (!run) throw new Error('Run not found.');
+    const input = body as { confirmation?: unknown; note?: unknown };
+    if (typeof input.confirmation !== 'string') throw new Error('Promotion confirmation is required.');
+    if (input.note != null && typeof input.note !== 'string') throw new Error('Promotion note must be a string.');
+    return promotionApprovals.approve(run, input.confirmation, typeof input.note === 'string' ? input.note : undefined);
+  }
+
+  function revokePromotion(runId: string) {
+    const run = controller.store.get(runId);
+    if (!run) throw new Error('Run not found.');
+    promotionApprovals.revoke(run.id);
+    return promotionApprovals.status(run);
+  }
+
+  function requirePromotionApproval(runId: string) {
+    const run = controller.store.get(runId);
+    if (!run) throw new Error('Run not found.');
+    return promotionApprovals.requireApproved(run);
+  }
+
+  function agentEvaluation(): MatterhornAgentEvaluationAdapter {
+    const evaluator = runtime.get<MatterhornAgentEvaluationAdapter>('agent-evaluation');
+    if (!evaluator) throw new Error('Matterhorn Agent Validation is not configured.');
+    return evaluator;
+  }
+
+  async function evaluateRun(runId: string) {
+    const run = controller.store.get(runId);
+    if (!run) throw new Error('Run not found.');
+    const outcome = run.tasks.map(task => {
+      const planTask = run.plan.tasks.find(candidate => candidate.id === task.id);
+      const result = task.result;
+      return [
+        `Task: ${planTask?.title ?? task.id}`,
+        `Status: ${task.status}`,
+        task.detail ? `Detail: ${task.detail}` : '',
+        result?.summary ? `Result: ${result.summary}` : '',
+        ...(result?.criterionResults ?? []).map(criterion =>
+          `Criterion: ${criterion.criterion ?? criterion.description ?? '<unnamed>'} => ${criterion.outcome}`
+        ),
+      ].filter(Boolean).join('\n');
+    }).join('\n\n');
+
+    return agentEvaluation().evaluate({
+      goal: run.plan.goal,
+      outcome: outcome || `Run status: ${run.status}`,
+      criteria: run.plan.finalAcceptanceCriteria,
+      threshold: 0.7,
+    });
+  }
+
+  async function plan(body: unknown): Promise<NssStudioPlan> {
     const input = body as {
       goal?: unknown;
       projectId?: unknown;
@@ -68,6 +274,7 @@ export function createStudioService() {
       domains?: unknown;
       assets?: unknown;
       blenderTaskSpec?: unknown;
+      allowDirty?: unknown;
     };
     if (!input || typeof input.goal !== 'string' || input.goal.trim().length < 3 || input.goal.length > 8000) {
       throw new Error('Enter a goal between 3 and 8000 characters.');
@@ -77,6 +284,8 @@ export function createStudioService() {
     if (!project || !existsSync(project.path)) throw new Error('Select a configured, existing project.');
     const projectInfo = lstatSync(project.path);
     if (!projectInfo.isDirectory() || projectInfo.isSymbolicLink()) throw new Error('The configured project path must be a real directory.');
+    if (input.allowDirty != null && typeof input.allowDirty !== 'boolean') throw new Error('allowDirty must be a boolean.');
+    await requireProjectGitMutationSafety(project.path, input.allowDirty === true);
 
     let domains: readonly StudioPlanningDomain[] | undefined;
     if (input.domains !== undefined) {
@@ -122,8 +331,22 @@ export function createStudioService() {
     projects,
     adapter,
     adapters: registry.list(),
+    runtime,
     controller,
     plan,
+    acquireAssetLease,
+    renewAssetLease,
+    releaseAssetLease,
+    rebaselineAsset,
+    assetLeaseStatus,
+    verifyAssets,
+    remember,
+    searchMemory,
+    evaluateRun,
+    promotionStatus,
+    approvePromotion,
+    revokePromotion,
+    requirePromotionApproval,
     history,
     foundryAssets,
     foundryGeneration,

@@ -151,9 +151,10 @@ test('studio plan/run APIs reject malformed bodies and support cancel + events',
         }),
       });
       assert.equal(planResponse.status, 200);
-      const plan = await readJson<{ tasks: Array<{ domain: string }> }>(planResponse);
-      assert.equal(plan.tasks.length, 1);
-      assert.equal(plan.tasks[0].domain, 'godot');
+      const plan = await readJson<{ tasks: Array<{ domain: string; specialistId: string }> }>(planResponse);
+      assert.equal(plan.tasks.length, 2);
+      assert.deepEqual(plan.tasks.map(task => task.specialistId), ['flyrail', 'matterhorn']);
+      assert.deepEqual(plan.tasks.map(task => task.domain), ['godot', 'qa']);
 
       const create = await fetch(base + '/api/studio/runs', {
         method: 'POST',
@@ -173,6 +174,8 @@ test('studio plan/run APIs reject malformed bodies and support cancel + events',
       const listed = await readJson<Array<{ id: string }>>(await fetch(base + '/api/studio/runs'));
       assert.equal(listed.length, 1);
       assert.equal(listed[0].id, run.id);
+      const queue = await readJson<Array<{ runId: string; position: number }>>(await fetch(base + '/api/studio/queue'));
+      assert.ok(Array.isArray(queue));
 
       const detail = await readJson<{ id: string }>(await fetch(base + `/api/studio/runs/${run.id}`));
       assert.equal(detail.id, run.id);
@@ -195,18 +198,14 @@ test('studio plan/run APIs reject malformed bodies and support cancel + events',
         method: 'POST',
         headers: jsonHeaders,
         body: JSON.stringify({
-          goal: 'Second overlapping run must be rejected while first is active',
+          goal: 'Second overlapping run should queue safely while first is active',
           projectId: 'demo',
           criteria: ['Godot validation passes'],
         }),
       });
-      // Either rejected for concurrency or accepted if first already terminal; never invent completed.
-      if (second.status === 202) {
-        const secondRun = await readJson<{ status: string }>(second);
-        assert.notEqual(secondRun.status, 'completed');
-      } else {
-        assert.equal(second.status, 400);
-      }
+      assert.equal(second.status, 202);
+      const secondRun = await readJson<{ status: string }>(second);
+      assert.notEqual(secondRun.status, 'completed');
     } finally {
       await app.close();
     }

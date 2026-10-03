@@ -49,9 +49,14 @@ export function createStudioService() {
     if (!input || typeof input.goal !== 'string' || input.goal.trim().length < 3 || input.goal.length > 8000) throw new Error('Enter a goal between 3 and 8000 characters.');
     const project = projects.find(candidate => candidate.id === input.projectId);
     if (!project || !existsSync(resolve(project.path, 'project.godot'))) throw new Error('Select a configured, existing Godot project.');
-    if (!Array.isArray(input.criteria) || !input.criteria.length || input.criteria.length > 20 || input.criteria.some(criterion => typeof criterion !== 'string' || !criterion.trim() || criterion.length > 1000)) {
-      throw new Error('Supply 1–20 nonempty acceptance criteria.');
+    const requestedCriteria = input.criteria == null ? [] : input.criteria;
+    if (!Array.isArray(requestedCriteria) || requestedCriteria.length > 20 || requestedCriteria.some(criterion => typeof criterion !== 'string' || !criterion.trim() || criterion.length > 1000)) {
+      throw new Error('Supply at most 20 nonempty acceptance criteria.');
     }
+    const standardCriteria = ['Godot validation passes', 'Scenario checks pass', 'QA checks pass'];
+    const gameplayGoal = /player|gameplay|movement|move|jump|dash|combat|enemy|defender|attacker|collision|physics|camera|score|level|boss|control|input|ability|skill|timer|match|round|ai\b/i.test(input.goal);
+    if (gameplayGoal && existsSync(resolve(project.path, 'playtest.manifest.json'))) standardCriteria.push('Playtest passes');
+    const acceptanceCriteria = [...new Set([...requestedCriteria.map(criterion => criterion.trim()), ...standardCriteria])];
     return createStudioPlan({
       id: randomUUID(),
       goal: input.goal,
@@ -60,10 +65,10 @@ export function createStudioService() {
         title: 'Implement and validate the requested Godot change',
         goal: input.goal,
         domain: 'godot',
-        acceptanceCriteria: input.criteria,
+        acceptanceCriteria,
         inputArtifacts: [{ kind: 'godot-project', uri: project.path }],
       }],
-      finalAcceptanceCriteria: input.criteria,
+      finalAcceptanceCriteria: acceptanceCriteria,
     });
   }
 

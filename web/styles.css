@@ -1570,3 +1570,16 @@ input:disabled {
 .pill-btn.active:disabled {
   opacity: 0.88;
 }
+
+
+/* Matterhorn 100 completion scorecard */
+.completion-headline { display:flex; align-items:baseline; gap:12px; margin-bottom:16px; }
+.completion-score { font-size:2rem; font-weight:800; letter-spacing:-0.04em; }
+.completion-bar { margin:10px 0; }
+.completion-track { height:8px; border-radius:999px; background:var(--surface-3, rgba(255,255,255,.08)); overflow:hidden; margin-top:6px; }
+.completion-fill { height:100%; border-radius:inherit; background:currentColor; opacity:.85; }
+.completion-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:18px; }
+.completion-pillar { border:1px solid var(--border-color); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:4px; }
+.completion-next { margin-top:18px; }
+.completion-next ol { padding-left:20px; }
+.completion-next li { margin:6px 0; }

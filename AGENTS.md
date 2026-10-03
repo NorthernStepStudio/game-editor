@@ -46,6 +46,15 @@ The primary user workflow is now `Ask -> Plan -> Build -> Verify -> Repair -> Co
 GitHub Actions minutes are constrained. The integration branch intentionally avoids the `feat/**` push trigger. Do not open a pull request or otherwise trigger remote CI merely to test this slice; run local compile/tests first.
 
 
+## Current mandatory next step: Gate 0
+
+Before adding more autonomy features, run the canonical local gate defined in `docs/GATE-0-AUTONOMY-VALIDATION.md`.
+
+- Matterhorn: `npm run gate:autonomy-local`
+- Flyrail companion branch: `npm run gate:autonomy-local`
+
+Do not open a PR, trigger remote CI, or promote Matterhorn 100 verification stages until both local gates pass. After that, use the Yun timer/tie/difficulty-star request in the Gate 0 document as the real live end-to-end proof.
+
 ## Matterhorn 100 completion metric
 
 `docs/MATTERHORN-100.md` and `server/src/services/completionScorecard.ts` define the canonical completion metric for the full product vision. Future agents must update requirement stages/evidence when substantive capability state changes.

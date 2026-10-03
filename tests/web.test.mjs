@@ -15,6 +15,10 @@ test('standalone UI navigation, plan review, run state, cancellation and chat hi
     else if(path==='/providers')data={current:'mock',providers:[{id:'mock',label:'Mock',available:true}]};
     else if(path==='/api/studio/health')data={available:false};
     else if(path==='/api/studio/runtime')data=[{capability:'browser-control',title:'Local browser',state:'ready'},{capability:'project-memory',title:'Project memory',state:'unavailable'},{capability:'sandbox-execution',title:'Safe execution',state:'unavailable'},{capability:'telemetry',title:'Run insights',state:'unavailable'},{capability:'agent-evaluation',title:'Agent validation',state:'unavailable'}];
+    else if(path==='/api/studio/routing')data={game:'auto',threeD:'auto',assets:'auto',localFirst:true,requireCommercialUse:true,allowNetworkProviders:false,allowExternalCostProviders:false,updatedAt:'1970-01-01T00:00:00.000Z'};
+    else if(path==='/api/foundry/providers')data={providers:[]};
+    else if(path==='/api/foundry/assets')data={assets:[]};
+    else if(path==='/api/studio/completion')data={productionReadiness:42,capabilityCoverage:60,pillars:[],criticalNext:['Run Gate 0 locally']};
     else if(path==='/api/projects')data=[{id:'fixture',name:'Fixture project'}];
     else if(path==='/api/studio/plan')data={goal:body.goal,tasks:[{title:'Implement',acceptanceCriteria:body.criteria}]};
     else if(path==='/api/studio/runs' && body){run={id:'fixture-run',status:'running',plan:{goal:body.goal},tasks:[{id:'work',status:'running'}]};data=run;}

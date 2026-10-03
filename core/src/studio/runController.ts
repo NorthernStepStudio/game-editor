@@ -18,6 +18,8 @@ export interface StudioRunOptions {
 export class StudioExecutionEngine {
   readonly store: StudioSnapshotStore;
   private readonly cancellations = new Set<string>();
+  private readonly pendingRunIds: string[] = [];
+  private activeExecution: Promise<void> | null = null;
   private readonly options: Required<StudioRunOptions>;
 
   constructor(
@@ -36,7 +38,11 @@ export class StudioExecutionEngine {
   start(plan: NssStudioPlan, customRunId?: string): StudioRun {
     const validation = validateStudioPlan(plan);
     if (!validation.valid) throw new Error(validation.errors.join(' '));
-    if (this.store.list().some(run => !terminalRun(run.status))) throw new Error('A run is already active. Wait for it to settle before starting another.');
+    const unsafeRecovered = this.store.list().some(run =>
+      run.status === 'cancel-requested' &&
+      run.tasks.some(task => ['accepted', 'running', 'validating', 'unknown'].includes(task.status)),
+    );
+    if (unsafeRecovered) throw new Error('A recovered remote run may still be active. Reconcile or stop it before starting new work.');
     this.store.pruneTerminal(Math.max(0, this.options.maxRuns - 1));
     if (this.store.list().length >= this.options.maxRuns) throw new Error('Run history limit reached; archive older history before starting another run.');
     if (customRunId && (!/^[a-zA-Z0-9_-]{1,100}$/.test(customRunId) || this.store.get(customRunId))) throw new Error('Invalid or duplicate run ID.');
@@ -52,11 +58,8 @@ export class StudioExecutionEngine {
       tasks: plan.tasks.map(task => ({ id: task.id, executionId: `${id}-${task.id}`, status: 'planned' })),
     };
     this.save(run);
-    void this.execute(run).catch(() => {
-      run.status = 'failed';
-      run.detail = 'Unexpected controller error.';
-      this.save(run);
-    });
+    this.pendingRunIds.push(id);
+    this.schedule();
     return this.store.get(id)!;
   }
 
@@ -64,6 +67,16 @@ export class StudioExecutionEngine {
     const run = this.store.get(id);
     if (!run) throw new Error('Run not found.');
     if (terminalRun(run.status)) return run;
+    if (run.status === 'queued' && run.tasks.every(task => task.status === 'planned')) {
+      this.cancellations.delete(id);
+      const index = this.pendingRunIds.indexOf(id);
+      if (index >= 0) this.pendingRunIds.splice(index, 1);
+      for (const task of run.tasks) task.status = 'cancelled';
+      run.status = 'cancelled';
+      run.detail = 'Queued run cancelled before any specialist work started.';
+      this.save(run);
+      return run;
+    }
     this.cancellations.add(id);
     run.status = 'cancel-requested';
     run.detail = 'Cancellation requested; remote termination is not yet confirmed.';
@@ -145,6 +158,35 @@ export class StudioExecutionEngine {
       this.save(run);
     }
     return recoveredIds.map(id => this.store.get(id)).filter((run): run is StudioRun => Boolean(run));
+  }
+
+  getQueue(): Array<{ runId: string; position: number; goal: string; createdAt: string }> {
+    return this.store.list()
+      .filter(run => run.status === 'queued')
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .map((run, index) => ({ runId: run.id, position: index + 1, goal: run.plan.goal, createdAt: run.createdAt }));
+  }
+
+  private schedule(): void {
+    if (this.activeExecution) return;
+    while (this.pendingRunIds.length > 0) {
+      const id = this.pendingRunIds.shift()!;
+      const run = this.store.get(id);
+      if (!run || terminalRun(run.status) || run.status !== 'queued') continue;
+      this.activeExecution = this.execute(run)
+        .catch(() => {
+          const current = this.store.get(id);
+          if (!current || terminalRun(current.status)) return;
+          current.status = 'failed';
+          current.detail = 'Unexpected controller error.';
+          this.save(current);
+        })
+        .finally(() => {
+          this.activeExecution = null;
+          this.schedule();
+        });
+      return;
+    }
   }
 
   private save(run: StudioRun): void {

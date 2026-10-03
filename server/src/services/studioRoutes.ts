@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { StudioService } from './studioService.js';
 import { listStudioAgents, listStudioSpecialists, STUDIO_WORKFLOW_STAGES } from '@nss/m-core';
+import { buildMatterhornCompletionScorecard } from './completionScorecard.js';
 
 const send = (response: ServerResponse, status: number, body: unknown) => {
   response.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
@@ -16,6 +17,11 @@ export async function studioRoutes(
   const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
   if (!pathname.startsWith('/api/')) return false;
   const { controller, adapter } = service;
+
+  if (request.method === 'GET' && pathname === '/api/studio/completion') {
+    send(response, 200, buildMatterhornCompletionScorecard());
+    return true;
+  }
 
   if (request.method === 'GET' && pathname === '/api/studio/routing') {
     send(response, 200, service.routingPreferences.get());

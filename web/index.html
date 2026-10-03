@@ -336,10 +336,6 @@
 
         <div class="assets-layout">
           <div id="asset-gallery" class="asset-gallery"></div>
-          <aside id="asset-inspector" class="surface asset-inspector">
-            <h3>Asset Inspector</h3>
-            <p class="subtle">Select an asset to inspect provenance and lineage.</p>
-          </aside>
         </div>
       </section>
 
@@ -376,13 +372,13 @@
         </div>
 
         <div class="tab-strip settings-tabs">
-          <button class="tab-button active" data-settings-tab="providers" type="button">AI Providers</button>
+          <button class="tab-button" data-settings-tab="providers" type="button">AI Providers</button>
           <button class="tab-button" data-settings-tab="routing" type="button">Routing</button>
-          <button class="tab-button" data-settings-tab="runtime" type="button">Runtime</button>
+          <button class="tab-button active" data-settings-tab="runtime" type="button">Runtime</button>
           <button class="tab-button" data-settings-tab="advanced" type="button">Advanced</button>
         </div>
 
-        <div id="settings-tab-providers" class="settings-panel">
+        <div id="settings-tab-providers" class="settings-panel" hidden>
           <div class="surface settings-card">
             <label>Chat provider
               <select id="provider"></select>
@@ -421,7 +417,7 @@
           </form>
         </div>
 
-        <div id="settings-tab-runtime" class="settings-panel" hidden>
+        <div id="settings-tab-runtime" class="settings-panel">
           <div id="runtime-capabilities" class="runtime-list surface">
             <p class="empty-state">Checking runtime capabilities…</p>
           </div>
@@ -461,6 +457,12 @@
       <textarea id="prompt" rows="3" maxlength="8000" placeholder="Type a message…"></textarea>
       <button id="send" class="primary-action" type="submit">Send</button>
     </form>
+  </aside>
+
+  <!-- ASSET INSPECTOR DRAWER -->
+  <aside id="asset-inspector" class="asset-inspector drawer-panel" aria-label="Asset inspector" hidden>
+    <h3>Asset Inspector</h3>
+    <p class="subtle">Select an asset to inspect provenance and lineage.</p>
   </aside>
 
   <!-- ASSET GENERATOR DRAWER -->

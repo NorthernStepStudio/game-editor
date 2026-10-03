@@ -12,6 +12,9 @@ export * from "./providers/provider.js";
 export * from "./studio/types.js";
 export * from "./studio/specialistRegistry.js";
 export * from "./studio/orchestrator.js";
+export * from "./studio/agents/index.js";
+export * from "./studio/sentinelValidator.js";
+export * from "./studio/workflow.js";
 export * from "./studio/yunAutonomousScenePlan.js";
 export * from "./studio/adapters/index.js";
 

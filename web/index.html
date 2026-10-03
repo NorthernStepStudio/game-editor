@@ -156,6 +156,10 @@
                   <label>Acceptance criteria <small>Optional · one extra check per line</small></label>
                   <textarea id="criteria" rows="3" placeholder="Optional: add proof Matterhorn must require beyond its automatic validation, scenario and QA gates."></textarea>
                   <p class="muted-sm">Matterhorn automatically requires Godot validation, scenario and independent QA evidence. Gameplay requests also require playtest evidence when the project has a playtest manifest.</p>
+                  <label style="display:flex; gap:8px; align-items:flex-start; margin-top:12px">
+                    <input id="allow-dirty-project" type="checkbox" style="width:auto; margin-top:3px">
+                    <span>Allow this run on a Git project with uncommitted changes <small>Advanced override; existing human/tool edits may mix with autonomous work.</small></span>
+                  </label>
                 </div>
               </form>
 
@@ -683,6 +687,12 @@
         <h2 style="margin-top:20px">Specialist health</h2>
         <p class="muted-sm">Current registry status of each specialist system.</p>
         <div class="settings-specialist-list" id="settings-specialists" style="margin-top:10px"></div>
+
+        <h2 style="margin-top:20px">Matterhorn Runtime</h2>
+        <p class="muted-sm">Local capabilities used behind Matterhorn's own interfaces. Provider engines stay internal to diagnostics and attribution.</p>
+        <div class="settings-specialist-list" id="runtime-capabilities" style="margin-top:10px">
+          <p class="muted-sm">Checking runtime capabilities…</p>
+        </div>
 
         <h2 style="margin-top:20px">Studio routing & cost safety</h2>
         <p class="muted-sm">Local-first by default. Network and paid providers stay disabled until you explicitly enable them here; paid generation still requires a per-request budget.</p>

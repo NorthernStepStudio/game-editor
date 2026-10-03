@@ -91,6 +91,7 @@ export class StudioRunController {
 
   start(plan: NssStudioPlan): StudioRun { return this.engine.start(plan); }
   requestCancel(id: string): StudioRun { return this.engine.requestCancel(id); }
+  getQueue(): Array<{ runId: string; position: number; goal: string; createdAt: string }> { return this.engine.getQueue(); }
   onEvent(listener: StudioEventListener): () => void { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; }
 
   async reconcileRecoveredRuns(): Promise<StudioRun[]> {

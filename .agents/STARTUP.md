@@ -6,9 +6,10 @@ Every coding agent working in this repository must consume this brief before mak
 
 1. Read `AGENTS.md`.
 2. Run `npm run agent:start`.
-3. Read the files printed by the preflight that are relevant to the task.
-4. Inspect the current branch, recent implementation, and any failed validation before changing code.
-5. Only then plan or implement.
+3. Read `docs/GATE-0-AUTONOMY-VALIDATION.md` and determine whether the mandatory local gate has passed on the current canonical branch.
+4. Read the files printed by the preflight that are relevant to the task.
+5. Inspect the current branch, recent implementation, and any failed validation before changing code.
+6. Only then plan or implement.
 
 Do not skip this sequence because the requested change looks small.
 
@@ -34,11 +35,17 @@ Default development behavior:
 
 An intentional CI-triggering branch is allowed only for a review-ready validation batch or when the user explicitly asks for it.
 
-## Current known CI mismatch
+## Mandatory Gate 0
 
-On October 3, 2026, the goal-first Studio flow changed custom acceptance criteria from required to optional. An older API test still expected an empty custom-criteria array to return HTTP 400, while the service correctly returned 200 and injected the automatic validation/scenario/QA gates. That test mismatch is being corrected on `integration/oss-acceleration-20261003`.
+The current autonomy integration line requires the canonical local gate in `docs/GATE-0-AUTONOMY-VALIDATION.md` before adding another autonomy feature.
 
-Before treating a red CI result as a new regression, inspect whether it is this known mismatch or a new failure.
+- Matterhorn: `npm run gate:autonomy-local`
+- Flyrail companion branch: `npm run gate:autonomy-local`
+- Do not substitute remote CI for this local gate.
+- Do not open a PR merely to obtain validation.
+- After both local gates pass, use the Yun timer/tie/difficulty-star request described in the Gate 0 document as the real live end-to-end proof.
+
+If Gate 0 has not passed on the current canonical integration branch, validation/fix work takes priority over new autonomy features.
 
 ## Build strategy
 

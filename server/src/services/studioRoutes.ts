@@ -65,6 +65,11 @@ export async function studioRoutes(
     return true;
   }
 
+  if (request.method === 'GET' && pathname === '/api/studio/queue') {
+    send(response, 200, controller.getQueue());
+    return true;
+  }
+
   if (request.method === 'GET' && pathname === '/api/studio/runs') {
     send(response, 200, controller.store.list());
     return true;

@@ -1,7 +1,7 @@
 import { api, el, notice, download } from './api.js';
 let reviewed = null, source = null, activeId = null, runs = [];
 const terminal = r => ['completed', 'failed', 'blocked', 'cancelled'].includes(r.status);
-const FLOW_TITLES = ['Ask', 'Plan', 'Build · Flyrail', 'Verify · Sentinel', 'Repair', 'Complete'];
+const FLOW_TITLES = ['Ask', 'Plan', 'Build · Specialists', 'Verify · Sentinel', 'Repair', 'Complete'];
 
 function configureAutonomyLabels() {
   FLOW_TITLES.forEach((title, index) => {
@@ -34,7 +34,7 @@ function renderAutonomyDraft(stage = 'ask') {
     const state = i < active ? 'completed' : i === active ? 'active' : 'pending';
     const status = i === 1 ? (stage === 'plan' ? 'Goal captured' : 'Describe the result you want') :
       i === 2 ? (stage === 'plan' ? 'Review acceptance criteria and specialist handoff' : 'Waiting for a goal') :
-      i === 3 ? 'Flyrail executes Godot work' :
+      i === 3 ? 'Matterhorn routes work to Canvas, Forge, Flyrail, or local QA as required' :
       i === 4 ? 'Sentinel requires criterion-specific evidence' :
       i === 5 ? 'Bounded repair only when verification fails' : 'Matterhorn accepts only verified completion';
     paintFlowStep(i, state, status, state === 'completed' ? 'Done' : state === 'active' ? 'Active' : 'Pending');
@@ -51,7 +51,8 @@ function updateAutonomyFlow(run) {
 
   paintFlowStep(1, 'completed', 'Goal captured', 'Done');
   paintFlowStep(2, 'completed', 'Reviewed plan and acceptance criteria', 'Done');
-  paintFlowStep(3, active > 3 || completed ? 'completed' : 'active', statuses.join(', ') || run.status, active > 3 || completed ? 'Done' : 'Running');
+  const routed = run.plan.tasks.map(task => task.specialistId).filter((value, index, all) => all.indexOf(value) === index);
+  paintFlowStep(3, active > 3 || completed ? 'completed' : 'active', `${routed.join(' → ') || 'specialists'} · ${statuses.join(', ') || run.status}`, active > 3 || completed ? 'Done' : 'Running');
   paintFlowStep(4, active > 4 || completed ? 'completed' : active === 4 ? 'active' : 'pending',
     completed ? 'Sentinel evidence gate passed' : verifying ? 'Checking deterministic evidence' : active > 4 ? 'Verification returned issues' : 'Waiting for execution evidence',
     completed ? 'Passed' : active === 4 ? 'Checking' : active > 4 ? 'Checked' : 'Pending');
@@ -100,7 +101,7 @@ function renderRun(run) {
 export async function refreshRuns() {
   runs = await api('/api/studio/runs');
   const list = document.querySelector('#runs'), evidence = document.querySelector('#evidence-list'); list.replaceChildren(); evidence.replaceChildren();
-  if (!runs.length) { list.append(el('p', 'No runs in this server session.', 'muted')); evidence.append(el('p', 'Evidence appears here after a Studio run. History clears on restart.')); }
+  if (!runs.length) { list.append(el('p', 'No Studio runs yet.', 'muted')); evidence.append(el('p', 'Evidence appears here after a Studio run. Run history is persisted on disk.')); }
   for (const run of [...runs].reverse()) {
     const row = el('div', undefined, 'run'), button = el('button', run.plan.goal); button.onclick = () => watch(run.id).catch(notice); row.append(button, el('span', run.status, 'badge')); list.append(row);
     const card = el('div', undefined, 'task'); card.append(el('h3', run.plan.goal), el('p', run.status, 'badge'));
@@ -128,7 +129,14 @@ export function initStudio() {
     try {
       const payload = { projectId: document.querySelector('#project').value, goal: document.querySelector('#goal').value, criteria: document.querySelector('#criteria').value.split('\n').map(x => x.trim()).filter(Boolean) };
       const plan = await api('/api/studio/plan', payload); reviewed = payload;
-      document.querySelector('#plan-text').textContent = `${plan.goal}\n\n${plan.tasks.map(t => `${t.title}\n${t.acceptanceCriteria.map(c => '• ' + c).join('\n')}`).join('\n\n')}`;
+      const planLines = plan.tasks.map((task, index) => {
+        const dependencies = task.dependsOn?.length ? `\nDepends on: ${task.dependsOn.join(', ')}` : '';
+        const disclosure = task.disclosure
+          ? `\nPolicy: ${task.disclosure.providerId ? `provider=${task.disclosure.providerId}; ` : ''}${task.disclosure.networkMayBeRequired ? 'network may be required; ' : ''}${task.disclosure.externalCostMayBeIncurred ? 'external cost may be incurred; ' : ''}${task.disclosure.explicitApprovalRequired ? 'explicit approval required' : 'no extra approval required'}`
+          : '';
+        return `${index + 1}. [${task.specialistId}] ${task.title}${dependencies}${disclosure}\n${task.acceptanceCriteria.map(c => '• ' + c).join('\n')}`;
+      });
+      document.querySelector('#plan-text').textContent = `${plan.goal}\n\n${planLines.join('\n\n')}\n\nFinal acceptance:\n${plan.finalAcceptanceCriteria.map(c => '• ' + c).join('\n')}`;
       document.querySelector('#plan-review').hidden = false;
       renderAutonomyDraft('plan');
     } catch(e) { notice(e); } finally { button.disabled = false; }

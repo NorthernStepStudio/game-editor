@@ -28,7 +28,7 @@ Matterhorn continues to own Studio, Chat, Projects, Evidence, Settings, Agent Fo
 
 ## First integration: Local browser
 
-Status: **foundation implemented on `integration/oss-acceleration-20261003`.**
+Status: **foundation implemented on `integration/oss-acceleration-rebased-20261003`.**
 
 Matterhorn now defines a provider-neutral `MatterhornBrowserAdapter` and `MatterhornRuntimeCapabilityRegistry`.
 
@@ -152,3 +152,10 @@ A reused component is accepted only when:
 6. it can be removed/replaced without changing Matterhorn's product vocabulary;
 7. deterministic tests cover the Matterhorn boundary;
 8. no upstream UI or branding leaks into the normal product experience.
+
+
+## Gate 0 integration note
+
+The current validation candidate is `integration/oss-acceleration-rebased-20261003`, based on the October 3 autonomy line at `389d8adbc2bb748df6311b07896673933a59cad3`.
+
+No additional autonomy feature should be added until the Matterhorn and Flyrail local Gate 0 commands in `docs/GATE-0-AUTONOMY-VALIDATION.md` pass. The acceleration modules are part of that local gate. Remote CI is not a substitute.

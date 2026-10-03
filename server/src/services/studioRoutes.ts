@@ -14,9 +14,10 @@ export async function studioRoutes(
   service: StudioService,
   readBody: () => Promise<unknown>,
 ): Promise<boolean> {
-  const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
+  const requestUrl = new URL(request.url ?? '/', 'http://localhost');
+  const pathname = requestUrl.pathname;
   if (!pathname.startsWith('/api/')) return false;
-  const { controller, adapter } = service;
+  const { controller, adapter, runtime } = service;
 
   if (request.method === 'GET' && pathname === '/api/studio/completion') {
     send(response, 200, buildMatterhornCompletionScorecard());
@@ -48,6 +49,11 @@ export async function studioRoutes(
     return true;
   }
 
+  if (request.method === 'GET' && pathname === '/api/studio/runtime') {
+    send(response, 200, await runtime.publicStatus());
+    return true;
+  }
+
   if (request.method === 'GET' && pathname === '/api/studio/health') {
     const [health, executionBackends] = await Promise.all([
       adapter.health(),
@@ -72,14 +78,55 @@ export async function studioRoutes(
     return true;
   }
 
+  if (request.method === 'GET' && pathname === '/api/studio/assets/leases') {
+    send(response, 200, await service.assetLeaseStatus(requestUrl.searchParams.get('projectId')));
+    return true;
+  }
+
+  if (request.method === 'GET' && pathname === '/api/studio/assets/verify') {
+    send(response, 200, await service.verifyAssets(requestUrl.searchParams.get('projectId')));
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/studio/assets/lease') {
+    send(response, 201, await service.acquireAssetLease(await readBody()));
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/studio/assets/lease/renew') {
+    send(response, 200, await service.renewAssetLease(await readBody()));
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/studio/assets/lease/release') {
+    send(response, 200, await service.releaseAssetLease(await readBody()));
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/studio/assets/rebaseline') {
+    send(response, 200, await service.rebaselineAsset(await readBody()));
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/studio/memory/remember') {
+    await service.remember(await readBody());
+    send(response, 202, { accepted: true });
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/studio/memory/search') {
+    send(response, 200, await service.searchMemory(await readBody()));
+    return true;
+  }
+
   if (request.method === 'POST' && pathname === '/api/studio/plan') {
-    send(response, 200, service.plan(await readBody()));
+    send(response, 200, await service.plan(await readBody()));
     return true;
   }
 
   if (request.method === 'POST' && pathname === '/api/studio/runs') {
     await service.ensureRecovered();
-    send(response, 202, controller.start(service.plan(await readBody())));
+    send(response, 202, controller.start(await service.plan(await readBody())));
     return true;
   }
 
@@ -93,7 +140,30 @@ export async function studioRoutes(
     return true;
   }
 
-  const match = /^\/api\/studio\/runs\/([a-zA-Z0-9_-]+)(?:\/(cancel|events|evidence))?$/.exec(pathname);
+  const promotionMatch = /^\/api\/studio\/runs\/([a-zA-Z0-9_-]+)\/promotion(?:\/(approve|revoke))?$/.exec(pathname);
+  if (promotionMatch) {
+    const [, id, action] = promotionMatch;
+    if (!controller.store.get(id)) {
+      send(response, 404, { error: 'Run not found.' });
+      return true;
+    }
+    if (request.method === 'GET' && !action) {
+      send(response, 200, service.promotionStatus(id));
+      return true;
+    }
+    if (request.method === 'POST' && action === 'approve') {
+      send(response, 200, service.approvePromotion(id, await readBody()));
+      return true;
+    }
+    if (request.method === 'POST' && action === 'revoke') {
+      send(response, 200, service.revokePromotion(id));
+      return true;
+    }
+    send(response, 405, { error: 'Promotion method not allowed.' });
+    return true;
+  }
+
+  const match = /^\/api\/studio\/runs\/([a-zA-Z0-9_-]+)(?:\/(cancel|events|evidence|evaluate))?$/.exec(pathname);
   if (match) {
     const [, id, action] = match;
     const run = controller.store.get(id);
@@ -105,6 +175,11 @@ export async function studioRoutes(
     if (request.method === 'POST' && action === 'cancel') {
       await service.ensureRecovered();
       send(response, 202, controller.requestCancel(id));
+      return true;
+    }
+
+    if (request.method === 'POST' && action === 'evaluate') {
+      send(response, 200, await service.evaluateRun(id));
       return true;
     }
 

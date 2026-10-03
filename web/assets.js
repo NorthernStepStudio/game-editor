@@ -271,8 +271,10 @@ function fillSelect(select, values) {
 }
 
 function updateGenerationControls() {
-  const provider = currentProvider();
+  const providerSelect = document.querySelector('#asset-provider');
   const kind = document.querySelector('#asset-kind');
+  if (!providerSelect || !kind || !operation) return;
+  const provider = currentProvider();
   const operation = document.querySelector('#asset-operation');
   const costPanel = document.querySelector('#asset-cost-panel');
   const network = document.querySelector('#asset-allow-network');

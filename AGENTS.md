@@ -33,3 +33,14 @@ Implement and verify work possible in this environment, including live PC checks
 On September 24, 2026, the autonomous full-scene Studio gate passed from high-level Noche and Malecón requests through `createYunAutonomousScenePlan`, `StudioExecutionEngine`, Blender, current-run GLB dependency handoff, Flyrail `loop.run`, Godot's production Yun match scene and measured criterion evidence. The expected-seven/actual-six criterion case fails; removing the current-run GLB blocks completion. Run `npm run test:yun-autonomous-scene-live` for the dedicated live gate. It requires Blender, Godot, the production Yun fixture and a Flyrail daemon in live runtime/bridge mode. The per-run plans, snapshots, GLBs, renders, evidence bundles and screenshots are in `artifacts/yun-autonomous-scene/`.
 
 Environment fixture generation proves asset creation and import. Autonomous full-scene Studio execution additionally proves the dependent multi-specialist run and final Matterhorn acceptance. Continue with open-ended standalone scene generation and repair loops. Keep Kenney as the saved default and immediate rollback until stakeholders promote Matterhorn assets. Keep PR #2 draft; do not merge, force-push or promote a release without explicit authorization.
+
+
+## October 3 autonomy integration
+
+The active consolidation line is `integration/studio-autonomy-20261003`. Read `docs/MATTERHORN-AUTONOMY-INTEGRATION.md` before extending Studio autonomy.
+
+Apply **adopt before build**: prefer mature permissively licensed infrastructure over duplicating unfinished generic plumbing. Godot AI is an optional editor/MCP backend behind Flyrail; Matterhorn must not bypass Flyrail to call Godot AI directly. Sentinel is the independent validator and Matterhorn remains final completion authority.
+
+The primary user workflow is now `Ask -> Plan -> Build -> Verify -> Repair -> Complete`. Do not require users to author standard validation criteria manually; Matterhorn supplies baseline validation/scenario/QA gates and adds playtest evidence for gameplay work when the project supports it.
+
+GitHub Actions minutes are constrained. The integration branch intentionally avoids the `feat/**` push trigger. Do not open a pull request or otherwise trigger remote CI merely to test this slice; run local compile/tests first.

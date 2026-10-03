@@ -100,7 +100,25 @@ test("promotion approval refuses non-completed runs", async () => {
     run.status = "blocked";
     assert.equal(store.status(run).state, "not-eligible");
     assert.equal(store.status(run).eligible, false);
-    assert.throws(() => store.approve(run, "APPROVE"), /Only a completed run/i);
+    assert.throws(() => store.approve(run, "APPROVE"), /fully completed, acceptance-gated run/i);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+
+test("promotion approval rejects a forged completed status without completed tasks", async () => {
+  const root = await mkdtemp(join(tmpdir(), "matterhorn-promotion-forged-"));
+  try {
+    const store = new MatterhornPromotionApprovalStore(root);
+    const run = completedRun("run-forged");
+    run.tasks[0].status = "failed";
+    assert.equal(run.status, "completed");
+    assert.equal(store.status(run).state, "not-eligible");
+    assert.throws(
+      () => store.approve(run, "APPROVE"),
+      /fully completed, acceptance-gated run/i,
+    );
   } finally {
     await rm(root, { recursive: true, force: true });
   }

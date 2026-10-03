@@ -8,7 +8,7 @@ export type NssStudioDomain =
   | "qa"
   | "release";
 
-export type NssStudioSpecialistId = "matterhorn" | "flyrail" | "blender-engine";
+export type NssStudioSpecialistId = "matterhorn" | "flyrail" | "blender-engine" | "foundry";
 
 export type NssStudioSpecialistAvailability = "available" | "integration-pending" | "planned";
 
@@ -46,6 +46,65 @@ export interface NssStudioArtifactRef {
   readonly uri: string;
   readonly label?: string;
   readonly producedBy?: NssStudioSpecialistId;
+  readonly assetId?: string;
+  readonly provenance?: {
+    readonly requestId?: string;
+    readonly providerId?: string;
+    readonly contentHash?: string;
+    readonly parentAsset?: string;
+    readonly referenceAssets?: readonly string[];
+  };
+}
+
+export interface NssStudioFoundryTaskSpec {
+  readonly protocol: "nss.studio-task-spec.v1";
+  readonly specialist: "foundry";
+  readonly action: "generate_asset";
+  readonly projectId: string;
+  readonly assetId: string;
+  readonly kind: import("../foundry/assets/types.js").FoundryAssetKind;
+  readonly operation: import("../foundry/assets/types.js").FoundryAssetOperation;
+  readonly prompt: string;
+  readonly parentAsset?: string;
+  readonly referenceAssets?: readonly string[];
+  readonly width?: number;
+  readonly height?: number;
+  readonly providerId?: string;
+  /** Per-run approval. Persisted routing preferences never set these to true. */
+  readonly allowNetwork: boolean;
+  readonly approveExternalCost: boolean;
+  readonly maxCost?: import("../foundry/provenance/types.js").FoundryAssetCost;
+  readonly requireCommercialUse: boolean;
+}
+
+export interface NssStudioBlenderTaskSpec {
+  readonly protocol: "nss.studio-task-spec.v1";
+  readonly specialist: "blender-engine";
+  readonly action: "execute_spec";
+  readonly prompt: string;
+  readonly sourceAssetIds?: readonly string[];
+  readonly specification?: import("./adapters/blender/blenderTaskSpec.js").BlenderTaskSpec;
+}
+
+export interface NssStudioQaTaskSpec {
+  readonly protocol: "nss.studio-task-spec.v1";
+  readonly specialist: "matterhorn";
+  readonly action: "aggregate_evidence";
+  readonly dependencyTaskIds: readonly string[];
+  readonly criteria: readonly string[];
+}
+
+export type NssStudioTaskSpec =
+  | NssStudioFoundryTaskSpec
+  | NssStudioBlenderTaskSpec
+  | NssStudioQaTaskSpec;
+
+export interface NssStudioTaskDisclosure {
+  readonly networkMayBeRequired: boolean;
+  readonly externalCostMayBeIncurred: boolean;
+  readonly explicitApprovalRequired: boolean;
+  readonly providerId?: string;
+  readonly estimatedCost?: import("../foundry/provenance/types.js").FoundryAssetCost;
 }
 
 export interface NssStudioEvidence {
@@ -67,6 +126,8 @@ export interface NssStudioTask {
   readonly requiredCapabilities?: readonly string[];
   readonly inputArtifacts?: readonly NssStudioArtifactRef[];
   readonly outputArtifacts?: readonly NssStudioArtifactRef[];
+  readonly taskSpec?: NssStudioTaskSpec;
+  readonly disclosure?: NssStudioTaskDisclosure;
 }
 
 export interface NssStudioPlan {
@@ -88,6 +149,8 @@ export interface NssStudioPlanTaskInput {
   readonly requiredCapabilities?: readonly string[];
   readonly inputArtifacts?: readonly NssStudioArtifactRef[];
   readonly outputArtifacts?: readonly NssStudioArtifactRef[];
+  readonly taskSpec?: NssStudioTaskSpec;
+  readonly disclosure?: NssStudioTaskDisclosure;
 }
 
 export interface NssStudioPlanInput {
@@ -122,6 +185,8 @@ export interface NssStudioCriterionResult {
   readonly outcome: 'passed' | 'failed' | 'blocked' | 'unknown';
   readonly evidenceUri?: string;
   readonly executionId?: string;
+  readonly sourceExecutionId?: string;
+  readonly sourceExecutionIds?: readonly string[];
   readonly timestamp?: string;
   readonly criterion?: string;
 }
@@ -135,6 +200,8 @@ export interface NssStudioHandoff {
   readonly goal: string;
   readonly acceptanceCriteria: readonly string[];
   readonly inputArtifacts: readonly NssStudioArtifactRef[];
+  readonly taskSpec?: NssStudioTaskSpec;
+  readonly dependencyResults?: readonly NssStudioExecutionResult[];
 }
 
 export interface NssStudioExecutionResult {

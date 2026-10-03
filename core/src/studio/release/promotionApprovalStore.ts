@@ -77,7 +77,12 @@ export class MatterhornPromotionApprovalStore {
   }
 
   status(run: StudioRun): MatterhornPromotionStatus {
-    if (run.status !== "completed") {
+    const structurallyComplete =
+      run.status === "completed" &&
+      run.tasks.length > 0 &&
+      run.tasks.every(task => task.status === "completed") &&
+      run.plan.finalAcceptanceCriteria.length > 0;
+    if (!structurallyComplete) {
       return {
         runId: run.id,
         state: "not-eligible",
@@ -116,7 +121,8 @@ export class MatterhornPromotionApprovalStore {
   }
 
   approve(run: StudioRun, confirmation: string, note?: string): MatterhornPromotionApproval {
-    if (run.status !== "completed") throw new Error("Only a completed run can be approved for promotion.");
+    const eligibility = this.status(run);
+    if (!eligibility.eligible) throw new Error("Only a fully completed, acceptance-gated run can be approved for promotion.");
     if (confirmation !== "APPROVE") throw new Error('Promotion approval requires the exact confirmation "APPROVE".');
     if (note != null && (typeof note !== "string" || note.length > 2_000)) throw new Error("Promotion approval note is too large.");
     if (!validRunId(run.id)) throw new Error("Run id is invalid.");

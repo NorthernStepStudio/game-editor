@@ -13,6 +13,14 @@ This is a hard repository workflow rule. Re-run the preflight after switching br
 
 The current Gate 0 candidate requires Gate 0 before adding further autonomy features. Integrating already-reviewed work onto the canonical integration line does not authorize advancing to the next autonomy feature until the local Gate 0 commands pass.
 
+## Canonical product UI
+
+Before changing `web/`, read `docs/UI-DESIGN.md`.
+
+The current standalone product has exactly six primary pages: Home, Runs, Projects, Assets, Validation, and Settings. Chat and asset generation/inspection are drawers. Promotion approval belongs inside a verified Run. Do not add top-level Releases, Characters, Specialists, Project Memory, Motion, or Repo/Build product pages until the corresponding backend workflow is truly product-complete and the UI contract is explicitly updated.
+
+Do not invent fake analytics, progress percentages, previews, provider capabilities, or finished-looking controls for planned features. Keep third-party engine names out of normal UI; expose Matterhorn capability names instead.
+
 ## Main product direction
 
 Matterhorn is Northern Step Studio's **standalone AI assistant and Studio application**. It is not a VS Code extension product. This is the primary direction for architecture, implementation, planning and answers to “what next?”. VS Code must not be required to launch or use Matterhorn.

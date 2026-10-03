@@ -1,7 +1,7 @@
 import { api, el, notice, download } from './api.js';
 let reviewed = null, source = null, activeId = null, runs = [];
 const terminal = r => ['completed', 'failed', 'blocked', 'cancelled'].includes(r.status);
-const FLOW_TITLES = ['Ask', 'Plan', 'Build · Specialists', 'Verify · Sentinel', 'Repair', 'Complete'];
+const FLOW_TITLES = ['Ask', 'Plan', 'Build · Specialists', 'Verify · Sentinel', 'Repair', 'Verified'];
 
 function configureAutonomyLabels() {
   FLOW_TITLES.forEach((title, index) => {
@@ -60,8 +60,8 @@ function updateAutonomyFlow(run) {
     completed ? 'No unresolved repair remains' : needsRepair ? (run.detail || 'Verification requires repair or review') : 'Only used when verification fails',
     completed ? 'Clear' : needsRepair ? 'Attention' : 'Pending');
   paintFlowStep(6, completed ? 'completed' : 'pending',
-    completed ? 'Matterhorn accepted verified completion' : 'Waiting for verified acceptance',
-    completed ? 'Complete' : 'Pending');
+    completed ? 'Matterhorn accepted verified completion · promotion still requires human approval' : 'Waiting for verified acceptance',
+    completed ? 'Verified' : 'Pending');
 }
 
 export async function loadProjects() {
@@ -73,6 +73,58 @@ export async function loadProjects() {
   document.querySelector('#review').disabled = !projects.length;
   window.dispatchEvent(new window.CustomEvent('workspace-projects', { detail: projects }));
 }
+async function renderPromotionControls(run, container) {
+  if (run.status !== 'completed') return;
+  const box = el('div', undefined, 'task promotion-gate');
+  box.append(el('h3', 'Promotion'));
+  const statusLine = el('p', 'Checking approval…', 'muted');
+  box.append(statusLine);
+  container.append(box);
+
+  const promotion = await api(`/api/studio/runs/${run.id}/promotion`);
+  if (!box.isConnected) return;
+
+  statusLine.textContent = promotion.detail;
+  const badge = el(
+    'span',
+    promotion.state === 'approved'
+      ? 'Approved for promotion'
+      : promotion.state === 'stale'
+        ? 'Approval stale'
+        : 'Approval required',
+    'badge',
+  );
+  box.append(badge);
+
+  if (promotion.state === 'approval-required' || promotion.state === 'stale') {
+    const approve = el('button', promotion.state === 'stale' ? 'Renew promotion approval' : 'Approve for promotion');
+    approve.onclick = async () => {
+      approve.disabled = true;
+      try {
+        await api(`/api/studio/runs/${run.id}/promotion/approve`, { confirmation: 'APPROVE' });
+        renderRun(await api(`/api/studio/runs/${run.id}`));
+      } catch (error) {
+        notice(error);
+        approve.disabled = false;
+      }
+    };
+    box.append(approve);
+  } else if (promotion.state === 'approved') {
+    const revoke = el('button', 'Revoke promotion approval', 'secondary');
+    revoke.onclick = async () => {
+      revoke.disabled = true;
+      try {
+        await api(`/api/studio/runs/${run.id}/promotion/revoke`, {});
+        renderRun(await api(`/api/studio/runs/${run.id}`));
+      } catch (error) {
+        notice(error);
+        revoke.disabled = false;
+      }
+    };
+    box.append(revoke);
+  }
+}
+
 function renderRun(run) {
   updateAutonomyFlow(run);
   const container = document.querySelector('#active-run'); container.replaceChildren(el('h3', run.plan.goal), el('p', run.status, 'badge'));
@@ -95,7 +147,7 @@ function renderRun(run) {
     container.append(node);
   }
   if (!terminal(run)) { const cancel = el('button', 'Request cancellation', 'secondary'); cancel.disabled = run.status === 'cancel-requested'; cancel.onclick = async () => { cancel.disabled = true; try { renderRun(await api(`/api/studio/runs/${run.id}/cancel`, {})); } catch(e) { notice(e); cancel.disabled = false; } }; container.append(cancel); }
-  const save = el('button', 'Download run evidence', 'secondary'); save.onclick = () => download(`matterhorn-${run.id}.json`, run); container.append(save);
+  const save = el('button', 'Download run evidence', 'secondary'); save.onclick = () => download(`matterhorn-${run.id}.json`, run); container.append(save); void renderPromotionControls(run, container).catch(notice);
   if (terminal(run)) { source?.close(); source = null; void refreshRuns().catch(notice); }
 }
 export async function refreshRuns() {
@@ -127,7 +179,7 @@ export function initStudio() {
   form.addEventListener('submit', async event => {
     event.preventDefault(); const button = document.querySelector('#review'); button.disabled = true;
     try {
-      const payload = { projectId: document.querySelector('#project').value, goal: document.querySelector('#goal').value, criteria: document.querySelector('#criteria').value.split('\n').map(x => x.trim()).filter(Boolean) };
+      const payload = { projectId: document.querySelector('#project').value, goal: document.querySelector('#goal').value, criteria: document.querySelector('#criteria').value.split('\n').map(x => x.trim()).filter(Boolean), allowDirty: document.querySelector('#allow-dirty-project')?.checked === true };
       const plan = await api('/api/studio/plan', payload); reviewed = payload;
       const planLines = plan.tasks.map((task, index) => {
         const dependencies = task.dependsOn?.length ? `\nDepends on: ${task.dependsOn.join(', ')}` : '';

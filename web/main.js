@@ -114,6 +114,31 @@ async function health() {
   clearNotice();
 }
 
+async function runtimeCapabilities() {
+  const capabilities = await api('/api/studio/runtime');
+  const container = document.querySelector('#runtime-capabilities');
+  if (!container) return;
+  container.replaceChildren();
+
+  for (const capability of capabilities) {
+    const row = document.createElement('div');
+    row.className = 'setting-row';
+    const name = document.createElement('span');
+    name.className = 'setting-label';
+    name.textContent = capability.title;
+    const state = document.createElement('span');
+    state.className = 'status-badge';
+    state.textContent = capability.state === 'ready'
+      ? 'Ready'
+      : capability.state === 'degraded'
+        ? 'Needs attention'
+        : 'Not configured';
+    if (capability.state === 'ready') state.classList.add('connected');
+    row.append(name, state);
+    container.append(row);
+  }
+}
+
 async function providers() {
   const data = await api('/providers');
   const select = document.querySelector('#provider');
@@ -141,5 +166,5 @@ initAssets();
 initRoutingPreferences();
 route();
 window.addEventListener('hashchange', route);
-document.querySelector('#recheck').onclick = () => health().catch(notice);
-for (const task of [health, providers, loadProjects, refreshRuns, loadSpecialists, loadRoutingPreferences, loadAssetProviders, loadAssets, loadCompletionScorecard]) task().catch(notice);
+document.querySelector('#recheck').onclick = () => Promise.all([health(), runtimeCapabilities()]).catch(notice);
+for (const task of [health, runtimeCapabilities, providers, loadProjects, refreshRuns, loadSpecialists, loadRoutingPreferences, loadAssetProviders, loadAssets, loadCompletionScorecard]) task().catch(notice);

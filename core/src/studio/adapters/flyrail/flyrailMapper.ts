@@ -123,6 +123,8 @@ export function handoffToLoopRunParams(
     runId: handoff.taskId,
     featureId: handoff.taskId,
     text: buildFeatureText(handoff),
+    acceptanceCriteria: [...handoff.acceptanceCriteria],
+    implementationBackend: "auto",
     maxRepairAttempts: 3,
     playtestMode: "auto",
   };

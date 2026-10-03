@@ -17,6 +17,16 @@ export async function studioRoutes(
   if (!pathname.startsWith('/api/')) return false;
   const { controller, adapter } = service;
 
+  if (request.method === 'GET' && pathname === '/api/studio/routing') {
+    send(response, 200, service.routingPreferences.get());
+    return true;
+  }
+
+  if (request.method === 'PUT' && pathname === '/api/studio/routing') {
+    send(response, 200, service.routingPreferences.update((await readBody()) as Record<string, unknown>));
+    return true;
+  }
+
   if (request.method === 'GET' && pathname === '/api/studio/agents') {
     send(response, 200, listStudioAgents());
     return true;
@@ -50,6 +60,8 @@ export async function studioRoutes(
       validatorAgent: 'sentinel',
       workflow: STUDIO_WORKFLOW_STAGES,
       executionBackends,
+      specialists: service.adapters.map(item => item.specialistId),
+      routing: service.routingPreferences.get(),
     });
     return true;
   }

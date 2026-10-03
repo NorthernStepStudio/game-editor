@@ -44,3 +44,14 @@ Apply **adopt before build**: prefer mature permissively licensed infrastructure
 The primary user workflow is now `Ask -> Plan -> Build -> Verify -> Repair -> Complete`. Do not require users to author standard validation criteria manually; Matterhorn supplies baseline validation/scenario/QA gates and adds playtest evidence for gameplay work when the project supports it.
 
 GitHub Actions minutes are constrained. The integration branch intentionally avoids the `feat/**` push trigger. Do not open a pull request or otherwise trigger remote CI merely to test this slice; run local compile/tests first.
+
+
+## Matterhorn 100 completion metric
+
+`docs/MATTERHORN-100.md` and `server/src/services/completionScorecard.ts` define the canonical completion metric for the full product vision. Future agents must update requirement stages/evidence when substantive capability state changes.
+
+Do not inflate the score:
+- code presence alone is only `implemented`;
+- `local_verified` requires current local proof on the canonical branch;
+- `live_verified` requires current real editor/runtime/end-to-end proof;
+- `production_ready` requires release-grade hardening and user-facing operability.

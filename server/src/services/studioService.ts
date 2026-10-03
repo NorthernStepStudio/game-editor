@@ -1,8 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import { isAbsolute, resolve } from 'node:path';
-import { existsSync } from 'node:fs';
-import { createStudioPlan, FlyrailAdapter, StudioAdapterRegistry, StudioRunController, type NssStudioPlan } from '../../../core/out/index.js';
+import { existsSync, lstatSync } from 'node:fs';
+import { BlenderAdapter, FlyrailAdapter, StudioAdapterRegistry, StudioRunController, type NssStudioPlan } from '../../../core/out/index.js';
 import { StudioHistory } from './studioHistory.js';
+import { FoundryAssetService } from './foundryAssetService.js';
+import { FoundryGenerationService } from './foundryGenerationService.js';
+import { StudioRoutingPreferencesStore } from './studioRoutingPreferences.js';
+import { createStudioPlannerPlan, inferDomains, type StudioAssetRequestInput, type StudioPlanningDomain } from './studioPlanner.js';
+import { FoundryStudioAdapter } from './foundryStudioAdapter.js';
+import { MatterhornQaAdapter } from './matterhornQaAdapter.js';
 
 export interface StudioProject { id: string; name: string; path: string }
 
@@ -23,10 +29,20 @@ export function createStudioService() {
   const projects = configuredProjects();
   const adapter = new FlyrailAdapter({ requestTimeoutMs: 300000 });
   const registry = new StudioAdapterRegistry();
-  registry.register(adapter);
 
   const dataDirectory = process.env.MATTERHORN_DATA_DIR ?? resolve(__dirname, '../../../.matterhorn');
   const history = new StudioHistory(dataDirectory);
+  const foundryAssets = new FoundryAssetService(dataDirectory, projects);
+  const routingPreferences = new StudioRoutingPreferencesStore(dataDirectory);
+  const foundryGeneration = new FoundryGenerationService(projects, foundryAssets, {
+    routingPreferences: () => routingPreferences.get(),
+  });
+
+  registry.register(adapter);
+  registry.register(new BlenderAdapter({ baseWorkDir: resolve(dataDirectory, 'blender-runs') }));
+  registry.register(new FoundryStudioAdapter(foundryGeneration, foundryAssets));
+  registry.register(new MatterhornQaAdapter());
+
   const controller = new StudioRunController({ registry, initialRuns: history.load() });
   const stopHistory = controller.store.subscribe(({ run }) => history.persist(run));
 
@@ -45,39 +61,76 @@ export function createStudioService() {
   }
 
   function plan(body: unknown): NssStudioPlan {
-    const input = body as { goal?: unknown; projectId?: unknown; criteria?: unknown };
-    if (!input || typeof input.goal !== 'string' || input.goal.trim().length < 3 || input.goal.length > 8000) throw new Error('Enter a goal between 3 and 8000 characters.');
+    const input = body as {
+      goal?: unknown;
+      projectId?: unknown;
+      criteria?: unknown;
+      domains?: unknown;
+      assets?: unknown;
+      blenderTaskSpec?: unknown;
+    };
+    if (!input || typeof input.goal !== 'string' || input.goal.trim().length < 3 || input.goal.length > 8000) {
+      throw new Error('Enter a goal between 3 and 8000 characters.');
+    }
+
     const project = projects.find(candidate => candidate.id === input.projectId);
-    if (!project || !existsSync(resolve(project.path, 'project.godot'))) throw new Error('Select a configured, existing Godot project.');
-    const requestedCriteria = input.criteria == null ? [] : input.criteria;
-    if (!Array.isArray(requestedCriteria) || requestedCriteria.length > 20 || requestedCriteria.some(criterion => typeof criterion !== 'string' || !criterion.trim() || criterion.length > 1000)) {
+    if (!project || !existsSync(project.path)) throw new Error('Select a configured, existing project.');
+    const projectInfo = lstatSync(project.path);
+    if (!projectInfo.isDirectory() || projectInfo.isSymbolicLink()) throw new Error('The configured project path must be a real directory.');
+
+    let domains: readonly StudioPlanningDomain[] | undefined;
+    if (input.domains !== undefined) {
+      if (!Array.isArray(input.domains) || input.domains.length > 3 || input.domains.some(domain => !['assets', 'blender', 'godot'].includes(String(domain)))) {
+        throw new Error('domains must contain only assets, blender, or godot.');
+      }
+      domains = input.domains as StudioPlanningDomain[];
+    }
+    const plannedDomains = domains?.length ? domains : inferDomains(input.goal);
+    if (plannedDomains.includes('godot') && !existsSync(resolve(project.path, 'project.godot'))) {
+      throw new Error('This plan includes Godot work, so select a configured project with project.godot.');
+    }
+
+    const rawCriteria = input.criteria == null ? [] : input.criteria;
+    if (!Array.isArray(rawCriteria) || rawCriteria.length > 20 || rawCriteria.some(criterion => typeof criterion !== 'string' || !criterion.trim() || criterion.length > 1000)) {
       throw new Error('Supply at most 20 nonempty acceptance criteria.');
     }
-    const standardCriteria = ['Godot validation passes', 'Scenario checks pass', 'QA checks pass'];
-    const gameplayGoal = /player|gameplay|movement|move|jump|dash|combat|enemy|defender|attacker|collision|physics|camera|score|level|boss|control|input|ability|skill|timer|match|round|ai\b/i.test(input.goal);
-    if (gameplayGoal && existsSync(resolve(project.path, 'playtest.manifest.json'))) standardCriteria.push('Playtest passes');
-    const acceptanceCriteria = [...new Set([...requestedCriteria.map(criterion => criterion.trim()), ...standardCriteria])];
-    return createStudioPlan({
+    const requestedCriteria = rawCriteria.map(criterion => String(criterion).trim());
+    const automaticCriteria: string[] = [];
+    if (plannedDomains.includes('godot')) {
+      automaticCriteria.push('Godot validation passes', 'Scenario checks pass', 'QA checks pass');
+      const gameplayGoal = /player|gameplay|movement|move|jump|dash|combat|enemy|defender|attacker|collision|physics|camera|score|level|boss|control|input|ability|skill|timer|match|round|ai\b/i.test(input.goal);
+      if (gameplayGoal && existsSync(resolve(project.path, 'playtest.manifest.json'))) automaticCriteria.push('Playtest passes');
+    }
+    const criteria = [...new Set([...requestedCriteria, ...automaticCriteria])];
+    if (!criteria.length) {
+      throw new Error('Add at least one measurable acceptance criterion for asset/Blender-only work.');
+    }
+
+    if (input.assets !== undefined && (!Array.isArray(input.assets) || input.assets.length < 1 || input.assets.length > 16 || input.assets.some(asset => !asset || typeof asset !== 'object' || Array.isArray(asset)))) {
+      throw new Error('assets must contain between 1 and 16 structured Foundry asset requests.');
+    }
+
+    return createStudioPlannerPlan({
       id: randomUUID(),
       goal: input.goal,
-      tasks: [{
-        id: 'godot-work',
-        title: 'Implement and validate the requested Godot change',
-        goal: input.goal,
-        domain: 'godot',
-        acceptanceCriteria,
-        inputArtifacts: [{ kind: 'godot-project', uri: project.path }],
-      }],
-      finalAcceptanceCriteria: acceptanceCriteria,
-    });
+      project,
+      criteria,
+      ...(domains ? { domains } : {}),
+      ...(input.assets ? { assets: input.assets as StudioAssetRequestInput[] } : {}),
+      ...(input.blenderTaskSpec !== undefined ? { blenderTaskSpec: input.blenderTaskSpec } : {}),
+    }, routingPreferences.get(), foundryGeneration.providers());
   }
 
   return {
     projects,
     adapter,
+    adapters: registry.list(),
     controller,
     plan,
     history,
+    foundryAssets,
+    foundryGeneration,
+    routingPreferences,
     ensureRecovered,
     getRecoveryState: () => recoveryState,
     dispose: () => stopHistory(),

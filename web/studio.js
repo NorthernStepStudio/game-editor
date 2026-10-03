@@ -1,9 +1,10 @@
-import { api, el, notice, download } from './api.js';
+import { api, clearNotice, el, notice, download } from './api.js';
 
 let reviewed = null;
 let source = null;
 let activeId = null;
 let runs = [];
+let homeAttentionRenderId = 0;
 
 const terminal = run => ['completed', 'failed', 'blocked', 'cancelled'].includes(run.status);
 const FLOW_TITLES = ['Plan', 'Build', 'Validate', 'Repair', 'Verified', 'Promote'];
@@ -49,33 +50,40 @@ function updateAutonomyFlow(run) {
     statuses.includes('failed') ||
     statuses.includes('blocked');
   const completed = run.status === 'completed';
+  const cancellationRequested = run.status === 'cancel-requested';
+  const cancelled = run.status === 'cancelled';
 
   paintFlowStep(1, 'completed', 'Reviewed plan and acceptance criteria', 'Done');
   paintFlowStep(
     2,
-    completed || verifying || needsRepair ? 'completed' : 'active',
-    completed ? 'Specialist execution complete' : verifying ? 'Execution produced evidence' : needsRepair ? 'Execution needs attention' : 'Specialists are working',
-    completed || verifying || needsRepair ? 'Done' : 'Running',
+    completed || verifying || needsRepair ? 'completed' : cancellationRequested ? 'active' : cancelled ? 'pending' : 'active',
+    completed ? 'Specialist execution complete' :
+      verifying ? 'Execution produced evidence' :
+        needsRepair ? 'Execution needs attention' :
+          cancellationRequested ? 'Cancellation requested; waiting for remote confirmation' :
+            cancelled ? 'Execution cancelled; no specialist work remains' :
+              'Specialists are working',
+    completed || verifying || needsRepair ? 'Done' : cancellationRequested ? 'Stopping' : cancelled ? 'Cancelled' : 'Running',
   );
   paintFlowStep(
     3,
     completed ? 'completed' : verifying ? 'active' : needsRepair ? 'completed' : 'pending',
-    completed ? 'Sentinel evidence gate passed' : verifying ? 'Checking deterministic evidence' : needsRepair ? 'Validation identified issues' : 'Waiting for execution evidence',
-    completed ? 'Passed' : verifying ? 'Checking' : needsRepair ? 'Checked' : 'Pending',
+    completed ? 'Sentinel evidence gate passed' : verifying ? 'Checking deterministic evidence' : needsRepair ? 'Validation identified issues' : cancelled ? 'Skipped after cancellation' : cancellationRequested ? 'Waiting for cancellation to settle' : 'Waiting for execution evidence',
+    completed ? 'Passed' : verifying ? 'Checking' : needsRepair ? 'Checked' : cancelled ? 'Skipped' : 'Pending',
   );
   paintFlowStep(
     4,
     completed ? 'completed' : needsRepair ? 'active' : 'pending',
-    completed ? 'No unresolved repair remains' : needsRepair ? (run.detail || 'Repair or human review is required') : 'Only used after failed verification',
-    completed ? 'Clear' : needsRepair ? 'Attention' : 'Pending',
+    completed ? 'No unresolved repair remains' : needsRepair ? (run.detail || 'Repair or human review is required') : cancelled ? 'No repair scheduled for a cancelled run' : 'Only used after failed verification',
+    completed ? 'Clear' : needsRepair ? 'Attention' : cancelled ? 'Skipped' : 'Pending',
   );
   paintFlowStep(
     5,
     completed ? 'completed' : 'pending',
-    completed ? 'Verified successfully' : 'Waiting for acceptance',
-    completed ? 'Verified' : 'Pending',
+    completed ? 'Verified successfully' : cancelled ? 'Run cancelled before verification' : 'Waiting for acceptance',
+    completed ? 'Verified' : cancelled ? 'Not verified' : 'Pending',
   );
-  paintFlowStep(6, 'pending', completed ? 'Human promotion approval required' : 'Available after verified completion', 'Pending');
+  paintFlowStep(6, 'pending', completed ? 'Human promotion approval required' : cancelled ? 'Unavailable for a cancelled run' : 'Available after verified completion', cancelled ? 'Unavailable' : 'Pending');
 }
 
 function projectCard(project) {
@@ -231,7 +239,9 @@ function renderRun(run) {
     cancel.onclick = async () => {
       cancel.disabled = true;
       try {
-        renderRun(await api(`/api/studio/runs/${run.id}/cancel`, {}));
+        const updated = await api(`/api/studio/runs/${run.id}/cancel`, {});
+        renderRun(updated);
+        await refreshRuns();
       } catch (error) {
         notice(error);
         cancel.disabled = false;
@@ -321,14 +331,15 @@ function validationCard(run) {
 
 async function renderHomeAttention() {
   const container = document.querySelector('#home-attention');
-  container.replaceChildren();
+  const renderId = ++homeAttentionRenderId;
+  const fragment = document.createDocumentFragment();
 
   const attentionRuns = runs.filter(run => ['failed', 'blocked', 'cancel-requested'].includes(run.status));
   for (const run of attentionRuns.slice(0, 4)) {
     const row = el('a', `${run.plan.goal} · ${run.status}`, run.status === 'failed' || run.status === 'blocked' ? 'attention-row danger' : 'attention-row warning');
     row.href = '#runs';
     row.onclick = () => watch(run.id).catch(notice);
-    container.append(row);
+    fragment.append(row);
   }
 
   const completed = runs.filter(run => run.status === 'completed').slice(-3);
@@ -339,16 +350,18 @@ async function renderHomeAttention() {
         const row = el('a', `${run.plan.goal} · promotion ${promotion.state === 'stale' ? 'stale' : 'approval required'}`, 'attention-row warning');
         row.href = '#runs';
         row.onclick = () => watch(run.id).catch(notice);
-        container.append(row);
+        fragment.append(row);
       }
     } catch {
       // Promotion visibility must not prevent the dashboard from rendering.
     }
   }
 
-  if (!container.children.length) {
-    container.append(el('div', 'Nothing needs you right now.', 'attention-row neutral'));
+  if (!fragment.childNodes.length) {
+    fragment.append(el('div', 'Nothing needs you right now.', 'attention-row neutral'));
   }
+  if (renderId !== homeAttentionRenderId) return;
+  container.replaceChildren(fragment);
 }
 
 function renderHome() {
@@ -470,6 +483,7 @@ export function initStudio() {
         `${plan.goal}\n\n${planLines.join('\n\n')}\n\nFinal acceptance:\n${plan.finalAcceptanceCriteria.map(criterion => '• ' + criterion).join('\n')}`;
       document.querySelector('#plan-review').hidden = false;
       renderAutonomyDraft('plan');
+      clearNotice();
     } catch (error) {
       notice(error);
     } finally {

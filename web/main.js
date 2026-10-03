@@ -61,6 +61,7 @@ function route() {
   }
 
   const pageId = routeMap[hash] || 'home';
+  if (pageId !== 'assets-page') closeAssetDrawers();
   for (const page of document.querySelectorAll('.page')) {
     page.hidden = page.id !== pageId;
   }
@@ -102,6 +103,13 @@ function closeAssistant() {
   if (drawer) drawer.hidden = true;
 }
 
+function closeAssetDrawers() {
+  const generator = document.querySelector('#asset-generator');
+  const inspector = document.querySelector('#asset-inspector');
+  if (generator) generator.hidden = true;
+  if (inspector) inspector.hidden = true;
+}
+
 function initValidationFilters() {
   for (const button of document.querySelectorAll('[data-validation-filter]')) {
     button.onclick = () => {
@@ -131,7 +139,7 @@ function initDrawers() {
   document.addEventListener('keydown', event => {
     if (event.key !== 'Escape') return;
     closeAssistant();
-    if (assetDrawer) assetDrawer.hidden = true;
+    closeAssetDrawers();
   });
 }
 

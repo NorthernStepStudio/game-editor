@@ -21,6 +21,16 @@ test('approved six-page UI preserves real Matterhorn workflows without invented 
 
   let run = null;
   const chatBodies = [];
+  const completedRun = {
+    id: 'promotion-run',
+    status: 'completed',
+    plan: {
+      goal: 'Verified fixture',
+      tasks: [{ id: 'verified', title: 'Verify', specialistId: 'flyrail' }],
+      finalAcceptanceCriteria: ['Godot validation passes'],
+    },
+    tasks: [{ id: 'verified', status: 'completed' }],
+  };
   globalThis.EventSource = class { close() {} };
 
   globalThis.fetch = async (path, options) => {
@@ -80,12 +90,17 @@ test('approved six-page UI preserves real Matterhorn workflows without invented 
       };
       data = run;
     }
-    else if (path === '/api/studio/runs') data = run ? [run] : [];
+    else if (path === '/api/studio/runs') data = run ? [completedRun, run] : [completedRun];
     else if (path === '/api/studio/runs/fixture-run/cancel') {
       run = { ...run, status: 'cancel-requested' };
       data = run;
     }
     else if (path === '/api/studio/runs/fixture-run') data = run;
+    else if (path === '/api/studio/runs/promotion-run/promotion') data = {
+      state: 'approval-required',
+      eligible: true,
+      detail: 'Execution is complete, but promotion still requires explicit human approval.',
+    };
     else if (path === '/ask') {
       chatBodies.push(body);
       data = { response: 'Simulated chat response' };
@@ -142,16 +157,21 @@ test('approved six-page UI preserves real Matterhorn workflows without invented 
     window.dispatchEvent(new window.Event('hashchange'));
     document.querySelector('#open-asset-generator').click();
     assert.equal(document.querySelector('#asset-generator').hidden, false);
-    document.querySelector('#close-asset-generator').click();
+    location.hash = '#validation';
+    window.dispatchEvent(new window.Event('hashchange'));
     assert.equal(document.querySelector('#asset-generator').hidden, true);
+    assert.equal(document.querySelector('#asset-inspector').hidden, true);
 
     location.hash = '#home';
     window.dispatchEvent(new window.Event('hashchange'));
     document.querySelector('#goal').value = 'Verify fixture';
     document.querySelector('#criteria').value = 'Godot validation passes';
+    document.querySelector('#notice').hidden = false;
+    document.querySelector('#notice').textContent = 'Previous planning error';
     document.querySelector('#run-form').dispatchEvent(new window.Event('submit', { cancelable: true }));
     await flush();
     assert.equal(document.querySelector('#plan-review').hidden, false);
+    assert.equal(document.querySelector('#notice').hidden, true);
 
     document.querySelector('#start').click();
     await flush();
@@ -164,6 +184,13 @@ test('approved six-page UI preserves real Matterhorn workflows without invented 
       .click();
     await flush();
     assert.match(document.querySelector('#active-run').textContent, /cancel-requested/);
+    assert.match(document.querySelector('#runs').textContent, /cancel-requested/);
+    assert.match(document.querySelector('#step-node-2').textContent, /Stopping|Cancellation requested/);
+    assert.equal(
+      [...document.querySelectorAll('#home-attention a')]
+        .filter(link => link.textContent.includes('Verified fixture')).length,
+      1,
+    );
 
     document.querySelector('#assistant-toggle').click();
     for (const text of ['First question', 'Second question']) {

@@ -4,7 +4,7 @@ This gate validates the October 3 consolidation **without GitHub Actions**.
 
 ## Canonical refs
 
-- Matterhorn: `integration/studio-autonomy-20261003`
+- Matterhorn: `integration/oss-acceleration-rebased-20261003` (based on `integration/studio-autonomy-20261003` at `389d8adbc2bb748df6311b07896673933a59cad3`)
 - Flyrail: `integration/godot-ai-backend-20261003`
 
 Do not substitute a different branch and do not promote Matterhorn 100 stages from historical CI on older branches.
@@ -20,7 +20,7 @@ npm install
 npm run gate:autonomy-local
 ```
 
-Expected branch: `integration/studio-autonomy-20261003`.
+Expected branch: `integration/oss-acceleration-rebased-20261003`.
 
 The gate compiles core + server and runs focused coverage for:
 - Studio agent separation / Sentinel
@@ -36,6 +36,12 @@ The gate compiles core + server and runs focused coverage for:
 - Intelligence sessions/tools
 - Matterhorn 100 scorecard
 - persistent Studio history
+- Matterhorn runtime capability boundary (browser, memory, telemetry, evaluation, safe execution)
+- binary asset lease/hash protection
+- dirty-tree mutation guard
+- isolated specialist Git workspace behavior
+- snapshot-bound human promotion approval
+- mandatory agent startup/CI-budget contract
 - standalone web tests
 
 **PASS** requires exit code 0 for the complete command. A partial set of green tests is not a pass.

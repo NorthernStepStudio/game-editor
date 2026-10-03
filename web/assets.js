@@ -112,6 +112,7 @@ function renderGallery() {
 function renderInspectorEmpty(message = 'Select an asset to inspect provenance and lineage.') {
   const inspector = document.querySelector('#asset-inspector');
   if (!inspector) return;
+  inspector.hidden = true;
   inspector.replaceChildren(
     el('h3', 'Asset Inspector'),
     el('p', message, 'muted'),
@@ -147,8 +148,16 @@ async function selectAsset(assetId) {
   renderGallery();
   const inspector = document.querySelector('#asset-inspector');
   if (!inspector) return;
+  inspector.hidden = false;
+  const loadingHeader = el('div', undefined, 'inspector-header');
+  loadingHeader.append(el('h3', 'Asset Inspector'));
+  const loadingClose = el('button', '×', 'icon-action');
+  loadingClose.type = 'button';
+  loadingClose.setAttribute('aria-label', 'Close asset inspector');
+  loadingClose.onclick = () => { inspector.hidden = true; };
+  loadingHeader.append(loadingClose);
   inspector.replaceChildren(
-    el('h3', 'Asset Inspector'),
+    loadingHeader,
     el('p', 'Loading asset lineage…', 'muted'),
   );
 
@@ -165,7 +174,11 @@ async function selectAsset(assetId) {
       el('h3', asset.assetId),
       el('p', `${asset.type}${asset.operation ? ` · ${asset.operation}` : ''}`, 'muted-sm'),
     );
-    header.append(title);
+    const close = el('button', '×', 'icon-action');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Close asset inspector');
+    close.onclick = () => { inspector.hidden = true; };
+    header.append(title, close);
     inspector.append(header);
 
     const preview = el('div', undefined, 'inspector-preview-box');

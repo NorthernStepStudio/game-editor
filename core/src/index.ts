@@ -26,3 +26,5 @@ export * from "./studio/adapterRegistry.js";
 export * from "./studio/evidenceValidator.js";
 export * from "./studio/runController.js";
 export * from "./studio/run/index.js";
+
+export * from "./intelligence/index.js";

@@ -178,3 +178,63 @@ test('restart recovery remains fail-closed while remote work is still active', a
   assert.equal(run.status, 'cancel-requested');
   await assert.rejects(() => controller.executeRun(makePlan()), /already active/i);
 });
+
+
+test('overlapping Studio runs queue safely instead of being rejected', async () => {
+  let release = false;
+  const controller = new StudioRunController({
+    registry: setup({
+      getTaskStatus: async id => ({
+        taskId: id,
+        specialistId: 'flyrail',
+        phase: release ? 'completed' : 'running',
+      }),
+    }),
+    pollIntervalMs: 2,
+  });
+
+  const first = controller.start(makePlan());
+  const second = controller.start(makePlan());
+  await new Promise(resolve => setTimeout(resolve, 10));
+
+  assert.equal(controller.store.get(first.id)?.status, 'running');
+  assert.equal(controller.store.get(second.id)?.status, 'queued');
+  assert.deepEqual(controller.getQueue().map(item => item.runId), [second.id]);
+
+  release = true;
+  for (let attempt = 0; attempt < 100; attempt++) {
+    if (controller.store.get(second.id)?.status === 'completed') break;
+    await new Promise(resolve => setTimeout(resolve, 5));
+  }
+  assert.equal(controller.store.get(first.id)?.status, 'completed');
+  assert.equal(controller.store.get(second.id)?.status, 'completed');
+  assert.deepEqual(controller.getQueue(), []);
+});
+
+test('queued Studio runs can be cancelled before specialist mutation starts', async () => {
+  let release = false;
+  let submissions = 0;
+  const controller = new StudioRunController({
+    registry: setup({
+      submitTask: async handoff => {
+        submissions++;
+        return { taskId: handoff.taskId, specialistId: 'flyrail', accepted: true };
+      },
+      getTaskStatus: async id => ({
+        taskId: id,
+        specialistId: 'flyrail',
+        phase: release ? 'completed' : 'running',
+      }),
+    }),
+    pollIntervalMs: 2,
+  });
+
+  controller.start(makePlan());
+  const queued = controller.start(makePlan());
+  await new Promise(resolve => setTimeout(resolve, 10));
+  const cancelled = controller.requestCancel(queued.id);
+  assert.equal(cancelled.status, 'cancelled');
+  assert.equal(controller.store.get(queued.id)?.tasks[0]?.status, 'cancelled');
+  assert.equal(submissions, 1);
+  release = true;
+});

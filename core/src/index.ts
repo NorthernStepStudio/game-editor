@@ -28,3 +28,14 @@ export * from "./studio/runController.js";
 export * from "./studio/run/index.js";
 
 export * from "./intelligence/index.js";
+
+export * from "./integrations/runtimeCapabilities.js";
+export * from "./integrations/localBrowserAdapter.js";
+export * from "./integrations/projectMemoryGraphAdapter.js";
+export * from "./integrations/localAgentEvaluationAdapter.js";
+export * from "./integrations/otlpRunInsightsAdapter.js";
+export * from "./integrations/ociSafeExecutionAdapter.js";
+export * from "./studio/assets/assetLeaseStore.js";
+export * from "./studio/repo/gitSafety.js";
+export * from "./studio/repo/workspaceManager.js";
+export * from "./studio/release/promotionApprovalStore.js";

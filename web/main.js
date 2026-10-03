@@ -103,8 +103,10 @@ async function health() {
       ? '<span class="dot live"></span> Studio services ready'
       : '<span class="dot"></span> Flyrail offline';
   }
+  const godotAi = daemon.executionBackends?.godotAi;
+  const codex = daemon.executionBackends?.codex;
   document.querySelector('#daemon-detail').textContent = daemon.available
-    ? `Flyrail connected (${daemon.version}). Remote cancellation is currently unsupported.`
+    ? `Flyrail connected (${daemon.version}) · Godot AI ${godotAi?.configured ? 'configured' : 'not configured'}${godotAi?.pluginInstalled ? ' + plugin detected' : ''} · Codex ${codex?.configured ? 'ready' : 'not configured'} · Sentinel validator active. Remote cancellation is currently unsupported.`
     : 'Flyrail is offline. Start the daemon on this PC and check its server-side configuration.';
   clearNotice();
 }

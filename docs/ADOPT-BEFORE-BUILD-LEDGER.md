@@ -1,6 +1,6 @@
 # Adopt-before-build ledger — 2026-10-03
 
-This file records which saved research ideas have been adopted into the canonical autonomy integration line and which should not be rebuilt.
+This file records which saved research ideas have been adopted into the canonical autonomy integration line and which should not be rebuilt. The complete future adoption order and remaining candidate set are tracked in `docs/OSS-ADOPTION-MASTER-PLAN.md`.
 
 ## Canonical branches
 

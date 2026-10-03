@@ -89,6 +89,25 @@ export class FlyrailAdapter implements SpecialistAdapter {
     }
   }
 
+  async getExecutionBackends(): Promise<{
+    codex: { configured: boolean; sandbox?: string };
+    godotAi: { configured: boolean; pluginInstalled: boolean; transport?: string; allowedTools: readonly string[] };
+  }> {
+    const health = await this.client.health();
+    return {
+      codex: {
+        configured: health.autonomy?.codex?.configured === true,
+        ...(health.autonomy?.codex?.sandbox ? { sandbox: health.autonomy.codex.sandbox } : {}),
+      },
+      godotAi: {
+        configured: health.autonomy?.godotAi?.configured === true,
+        pluginInstalled: health.autonomy?.godotAi?.pluginInstalled === true,
+        ...(health.autonomy?.godotAi?.transport ? { transport: health.autonomy.godotAi.transport } : {}),
+        allowedTools: health.autonomy?.godotAi?.allowedTools ?? [],
+      },
+    };
+  }
+
   // ── Capabilities ────────────────────────────────────────────────
 
   async getCapabilities(): Promise<SpecialistCapabilitySet> {

@@ -90,8 +90,18 @@ export class StudioExecutionEngine {
     for (const id of recoveredIds) {
       const run = this.store.get(id);
       if (!run) continue;
+
+      // Durable queue checkpoint: a run that was persisted before any task
+      // started is safe to resume because there is no remote mutation to replay.
+      if (run.status === 'queued' && run.tasks.every(task => task.status === 'planned')) {
+        run.detail = 'Recovered queued run; no specialist mutation had started.';
+        this.save(run);
+        if (!this.pendingRunIds.includes(id)) this.pendingRunIds.push(id);
+        continue;
+      }
+
       run.status = 'cancel-requested';
-      run.detail = 'Matterhorn restarted before this run settled. Recovery is read-only; no mutation will be resubmitted.';
+      run.detail = 'Matterhorn restarted after execution may have started. Recovery is read-only; no mutation will be resubmitted.';
       this.save(run);
 
       let uncertainRemoteWork = false;
@@ -158,6 +168,7 @@ export class StudioExecutionEngine {
       this.finalizeRecovered(run, uncertainRemoteWork);
       this.save(run);
     }
+    this.schedule();
     return recoveredIds.map(id => this.store.get(id)).filter((run): run is StudioRun => Boolean(run));
   }
 

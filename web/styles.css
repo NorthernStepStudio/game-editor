@@ -280,3 +280,22 @@ textarea:focus,input:focus,select:focus{border-color:#347fdc;box-shadow:0 0 0 2p
   .provider-status-row{align-items:flex-start;flex-direction:column}
   .provider-status-badges{justify-content:flex-start}
 }
+
+
+.project-chip{min-width:180px;border:1px solid var(--line);background:#0b1727;border-radius:8px;padding:10px;display:grid;gap:3px}
+.project-chip strong{font-size:12px}
+.attention-row{display:block}
+.active-run-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.active-run-header h2{font-size:18px;margin-top:3px}
+.current-work-list{display:grid;gap:7px}
+.current-work-list .task{margin:0}
+.validation-counts{display:flex;gap:10px;flex-wrap:wrap;font-size:10px;font-weight:700}
+.validation-pass{color:#75e9ad}
+.validation-warn{color:#f2c566}
+.validation-fail{color:#ff8990}
+.validation-card details{margin-top:8px;border-top:1px solid var(--line);padding-top:8px}
+.validation-card summary{cursor:pointer;color:#86baff;font-size:11px}
+.validation-detail{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid rgba(33,51,75,.65)}
+.validation-detail p{width:100%;margin:0}
+.runtime-identity{display:grid;gap:2px}
+.home-run-row{padding:9px 7px}

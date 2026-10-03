@@ -11,7 +11,7 @@ Before changing files, pushing commits, opening a pull request, rerunning CI, or
 
 This is a hard repository workflow rule. Re-run the preflight after switching branches or taking over another agent's work. Iterative autonomous work belongs on `integration/**`; do not use `feat/**` for speculative commits because those pushes trigger the Ubuntu + Windows CI matrix. Inspect a failed job/log before another intentional CI attempt.
 
-The current autonomy line requires Gate 0 before adding further autonomy features. Integrating already-reviewed work onto the canonical integration line does not authorize advancing to the next autonomy feature until the local Gate 0 commands pass.
+The current Gate 0 candidate requires Gate 0 before adding further autonomy features. Integrating already-reviewed work onto the canonical integration line does not authorize advancing to the next autonomy feature until the local Gate 0 commands pass.
 
 ## Main product direction
 
@@ -50,7 +50,7 @@ Environment fixture generation proves asset creation and import. Autonomous full
 
 ## October 3 autonomy integration
 
-The active consolidation line is `integration/studio-autonomy-20261003`. Read `docs/MATTERHORN-AUTONOMY-INTEGRATION.md`, `docs/ADOPT-BEFORE-BUILD-LEDGER.md`, and `docs/OSS-ADOPTION-MASTER-PLAN.md` before extending Studio autonomy.
+The current Gate 0 candidate is `integration/oss-acceleration-rebased-20261003`, based on `integration/studio-autonomy-20261003` at `389d8adbc2bb748df6311b07896673933a59cad3` and carrying the OSS acceleration/runtime-safety integration. Read `docs/MATTERHORN-AUTONOMY-INTEGRATION.md`, `docs/ADOPT-BEFORE-BUILD-LEDGER.md`, and `docs/OSS-ADOPTION-MASTER-PLAN.md` before extending Studio autonomy.
 
 Apply **adopt before build**: prefer mature permissively licensed infrastructure over duplicating unfinished generic plumbing. Godot AI is an optional editor/MCP backend behind Flyrail; Matterhorn must not bypass Flyrail to call Godot AI directly. Sentinel is the independent validator and Matterhorn remains final completion authority.
 

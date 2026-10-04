@@ -115,14 +115,14 @@ export class FlyrailClient {
 
     const envUrl = process.env.FLYRAIL_DAEMON_URL;
     const envToken = process.env.FLYRAIL_DAEMON_TOKEN;
-    const discovered = discoverDaemon(options.discoveryPaths ?? defaultPaths);
-
-    const wsUrl = options.daemonUrl ?? envUrl ?? discovered?.url ?? "ws://127.0.0.1:7520";
-    this.token = options.token ?? envToken ?? discovered?.token ?? "";
-
-    // Ensure the token is in the URL query string
+    const wsUrl = options.daemonUrl ?? envUrl ?? "ws://127.0.0.1:7520";
     const parsed = new URL(wsUrl);
     if (!["ws:", "wss:"].includes(parsed.protocol)) throw new Error("Invalid daemon URL protocol");
+
+    const urlToken = parsed.searchParams.get("token");
+    const discovered = (!options.token && !envToken && !urlToken) ? discoverDaemon(options.discoveryPaths ?? defaultPaths) : null;
+
+    this.token = options.token ?? envToken ?? urlToken ?? discovered?.token ?? "";
     if (this.token) {
       parsed.searchParams.set("token", this.token);
     }

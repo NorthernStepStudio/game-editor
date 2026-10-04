@@ -16,7 +16,7 @@ test('Matterhorn 100 weights total exactly 100 and baseline stays evidence-weigh
   }
   assert.equal(scorecard.target, 100);
   assert.equal(scorecard.capabilityCoverage, 57.5);
-  assert.equal(scorecard.productionReadiness, 33.4);
+  assert.equal(scorecard.productionReadiness, 35.4);
   assert.equal(scorecard.status, 'red');
   assert(scorecard.criticalNext.length > 0);
   assert(scorecard.definitionOf100.length >= 8);

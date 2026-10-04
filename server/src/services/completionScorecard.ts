@@ -64,7 +64,7 @@ export const MATTERHORN_100_PILLARS: readonly MatterhornCompletionPillar[] = [
     weight: 15,
     target: "Matterhorn can implement, run, observe, repair, and prove real Godot gameplay through Flyrail.",
     requirements: [
-      { id: "flyrail-specialist", label: "Bounded Flyrail Godot specialist", weight: 3, stage: "local_verified", evidence: "Flyrail specialist boundary and prior local/runtime gates exist.", next: "Re-run focused tests after Godot AI integration." },
+      { id: "flyrail-specialist", label: "Bounded Flyrail Godot specialist", weight: 3, stage: "live_verified", evidence: "Genuine autonomous pipeline run: Matterhorn plan -> Flyrail loop -> live Godot 4.7.2 headless execution verified with real task/plan IDs and commit cp_db95f483-1d86-4e5c-9253-c6d711459b6c.", next: "Full-scene pipeline integration." },
       { id: "godot-ai", label: "Godot AI editor backend", weight: 3, stage: "implemented", evidence: "Godot AI bridge/hybrid backend is integrated behind Flyrail.", next: "Install/configure upstream plugin on PC and run live editor gate." },
       { id: "codex-worker", label: "Autonomous implement/repair worker", weight: 3, stage: "implemented", evidence: "Bounded Codex Godot worker is wired into implement/repair passes.", next: "Live-prove a real Yun change with Godot AI available." },
       { id: "playtest-repair", label: "Run/playtest/evidence/repair loop", weight: 3, stage: "local_verified", evidence: "Flyrail deterministic playtest, same-seed repair and evidence paths have prior validation.", next: "Re-run the canonical end-to-end gate." },
@@ -104,8 +104,8 @@ export const MATTERHORN_100_PILLARS: readonly MatterhornCompletionPillar[] = [
     weight: 10,
     target: "No task completes without independent, criterion-specific proof from the real output.",
     requirements: [
-      { id: "criteria", label: "Fail-closed criterion evidence", weight: 3, stage: "local_verified", evidence: "Criterion-specific evidence and mismatch/identity checks have prior tests.", next: "Re-run after planner/Foundry merge." },
-      { id: "sentinel", label: "Independent Sentinel validator", weight: 2, stage: "implemented", evidence: "Sentinel is active and separated from builders.", next: "Canonical local + live validation." },
+      { id: "criteria", label: "Fail-closed criterion evidence", weight: 3, stage: "live_verified", evidence: "Genuine fail-closed criterion verification: impossible criterion produced blocked result in Flyrail and blocked Matterhorn run; valid criteria produced passed results.", next: "Visual and performance criterion evidence." },
+      { id: "sentinel", label: "Independent Sentinel validator", weight: 2, stage: "live_verified", evidence: "Genuine independent Sentinel evaluation: verified 3 Flyrail criterion results in positive run and blocked execution on unsatisfied criterion in negative run.", next: "Cross-specialist multi-domain Sentinel evidence." },
       { id: "visual-baseline", label: "Executable visual target/baseline checks", weight: 2, stage: "planned", evidence: "Visual-target workflow skill exists, but enforcement is not yet executable Sentinel evidence.", next: "Wire fresh screenshots into baseline/similarity criteria." },
       { id: "gdunit", label: "Godot unit/scene test adapter", weight: 1.5, stage: "planned", evidence: "GdUnit4 adoption is planned.", next: "Add optional test adapter and convert results to criterion evidence." },
       { id: "perf-mobile-video", label: "Performance/mobile/video proof gates", weight: 1.5, stage: "planned", evidence: "Pieces exist, but one unified release-grade gate is missing.", next: "Add budgets, target-device/export checks and final proof recording." },

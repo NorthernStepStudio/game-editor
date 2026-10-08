@@ -207,6 +207,16 @@ function validateOperation(raw: unknown, index: number): BlenderOperation {
       return op as unknown as BlenderOperation;
     }
 
+    case "mesh.import_glb": {
+      if (typeof op.filepath !== "string" || op.filepath.trim().length === 0) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] mesh.import_glb requires non-empty filepath`);
+      }
+      if (op.targetCollection !== undefined && (typeof op.targetCollection !== "string" || !SAFE_NAME.test(op.targetCollection))) {
+        throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid targetCollection`);
+      }
+      return op as unknown as BlenderOperation;
+    }
+
     case "mesh.smooth": {
       if (typeof op.target !== "string" || !SAFE_NAME.test(op.target)) {
         throw new SpecialistError("INVALID_TASK", `Operation[${index}] invalid smooth target`);

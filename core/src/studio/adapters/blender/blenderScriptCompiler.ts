@@ -504,6 +504,21 @@ completed.append("animation.activate_action:${op.action}")
 # op[${index}] ${op.op}
 completed.append(${pyStr(op.op)})
 `;
+    case "mesh.import_glb":
+      return `
+# op[${index}] mesh.import_glb
+import_path = ${pyStr(op.filepath.replace(/\\/g, "/"))}
+if not os.path.isabs(import_path):
+    import_path = os.path.join(WORK_DIR, import_path)
+if not os.path.exists(import_path):
+    raise RuntimeError("mesh.import_glb file not found: " + import_path)
+bpy.ops.import_scene.gltf(filepath=import_path)
+for o in bpy.context.selected_objects:
+    objects[o.name] = o
+    if o.type == "ARMATURE":
+        armatures[o.name] = o
+completed.append("mesh.import_glb:" + os.path.basename(import_path))
+`;
     default: {
       const _never: never = op;
       throw new Error(`Unhandled operation in compiler: ${JSON.stringify(_never)}`);
@@ -570,13 +585,16 @@ def collect_geometry():
     }
 
 def collect_skeleton():
+    best = None
     for obj in bpy.context.scene.objects:
         if obj.type == "ARMATURE" and obj.data:
-            return {
-                "armatureName": obj.name,
-                "boneNames": [b.name for b in obj.data.bones],
-            }
-    return None
+            bones = [b.name for b in obj.data.bones]
+            if best is None or len(bones) > len(best["boneNames"]):
+                best = {
+                    "armatureName": obj.name,
+                    "boneNames": bones,
+                }
+    return best
 
 def collect_animations():
     names = []

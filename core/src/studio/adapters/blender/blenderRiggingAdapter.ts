@@ -186,7 +186,15 @@ export class BlenderSkeletonEditProvider implements NssSkeletonEditProvider {
 export class BlenderAnimationGenerationProvider implements NssAnimationGenerationProvider {
   readonly providerId = "blender-native-animation";
   readonly name = "Blender Native Keyframed Locomotion Generator";
-  readonly supportedClipTypes: readonly string[] = ["idle", "walk", "run", "sprint"];
+  readonly supportedClipTypes: readonly string[] = [
+    "idle",
+    "walk",
+    "run",
+    "sprint",
+    "turn",
+    "turn_left",
+    "turn_right",
+  ];
 
   async generateClip(request: AnimationGenerationRequest): Promise<AnimationGenerationResult> {
     const fps = request.fps ?? 24;
@@ -233,6 +241,7 @@ export class BlenderAnimationGenerationProvider implements NssAnimationGeneratio
     if (request.clipType === "run" || request.clipType === "sprint") {
       const end = request.durationFrames ?? 16;
       const mid = Math.floor(end / 2);
+      const angle = request.clipType === "sprint" ? 48 : 40;
       const clip: AnimationClipDefinition = {
         name: request.clipName,
         frameStart: 1,
@@ -240,12 +249,37 @@ export class BlenderAnimationGenerationProvider implements NssAnimationGeneratio
         fps,
         isLooping,
         keyframes: [
-          { bone: "Thigh_L", frame: 1, rotationEulerDeg: [40, 0, 0] },
-          { bone: "Thigh_R", frame: 1, rotationEulerDeg: [-40, 0, 0] },
-          { bone: "Thigh_L", frame: mid, rotationEulerDeg: [-40, 0, 0] },
-          { bone: "Thigh_R", frame: mid, rotationEulerDeg: [40, 0, 0] },
-          { bone: "Thigh_L", frame: end, rotationEulerDeg: [40, 0, 0] },
-          { bone: "Thigh_R", frame: end, rotationEulerDeg: [-40, 0, 0] },
+          { bone: "Thigh_L", frame: 1, rotationEulerDeg: [angle, 0, 0] },
+          { bone: "Thigh_R", frame: 1, rotationEulerDeg: [-angle, 0, 0] },
+          { bone: "Thigh_L", frame: mid, rotationEulerDeg: [-angle, 0, 0] },
+          { bone: "Thigh_R", frame: mid, rotationEulerDeg: [angle, 0, 0] },
+          { bone: "Thigh_L", frame: end, rotationEulerDeg: [angle, 0, 0] },
+          { bone: "Thigh_R", frame: end, rotationEulerDeg: [-angle, 0, 0] },
+          { bone: "Spine", frame: 1, rotationEulerDeg: [6, 0, 0] },
+          { bone: "Spine", frame: mid, rotationEulerDeg: [9, 0, 0] },
+          { bone: "Spine", frame: end, rotationEulerDeg: [6, 0, 0] },
+        ],
+      };
+      return { success: true, characterId: request.characterId, clip, warnings: [], errors: [] };
+    }
+
+    if (request.clipType === "turn" || request.clipType === "turn_left" || request.clipType === "turn_right") {
+      const end = request.durationFrames ?? 16;
+      const mid = Math.floor(end / 2);
+      const dir = request.clipType === "turn_right" ? -1 : 1;
+      const clip: AnimationClipDefinition = {
+        name: request.clipName,
+        frameStart: 1,
+        frameEnd: end,
+        fps,
+        isLooping,
+        keyframes: [
+          { bone: "Root", frame: 1, rotationEulerDeg: [0, 0, 0] },
+          { bone: "Root", frame: mid, rotationEulerDeg: [0, 0, 15 * dir] },
+          { bone: "Root", frame: end, rotationEulerDeg: [0, 0, 30 * dir] },
+          { bone: "Hips", frame: 1, rotationEulerDeg: [0, 0, 0] },
+          { bone: "Hips", frame: mid, rotationEulerDeg: [0, 5 * dir, 0] },
+          { bone: "Hips", frame: end, rotationEulerDeg: [0, 0, 0] },
         ],
       };
       return { success: true, characterId: request.characterId, clip, warnings: [], errors: [] };
@@ -311,5 +345,39 @@ export class BlenderRetargetingProvider implements NssRetargetingProvider {
       warnings: [],
       errors: [],
     };
+  }
+
+  compileRetargetingOperations(
+    targetArmature: string,
+    sourceClip: AnimationClipDefinition,
+    boneMapping: readonly { sourceBone: string; targetBone: string }[],
+    outputClipName?: string,
+  ): BlenderOperation[] {
+    const actionName = outputClipName ?? `${sourceClip.name}_retargeted`;
+    const map = new Map(boneMapping.map((m) => [m.sourceBone, m.targetBone]));
+    const ops: BlenderOperation[] = [
+      {
+        op: "animation.create_action",
+        name: actionName,
+        armature: targetArmature,
+        frameStart: sourceClip.frameStart,
+        frameEnd: sourceClip.frameEnd,
+      },
+    ];
+
+    for (const kf of sourceClip.keyframes) {
+      const targetBone = map.get(kf.bone) ?? kf.bone;
+      ops.push({
+        op: "animation.insert_keyframe",
+        armature: targetArmature,
+        action: actionName,
+        bone: targetBone,
+        frame: kf.frame,
+        location: kf.location,
+        rotationEulerDeg: kf.rotationEulerDeg,
+      });
+    }
+
+    return ops;
   }
 }

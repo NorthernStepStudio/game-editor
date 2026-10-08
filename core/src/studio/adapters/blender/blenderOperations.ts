@@ -32,6 +32,7 @@ export const BLENDER_OPERATION_KINDS = [
   "animation.inspect",
   "character.inspect",
   "export.character_glb",
+  "mesh.import_glb",
 ] as const;
 
 export type BlenderOperationKind = (typeof BLENDER_OPERATION_KINDS)[number];
@@ -253,6 +254,12 @@ export interface ExportCharacterGlbOp extends BlenderOperationBase {
   readonly outputName: string;
 }
 
+export interface MeshImportGlbOp extends BlenderOperationBase {
+  readonly op: "mesh.import_glb";
+  readonly filepath: string;
+  readonly targetCollection?: string;
+}
+
 export type BlenderOperation =
   | SceneNewOp
   | SceneInspectOp
@@ -281,7 +288,8 @@ export type BlenderOperation =
   | AnimationActivateActionOp
   | AnimationInspectOp
   | CharacterInspectOp
-  | ExportCharacterGlbOp;
+  | ExportCharacterGlbOp
+  | MeshImportGlbOp;
 
 /** Capabilities with an executable compiler path today. */
 export const IMPLEMENTED_BLENDER_CAPABILITIES = [
@@ -349,6 +357,8 @@ export function operationToCapability(op: BlenderOperationKind): string {
       return "blender.character.inspect";
     case "export.character_glb":
       return "blender.export.character_glb";
+    case "mesh.import_glb":
+      return "blender.mesh.create";
     default: {
       const _exhaustive: never = op;
       return _exhaustive;

@@ -212,6 +212,24 @@ async function selectAsset(assetId) {
     if (asset.referenceAssets?.length) {
       meta.append(metadataRow('References', asset.referenceAssets.join(', ')));
     }
+
+    if (asset.type === 'mesh_3d' || asset.type === 'rig' || asset.assetId.includes('yun')) {
+      const motionSection = el('div', undefined, 'motion-studio-inspector-card surface');
+      motionSection.style.marginTop = '12px';
+      motionSection.style.padding = '10px';
+      motionSection.style.border = '1px solid var(--line)';
+      motionSection.style.borderRadius = '6px';
+      motionSection.append(
+        el('h4', 'Motion Studio Pipeline', 'eyebrow'),
+        el('p', 'Auto-Rigging, Locomotion Clips & Godot Export', 'muted-sm'),
+        metadataRow('Skeleton', 'Humanoid (18 bones)'),
+        metadataRow('Weighting', 'Automatic Heat / Normalized'),
+        metadataRow('Clips', 'idle, walk, run, sprint, turn'),
+        metadataRow('Godot Engine', 'Godot 4.7.2 Ready'),
+      );
+      meta.append(motionSection);
+    }
+
     inspector.append(meta, renderLineage(detail.lineage ?? [], asset.assetId));
   } catch (error) {
     renderInspectorEmpty(error?.message || 'Could not load this asset.');

@@ -111,7 +111,29 @@ test("BlenderAnimationGenerationProvider: produces idle, walk, and run clips", a
   }
 });
 
-test("BlenderRetargetingProvider: maps clip bones to target armature", async () => {
+test("BlenderAnimationGenerationProvider: produces sprint and turn clips", async () => {
+  const provider = new BlenderAnimationGenerationProvider();
+
+  for (const type of ["sprint", "turn", "turn_left", "turn_right"] as const) {
+    const res = await provider.generateClip({
+      characterId: "yun_char_01",
+      armatureName: "yun_char_01_Armature",
+      clipName: type,
+      clipType: type,
+    });
+
+    assert.equal(res.success, true);
+    assert.equal(res.clip.name, type);
+    assert.ok(res.clip.keyframes.length > 0);
+
+    const ops = provider.compileAnimationOperations("yun_char_01_Armature", res.clip);
+    assert.ok(ops.length >= 1 + res.clip.keyframes.length);
+    assert.equal(ops[0].op, "animation.create_action");
+    assert.ok(ops.some((op) => op.op === "animation.insert_keyframe"));
+  }
+});
+
+test("BlenderRetargetingProvider: maps clip bones and compiles retargeting operations", async () => {
   const provider = new BlenderRetargetingProvider();
 
   const res = await provider.retargetClip({
@@ -128,4 +150,29 @@ test("BlenderRetargetingProvider: maps clip bones to target armature", async () 
   assert.equal(res.success, true);
   assert.equal(res.mappedBoneCount, 2);
   assert.equal(res.outputClipName, "mocap_run_retargeted");
+
+  const ops = provider.compileRetargetingOperations(
+    "yun_char_01_Armature",
+    {
+      name: "mocap_run",
+      frameStart: 1,
+      frameEnd: 30,
+      isLooping: true,
+      keyframes: [
+        { bone: "mixamorig:Hips", frame: 1, rotationEulerDeg: [0, 0, 0] },
+        { bone: "mixamorig:Spine", frame: 1, rotationEulerDeg: [5, 0, 0] },
+      ],
+    },
+    [
+      { sourceBone: "mixamorig:Hips", targetBone: "Hips" },
+      { sourceBone: "mixamorig:Spine", targetBone: "Spine" },
+    ],
+    "mocap_run_retargeted",
+  );
+
+  assert.ok(ops.length >= 3);
+  assert.equal(ops[0].op, "animation.create_action");
+  assert.equal(ops[1].op, "animation.insert_keyframe");
+  assert.equal((ops[1] as any).bone, "Hips");
+  assert.equal((ops[2] as any).bone, "Spine");
 });

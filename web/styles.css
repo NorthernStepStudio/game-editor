@@ -301,3 +301,18 @@ textarea:focus,input:focus,select:focus{border-color:#347fdc;box-shadow:0 0 0 2p
 .validation-detail p{width:100%;margin:0}
 .runtime-identity{display:grid;gap:2px}
 .home-run-row{padding:9px 7px}
+
+/* Motion Studio UI */
+.motion-studio-layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;min-height:560px}
+.motion-sidebar{display:grid;gap:12px;padding:16px;height:fit-content}
+.motion-status-box{display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:8px;background:rgba(12,24,39,.75)}
+.motion-main{display:grid;grid-template-rows:auto 1fr auto;gap:12px}
+.motion-viewport{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:360px;background:#060d17;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.motion-preview-image{max-height:280px;object-fit:contain;margin-bottom:12px}
+.motion-tab-content{width:100%;padding:14px;background:rgba(15,26,42,.85);border-top:1px solid var(--line)}
+.motion-anim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:8px}
+.motion-anim-card{display:grid;gap:4px;padding:8px;border:1px solid var(--line);border-radius:6px}
+.motion-timeline{padding:12px}
+.timeline-controls-row{display:flex;align-items:center;gap:12px}
+.timeline-scrubber{flex:1}
+.badge-success{display:inline-block;padding:3px 8px;font-size:11px;font-weight:700;color:#75e9ad;background:rgba(35,85,60,.4);border:1px solid #23553c;border-radius:4px;margin-top:6px}

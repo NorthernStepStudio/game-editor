@@ -104,7 +104,7 @@ export interface AnimationGenerationRequest {
   readonly characterId: string;
   readonly armatureName: string;
   readonly clipName: string;
-  readonly clipType: "idle" | "walk" | "run" | "sprint" | "action" | "custom";
+  readonly clipType: "idle" | "walk" | "run" | "sprint" | "turn" | "turn_left" | "turn_right" | "action" | "custom";
   readonly durationFrames?: number;
   readonly fps?: number;
   readonly isLooping?: boolean;

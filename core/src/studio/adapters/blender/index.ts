@@ -101,3 +101,11 @@ export {
   runYunCharacterArtV3Sanity,
   type YunCharacterArtV3SanityReport,
 } from "./yunCharacterArtV3Sanity.js";
+
+export {
+  BlenderRiggingProvider,
+  BlenderSkinWeightProvider,
+  BlenderSkeletonEditProvider,
+  BlenderAnimationGenerationProvider,
+  BlenderRetargetingProvider,
+} from "./blenderRiggingAdapter.js";

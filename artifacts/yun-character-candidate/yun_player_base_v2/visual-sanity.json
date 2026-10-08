@@ -64,42 +64,42 @@
     {
       "id": "anim_idle",
       "ok": true,
-      "detail": "animations=idle,run,walk"
+      "detail": "animations=celebration,idle,run,sprint,turn,walk"
     },
     {
       "id": "anim_walk",
       "ok": true,
-      "detail": "animations=idle,run,walk"
+      "detail": "animations=celebration,idle,run,sprint,turn,walk"
     },
     {
       "id": "anim_run",
       "ok": true,
-      "detail": "animations=idle,run,walk"
+      "detail": "animations=celebration,idle,run,sprint,turn,walk"
     },
     {
       "id": "render_yun_player_base_v2-front.png",
       "ok": true,
-      "detail": "162031 bytes"
+      "detail": "158983 bytes"
     },
     {
       "id": "render_yun_player_base_v2-side.png",
       "ok": true,
-      "detail": "165223 bytes"
+      "detail": "163000 bytes"
     },
     {
       "id": "render_yun_player_base_v2-back.png",
       "ok": true,
-      "detail": "162772 bytes"
+      "detail": "163133 bytes"
     },
     {
       "id": "render_yun_player_base_v2-three-quarter.png",
       "ok": true,
-      "detail": "166385 bytes"
+      "detail": "163557 bytes"
     },
     {
       "id": "render_yun_player_base_v2-preview.png",
       "ok": true,
-      "detail": "213067 bytes"
+      "detail": "208227 bytes"
     },
     {
       "id": "foot_ground_contract",

@@ -320,22 +320,33 @@
           <button id="open-asset-generator" class="primary-action" type="button">Generate Asset</button>
         </div>
 
-        <div class="asset-toolbar surface">
-          <input id="asset-search" type="search" placeholder="Search assets…">
-          <div class="asset-category-row">
-            <button type="button" data-asset-category="all" class="active">All</button>
-            <button type="button" data-asset-category="characters">Characters</button>
-            <button type="button" data-asset-category="environments">Environments</button>
-            <button type="button" data-asset-category="props">Props</button>
-            <button type="button" data-asset-category="ui">UI</button>
-            <button type="button" data-asset-category="3d">3D</button>
-            <button type="button" data-asset-category="audio">Audio</button>
-          </div>
-          <button id="refresh-assets" type="button" class="secondary-action">Refresh</button>
+        <div class="tab-strip" data-tab-group="assets" style="margin-bottom: 12px;">
+          <button class="tab-button active" id="assets-tab-catalog" data-assets-tab="catalog" type="button">Catalog</button>
+          <button class="tab-button" id="assets-tab-motion" data-assets-tab="motion" type="button">Motion Studio</button>
         </div>
 
-        <div class="assets-layout">
-          <div id="asset-gallery" class="asset-gallery"></div>
+        <div id="assets-panel-catalog">
+          <div class="asset-toolbar surface">
+            <input id="asset-search" type="search" placeholder="Search assets…">
+            <div class="asset-category-row">
+              <button type="button" data-asset-category="all" class="active">All</button>
+              <button type="button" data-asset-category="characters">Characters</button>
+              <button type="button" data-asset-category="environments">Environments</button>
+              <button type="button" data-asset-category="props">Props</button>
+              <button type="button" data-asset-category="ui">UI</button>
+              <button type="button" data-asset-category="3d">3D</button>
+              <button type="button" data-asset-category="audio">Audio</button>
+            </div>
+            <button id="refresh-assets" type="button" class="secondary-action">Refresh</button>
+          </div>
+
+          <div class="assets-layout">
+            <div id="asset-gallery" class="asset-gallery"></div>
+          </div>
+        </div>
+
+        <div id="assets-panel-motion" hidden>
+          <div id="motion-studio-container"></div>
         </div>
       </section>
 

@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.0.0",
   "taskId": "t-yun_player_03",
-  "executionId": "5c1a3b07-1f9f-4d69-8943-c78c6df926f8",
+  "executionId": "33210005-9975-407d-8622-2244864ba225",
   "handoffId": "h-yun_player_03",
   "assetName": "yun_player_03",
-  "workingDirectory": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03",
+  "workingDirectory": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03",
   "requestedOperations": [
     {
       "op": "scene.new",
@@ -2081,6 +2081,6 @@
     "multi-view renders produced",
     "animated yun_player_03.glb exported"
   ],
-  "createdAt": "2026-09-24T01:23:19.428Z",
+  "createdAt": "2026-10-08T10:54:13.760Z",
   "timeoutMs": 420000
 }

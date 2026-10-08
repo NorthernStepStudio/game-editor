@@ -1,11 +1,11 @@
 {
   "schemaVersion": "1.0.0",
   "taskId": "t-yun_player_04",
-  "executionId": "3e7ef9fa-a3af-4bd6-b41d-3244d4af2578",
+  "executionId": "ab361b37-1879-43b1-834d-79202a3179b2",
   "handoffId": "h-yun_player_04",
   "blenderVersion": "5.2.1 LTS",
-  "startedAt": "2026-09-24T01:23:30.598607+00:00",
-  "endedAt": "2026-09-24T01:23:34.386912+00:00",
+  "startedAt": "2026-10-08T10:54:23.501890+00:00",
+  "endedAt": "2026-10-08T10:54:27.409651+00:00",
   "requestedOperations": [
     "scene.new",
     "material.create",
@@ -445,16 +445,16 @@
     "character.inspect"
   ],
   "artifacts": {
-    "yun_player_04.blend": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04.blend",
-    "yun_player_04-preview.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-preview.png",
-    "yun_player_04-front.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-front.png",
-    "yun_player_04-side.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-side.png",
-    "yun_player_04-back.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-back.png",
-    "yun_player_04-three-quarter.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-three-quarter.png",
-    "yun_player_04.glb": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04.glb"
+    "yun_player_04.blend": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04.blend",
+    "yun_player_04-preview.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-preview.png",
+    "yun_player_04-front.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-front.png",
+    "yun_player_04-side.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-side.png",
+    "yun_player_04-back.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-back.png",
+    "yun_player_04-three-quarter.png": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-three-quarter.png",
+    "yun_player_04.glb": "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04.glb"
   },
   "artifactSizes": {
-    "yun_player_04.blend": 270219,
+    "yun_player_04.blend": 272056,
     "yun_player_04-preview.png": 202792,
     "yun_player_04-front.png": 159653,
     "yun_player_04-side.png": 166425,
@@ -463,11 +463,11 @@
     "yun_player_04.glb": 1526344
   },
   "previews": [
-    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-preview.png",
-    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-front.png",
-    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-side.png",
-    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-back.png",
-    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_04\\yun_player_04-three-quarter.png"
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-preview.png",
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-front.png",
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-side.png",
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-back.png",
+    "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_04\\yun_player_04-three-quarter.png"
   ],
   "geometry": {
     "vertices": 6488,
@@ -475,6 +475,537 @@
     "polygons": 6532,
     "meshObjects": 30
   },
+  "objectCount": 33,
+  "sceneObjects": [
+    {
+      "name": "Mesh_Head",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.1611999124288559,
+          -0.26787298917770386,
+          1.4625451564788818
+        ],
+        "max": [
+          0.16119998693466187,
+          0.054499320685863495,
+          1.7849174737930298
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Hair",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.24023982882499695,
+          -0.40206965804100037,
+          1.4769622087478638
+        ],
+        "max": [
+          0.2402399629354477,
+          0.0765128880739212,
+          1.9135009050369263
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Eye_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.02808002196252346,
+          -0.028208136558532715,
+          1.6174838542938232
+        ],
+        "max": [
+          0.08631999790668488,
+          0.03002685308456421,
+          1.6757190227508545
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Eye_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.08631997555494308,
+          -0.028208136558532715,
+          1.6174838542938232
+        ],
+        "max": [
+          -0.028080005198717117,
+          0.03002685308456421,
+          1.6757190227508545
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Neck",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.06650000065565109,
+          -0.15606677532196045,
+          1.368375539779663
+        ],
+        "max": [
+          0.06650000065565109,
+          -0.0005247443914413452,
+          1.515753149986267
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Torso",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.2140432894229889,
+          -0.13659550249576569,
+          0.9160251617431641
+        ],
+        "max": [
+          0.21264497935771942,
+          0.1304183006286621,
+          1.402362585067749
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Collar",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.09000000357627869,
+          -0.14798161387443542,
+          1.346005916595459
+        ],
+        "max": [
+          0.09000000357627869,
+          0.0364014208316803,
+          1.4225558042526245
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Shoulder_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.15442532300949097,
+          -0.13452041149139404,
+          1.2180123329162598
+        ],
+        "max": [
+          0.32493680715560913,
+          0.03582051396369934,
+          1.3887808322906494
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Shoulder_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.3274990916252136,
+          -0.12267720699310303,
+          1.2560665607452393
+        ],
+        "max": [
+          -0.15678152441978455,
+          0.048264265060424805,
+          1.4267529249191284
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Pelvis",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.17094001173973083,
+          -0.07929207384586334,
+          0.6157668828964233
+        ],
+        "max": [
+          0.17094001173973083,
+          0.16821666061878204,
+          0.8649544715881348
+        ]
+      }
+    },
+    {
+      "name": "Mesh_HipJoin_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.047333382070064545,
+          -0.023640215396881104,
+          0.6130900382995605
+        ],
+        "max": [
+          0.1993333101272583,
+          0.1279417872428894,
+          0.7646719217300415
+        ]
+      }
+    },
+    {
+      "name": "Mesh_HipJoin_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.1993332803249359,
+          -0.08794179558753967,
+          0.6130900382995605
+        ],
+        "max": [
+          -0.04733334481716156,
+          0.06364023685455322,
+          0.7646719813346863
+        ]
+      }
+    },
+    {
+      "name": "Mesh_UpperArm_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.09216022491455078,
+          -0.13593891263008118,
+          0.9584417939186096
+        ],
+        "max": [
+          0.3576279282569885,
+          0.008104294538497925,
+          1.2709705829620361
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Elbow_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.17791354656219482,
+          -0.13414135575294495,
+          0.894160807132721
+        ],
+        "max": [
+          0.27264219522476196,
+          -0.03950750455260277,
+          0.9890322089195251
+        ]
+      }
+    },
+    {
+      "name": "Mesh_ForeArm_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.08559775352478027,
+          -0.16223463416099548,
+          0.6647465825080872
+        ],
+        "max": [
+          0.32385945320129395,
+          -0.039368126541376114,
+          0.9496409296989441
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Hand_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.09125664830207825,
+          -0.1501757651567459,
+          0.5596537590026855
+        ],
+        "max": [
+          0.23172172904014587,
+          -0.06901247799396515,
+          0.7159876227378845
+        ]
+      }
+    },
+    {
+      "name": "Mesh_UpperArm_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.4429391026496887,
+          -0.041202545166015625,
+          1.1384739875793457
+        ],
+        "max": [
+          -0.266117662191391,
+          0.24991440773010254,
+          1.4283465147018433
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Elbow_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.518365740776062,
+          0.17806679010391235,
+          1.1885521411895752
+        ],
+        "max": [
+          -0.4235227108001709,
+          0.27303433418273926,
+          1.2833778858184814
+        ]
+      }
+    },
+    {
+      "name": "Mesh_ForeArm_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.6243380904197693,
+          0.1948256492614746,
+          1.0535578727722168
+        ],
+        "max": [
+          -0.47063928842544556,
+          0.4581140875816345,
+          1.3156492710113525
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Hand_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.6894941329956055,
+          0.3934668302536011,
+          1.0342838764190674
+        ],
+        "max": [
+          -0.5688342452049255,
+          0.5318288803100586,
+          1.1876966953277588
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Thigh_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.05208331346511841,
+          -0.0077904462814331055,
+          0.42204058170318604
+        ],
+        "max": [
+          0.19458332657814026,
+          0.35351184010505676,
+          0.7575862407684326
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Knee_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.07108334451913834,
+          0.2598060369491577,
+          0.44458433985710144
+        ],
+        "max": [
+          0.17558330297470093,
+          0.36560970544815063,
+          0.5478453040122986
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Shin_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.06823328882455826,
+          0.2937591075897217,
+          0.38423317670822144
+        ],
+        "max": [
+          0.17843329906463623,
+          0.6544265151023865,
+          0.5529801845550537
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Foot_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.06158329173922539,
+          0.5330950021743774,
+          0.36047202348709106
+        ],
+        "max": [
+          0.1850833147764206,
+          0.6778956651687622,
+          0.6522529125213623
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Sole_L",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          0.05683329701423645,
+          0.3714924454689026,
+          0.23739764094352722
+        ],
+        "max": [
+          0.18983331322669983,
+          0.6905013918876648,
+          0.6427779793739319
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Thigh_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.19458332657814026,
+          -0.33227044343948364,
+          0.4215187430381775
+        ],
+        "max": [
+          -0.05208330601453781,
+          0.047790467739105225,
+          0.7575862407684326
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Knee_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.17558327317237854,
+          -0.3191106617450714,
+          0.4331500828266144
+        ],
+        "max": [
+          -0.07108331471681595,
+          -0.21567752957344055,
+          0.5382754802703857
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Shin_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.17843329906463623,
+          -0.5331088900566101,
+          0.19831685721874237
+        ],
+        "max": [
+          -0.06823327392339706,
+          -0.21915990114212036,
+          0.5297776460647583
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Foot_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.1850833147764206,
+          -0.548682451248169,
+          0.10461477935314178
+        ],
+        "max": [
+          -0.061583276838064194,
+          -0.2788141965866089,
+          0.36059337854385376
+        ]
+      }
+    },
+    {
+      "name": "Mesh_Sole_R",
+      "type": "MESH",
+      "bounds": {
+        "min": [
+          -0.18983328342437744,
+          -0.5272685289382935,
+          0.09043409675359726
+        ],
+        "max": [
+          -0.05683327466249466,
+          -0.330582857131958,
+          0.2831032872200012
+        ]
+      }
+    },
+    {
+      "name": "Light_Key",
+      "type": "LIGHT",
+      "bounds": {
+        "min": [
+          4.0,
+          -4.0,
+          6.0
+        ],
+        "max": [
+          4.0,
+          -4.0,
+          6.0
+        ]
+      }
+    },
+    {
+      "name": "Light_Fill",
+      "type": "LIGHT",
+      "bounds": {
+        "min": [
+          -2.200000047683716,
+          2.799999952316284,
+          2.0
+        ],
+        "max": [
+          -2.200000047683716,
+          2.799999952316284,
+          2.0
+        ]
+      }
+    },
+    {
+      "name": "Camera_Main",
+      "type": "CAMERA",
+      "bounds": {
+        "min": [
+          3.200000047683716,
+          -3.200000047683716,
+          2.5999999046325684
+        ],
+        "max": [
+          3.200000047683716,
+          -3.200000047683716,
+          2.5999999046325684
+        ]
+      }
+    }
+  ],
   "materials": {
     "count": 7,
     "names": [

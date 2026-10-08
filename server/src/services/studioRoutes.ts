@@ -56,7 +56,7 @@ export async function studioRoutes(
           skinWeightStatus: 'Normalized (Automatic Heat)',
           animations: ['idle', 'walk', 'run', 'sprint'],
           godotValidated: true,
-          previewUrl: '/games/street-yun.webp',
+          previewUrl: '/previews/yun_player_base.png',
         },
         {
           assetId: 'yun_player_base_v2',
@@ -67,7 +67,7 @@ export async function studioRoutes(
           skinWeightStatus: 'Normalized (Automatic Heat)',
           animations: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
           godotValidated: true,
-          previewUrl: '/games/street-yun.webp',
+          previewUrl: '/previews/yun_player_base_v2.png',
         },
         {
           assetId: 'character-male-a',
@@ -78,7 +78,7 @@ export async function studioRoutes(
           skinWeightStatus: 'Rigid / Bound',
           animations: ['idle', 'walk', 'sprint'],
           godotValidated: true,
-          previewUrl: '/games/street-yun.webp',
+          previewUrl: '/previews/character-male-a.png',
         },
       ],
       providers: [

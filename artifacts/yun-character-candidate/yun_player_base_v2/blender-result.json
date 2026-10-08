@@ -1,11 +1,11 @@
 {
   "schemaVersion": "1.0.0",
-  "taskId": "t-yun-player-base-v2-flyrail",
-  "executionId": "be946d25-935a-4975-b783-949e8049c7c9",
-  "handoffId": "h-yun-v2-fly",
+  "taskId": "t-yun-player-base-v2",
+  "executionId": "0baa1599-1e09-4329-a0f5-c3c5cc89e81f",
+  "handoffId": "h-yun-v2-1",
   "blenderVersion": "5.2.1 LTS",
-  "startedAt": "2026-09-24T00:06:04.796167+00:00",
-  "endedAt": "2026-09-24T00:06:08.821469+00:00",
+  "startedAt": "2026-10-08T10:54:05.820591+00:00",
+  "endedAt": "2026-10-08T10:54:13.476761+00:00",
   "requestedOperations": [
     {
       "op": "scene.new",
@@ -106,8 +106,8 @@
       "radius": 0.165,
       "location": [
         0,
-        -0.01,
-        1.64
+        -0.04,
+        1.65
       ],
       "scale": [
         1.02,
@@ -119,10 +119,10 @@
       "op": "mesh.create_primitive",
       "name": "Mesh_Eye_L",
       "primitive": "uv_sphere",
-      "radius": 0.028,
+      "radius": 0.032,
       "location": [
         0.055,
-        0.13,
+        0.162,
         1.6
       ]
     },
@@ -130,10 +130,10 @@
       "op": "mesh.create_primitive",
       "name": "Mesh_Eye_R",
       "primitive": "uv_sphere",
-      "radius": 0.028,
+      "radius": 0.032,
       "location": [
         -0.055,
-        0.13,
+        0.162,
         1.6
       ]
     },
@@ -1913,6 +1913,459 @@
       ]
     },
     {
+      "op": "animation.create_action",
+      "name": "sprint",
+      "armature": "Armature",
+      "frameStart": 1,
+      "frameEnd": 16
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        -60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        35,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        12,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        -48,
+        0,
+        12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        48,
+        0,
+        -12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Chest",
+      "frame": 1,
+      "rotationEulerDeg": [
+        16,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_L",
+      "frame": 8,
+      "rotationEulerDeg": [
+        -60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_R",
+      "frame": 8,
+      "rotationEulerDeg": [
+        60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_L",
+      "frame": 8,
+      "rotationEulerDeg": [
+        12,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_R",
+      "frame": 8,
+      "rotationEulerDeg": [
+        35,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_L",
+      "frame": 8,
+      "rotationEulerDeg": [
+        48,
+        0,
+        12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_R",
+      "frame": 8,
+      "rotationEulerDeg": [
+        -48,
+        0,
+        -12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Chest",
+      "frame": 8,
+      "rotationEulerDeg": [
+        20,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_L",
+      "frame": 16,
+      "rotationEulerDeg": [
+        60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_R",
+      "frame": 16,
+      "rotationEulerDeg": [
+        -60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_L",
+      "frame": 16,
+      "rotationEulerDeg": [
+        35,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_R",
+      "frame": 16,
+      "rotationEulerDeg": [
+        12,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_L",
+      "frame": 16,
+      "rotationEulerDeg": [
+        -48,
+        0,
+        12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_R",
+      "frame": 16,
+      "rotationEulerDeg": [
+        48,
+        0,
+        -12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Chest",
+      "frame": 16,
+      "rotationEulerDeg": [
+        16,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.create_action",
+      "name": "turn",
+      "armature": "Armature",
+      "frameStart": 1,
+      "frameEnd": 16
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Root",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Hips",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Root",
+      "frame": 8,
+      "rotationEulerDeg": [
+        0,
+        0,
+        15
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Hips",
+      "frame": 8,
+      "rotationEulerDeg": [
+        0,
+        5,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Root",
+      "frame": 16,
+      "rotationEulerDeg": [
+        0,
+        0,
+        30
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Hips",
+      "frame": 16,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.create_action",
+      "name": "celebration",
+      "armature": "Armature",
+      "frameStart": 1,
+      "frameEnd": 24
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        -10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "Spine",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_L",
+      "frame": 12,
+      "rotationEulerDeg": [
+        0,
+        0,
+        -150
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_R",
+      "frame": 12,
+      "rotationEulerDeg": [
+        0,
+        0,
+        150
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "Spine",
+      "frame": 12,
+      "rotationEulerDeg": [
+        -12,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_L",
+      "frame": 24,
+      "rotationEulerDeg": [
+        0,
+        0,
+        10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_R",
+      "frame": 24,
+      "rotationEulerDeg": [
+        0,
+        0,
+        -10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "Spine",
+      "frame": 24,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
       "op": "light.create",
       "name": "Light_Key",
       "type": "SUN",
@@ -2196,6 +2649,45 @@
     "animation.insert_keyframe:run:UpperArm_L:20",
     "animation.insert_keyframe:run:UpperArm_R:20",
     "animation.insert_keyframe:run:Chest:20",
+    "animation.create_action:sprint",
+    "animation.insert_keyframe:sprint:Thigh_L:1",
+    "animation.insert_keyframe:sprint:Thigh_R:1",
+    "animation.insert_keyframe:sprint:Shin_L:1",
+    "animation.insert_keyframe:sprint:Shin_R:1",
+    "animation.insert_keyframe:sprint:UpperArm_L:1",
+    "animation.insert_keyframe:sprint:UpperArm_R:1",
+    "animation.insert_keyframe:sprint:Chest:1",
+    "animation.insert_keyframe:sprint:Thigh_L:8",
+    "animation.insert_keyframe:sprint:Thigh_R:8",
+    "animation.insert_keyframe:sprint:Shin_L:8",
+    "animation.insert_keyframe:sprint:Shin_R:8",
+    "animation.insert_keyframe:sprint:UpperArm_L:8",
+    "animation.insert_keyframe:sprint:UpperArm_R:8",
+    "animation.insert_keyframe:sprint:Chest:8",
+    "animation.insert_keyframe:sprint:Thigh_L:16",
+    "animation.insert_keyframe:sprint:Thigh_R:16",
+    "animation.insert_keyframe:sprint:Shin_L:16",
+    "animation.insert_keyframe:sprint:Shin_R:16",
+    "animation.insert_keyframe:sprint:UpperArm_L:16",
+    "animation.insert_keyframe:sprint:UpperArm_R:16",
+    "animation.insert_keyframe:sprint:Chest:16",
+    "animation.create_action:turn",
+    "animation.insert_keyframe:turn:Root:1",
+    "animation.insert_keyframe:turn:Hips:1",
+    "animation.insert_keyframe:turn:Root:8",
+    "animation.insert_keyframe:turn:Hips:8",
+    "animation.insert_keyframe:turn:Root:16",
+    "animation.insert_keyframe:turn:Hips:16",
+    "animation.create_action:celebration",
+    "animation.insert_keyframe:celebration:UpperArm_L:1",
+    "animation.insert_keyframe:celebration:UpperArm_R:1",
+    "animation.insert_keyframe:celebration:Spine:1",
+    "animation.insert_keyframe:celebration:UpperArm_L:12",
+    "animation.insert_keyframe:celebration:UpperArm_R:12",
+    "animation.insert_keyframe:celebration:Spine:12",
+    "animation.insert_keyframe:celebration:UpperArm_L:24",
+    "animation.insert_keyframe:celebration:UpperArm_R:24",
+    "animation.insert_keyframe:celebration:Spine:24",
     "light.create",
     "light.create",
     "camera.create",
@@ -2210,65 +2702,65 @@
     {
       "kind": "blend",
       "name": "yun_player_base_v2.blend",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail\\yun_player_base_v2.blend",
-      "sizeBytes": 265393
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2\\yun_player_base_v2.blend",
+      "sizeBytes": 262198
     },
     {
       "kind": "glb",
       "name": "yun_player_base_v2.glb",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail\\yun_player_base_v2.glb",
-      "sizeBytes": 1526344
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2\\yun_player_base_v2.glb",
+      "sizeBytes": 1557192
     },
     {
       "kind": "json",
       "name": "yun_player_base_v2-report.json",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail\\yun_player_base_v2-report.json",
-      "sizeBytes": 18224
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2\\yun_player_base_v2-report.json",
+      "sizeBytes": 32718
     },
     {
       "kind": "json",
       "name": "blender-report.json",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail\\blender-report.json",
-      "sizeBytes": 18224
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2\\blender-report.json",
+      "sizeBytes": 32718
     },
     {
       "kind": "png",
       "name": "yun_player_base_v2-front.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail\\yun_player_base_v2-front.png",
-      "sizeBytes": 162034
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2\\yun_player_base_v2-front.png",
+      "sizeBytes": 158983
     },
     {
       "kind": "png",
       "name": "yun_player_base_v2-side.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail\\yun_player_base_v2-side.png",
-      "sizeBytes": 165233
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2\\yun_player_base_v2-side.png",
+      "sizeBytes": 163000
     },
     {
       "kind": "png",
       "name": "yun_player_base_v2-back.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail\\yun_player_base_v2-back.png",
-      "sizeBytes": 162784
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2\\yun_player_base_v2-back.png",
+      "sizeBytes": 163133
     },
     {
       "kind": "png",
       "name": "yun_player_base_v2-three-quarter.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail\\yun_player_base_v2-three-quarter.png",
-      "sizeBytes": 166398
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2\\yun_player_base_v2-three-quarter.png",
+      "sizeBytes": 163557
     },
     {
       "kind": "png",
       "name": "yun_player_base_v2-preview.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail\\yun_player_base_v2-preview.png",
-      "sizeBytes": 213079
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2\\yun_player_base_v2-preview.png",
+      "sizeBytes": 208227
     }
   ],
   "render": {
     "previews": [
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-fly-80NuO0/t-yun-player-base-v2-flyrail\\yun_player_base_v2-preview.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-fly-80NuO0/t-yun-player-base-v2-flyrail\\yun_player_base_v2-front.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-fly-80NuO0/t-yun-player-base-v2-flyrail\\yun_player_base_v2-side.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-fly-80NuO0/t-yun-player-base-v2-flyrail\\yun_player_base_v2-back.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-fly-80NuO0/t-yun-player-base-v2-flyrail\\yun_player_base_v2-three-quarter.png"
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-Ou6mwX/t-yun-player-base-v2\\yun_player_base_v2-preview.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-Ou6mwX/t-yun-player-base-v2\\yun_player_base_v2-front.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-Ou6mwX/t-yun-player-base-v2\\yun_player_base_v2-side.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-Ou6mwX/t-yun-player-base-v2\\yun_player_base_v2-back.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-v2-Ou6mwX/t-yun-player-base-v2\\yun_player_base_v2-three-quarter.png"
     ]
   },
   "geometry": {
@@ -2291,8 +2783,11 @@
   },
   "exportInfo": {
     "animations": [
+      "celebration",
       "idle",
       "run",
+      "sprint",
+      "turn",
       "walk"
     ],
     "skins": true

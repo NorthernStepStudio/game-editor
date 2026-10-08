@@ -6,6 +6,7 @@ import { initSpecialists, loadSpecialists } from './specialists.js';
 import { initAssets, loadAssets, loadAssetProviders } from './assets.js';
 import { initRoutingPreferences, loadRoutingPreferences } from './routing.js';
 import { loadCompletionScorecard } from './completion.js';
+import { initMotionStudio, renderMotionStudio } from './motionStudio.js';
 
 const routeMap = {
   home: 'home',
@@ -91,6 +92,21 @@ function initInternalTabs() {
   }
   for (const button of document.querySelectorAll('[data-project-tab]')) {
     button.onclick = () => switchPanel('project', button.dataset.projectTab);
+  }
+  for (const button of document.querySelectorAll('[data-assets-tab]')) {
+    button.onclick = () => {
+      const target = button.dataset.assetsTab;
+      for (const btn of document.querySelectorAll('[data-assets-tab]')) {
+        btn.classList.toggle('active', btn === button);
+      }
+      const catalogPanel = document.querySelector('#assets-panel-catalog');
+      const motionPanel = document.querySelector('#assets-panel-motion');
+      if (catalogPanel) catalogPanel.hidden = target !== 'catalog';
+      if (motionPanel) {
+        motionPanel.hidden = target !== 'motion';
+        if (target === 'motion') renderMotionStudio();
+      }
+    };
   }
 }
 
@@ -232,6 +248,7 @@ initChat();
 initWorkspace();
 initSpecialists();
 initAssets();
+initMotionStudio();
 initRoutingPreferences();
 initInternalTabs();
 initValidationFilters();

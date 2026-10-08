@@ -1,11 +1,11 @@
 {
   "schemaVersion": "1.0.0",
   "taskId": "t-yun_player_03",
-  "executionId": "5c1a3b07-1f9f-4d69-8943-c78c6df926f8",
+  "executionId": "33210005-9975-407d-8622-2244864ba225",
   "handoffId": "h-yun_player_03",
   "blenderVersion": "5.2.1 LTS",
-  "startedAt": "2026-09-24T01:23:22.318420+00:00",
-  "endedAt": "2026-09-24T01:23:26.651176+00:00",
+  "startedAt": "2026-10-08T10:54:16.569394+00:00",
+  "endedAt": "2026-10-08T10:54:20.565140+00:00",
   "requestedOperations": [
     {
       "op": "scene.new",
@@ -2245,65 +2245,65 @@
     {
       "kind": "blend",
       "name": "yun_player_03.blend",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03\\yun_player_03.blend",
-      "sizeBytes": 262150
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03\\yun_player_03.blend",
+      "sizeBytes": 264473
     },
     {
       "kind": "glb",
       "name": "yun_player_03.glb",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03\\yun_player_03.glb",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03\\yun_player_03.glb",
       "sizeBytes": 1522968
     },
     {
       "kind": "json",
       "name": "yun_player_03-report.json",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03\\yun_player_03-report.json",
-      "sizeBytes": 18163
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03\\yun_player_03-report.json",
+      "sizeBytes": 29791
     },
     {
       "kind": "json",
       "name": "blender-report.json",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03\\blender-report.json",
-      "sizeBytes": 18163
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03\\blender-report.json",
+      "sizeBytes": 29791
     },
     {
       "kind": "png",
       "name": "yun_player_03-front.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03\\yun_player_03-front.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03\\yun_player_03-front.png",
       "sizeBytes": 164685
     },
     {
       "kind": "png",
       "name": "yun_player_03-side.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03\\yun_player_03-side.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03\\yun_player_03-side.png",
       "sizeBytes": 163079
     },
     {
       "kind": "png",
       "name": "yun_player_03-back.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03\\yun_player_03-back.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03\\yun_player_03-back.png",
       "sizeBytes": 164564
     },
     {
       "kind": "png",
       "name": "yun_player_03-three-quarter.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03\\yun_player_03-three-quarter.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03\\yun_player_03-three-quarter.png",
       "sizeBytes": 166800
     },
     {
       "kind": "png",
       "name": "yun_player_03-preview.png",
-      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-fjWxJo\\t-yun_player_03\\yun_player_03-preview.png",
+      "path": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-roster-UtXItb\\t-yun_player_03\\yun_player_03-preview.png",
       "sizeBytes": 216214
     }
   ],
   "render": {
     "previews": [
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_03\\yun_player_03-preview.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_03\\yun_player_03-front.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_03\\yun_player_03-side.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_03\\yun_player_03-back.png",
-      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-fjWxJo/t-yun_player_03\\yun_player_03-three-quarter.png"
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_03\\yun_player_03-preview.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_03\\yun_player_03-front.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_03\\yun_player_03-side.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_03\\yun_player_03-back.png",
+      "C:/Users/winst/AppData/Local/Temp/matterhorn-yun-roster-UtXItb/t-yun_player_03\\yun_player_03-three-quarter.png"
     ]
   },
   "geometry": {

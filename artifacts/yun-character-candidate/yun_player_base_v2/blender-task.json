@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.0.0",
-  "taskId": "t-yun-player-base-v2-flyrail",
-  "executionId": "be946d25-935a-4975-b783-949e8049c7c9",
-  "handoffId": "h-yun-v2-fly",
+  "taskId": "t-yun-player-base-v2",
+  "executionId": "0baa1599-1e09-4329-a0f5-c3c5cc89e81f",
+  "handoffId": "h-yun-v2-1",
   "assetName": "yun_player_base_v2",
-  "workingDirectory": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-fly-80NuO0\\t-yun-player-base-v2-flyrail",
+  "workingDirectory": "C:\\Users\\winst\\AppData\\Local\\Temp\\matterhorn-yun-v2-Ou6mwX\\t-yun-player-base-v2",
   "requestedOperations": [
     {
       "op": "scene.new",
@@ -105,8 +105,8 @@
       "radius": 0.165,
       "location": [
         0,
-        -0.01,
-        1.64
+        -0.04,
+        1.65
       ],
       "scale": [
         1.02,
@@ -118,10 +118,10 @@
       "op": "mesh.create_primitive",
       "name": "Mesh_Eye_L",
       "primitive": "uv_sphere",
-      "radius": 0.028,
+      "radius": 0.032,
       "location": [
         0.055,
-        0.13,
+        0.162,
         1.6
       ]
     },
@@ -129,10 +129,10 @@
       "op": "mesh.create_primitive",
       "name": "Mesh_Eye_R",
       "primitive": "uv_sphere",
-      "radius": 0.028,
+      "radius": 0.032,
       "location": [
         -0.055,
-        0.13,
+        0.162,
         1.6
       ]
     },
@@ -1912,6 +1912,459 @@
       ]
     },
     {
+      "op": "animation.create_action",
+      "name": "sprint",
+      "armature": "Armature",
+      "frameStart": 1,
+      "frameEnd": 16
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        -60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        35,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        12,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        -48,
+        0,
+        12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        48,
+        0,
+        -12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Chest",
+      "frame": 1,
+      "rotationEulerDeg": [
+        16,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_L",
+      "frame": 8,
+      "rotationEulerDeg": [
+        -60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_R",
+      "frame": 8,
+      "rotationEulerDeg": [
+        60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_L",
+      "frame": 8,
+      "rotationEulerDeg": [
+        12,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_R",
+      "frame": 8,
+      "rotationEulerDeg": [
+        35,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_L",
+      "frame": 8,
+      "rotationEulerDeg": [
+        48,
+        0,
+        12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_R",
+      "frame": 8,
+      "rotationEulerDeg": [
+        -48,
+        0,
+        -12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Chest",
+      "frame": 8,
+      "rotationEulerDeg": [
+        20,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_L",
+      "frame": 16,
+      "rotationEulerDeg": [
+        60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Thigh_R",
+      "frame": 16,
+      "rotationEulerDeg": [
+        -60,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_L",
+      "frame": 16,
+      "rotationEulerDeg": [
+        35,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Shin_R",
+      "frame": 16,
+      "rotationEulerDeg": [
+        12,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_L",
+      "frame": 16,
+      "rotationEulerDeg": [
+        -48,
+        0,
+        12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "UpperArm_R",
+      "frame": 16,
+      "rotationEulerDeg": [
+        48,
+        0,
+        -12
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "sprint",
+      "bone": "Chest",
+      "frame": 16,
+      "rotationEulerDeg": [
+        16,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.create_action",
+      "name": "turn",
+      "armature": "Armature",
+      "frameStart": 1,
+      "frameEnd": 16
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Root",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Hips",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Root",
+      "frame": 8,
+      "rotationEulerDeg": [
+        0,
+        0,
+        15
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Hips",
+      "frame": 8,
+      "rotationEulerDeg": [
+        0,
+        5,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Root",
+      "frame": 16,
+      "rotationEulerDeg": [
+        0,
+        0,
+        30
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "turn",
+      "bone": "Hips",
+      "frame": 16,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.create_action",
+      "name": "celebration",
+      "armature": "Armature",
+      "frameStart": 1,
+      "frameEnd": 24
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_L",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_R",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        -10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "Spine",
+      "frame": 1,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_L",
+      "frame": 12,
+      "rotationEulerDeg": [
+        0,
+        0,
+        -150
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_R",
+      "frame": 12,
+      "rotationEulerDeg": [
+        0,
+        0,
+        150
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "Spine",
+      "frame": 12,
+      "rotationEulerDeg": [
+        -12,
+        0,
+        0
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_L",
+      "frame": 24,
+      "rotationEulerDeg": [
+        0,
+        0,
+        10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "UpperArm_R",
+      "frame": 24,
+      "rotationEulerDeg": [
+        0,
+        0,
+        -10
+      ]
+    },
+    {
+      "op": "animation.insert_keyframe",
+      "armature": "Armature",
+      "action": "celebration",
+      "bone": "Spine",
+      "frame": 24,
+      "rotationEulerDeg": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
       "op": "light.create",
       "name": "Light_Key",
       "type": "SUN",
@@ -2050,6 +2503,6 @@
     "multi-view renders produced",
     "animated yun_player_base_v2.glb exported"
   ],
-  "createdAt": "2026-09-24T00:06:01.987Z",
+  "createdAt": "2026-10-08T10:54:01.119Z",
   "timeoutMs": 420000
 }

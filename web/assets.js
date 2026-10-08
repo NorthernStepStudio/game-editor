@@ -9,7 +9,7 @@ let routingPreferences = null;
 let providerSelectionTouched = false;
 
 const categoryTypes = {
-  characters: new Set(['pixel_sprite', 'sprite_sheet', 'animation']),
+  characters: new Set(['pixel_sprite', 'sprite_sheet', 'animation', 'mesh_3d', 'rig']),
   environments: new Set(['tile', 'tileset', 'background', 'concept_art']),
   props: new Set(['texture', 'other']),
   ui: new Set(['ui_icon', 'ui_atlas']),
@@ -19,6 +19,7 @@ const categoryTypes = {
 
 function assetMatchesCategory(asset) {
   if (activeCategory === 'all') return true;
+  if (activeCategory === 'characters' && (asset.type === 'rig' || asset.assetId?.includes('yun') || asset.assetId?.includes('character'))) return true;
   return categoryTypes[activeCategory]?.has(asset.type) ?? false;
 }
 
@@ -219,6 +220,18 @@ async function selectAsset(assetId) {
       motionSection.style.padding = '10px';
       motionSection.style.border = '1px solid var(--line)';
       motionSection.style.borderRadius = '6px';
+      
+      const openMotionBtn = document.createElement('button');
+      openMotionBtn.type = 'button';
+      openMotionBtn.className = 'primary-action';
+      openMotionBtn.style.marginTop = '8px';
+      openMotionBtn.style.width = '100%';
+      openMotionBtn.textContent = 'Open in Motion Studio →';
+      openMotionBtn.onclick = () => {
+        const motionTab = document.querySelector('#assets-tab-motion');
+        if (motionTab) motionTab.click();
+      };
+
       motionSection.append(
         el('h4', 'Motion Studio Pipeline', 'eyebrow'),
         el('p', 'Auto-Rigging, Locomotion Clips & Godot Export', 'muted-sm'),
@@ -226,6 +239,7 @@ async function selectAsset(assetId) {
         metadataRow('Weighting', 'Automatic Heat / Normalized'),
         metadataRow('Clips', 'idle, walk, run, sprint, turn'),
         metadataRow('Godot Engine', 'Godot 4.7.2 Ready'),
+        openMotionBtn,
       );
       meta.append(motionSection);
     }

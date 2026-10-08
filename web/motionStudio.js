@@ -81,7 +81,7 @@ export async function loadMotionStudioCharacters() {
         skinWeightStatus: 'Normalized (Automatic Heat)',
         animations: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
         godotValidated: true,
-        previewUrl: '/games/street-yun.webp',
+        previewUrl: '/previews/yun_player_base_v2.png',
       },
       {
         assetId: 'yun_player_base',
@@ -92,7 +92,7 @@ export async function loadMotionStudioCharacters() {
         skinWeightStatus: 'Normalized (Automatic Heat)',
         animations: ['idle', 'walk', 'run', 'sprint'],
         godotValidated: true,
-        previewUrl: '/games/street-yun.webp',
+        previewUrl: '/previews/yun_player_base.png',
       },
       {
         assetId: 'character-male-a',
@@ -103,7 +103,7 @@ export async function loadMotionStudioCharacters() {
         skinWeightStatus: 'Rigid / Bound',
         animations: ['idle', 'walk', 'sprint'],
         godotValidated: true,
-        previewUrl: '/games/street-yun.webp',
+        previewUrl: '/previews/character-male-a.png',
       },
     ];
   }
@@ -178,6 +178,23 @@ export function renderMotionStudio() {
   );
   sidebar.append(statusBox);
 
+  // Inline status feedback banner
+  const feedbackBanner = el('div', undefined, 'motion-feedback-banner');
+  feedbackBanner.id = 'motion-feedback';
+  feedbackBanner.style.display = 'none';
+  feedbackBanner.style.padding = '8px 10px';
+  feedbackBanner.style.borderRadius = '6px';
+  feedbackBanner.style.fontSize = '12px';
+  feedbackBanner.style.marginTop = '8px';
+
+  const showFeedback = (text, isError = false) => {
+    feedbackBanner.textContent = text;
+    feedbackBanner.style.display = 'block';
+    feedbackBanner.style.background = isError ? 'rgba(120, 28, 38, 0.5)' : 'rgba(28, 80, 50, 0.5)';
+    feedbackBanner.style.border = `1px solid ${isError ? '#ff8990' : '#75e9ad'}`;
+    feedbackBanner.style.color = isError ? '#ffc2c6' : '#b6f8d2';
+  };
+
   // Action buttons: Rig character & Export to Yun
   const actionsBox = el('div', undefined, 'motion-actions-box');
   const rigBtn = document.createElement('button');
@@ -186,15 +203,15 @@ export function renderMotionStudio() {
   rigBtn.textContent = '⚡ Generate Rig & Weights';
   rigBtn.onclick = async () => {
     rigBtn.disabled = true;
-    rigBtn.textContent = 'Rigging...';
+    rigBtn.textContent = 'Rigging in Blender...';
     try {
       const res = await api('/api/motion/rig', {
         method: 'POST',
         body: JSON.stringify({ characterId: char.assetId, providerId: selectedProvider }),
       });
-      alert(`Character ${res.characterId} rigged successfully via ${res.provider}!`);
+      showFeedback(`✓ Character ${res.characterId} rigged successfully via ${res.provider}!`);
     } catch (e) {
-      alert(`Rigging error: ${e.message}`);
+      showFeedback(`✗ Rigging error: ${e.message}`, true);
     } finally {
       rigBtn.disabled = false;
       rigBtn.textContent = '⚡ Generate Rig & Weights';
@@ -207,15 +224,15 @@ export function renderMotionStudio() {
   exportBtn.textContent = '🎮 Export to Yun Game';
   exportBtn.onclick = async () => {
     exportBtn.disabled = true;
-    exportBtn.textContent = 'Exporting...';
+    exportBtn.textContent = 'Exporting GLB to Yun...';
     try {
       const res = await api('/api/motion/export-yun', {
         method: 'POST',
         body: JSON.stringify({ characterId: char.assetId }),
       });
-      alert(`Exported ${res.characterId} to Yun! Actions: ${res.actionsExported.join(', ')}`);
+      showFeedback(`✓ Exported ${res.characterId} to Yun! Actions: ${res.actionsExported.join(', ')}`);
     } catch (e) {
-      alert(`Export error: ${e.message}`);
+      showFeedback(`✗ Export error: ${e.message}`, true);
     } finally {
       exportBtn.disabled = false;
       exportBtn.textContent = '🎮 Export to Yun Game';
@@ -223,7 +240,7 @@ export function renderMotionStudio() {
   };
 
   actionsBox.append(rigBtn, exportBtn);
-  sidebar.append(actionsBox);
+  sidebar.append(actionsBox, feedbackBanner);
 
   // Center / Main: Viewport + Timeline + Controls
   const main = el('section', undefined, 'motion-main');
@@ -252,15 +269,57 @@ export function renderMotionStudio() {
 
   // Viewport / Interactive Preview area
   const viewport = el('div', undefined, 'motion-viewport card');
-  if (char.previewUrl) {
+
+  // Multi-angle 3D character display strip
+  const anglesRow = el('div', undefined, 'motion-angles-strip');
+  anglesRow.style.display = 'flex';
+  anglesRow.style.gap = '12px';
+  anglesRow.style.alignItems = 'center';
+  anglesRow.style.justifyContent = 'center';
+  anglesRow.style.padding = '12px';
+  anglesRow.style.background = '#0a1525';
+  anglesRow.style.borderRadius = '8px';
+  anglesRow.style.marginBottom = '12px';
+  anglesRow.style.width = '100%';
+
+  const assetBase = char.assetId.includes('yun_player_base_v2')
+    ? 'yun_player_base_v2'
+    : char.assetId.includes('yun_player_base')
+    ? 'yun_player_base'
+    : 'character-male-a';
+
+  const viewAngles = [
+    { label: 'Front Angle', src: `/previews/${assetBase}-front.png` },
+    { label: '3/4 Perspective', src: `/previews/${assetBase}.png` },
+    { label: 'Side Profile', src: `/previews/${assetBase}-side.png` },
+  ];
+
+  for (const angle of viewAngles) {
+    const box = el('div', undefined, 'motion-angle-card');
+    box.style.display = 'flex';
+    box.style.flexDirection = 'column';
+    box.style.alignItems = 'center';
+    box.style.gap = '6px';
+    box.style.background = '#060d17';
+    box.style.padding = '8px 12px';
+    box.style.borderRadius = '6px';
+    box.style.border = '1px solid var(--line)';
+
     const img = document.createElement('img');
-    img.src = char.previewUrl;
-    img.alt = `Preview of ${char.displayName ?? char.assetId}`;
-    img.className = 'motion-preview-image';
-    viewport.append(img);
-  } else {
-    viewport.append(el('div', '3D Motion Preview (Blender 5.2 EEVEE & Godot)', 'empty-state'));
+    img.src = angle.src;
+    img.alt = angle.label;
+    img.style.height = '160px';
+    img.style.objectFit = 'contain';
+    img.onerror = () => { img.style.display = 'none'; };
+
+    const tag = el('span', angle.label, 'muted-sm');
+    tag.style.fontSize = '10px';
+    tag.style.fontWeight = 'bold';
+    box.append(img, tag);
+    anglesRow.append(box);
   }
+
+  viewport.append(anglesRow);
 
   // Active Tab content overlay
   const tabContent = el('div', undefined, 'motion-tab-content');
@@ -319,6 +378,8 @@ export function renderMotionStudio() {
         currentTimelineTime = (currentTimelineTime + 0.05 * animationSpeed) % 1.0;
         const scrubber = document.querySelector('#motion-scrubber');
         if (scrubber) scrubber.value = currentTimelineTime;
+        const timeDisplay = document.querySelector('#motion-time-val');
+        if (timeDisplay) timeDisplay.textContent = `${(currentTimelineTime * 1.0).toFixed(2)}s`;
       }, 50);
     } else {
       if (playbackInterval) clearInterval(playbackInterval);
@@ -336,7 +397,14 @@ export function renderMotionStudio() {
   scrubber.className = 'timeline-scrubber';
   scrubber.oninput = () => {
     currentTimelineTime = parseFloat(scrubber.value);
+    const timeDisplay = document.querySelector('#motion-time-val');
+    if (timeDisplay) timeDisplay.textContent = `${(currentTimelineTime * 1.0).toFixed(2)}s`;
   };
+
+  const timeDisplay = el('span', `${(currentTimelineTime * 1.0).toFixed(2)}s`, 'muted-sm');
+  timeDisplay.id = 'motion-time-val';
+  timeDisplay.style.fontFamily = 'monospace';
+  timeDisplay.style.minWidth = '45px';
 
   const speedSelect = document.createElement('select');
   speedSelect.className = 'timeline-speed';
@@ -351,7 +419,7 @@ export function renderMotionStudio() {
     animationSpeed = parseFloat(speedSelect.value);
   };
 
-  controlsRow.append(playBtn, scrubber, speedSelect);
+  controlsRow.append(playBtn, scrubber, timeDisplay, speedSelect);
   timeline.append(controlsRow);
   main.append(timeline);
 

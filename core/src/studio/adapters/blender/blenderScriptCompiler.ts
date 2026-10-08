@@ -368,6 +368,20 @@ completed.append("file.save_blend:${op.outputName}")
 # op[${index}] ${op.op}
 out_path = os.path.join(WORK_DIR, ${pyStr(op.outputName)})
 assert_under_work(out_path)
+# Stash actions into NLA tracks so Blender 5.2 exports all character actions
+for arm_obj in armatures.values():
+    if arm_obj and arm_obj.animation_data:
+        existing_tracks = {t.name for t in arm_obj.animation_data.nla_tracks}
+        for act_name, act in actions.items():
+            if act and act_name not in existing_tracks:
+                try:
+                    track = arm_obj.animation_data.nla_tracks.new()
+                    track.name = act_name
+                    track.strips.new(act_name, 1, act)
+                except Exception as nla_err:
+                    warnings.append(f"NLA track creation error for {act_name}: {nla_err}")
+        arm_obj.animation_data.action = None
+
 export_kwargs = dict(
     filepath=out_path,
     export_format="GLB",
@@ -377,6 +391,8 @@ export_kwargs = dict(
 try:
     export_kwargs["export_skins"] = ${op.op === "export.glb" ? (op.exportSkins ? "True" : "False") : "True"}
     export_kwargs["export_animations"] = ${op.op === "export.glb" ? (op.exportAnimations ? "True" : "False") : "True"}
+    export_kwargs["export_animation_mode"] = "NLA_TRACKS"
+    export_kwargs["export_nla_strips"] = True
 except Exception:
     pass
 bpy.ops.export_scene.gltf(**export_kwargs)

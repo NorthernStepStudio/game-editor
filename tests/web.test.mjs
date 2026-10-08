@@ -57,8 +57,23 @@ test('approved six-page UI preserves real Matterhorn workflows without invented 
       allowExternalCostProviders: false,
       updatedAt: '1970-01-01T00:00:00.000Z',
     };
-    else if (path === '/api/foundry/providers') data = { providers: [] };
     else if (path === '/api/foundry/assets') data = { assets: [] };
+    else if (path === '/api/motion/characters') data = {
+      characters: [
+        {
+          assetId: 'yun_player_base_v2',
+          displayName: 'Yun Player Base v2 (Refined Stylized Athlete)',
+          type: 'rig',
+          meshFormat: 'GLB',
+          rigStatus: 'Rigged (18 bones)',
+          skinWeightStatus: 'Normalized (Automatic Heat)',
+          animations: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
+          godotValidated: true,
+          previewUrl: '/games/street-yun.webp',
+        },
+      ],
+      providers: [],
+    };
     else if (path === '/api/studio/completion') data = {
       productionReadiness: 42,
       capabilityCoverage: 60,

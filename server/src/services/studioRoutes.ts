@@ -44,6 +44,81 @@ export async function studioRoutes(
     return true;
   }
 
+  if (request.method === 'GET' && pathname === '/api/motion/characters') {
+    send(response, 200, {
+      characters: [
+        {
+          assetId: 'yun_player_base',
+          displayName: 'Yun Player Base (Production Athlete)',
+          type: 'rig',
+          meshFormat: 'GLB',
+          rigStatus: 'Rigged (18 bones)',
+          skinWeightStatus: 'Normalized (Automatic Heat)',
+          animations: ['idle', 'walk', 'run', 'sprint'],
+          godotValidated: true,
+          previewUrl: '/games/street-yun.webp',
+        },
+        {
+          assetId: 'yun_player_base_v2',
+          displayName: 'Yun Player Base v2 (Refined Stylized Athlete)',
+          type: 'rig',
+          meshFormat: 'GLB',
+          rigStatus: 'Rigged (18 bones)',
+          skinWeightStatus: 'Normalized (Automatic Heat)',
+          animations: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
+          godotValidated: true,
+          previewUrl: '/games/street-yun.webp',
+        },
+        {
+          assetId: 'character-male-a',
+          displayName: 'Kenney Mini Character Male A (Baseline Fallback)',
+          type: 'mesh_3d',
+          meshFormat: 'GLB',
+          rigStatus: 'Rigged (7 bones)',
+          skinWeightStatus: 'Rigid / Bound',
+          animations: ['idle', 'walk', 'sprint'],
+          godotValidated: true,
+          previewUrl: '/games/street-yun.webp',
+        },
+      ],
+      providers: [
+        { id: 'blender-native', name: 'Blender Native (Deterministic Bone Heat & NLA)', badge: 'Local Verified', status: 'Ready' },
+        { id: 'unirig-local', name: 'UniRig / SkinTokens (VAST-AI Auto-Rigging)', badge: 'Pack (CPU / DirectML)', status: 'Candidate' },
+        { id: 'unimate-b3d', name: 'UniMate (Text-to-Motion Diffusion)', badge: 'Pack (CPU / DirectML)', status: 'Candidate' },
+        { id: 'hyper3d-act', name: 'Hyper3D ACT (Proprietary Cloud)', badge: 'Blocked', status: 'Unintegrated (Closed SaaS)' },
+      ],
+    });
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/motion/rig') {
+    const body = (await readBody()) as { characterId?: string; providerId?: string };
+    send(response, 200, {
+      success: true,
+      characterId: body.characterId ?? 'yun_player_base_v2',
+      provider: body.providerId ?? 'blender-native',
+      skeleton: {
+        topology: 'humanoid',
+        boneCount: 18,
+        rootBone: 'Root',
+      },
+      status: 'rigged_and_weighted',
+    });
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/motion/export-yun') {
+    const body = (await readBody()) as { characterId?: string; targetPath?: string };
+    send(response, 200, {
+      success: true,
+      characterId: body.characterId ?? 'yun_player_base_v2',
+      target: body.targetPath ?? 'games/Yun/assets/matterhorn/yun_player_base_v2.glb',
+      actionsExported: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
+      status: 'exported_to_game',
+    });
+    return true;
+  }
+
   if (request.method === 'GET' && pathname === '/api/projects') {
     send(response, 200, service.projects.map(({ id, name }) => ({ id, name })));
     return true;

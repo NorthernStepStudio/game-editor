@@ -73,11 +73,11 @@ export function buildYunPlayerBaseV2Operations(): BlenderOperation[] {
       name: "Mesh_Hair",
       primitive: "uv_sphere",
       radius: 0.165,
-      location: [0, -0.01, 1.64],
+      location: [0, -0.04, 1.65],
       scale: [1.02, 0.95, 0.72],
     },
-    { op: "mesh.create_primitive", name: "Mesh_Eye_L", primitive: "uv_sphere", radius: 0.028, location: [0.055, 0.13, 1.6] },
-    { op: "mesh.create_primitive", name: "Mesh_Eye_R", primitive: "uv_sphere", radius: 0.028, location: [-0.055, 0.13, 1.6] },
+    { op: "mesh.create_primitive", name: "Mesh_Eye_L", primitive: "uv_sphere", radius: 0.032, location: [0.055, 0.162, 1.60] },
+    { op: "mesh.create_primitive", name: "Mesh_Eye_R", primitive: "uv_sphere", radius: 0.032, location: [-0.055, 0.162, 1.60] },
     { op: "mesh.create_primitive", name: "Mesh_Neck", primitive: "cylinder", radius: 0.07, depth: 0.12, location: [0, 0.01, 1.42] },
 
     // Torso — tapered jersey with overlapping shoulders
@@ -477,6 +477,45 @@ export function buildYunPlayerBaseV2Operations(): BlenderOperation[] {
       frame,
       rotationEulerDeg: [chest, 0, 0],
     });
+  }
+
+  // Sprint — high cadence, aggressive lean
+  ops.push({ op: "animation.create_action", name: "sprint", armature: "Armature", frameStart: 1, frameEnd: 16 });
+  for (const [frame, tL, tR, sL, sR, aL, aR, chest] of [
+    [1, 60, -60, 35, 12, -48, 48, 16],
+    [8, -60, 60, 12, 35, 48, -48, 20],
+    [16, 60, -60, 35, 12, -48, 48, 16],
+  ] as const) {
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "sprint", bone: "Thigh_L", frame, rotationEulerDeg: [tL, 0, 0] });
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "sprint", bone: "Thigh_R", frame, rotationEulerDeg: [tR, 0, 0] });
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "sprint", bone: "Shin_L", frame, rotationEulerDeg: [sL, 0, 0] });
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "sprint", bone: "Shin_R", frame, rotationEulerDeg: [sR, 0, 0] });
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "sprint", bone: "UpperArm_L", frame, rotationEulerDeg: [aL, 0, 12] });
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "sprint", bone: "UpperArm_R", frame, rotationEulerDeg: [aR, 0, -12] });
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "sprint", bone: "Chest", frame, rotationEulerDeg: [chest, 0, 0] });
+  }
+
+  // Turn — yaw rotation on Root and Hips
+  ops.push({ op: "animation.create_action", name: "turn", armature: "Armature", frameStart: 1, frameEnd: 16 });
+  for (const [frame, rootYaw, hipYaw] of [
+    [1, 0, 0],
+    [8, 15, 5],
+    [16, 30, 0],
+  ] as const) {
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "turn", bone: "Root", frame, rotationEulerDeg: [0, 0, rootYaw] });
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "turn", bone: "Hips", frame, rotationEulerDeg: [0, hipYaw, 0] });
+  }
+
+  // Celebration — arms up, spine back arch
+  ops.push({ op: "animation.create_action", name: "celebration", armature: "Armature", frameStart: 1, frameEnd: 24 });
+  for (const [frame, armL, armR, spine] of [
+    [1, 10, -10, 0],
+    [12, -150, 150, -12],
+    [24, 10, -10, 0],
+  ] as const) {
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "celebration", bone: "UpperArm_L", frame, rotationEulerDeg: [0, 0, armL] });
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "celebration", bone: "UpperArm_R", frame, rotationEulerDeg: [0, 0, armR] });
+    ops.push({ op: "animation.insert_keyframe", armature: "Armature", action: "celebration", bone: "Spine", frame, rotationEulerDeg: [spine, 0, 0] });
   }
 
   ops.push(

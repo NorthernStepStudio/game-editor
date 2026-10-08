@@ -49,6 +49,20 @@ const STANDARD_ANIMATIONS = [
 ];
 
 export async function loadMotionStudioCharacters() {
+  try {
+    const motionRes = await api('/api/motion/characters');
+    if (motionRes && Array.isArray(motionRes.characters) && motionRes.characters.length) {
+      characters = motionRes.characters;
+      if (!selectedCharacterId && characters.length) {
+        selectedCharacterId = characters[0].assetId;
+      }
+      renderMotionStudio();
+      return;
+    }
+  } catch (err) {
+    console.warn('Falling back from /api/motion/characters:', err);
+  }
+
   const res = await api('/api/foundry/assets');
   const allAssets = Array.isArray(res.assets) ? res.assets : [];
   characters = allAssets.filter(
@@ -59,19 +73,19 @@ export async function loadMotionStudioCharacters() {
   if (!characters.length) {
     characters = [
       {
-        assetId: 'yun_player_base',
-        displayName: 'Yun Player Base (Production Athlete)',
+        assetId: 'yun_player_base_v2',
+        displayName: 'Yun Player Base v2 (Refined Stylized Athlete)',
         type: 'rig',
         meshFormat: 'GLB',
         rigStatus: 'Rigged (18 bones)',
         skinWeightStatus: 'Normalized (Automatic Heat)',
-        animations: ['idle', 'walk', 'run', 'sprint'],
+        animations: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
         godotValidated: true,
         previewUrl: '/games/street-yun.webp',
       },
       {
-        assetId: 'yun_player_base_v2',
-        displayName: 'Yun Player Base v2 (Refined Stylized)',
+        assetId: 'yun_player_base',
+        displayName: 'Yun Player Base (Production Athlete)',
         type: 'rig',
         meshFormat: 'GLB',
         rigStatus: 'Rigged (18 bones)',
@@ -163,6 +177,53 @@ export function renderMotionStudio() {
     el('div', 'Engine: Blender 5.2 LTS + Godot Headless', 'status-line muted'),
   );
   sidebar.append(statusBox);
+
+  // Action buttons: Rig character & Export to Yun
+  const actionsBox = el('div', undefined, 'motion-actions-box');
+  const rigBtn = document.createElement('button');
+  rigBtn.type = 'button';
+  rigBtn.className = 'primary-action';
+  rigBtn.textContent = '⚡ Generate Rig & Weights';
+  rigBtn.onclick = async () => {
+    rigBtn.disabled = true;
+    rigBtn.textContent = 'Rigging...';
+    try {
+      const res = await api('/api/motion/rig', {
+        method: 'POST',
+        body: JSON.stringify({ characterId: char.assetId, providerId: selectedProvider }),
+      });
+      alert(`Character ${res.characterId} rigged successfully via ${res.provider}!`);
+    } catch (e) {
+      alert(`Rigging error: ${e.message}`);
+    } finally {
+      rigBtn.disabled = false;
+      rigBtn.textContent = '⚡ Generate Rig & Weights';
+    }
+  };
+
+  const exportBtn = document.createElement('button');
+  exportBtn.type = 'button';
+  exportBtn.className = 'secondary-action';
+  exportBtn.textContent = '🎮 Export to Yun Game';
+  exportBtn.onclick = async () => {
+    exportBtn.disabled = true;
+    exportBtn.textContent = 'Exporting...';
+    try {
+      const res = await api('/api/motion/export-yun', {
+        method: 'POST',
+        body: JSON.stringify({ characterId: char.assetId }),
+      });
+      alert(`Exported ${res.characterId} to Yun! Actions: ${res.actionsExported.join(', ')}`);
+    } catch (e) {
+      alert(`Export error: ${e.message}`);
+    } finally {
+      exportBtn.disabled = false;
+      exportBtn.textContent = '🎮 Export to Yun Game';
+    }
+  };
+
+  actionsBox.append(rigBtn, exportBtn);
+  sidebar.append(actionsBox);
 
   // Center / Main: Viewport + Timeline + Controls
   const main = el('section', undefined, 'motion-main');

@@ -4,6 +4,7 @@ import * as gamePage from './pageGame.js';
 import * as assetsPage from './pageAssets.js';
 import * as settingsPage from './pageSettings.js';
 import { logo, logoPreference, svgText } from './brand.js';
+import { initChat, openChat } from './chat.js';
 
 const pages = {
   studio: { title: 'Studio', module: studioPage },
@@ -23,7 +24,7 @@ let current;
 function parseRoute() {
   let hash = location.hash.replace(/^#\/?/, '');
   if (hash === 'chat') {
-    openAssistant();
+    openChat();
     hash = '';
   }
   const [head, ...rest] = hash.split('/');
@@ -56,65 +57,6 @@ async function route() {
   } catch (error) {
     clear(main, h('div', { class: 'empty' }, h('p', {}, `This page could not load: ${error?.message || error}`), btn('Try again', route)));
   }
-}
-
-// ── Assistant ───────────────────────────────────────────────────────
-const history = [];
-
-function openAssistant() {
-  document.querySelector('#assistant').hidden = false;
-  document.querySelector('#assistant-input').focus();
-}
-
-function initAssistant() {
-  const panel = document.querySelector('#assistant');
-  const log = document.querySelector('#assistant-log');
-  const input = document.querySelector('#assistant-input');
-  const context = document.querySelector('#assistant-context');
-  const send = document.querySelector('#assistant-send');
-  store.listeners.add((state) => { context.textContent = `Looking at: ${state.context}`; });
-  context.textContent = `Looking at: ${store.context}`;
-
-  document.querySelector('#assistant-toggle').addEventListener('click', () => {
-    panel.hidden = !panel.hidden;
-    if (!panel.hidden) input.focus();
-  });
-  document.querySelector('#assistant-close').addEventListener('click', () => { panel.hidden = true; });
-
-  const submit = async () => {
-    const text = input.value.trim();
-    if (!text || send.disabled) return;
-    send.disabled = true;
-    log.append(h('p', { class: 'msg me' }, text));
-    const pending = h('p', { class: 'msg' }, 'Thinking…');
-    log.append(pending);
-    log.scrollTop = log.scrollHeight;
-    input.value = '';
-    try {
-      const answer = await api('/ask', {
-        prompt: `[The user is looking at: ${store.context}]\n${text}`,
-        intent: 'ask',
-        workspace: { name: 'Matterhorn' },
-        history: history.slice(-12),
-      });
-      pending.textContent = answer.response;
-      history.push({ role: 'user', content: text }, { role: 'assistant', content: answer.response });
-    } catch (error) {
-      pending.textContent = `I couldn't answer: ${error?.message || error}. Your message is back in the box.`;
-      pending.classList.add('error');
-      input.value = text;
-    } finally {
-      send.disabled = false;
-      log.scrollTop = log.scrollHeight;
-    }
-  };
-  send.addEventListener('click', submit);
-  input.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      submit();
-    }
-  });
 }
 
 // ── Setup status in the sidebar ───────────────────────────────────────
@@ -172,7 +114,7 @@ function paintBrand() {
 export async function start() {
   paintBrand();
   window.addEventListener('matterhorn-logo', paintBrand);
-  initAssistant();
+  initChat();
   window.addEventListener('hashchange', route);
   document.querySelector('#setup-status').addEventListener('click', async () => {
     if (location.hash !== '#settings') {

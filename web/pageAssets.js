@@ -52,6 +52,15 @@ export async function render(main, sub) {
   clearTimeout(state.poll);
   await loadData();
   if (sub.startsWith('build/')) return renderJob(main, sub.slice(6));
+  if (sub.startsWith('search/')) {
+    // Opened from the chat: show the library filtered by its search.
+    const [query, filter] = sub.slice(7).split('/');
+    state.query = decodeURIComponent(query ?? '').toLowerCase();
+    state.filter = FILTERS.some((f) => f.id === filter) ? filter : 'all';
+    state.source = 'all';
+    state.limit = PAGE_SIZE;
+    return renderGrid(main);
+  }
   if (sub) return renderDetail(main, sub);
   renderGrid(main);
 }

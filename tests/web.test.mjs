@@ -72,6 +72,9 @@ function fixture(path, method, body) {
   if (p === '/providers') return { current: 'ollama', providers: [
     { id: 'mock', label: 'Mock', available: true }, { id: 'ollama', label: 'Ollama', available: true, model: 'gemma4:12b' },
     { id: 'anthropic', label: 'Claude', available: false }] };
+  if (p === '/api/assistant') return /asset|sound|model/i.test(body?.message ?? '')
+    ? { reply: 'Here is everything in your library: 5 assets.', answeredBy: 'library', assets: { total: 5, openHash: '#assets', shown: assets.map((a) => ({ assetId: a.assetId, name: a.displayName, type: a.type })) } }
+    : { reply: 'Nothing is building right now.', answeredBy: 'model' };
   if (p === '/ask') return { title: 'Matterhorn', response: `Answer to: ${body?.prompt?.slice(-40)}` };
   if (p === '/api/projects' && method === 'GET') return [{ id: 'yun', name: 'Yun' }];
   if (p === '/api/projects') return { id: 'new-game', name: body.name };
@@ -251,6 +254,24 @@ test('every control in the new Matterhorn UI does something real', async () => {
   assert.match(document.querySelector('#ai-settings').textContent, /Local AI is ready/);
   assert.match(document.querySelector('#ai-settings').textContent, /RX 7700 XT with 12 GB/);
   assert.equal(document.querySelector('#role-chat').value, 'qwen3:8b');
+
+  // The chat floats over every page, answers asset questions with real results and stays open across pages.
+  await go('#studio');
+  document.querySelector('#assistant-toggle').click();
+  await flush();
+  assert.equal(document.querySelector('#assistant').hidden, false);
+  document.querySelector('#assistant-input').value = 'can you show me the assets?';
+  document.querySelector('#assistant-send').click();
+  await flush(20);
+  assert.ok(document.querySelectorAll('#assistant-log .chat-asset').length >= 3, 'asset answers come back as clickable results');
+  location.hash = '#assets';
+  window.dispatchEvent(new window.HashChangeEvent('hashchange'));
+  await flush();
+  assert.equal(document.querySelector('#assistant').hidden, false, 'chat stays open while moving around');
+  assert.equal(document.querySelector('#assistant-toggle').textContent.trim(), 'Matterhorn');
+  document.querySelector('#assistant-min').click();
+  await flush();
+  assert.equal(document.querySelector('#chat-pill').hidden, false, 'minimized to a pill');
 
   // The brand page shows both designs, and choosing one changes the sidebar logo.
   await go('#settings/brand');

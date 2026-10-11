@@ -14,6 +14,7 @@ import { describeProvider, getAvailableProviders, getServerConfig, type NssWorks
 import { resolveDefaultPortStateFilePath, writePortStateFile } from "./config/portState.js";
 import type { NssAskRequestPayload, NssHealthResponse } from "./models/contracts.js";
 import { handleAskRequest, streamAskRequest } from "./services/askService.js";
+import { appSummary, isAssetQuestion, searchAssets } from "./services/assistant.js";
 
 const WEB_DIR = fs.existsSync(path.resolve(__dirname, "../../web"))
   ? path.resolve(__dirname, "../../web")
@@ -87,6 +88,34 @@ export async function startNssWorkspaceAiServer(
       if (['POST', 'PUT', 'PATCH'].includes(request.method ?? '') && !request.headers['content-type']?.startsWith('application/json')) {
         await respondJson(response, 415, { error: "Content-Type must be application/json." }); return;
       }
+      if (request.method === "POST" && request.url === "/api/assistant") {
+        // The in-app chat: asset questions are answered from the library itself; anything else
+        // goes to the chat model with a factual summary of the app so it never has to guess.
+        const body = (await readJsonBody(request)) as { message?: unknown; page?: unknown; history?: unknown };
+        const message = typeof body?.message === "string" ? body.message.trim().slice(0, 4000) : "";
+        if (!message) { await respondJson(response, 400, { error: "Type a message first." }); return; }
+        const page = typeof body.page === "string" ? body.page.slice(0, 200) : "Studio";
+        const assets = studio.foundryAssets.list();
+        const games = studio.projects.map((p) => p.name);
+        if (isAssetQuestion(message)) {
+          await respondJson(response, 200, searchAssets(message, assets, games));
+          return;
+        }
+        const history = Array.isArray(body.history) ? (body.history as { role: string; content: string }[]).slice(-12) : [];
+        const summary = appSummary({ page, games, assets, jobs: studio.foundryGeneration.listJobs(), runs: studio.controller.store.list() });
+        const model = config.mCore.providerMode === "ollama" ? await studio.ai.chatModel() : undefined;
+        const answer = await handleAskRequest(config, {
+          prompt: `${summary}
+
+User: ${message}`,
+          intent: "ask",
+          workspace: { name: "Matterhorn" },
+          history,
+        } as NssAskRequestPayload, undefined, model);
+        await respondJson(response, 200, { reply: answer.response, answeredBy: "model" });
+        return;
+      }
+
       if (await liveSessionRoutes(request, response, liveSession, () => readJsonBody(request))) return;
       if (await workspaceRoutes(request, response, () => readJsonBody(request))) return;
       if (await intelligenceRoutes(request, response, intelligence, () => readJsonBody(request))) return;

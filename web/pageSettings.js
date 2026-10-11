@@ -218,7 +218,7 @@ async function renderAi() {
         renderConnections();
       }, 'primary')),
     h('p', { class: 'muted small' }, `Your PC: ${hw.gpu ?? 'graphics card unknown'}${hw.vramGb ? ` with ${hw.vramGb} GB` : ''} · ${hw.ramGb} GB memory. Matterhorn starts local AI and loads the chat model by itself when it opens.`),
-    roleSelect('chat', 'Model for chat & answers', 'Used by Ask Matterhorn, questions in Studio, and file explanations. A fast model feels best.'),
+    roleSelect('chat', 'Model for chat & answers', 'Used by the Matterhorn chat, questions in Studio, and file explanations. A fast model feels best.'),
     roleSelect('assets', 'Model for building assets (local)', 'Writes the Blender scripts when the local builder is used. A code model works best.'),
     h('label', { for: 'asset-builder', class: 'label' }, 'Who builds assets'), builder,
     h('h3', {}, 'Recommended models for this PC'),

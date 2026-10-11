@@ -21,27 +21,31 @@
       <a class="nav" data-nav="settings" href="#settings">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"></path></svg>Settings</a>
       <span class="spacer"></span>
-      <button type="button" class="btn assistant-btn" id="assistant-toggle">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.8L19 9.5l-5.2 1.7L12 16l-1.8-4.8L5 9.5l5.2-1.7z"></path></svg>Ask Matterhorn</button>
+      <button type="button" class="btn assistant-btn" id="assistant-toggle" aria-label="Open or minimize the Matterhorn chat">Matterhorn</button>
       <button type="button" class="setup-status" id="setup-status"><span class="dot off" aria-hidden="true"></span>Checking setup…</button>
     </nav>
 
     <main id="main" class="main" tabindex="-1"></main>
 
-    <aside id="assistant" class="assistant" aria-label="Ask Matterhorn" hidden>
-      <div class="row spread">
-        <h2>Ask Matterhorn</h2>
-        <button type="button" class="btn quiet" id="assistant-close" aria-label="Close assistant">✕</button>
-      </div>
-      <span class="context" id="assistant-context">Looking at: Studio</span>
-      <div class="assistant-log" id="assistant-log" aria-live="polite">
-        <p class="msg">Ask about whatever you're looking at — an asset, a change, a file, or how to do something.</p>
-      </div>
-      <label class="label" for="assistant-input">Message</label>
-      <textarea id="assistant-input" class="field" rows="3" placeholder="Enter to send, Shift+Enter for a new line"></textarea>
-      <button type="button" class="btn primary" id="assistant-send">Send</button>
-    </aside>
   </div>
+
+  <aside id="assistant" class="chat" role="dialog" aria-label="Matterhorn chat" hidden>
+    <div class="chat-head" id="chat-head" title="Drag to move · double-click to reset">
+      <strong>Matterhorn</strong>
+      <span class="context" id="assistant-context">Studio</span>
+      <span class="spacer"></span>
+      <button type="button" class="icon-btn" id="assistant-clear" aria-label="Clear the conversation" title="Clear">⟲</button>
+      <button type="button" class="icon-btn" id="assistant-min" aria-label="Minimize chat" title="Minimize">–</button>
+      <button type="button" class="icon-btn" id="assistant-close" aria-label="Close chat" title="Close">✕</button>
+    </div>
+    <div class="chat-log" id="assistant-log" aria-live="polite"></div>
+    <div class="chat-input">
+      <label class="sr-only" for="assistant-input">Message</label>
+      <textarea id="assistant-input" class="field" rows="2" placeholder="Message Matterhorn — Enter to send"></textarea>
+      <button type="button" class="btn primary" id="assistant-send">Send</button>
+    </div>
+  </aside>
+  <button type="button" id="chat-pill" class="chat-pill" hidden>Matterhorn chat</button>
 
   <div id="sheet" class="sheet" hidden></div>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

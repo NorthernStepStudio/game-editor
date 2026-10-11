@@ -17,7 +17,7 @@ No made-up numbers: every status, score and pass/fail comes from a real check. N
 
 Local AI is ready without user action: on start the server launches Ollama if needed and pre-loads the chat model (`server/src/services/aiReadiness.ts`). Assets already on disk (game `assets/` folders and `artifacts/`, or `MATTERHORN_ASSET_SCAN_DIRS`) are imported into the library at start and on **Find new files**, referenced in place, with existing renders as previews or Blender-rendered previews; numbered revisions fold into one card.
 
-**Ask Matterhorn** is a side panel on every page and is told what the user is looking at.
+**Matterhorn chat** (sidebar button “Matterhorn”) is a floating window that stays open across pages: draggable, resizable, minimizable to a pill, conversation kept for the session. It is told which page the user is on. Asset questions are answered by searching the real library (`server/src/services/assistant.ts`) and return clickable results; other questions go to the chat model with a factual summary of the app.
 
 Old links redirect: `#home`→Studio, `#runs`/`#pipeline`/`#output`→My Game, `#projects`→My Game › Files, `#validation`/`#evidence`→My Game › Checks, `#create`→Assets, `#specialists`→Settings, `#chat`→assistant.
 

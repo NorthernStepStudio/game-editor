@@ -14,6 +14,8 @@ export interface ScriptAuthorRequest {
   readonly system: string;
   readonly prompt: string;
   readonly signal?: AbortSignal;
+  /** Called with everything written so far, while the author is still writing. */
+  readonly onText?: (soFar: string) => void;
 }
 
 export interface ScriptAuthor {
@@ -72,7 +74,10 @@ export class ClaudeCodeScriptAuthor implements ScriptAuthor {
   author(request: ScriptAuthorRequest): Promise<string> {
     const args = [
       "-p",
-      "--output-format", "json",
+      // Streamed so the script can be watched while Claude writes it.
+      "--output-format", "stream-json",
+      "--verbose",
+      "--include-partial-messages",
       "--tools", "",
       "--no-session-persistence",
       "--system-prompt", request.system,
@@ -85,12 +90,34 @@ export class ClaudeCodeScriptAuthor implements ScriptAuthor {
         shell: false,
         env: cleanClaudeEnvironment(),
       });
-      let stdout = "";
+      let pending = "";
+      let written = "";
+      let final: { result?: unknown; is_error?: boolean; terminal_reason?: string } | undefined;
       let stderr = "";
+      const readLine = (line: string) => {
+        if (!line.trim()) return;
+        let event: { type?: string; event?: { type?: string; delta?: { type?: string; text?: unknown } }; result?: unknown; is_error?: boolean; terminal_reason?: string };
+        try {
+          event = JSON.parse(line);
+        } catch {
+          return;
+        }
+        if (event.type === "result") final = event;
+        const delta = event.event?.delta;
+        if (event.type === "stream_event" && delta?.type === "text_delta" && typeof delta.text === "string") {
+          written += delta.text;
+          request.onText?.(written);
+        }
+      };
       const timer = setTimeout(() => child.kill(), AUTHOR_TIMEOUT_MS);
       const abort = () => child.kill();
       request.signal?.addEventListener("abort", abort, { once: true });
-      child.stdout.on("data", (chunk) => { stdout += chunk; });
+      child.stdout.on("data", (chunk) => {
+        pending += chunk;
+        const lines = pending.split("\n");
+        pending = lines.pop() ?? "";
+        for (const line of lines) readLine(line);
+      });
       child.stderr.on("data", (chunk) => { stderr += chunk; });
       child.on("error", (error) => {
         clearTimeout(timer);
@@ -99,12 +126,8 @@ export class ClaudeCodeScriptAuthor implements ScriptAuthor {
       child.on("close", (code) => {
         clearTimeout(timer);
         request.signal?.removeEventListener("abort", abort);
-        let parsed: { result?: unknown; is_error?: boolean; terminal_reason?: string } | undefined;
-        try {
-          parsed = JSON.parse(stdout);
-        } catch {
-          parsed = undefined;
-        }
+        readLine(pending);
+        const parsed = final;
         if (code === 0 && parsed && !parsed.is_error && typeof parsed.result === "string") {
           resolvePromise(parsed.result);
           return;
@@ -169,6 +192,7 @@ export class OllamaScriptAuthor implements ScriptAuthor {
       const lines = pending.split("\n");
       pending = lines.pop() ?? "";
       for (const line of lines) content += ollamaChunkText(line);
+      request.onText?.(content);
     }
     content += ollamaChunkText(pending);
     if (!content.trim()) throw new Error("Ollama returned an empty reply.");

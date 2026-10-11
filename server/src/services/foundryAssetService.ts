@@ -48,7 +48,7 @@ const FILE_MIME: Readonly<Record<string, string>> = {
 
 export interface FoundryAssetFileView {
   readonly name: string;
-  readonly role: 'main' | 'preview' | 'source' | 'script' | 'render' | 'frame' | 'report' | 'other';
+  readonly role: 'main' | 'preview' | 'source' | 'script' | 'render' | 'frame' | 'spin' | 'build' | 'report' | 'other';
   readonly url: string;
 }
 
@@ -260,6 +260,8 @@ export class FoundryAssetService {
     if (name.startsWith('render_')) return 'render';
     if (manifest.generationProvider === 'imported' && PREVIEW_MIME[extname(name).toLowerCase()]) return 'render';
     if (name.startsWith('dir_')) return 'frame';
+    if (/^spin_\d+\.png$/.test(name)) return 'spin';
+    if (/^build_\d+\.png$/.test(name)) return 'build';
     if (name.endsWith('.json')) return 'report';
     if (file === manifest.previewPath) return 'preview';
     return 'other';

@@ -10,7 +10,7 @@
 
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { findBlenderExecutable } from "../../../../studio/adapters/blender/blenderProcess.js";
 import type {
@@ -42,12 +42,17 @@ export interface BlenderAgentProviderOptions {
   readonly resolveParentFile?: (assetId: string) => string | undefined;
 }
 
+const FRAME_FILE = /^(build|spin)_\d+\.png$/;
+
 interface HarnessReport {
   readonly ok: boolean;
   readonly stage: string;
   readonly error?: string;
   readonly files: { blend?: string; glb?: string; sheet?: string; sprite?: string; frames?: string[] };
   readonly renders: Record<string, string>;
+  /** The model assembling part by part, then a full turn (for the live view and the spin viewer). */
+  readonly build?: string[];
+  readonly spin?: string[];
   readonly stats?: Record<string, unknown>;
   readonly engine?: string;
   readonly blenderVersion?: string;
@@ -188,7 +193,13 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
     for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
       stopIfCancelled();
       progress(`Attempt ${attempt}/${this.maxAttempts}: ${this.options.author.label} is writing the Blender script…`);
-      const reply = await this.options.author.author({ system: BLENDER_AGENT_SYSTEM_PROMPT, prompt, ...(signal ? { signal } : {}) });
+      const live = context.onLive;
+      const reply = await this.options.author.author({
+        system: BLENDER_AGENT_SYSTEM_PROMPT,
+        prompt,
+        ...(signal ? { signal } : {}),
+        ...(live ? { onText: (script: string) => live({ script }) } : {}),
+      });
       stopIfCancelled();
       const script = extractPythonScript(reply);
       writeFileSync(scriptPath, script, "utf8");
@@ -202,20 +213,41 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
       }
 
       progress(`Attempt ${attempt}: building in Blender and rendering previews…`);
+      // Each snapshot Blender writes while assembling and turning the model goes straight to the live view.
+      const sent = new Set<string>();
+      const sendFrames = (all: boolean) => {
+        const frames = readdirSync(jobDir).filter((name) => FRAME_FILE.test(name)).sort((a, b) =>
+          (a.startsWith("spin") ? 1 : 0) - (b.startsWith("spin") ? 1 : 0) || a.localeCompare(b));
+        // The newest frame may still be being written while Blender runs.
+        for (const name of all ? frames : frames.slice(0, -1)) {
+          if (sent.has(name)) continue;
+          sent.add(name);
+          context.onLive?.({ image: join(jobDir, name) });
+        }
+      };
+      const watch = context.onLive ? setInterval(() => sendFrames(false), 400) : undefined;
+      for (const name of existsSync(jobDir) ? readdirSync(jobDir) : []) {
+        if (FRAME_FILE.test(name)) rmSync(join(jobDir, name), { force: true });
+      }
       const run = await runBlender(blender, [
         "--background", "--factory-startup", "--disable-autoexec",
         "--python-exit-code", "1", "--python", harnessPath, "--", configPath,
-      ], jobDir, this.blenderTimeoutMs, signal);
+      ], jobDir, this.blenderTimeoutMs, signal).finally(() => {
+        clearInterval(watch);
+        if (context.onLive) sendFrames(true);
+      });
       stopIfCancelled();
 
       report = existsSync(reportPath) ? JSON.parse(readFileSync(reportPath, "utf8")) as HarnessReport : undefined;
+      const shown = report?.renders?.three_quarter ?? report?.renders?.front ?? report?.files?.sheet ?? report?.files?.sprite;
+      if (shown && existsSync(shown)) context.onLive?.({ image: resolve(shown) });
       if (report?.ok) {
         attempts.push({ attempt, outcome: "ok" });
         break;
       }
       const error = report?.error ?? (run.timedOut ? "Blender timed out." : tail(run.output, 3000));
       attempts.push({ attempt, outcome: `${report?.stage ?? "blender"}: ${firstLine(error)}` });
-      progress(`Attempt ${attempt}: Blender reported a problem at the ${report?.stage ?? "run"} stage; asking for a fix.`);
+      progress(`Attempt ${attempt}: Blender reported a problem at the ${report?.stage ?? "run"} stage (${firstLine(error).slice(0, 160)}); asking for a fix.`);
       prompt = repairPrompt(script, `Blender failed at the "${report?.stage ?? "run"}" stage:\n${error}`);
       report = undefined;
     }
@@ -234,6 +266,8 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
       scriptPath,
       reportPath,
       ...Object.values(report.renders),
+      ...(report.build ?? []),
+      ...(report.spin ?? []),
       ...(report.files.frames ?? []),
     ].filter((file): file is string => Boolean(file) && file !== main).map((file) => resolve(file));
     const previewPath = mode === "model" ? report.renders.three_quarter : main;

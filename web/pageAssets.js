@@ -1,4 +1,4 @@
-import { api, h, clear, btn, action, pills, toast, timeAgo, slug, store } from './ui.js';
+import { api, h, clear, btn, action, pills, toast, timeAgo, slug, store, elapsed } from './ui.js';
 
 const KIND_LABEL = {
   mesh_3d: '3D model', sprite_sheet: 'Sprite sheet', pixel_sprite: 'Pixel art', rig: 'Rig', animation: 'Animation',
@@ -38,6 +38,7 @@ async function loadData() {
     jobs: jobs.jobs ?? [],
     styles: styles.styles ?? [],
     builders: (providers.providers ?? []).filter((p) => p.id.startsWith('blender-agent') && p.available),
+    meshy: (providers.providers ?? []).find((p) => p.id === 'meshy-image-to-3d'),
     games: (projects.projects ?? []).filter((p) => p.id !== 'library'),
     routing,
   };
@@ -293,17 +294,129 @@ function renderJob(main, jobId) {
       ? h('div', { class: 'row' }, action('Cancel build', async () => { await api(`/api/foundry/jobs/${job.jobId}/cancel`, {}); toast('Cancelled.'); location.hash = '#assets'; }))
       : null,
     job.status === 'succeeded' && job.assetIds?.[0] ? h('a', { class: 'btn primary', href: `#assets/${encodeURIComponent(job.assetIds[0])}` }, 'Open the asset') : null,
-    h('section', { class: 'card' },
-      h('h2', {}, 'Progress'),
-      h('ol', { class: 'log' }, (job.progress ?? []).map((p) => h('li', {}, h('time', {}, new Date(p.at).toLocaleTimeString()), ' ', p.message)))),
+    job.status === 'running' || job.status === 'queued'
+      ? liveView(job)
+      : h('section', { class: 'card' },
+        h('h2', {}, 'Progress'),
+        h('ol', { class: 'log' }, (job.progress ?? []).map((p) => h('li', {}, h('time', {}, new Date(p.at).toLocaleTimeString()), ' ', p.message)))),
   );
-  if (job.status === 'running' || job.status === 'queued') {
-    state.poll = setTimeout(async () => {
-      if (location.hash !== `#assets/build/${jobId}`) return;
-      await loadData();
-      renderJob(main, jobId);
-    }, 3000);
-  }
+  if (job.status === 'running' || job.status === 'queued') followLive(main, job);
+}
+
+// ── Live view of a running build ─────────────────────────────────────
+const live = { jobId: undefined, scriptLength: 0, frames: 0, shown: -1, player: undefined };
+
+/** Plays every picture Blender made, in order, so you watch the model assemble and turn. */
+function playFrames(jobId, name) {
+  if (live.player || live.shown >= live.frames - 1) return;
+  live.player = setInterval(() => {
+    const picture = document.querySelector('#live-picture');
+    if (!picture || live.jobId !== jobId || live.shown >= live.frames - 1) {
+      clearInterval(live.player);
+      live.player = undefined;
+      return;
+    }
+    live.shown += 1;
+    let img = picture.querySelector('img');
+    if (!img) {
+      img = h('img', { class: 'live-image', alt: '' });
+      clear(picture, img);
+    }
+    img.src = `/api/foundry/jobs/${jobId}/live/image?i=${live.shown}`;
+    img.alt = `${name} as it is being built (picture ${live.shown + 1})`;
+  }, 260);
+}
+
+function liveView(job) {
+  live.jobId = job.jobId;
+  live.scriptLength = 0;
+  live.frames = 0;
+  live.shown = -1;
+  clearInterval(live.player);
+  live.player = undefined;
+  return h('section', { class: 'card live-card', 'aria-label': 'Live view' },
+    h('div', { class: 'live-head' },
+      h('span', { class: 'pulse', 'aria-hidden': 'true' }),
+      h('h2', {}, 'Live'),
+      h('span', { class: 'elapsed', id: 'live-elapsed' }, job.startedAt ? elapsed(job.startedAt) : 'Waiting for its turn…')),
+    h('div', { class: 'live' },
+      h('div', { class: 'stack' },
+        h('ol', { class: 'live-steps', id: 'live-steps', 'aria-live': 'polite' }),
+        h('span', { class: 'label', id: 'live-script-label' }, 'The script, as it is written'),
+        h('pre', { class: 'live-script', id: 'live-script' }, h('span', { class: 'muted' }, 'Nothing written yet.'))),
+      h('div', { id: 'live-picture' },
+        h('div', { class: 'live-wait' }, h('p', {}, 'The model appears here as soon as Blender renders it.')))));
+}
+
+function paintSteps(job) {
+  const list = document.querySelector('#live-steps');
+  if (!list) return;
+  const steps = job.progress ?? [];
+  clear(list, steps.length
+    ? steps.slice(-12).map((p, i, all) => h('li', { class: i === all.length - 1 ? 'now' : '' },
+      h('time', {}, new Date(p.at).toLocaleTimeString()), h('span', {}, p.message)))
+    : h('li', { class: 'now' }, h('span', {}, job.status === 'queued' ? 'Waiting for the build before it to finish…' : 'Starting…')));
+}
+
+async function followLive(main, job) {
+  paintSteps(job);
+  const hash = `#assets/build/${job.jobId}`;
+  const tick = async () => {
+    if (location.hash !== hash || live.jobId !== job.jobId) return;
+    let current;
+    let view;
+    try {
+      [current, view] = await Promise.all([
+        api(`/api/foundry/jobs/${job.jobId}`).then((r) => r.job),
+        api(`/api/foundry/jobs/${job.jobId}/live`),
+      ]);
+    } catch {
+      state.poll = setTimeout(tick, 3000);
+      return;
+    }
+    if (location.hash !== hash) return;
+    if (current.status !== 'running' && current.status !== 'queued') {
+      if (view?.frames) live.frames = view.frames;
+      // Let the assembly finish playing, then open the finished model so it can be turned around.
+      const waitForPlayer = () => {
+        if (location.hash !== hash) return;
+        if (live.player && live.shown < live.frames - 1) {
+          state.poll = setTimeout(waitForPlayer, 300);
+          return;
+        }
+        if (current.status === 'succeeded' && current.assetIds?.[0]) {
+          toast(`${current.displayName ?? current.assetId} is ready. Drag it to turn it around.`);
+          location.hash = `#assets/${encodeURIComponent(current.assetIds[0])}`;
+          return;
+        }
+        loadData().then(() => renderJob(main, job.jobId));
+      };
+      if (view?.frames) playFrames(job.jobId, job.displayName ?? job.assetId);
+      waitForPlayer();
+      return;
+    }
+    paintSteps(current);
+    const clock = document.querySelector('#live-elapsed');
+    if (clock && current.startedAt) clock.textContent = elapsed(current.startedAt);
+    const pre = document.querySelector('#live-script');
+    if (pre && typeof view.script === 'string' && view.script.length !== live.scriptLength) {
+      const stuck = pre.scrollHeight - pre.scrollTop - pre.clientHeight < 40;
+      if (view.script.length < live.scriptLength) {
+        const label = document.querySelector('#live-script-label');
+        if (label) label.textContent = 'The script, as it is written (new attempt)';
+      }
+      live.scriptLength = view.script.length;
+      clear(pre, view.script, h('span', { class: 'caret', 'aria-hidden': 'true' }));
+      if (stuck) pre.scrollTop = pre.scrollHeight;
+    }
+    if (view.frames > live.frames) {
+      live.frames = view.frames;
+      playFrames(job.jobId, job.displayName ?? job.assetId);
+    }
+    state.poll = setTimeout(tick, 1000);
+  };
+  clearTimeout(state.poll);
+  state.poll = setTimeout(tick, 600);
 }
 
 // ── Asset page ───────────────────────────────────────────────────────
@@ -321,6 +434,8 @@ async function renderDetail(main, assetId) {
   const files = asset.files ?? [];
   const renders = files.filter((f) => f.role === 'render').sort((a, b) => RENDER_ORDER.indexOf(a.name) - RENDER_ORDER.indexOf(b.name));
   const frames = files.filter((f) => f.role === 'frame');
+  const spin = files.filter((f) => f.role === 'spin').sort((a, b) => a.name.localeCompare(b.name));
+  const buildUp = files.filter((f) => f.role === 'build').sort((a, b) => a.name.localeCompare(b.name));
   const views = renders.length ? renders : asset.previewUrl ? [{ name: 'preview', url: asset.previewUrl }] : [];
   const hasScript = files.some((f) => f.role === 'script');
   const big = h('img', { class: 'view-main', src: views[0]?.url ?? '', alt: `${name}, ${viewLabel(views[0]?.name)} view`, hidden: !views.length });
@@ -355,15 +470,17 @@ async function renderDetail(main, assetId) {
       h('section', { class: 'viewer', 'aria-label': 'Views' },
         audioFile
           ? h('div', { class: 'card' }, h('span', { class: 'label' }, 'Listen'), h('audio', { controls: true, preload: 'none', src: audioFile.url, class: 'audio' }))
+          : spin.length >= 4 ? spinViewer(spin, buildUp, name)
           : views.length ? big : h('div', { class: 'view-main placeholder' }, h('p', { class: 'muted' },
             asset.generationProvider === 'imported' && asset.type === 'mesh_3d'
               ? 'A preview is being rendered in Blender — check back in a minute.'
               : 'No preview image for this asset.')),
-        views.length > 1 ? h('div', { class: 'view-row' }, viewButtons) : null,
+        views.length > 1 && spin.length < 4 ? h('div', { class: 'view-row' }, viewButtons) : null,
         frames.length ? h('details', { class: 'card' }, h('summary', {}, `All ${frames.length} sprite directions`),
           h('div', { class: 'frames' }, frames.map((f) => h('img', { src: f.url, alt: f.name })))) : null),
       h('aside', { class: 'side' },
         hasScript || canContinue(asset, files) ? changeCard(asset, hasScript) : null,
+        IMAGE_KINDS.has(asset.type) ? imageTo3dCard(asset) : null,
         sendCard(asset),
         downloadCard(files),
         versionsCard(detail.lineage ?? [], asset.assetId),
@@ -373,6 +490,73 @@ async function renderDetail(main, assetId) {
             toast(`${name} removed from the library. Its files are still on disk.`);
             location.hash = '#assets';
           }, 'quiet danger')))));
+}
+
+/** Drag (or use the arrow keys) to turn the model; Replay shows it being assembled part by part. */
+function spinViewer(spin, buildUp, name) {
+  let index = Math.round(spin.length * 35 / 360) % spin.length;
+  let timer;
+  for (const f of [...spin, ...buildUp]) new window.Image().src = f.url;
+  const img = h('img', { class: 'view-main spin-img', src: spin[index].url, alt: `${name}, turned to ${index * Math.round(360 / spin.length)}°`, draggable: 'false' });
+  const show = (i) => {
+    index = (i + spin.length) % spin.length;
+    img.src = spin[index].url;
+    img.alt = `${name}, turned to ${index * Math.round(360 / spin.length)}°`;
+  };
+  const stop = () => {
+    clearInterval(timer);
+    timer = undefined;
+    turnBtn.setAttribute('aria-pressed', 'false');
+    turnBtn.textContent = 'Turn';
+  };
+  const stage = h('div', { class: 'spin', tabindex: '0', role: 'img', 'aria-label': `${name}. Drag or use the arrow keys to turn it.` }, img);
+  let dragX;
+  let dragFrom = 0;
+  stage.addEventListener('pointerdown', (e) => {
+    stop();
+    dragX = e.clientX;
+    dragFrom = index;
+    stage.setPointerCapture?.(e.pointerId);
+  });
+  stage.addEventListener('pointermove', (e) => {
+    if (dragX === undefined) return;
+    show(dragFrom - Math.round((e.clientX - dragX) / 14));
+  });
+  const release = () => { dragX = undefined; };
+  stage.addEventListener('pointerup', release);
+  stage.addEventListener('pointercancel', release);
+  stage.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      stop();
+      show(index + (e.key === 'ArrowLeft' ? -1 : 1));
+    }
+  });
+  const turnBtn = h('button', { type: 'button', class: 'btn small', 'aria-pressed': 'false', onclick: () => {
+    if (timer) return stop();
+    turnBtn.setAttribute('aria-pressed', 'true');
+    turnBtn.textContent = 'Stop turning';
+    timer = setInterval(() => show(index + 1), 90);
+  } }, 'Turn');
+  const replayBtn = buildUp.length ? h('button', { type: 'button', class: 'btn small', onclick: () => {
+    stop();
+    let step = 0;
+    img.src = buildUp[0].url;
+    img.alt = `${name} being built, part 1 of ${buildUp.length}`;
+    timer = setInterval(() => {
+      step += 1;
+      if (step < buildUp.length) {
+        img.src = buildUp[step].url;
+        img.alt = `${name} being built, part ${step + 1} of ${buildUp.length}`;
+        return;
+      }
+      clearInterval(timer);
+      timer = undefined;
+      show(index);
+    }, 280);
+  } }, 'Replay the build') : null;
+  return h('div', { class: 'stack' }, stage,
+    h('div', { class: 'row wrap spin-tools' }, h('span', { class: 'muted small' }, 'Drag to turn it'), turnBtn, replayBtn));
 }
 
 function viewLabel(fileName = '') {
@@ -421,6 +605,80 @@ function changeCard(asset, hasScript) {
       });
       toast(`Making version ${version}. The current version stays in Versions.`);
       location.hash = '#assets';
+    }, 'primary'));
+}
+
+const IMAGE_KINDS = new Set(['concept_art', 'texture', 'background', 'pixel_sprite']);
+const VIEW_ORDER = ['front', 'left', 'side', 'right', 'back', 'three_quarter', '3_4', 'a_pose'];
+
+function viewRank(asset) {
+  const text = `${asset.displayName ?? ''} ${asset.assetId}`.toLowerCase().replace(/[\s-]+/g, '_');
+  const index = VIEW_ORDER.findIndex((v) => text.includes(v));
+  return index < 0 ? VIEW_ORDER.length : index;
+}
+
+/** Image-to-3D: this image (and other views from the same folder) become a textured 3D model. */
+function imageTo3dCard(asset) {
+  const meshy = state.data.meshy;
+  const head = h('span', { class: 'label' }, 'Make a 3D model from this');
+  if (!meshy?.available) {
+    return h('section', { class: 'card' }, head,
+      h('p', { class: 'muted small' }, 'Image-to-3D uses Meshy, a paid online service. Create a Meshy account, copy your API key, add MESHY_API_KEY=your-key to the .env file in the Matterhorn folder, and restart Matterhorn.'),
+      h('a', { class: 'btn small', href: '#settings/guide' }, 'How to set it up'));
+  }
+  const siblings = state.data.assets
+    .filter((a) => !a.hidden && IMAGE_KINDS.has(a.type) && a.source && a.source === asset.source)
+    .sort((a, b) => viewRank(a) - viewRank(b) || a.assetId.localeCompare(b.assetId));
+  const pool = [asset, ...siblings.filter((a) => a.assetId !== asset.assetId)].slice(0, 8);
+  // Named views (front, left, back, 3/4) are picked for you; otherwise just this image.
+  const named = pool.filter((a) => viewRank(a) < VIEW_ORDER.length && !/right|a_pose/.test(`${a.displayName} ${a.assetId}`.toLowerCase().replace(/[\s-]+/g, '_')));
+  const chosen = new Set((named.length >= 2 ? named : [asset]).slice(0, 4).map((a) => a.assetId));
+  const cost = meshy.estimatedCost?.amount ?? 30;
+  const status = h('p', { class: 'muted small', 'aria-live': 'polite' });
+  const paintStatus = () => { status.textContent = `${chosen.size} of 4 views chosen. The first is used as the front.`; };
+  const list = h('div', { class: 'list' }, pool.map((a) => {
+    const box = h('input', { type: 'checkbox', checked: chosen.has(a.assetId), onchange: (e) => {
+      if (e.currentTarget.checked && chosen.size >= 4) {
+        e.currentTarget.checked = false;
+        toast('Meshy takes up to 4 views.', 'error');
+        return;
+      }
+      if (e.currentTarget.checked) chosen.add(a.assetId); else chosen.delete(a.assetId);
+      paintStatus();
+    } });
+    return h('label', { class: 'check' }, box, a.previewUrl ? h('img', { class: 'thumb-xs', src: a.previewUrl, alt: '' }) : null, assetName(a));
+  }));
+  paintStatus();
+  const nameInput = h('input', { id: 'i23-name', class: 'field', maxlength: 60, value: `${assetName(asset).replace(/\b(front|left|right|back|three quarter|a pose)\b/gi, '').trim() || 'Character'} 3D` });
+  const approve = h('input', { type: 'checkbox', id: 'i23-approve' });
+  return h('section', { class: 'card form' }, head,
+    h('p', { class: 'muted small' }, 'Meshy builds a textured 3D model from up to 4 views of the same character (front, side, back, 3/4) in a relaxed A-pose. Afterwards you can keep working on it here with Blender.'),
+    list, status,
+    h('label', { for: 'i23-name', class: 'label' }, 'Name'), nameInput,
+    h('label', { class: 'check' }, approve, ` Spend up to ${cost} Meshy credits (failed builds are refunded)`),
+    action('Make 3D model', async () => {
+      if (!chosen.size) throw new Error('Choose at least one view.');
+      if (!approve.checked) {
+        approve.focus();
+        throw new Error('Tick the box to approve the Meshy credits first.');
+      }
+      const routing = state.data.routing;
+      if (!routing.allowNetworkProviders || !routing.allowExternalCostProviders) {
+        state.data.routing = await api('/api/studio/routing', { allowNetworkProviders: true, allowExternalCostProviders: true }, 'PUT');
+        toast('Online and paid tools switched on for this build. You can turn them off in Settings › Advanced.');
+      }
+      const ordered = pool.filter((a) => chosen.has(a.assetId)).map((a) => a.assetId);
+      const name = nameInput.value.trim() || '3D model';
+      let assetId = `${slug(name)}_meshy`;
+      for (let n = 2; state.data.assets.some((a) => a.assetId === assetId); n++) assetId = `${slug(name)}_meshy${n}`;
+      const { job } = await api('/api/foundry/jobs', {
+        projectId: 'library', assetId, kind: 'mesh_3d', operation: 'image_to_3d', referenceAssets: ordered,
+        providerId: meshy.id, allowNetwork: true, approveExternalCost: true,
+        maxCost: { currency: meshy.estimatedCost?.currency ?? 'MESHY_CREDITS', amount: cost },
+        displayName: name,
+      });
+      toast(`Meshy is building “${name}”. This usually takes a few minutes.`);
+      location.hash = `#assets/build/${encodeURIComponent(job.jobId)}`;
     }, 'primary'));
 }
 

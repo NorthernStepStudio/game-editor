@@ -1,4 +1,4 @@
-import { api, h, clear, btn, toast, store } from './ui.js';
+import { api, h, clear, btn, toast, store, elapsed } from './ui.js';
 import * as studioPage from './pageStudio.js';
 import * as gamePage from './pageGame.js';
 import * as assetsPage from './pageAssets.js';
@@ -119,6 +119,8 @@ function initNavToggle() {
     // Truly hidden (not just invisible) so its controls cannot be reached while collapsed.
     document.querySelector('.sidebar').hidden = hidden && window.innerWidth >= 760;
     document.querySelector('#nav-expand').hidden = !hidden;
+    const float = document.querySelector('#activity-float');
+    if (float) float.hidden = !hidden || document.querySelector('#activity').hidden;
     try { localStorage.setItem(KEY, hidden ? '1' : '0'); } catch { /* storage optional */ }
   };
   let hidden = false;
@@ -129,6 +131,31 @@ function initNavToggle() {
     applyNav(false);
     document.querySelector('#nav-collapse').focus();
   });
+}
+
+/** Shows what Matterhorn is working on right now, on every page; a click opens the live view. */
+async function refreshActivity() {
+  let jobs = [];
+  try {
+    jobs = (await api('/api/foundry/jobs')).jobs ?? [];
+  } catch {
+    jobs = [];
+  }
+  const running = jobs.find((j) => j.status === 'running');
+  const waiting = jobs.filter((j) => j.status === 'queued').length;
+  for (const el of [document.querySelector('#activity'), document.querySelector('#activity-float')]) {
+    if (!el) continue;
+    const isFloat = el.id === 'activity-float';
+    el.hidden = !running || (isFloat && !document.body.classList.contains('nav-hidden'));
+    if (!running) continue;
+    el.href = `#assets/build/${running.jobId}`;
+    el.setAttribute('aria-label', `Matterhorn is building ${running.displayName ?? running.assetId}. Open the live view.`);
+    clear(el,
+      h('strong', {}, h('span', { class: 'pulse', 'aria-hidden': 'true' }), `Building ${running.displayName ?? running.assetId}`),
+      h('span', { class: 'what' }, `${running.progress?.at(-1)?.message ?? 'Starting…'}`),
+      h('span', { class: 'what' }, `${running.startedAt ? elapsed(running.startedAt) : ''}${waiting ? ` · ${waiting} more waiting` : ''} · watch live`));
+  }
+  setTimeout(refreshActivity, running ? 2000 : 6000);
 }
 
 export async function start() {
@@ -155,6 +182,7 @@ export async function start() {
   await loadGames();
   await route();
   refreshSetupStatus();
+  refreshActivity();
   setInterval(refreshSetupStatus, 60000);
 }
 

@@ -25,6 +25,8 @@ const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 const AUDIO_EXT = new Set(['.ogg', '.wav', '.mp3']);
 const RENDER_HINT = /(three[-_]?quarter|preview|front|render|thumb|turntable|beauty)/i;
 const MAX_FILES = 3000;
+/** Work-folder images are imported only from reference folders (sheets and views to build from). */
+const REFERENCE_DIR = /(^|[\\/])(reference|references|views_isolated)([\\/]|$)/i;
 
 export interface ImportStatus {
   readonly scanning: boolean;
@@ -182,6 +184,11 @@ export class FoundryImporter {
         for (const sound of audio) {
           const rel = relative(root.path, sound).toLowerCase();
           yield this.candidate(root, sound, /music|theme|loop|bgm/.test(rel) ? 'audio_music' : 'audio_sfx', undefined, [], false);
+        }
+      } else if (REFERENCE_DIR.test(relative(root.path, dir))) {
+        // Reference art (character sheets, turnaround views) is what image-to-3D builds from.
+        for (const image of images) {
+          if (!usedImages.has(image)) yield this.candidate(root, image, 'concept_art', image, [], false);
         }
       }
       void dir;

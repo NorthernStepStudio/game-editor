@@ -1,5 +1,9 @@
+import { readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { extname } from 'node:path';
 import type { StudioService } from './studioService.js';
+
+const LIVE_IMAGE_TYPES: Readonly<Record<string, string>> = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
 
 function sendJson(
   response: ServerResponse,
@@ -31,7 +35,8 @@ export async function foundryRoutes(
   service: StudioService,
   readBody: () => Promise<unknown>,
 ): Promise<boolean> {
-  const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
+  const url = new URL(request.url ?? '/', 'http://localhost');
+  const pathname = url.pathname;
   if (!pathname.startsWith('/api/foundry/')) return false;
 
   if (request.method === 'GET' && pathname === '/api/foundry/providers') {
@@ -86,6 +91,27 @@ export async function foundryRoutes(
     const job = service.foundryGeneration.getJob(jobMatch[1]);
     if (!job) sendJson(response, 404, { error: 'Job not found.' });
     else sendJson(response, 200, { job });
+    return true;
+  }
+
+  const liveMatch = /^\/api\/foundry\/jobs\/([a-f0-9-]{36})\/live(\/image)?$/.exec(pathname);
+  if (request.method === 'GET' && liveMatch) {
+    if (liveMatch[2]) {
+      const requested = Number.parseInt(url.searchParams.get('i') ?? '', 10);
+      const image = service.foundryGeneration.liveImage(liveMatch[1], Number.isInteger(requested) && requested >= 0 ? requested : undefined);
+      const type = image ? LIVE_IMAGE_TYPES[extname(image).toLowerCase()] : undefined;
+      if (!image || !type) {
+        sendJson(response, 404, { error: 'No image yet.' });
+      } else {
+        const bytes = readFileSync(image);
+        response.writeHead(200, { 'Content-Type': type, 'Content-Length': String(bytes.length), 'Cache-Control': 'no-store' });
+        response.end(bytes);
+      }
+      return true;
+    }
+    const live = service.foundryGeneration.liveView(liveMatch[1]);
+    if (!live) sendJson(response, 404, { error: 'Job not found.' });
+    else sendJson(response, 200, live);
     return true;
   }
 

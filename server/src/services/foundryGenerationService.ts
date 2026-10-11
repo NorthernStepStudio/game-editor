@@ -10,12 +10,17 @@ import {
   FoundryAssetCatalog,
   FoundryAssetForge,
   FoundryAssetProviderRegistry,
+  MESHY_CREDIT_CURRENCY,
+  MESHY_PROVIDER_DESCRIPTOR,
+  MESHY_REQUEST_CREDITS,
+  MeshyImageTo3DProvider,
   SPRITE_FUSION_CREDIT_CURRENCY,
   SPRITE_FUSION_REQUEST_CREDITS,
   SPRITE_FUSION_PROVIDER_DESCRIPTOR,
   SpriteFusionAssetProvider,
   type FoundryAssetCost,
   type FoundryAssetExecution,
+  type FoundryLiveUpdate,
   type FoundryAssetKind,
   type FoundryAssetOperation,
   type FoundryAssetProvider,
@@ -147,6 +152,8 @@ export class FoundryGenerationService {
   private readonly jobs = new Map<string, FoundryJob>();
   private jobQueue: Promise<void> = Promise.resolve();
   private readonly aborts = new Map<string, AbortController>();
+  /** What a running build is doing right now (kept in memory only; it is a view, not history). */
+  private readonly liveViews = new Map<string, { script?: string; frames: string[]; updatedAt: string }>();
   private readonly styles?: FoundryStyleStore;
   private readonly jobsPath?: string;
   private readonly assetModel?: () => string | undefined;
@@ -189,6 +196,17 @@ export class FoundryGenerationService {
       if (comfy.provider) this.registry.register(comfy.provider);
 
       this.registerBlenderAgents();
+
+      const meshyKey = this.env.MESHY_API_KEY?.trim();
+      if (meshyKey) {
+        this.registry.register(new MeshyImageTo3DProvider({
+          apiKey: meshyKey,
+          resolveImagePath: (assetId) => {
+            const file = this.assets.store.get(assetId)?.localPath;
+            return file && /\.(png|jpe?g|webp)$/i.test(file) && existsSync(file) ? file : undefined;
+          },
+        }));
+      }
     }
 
     this.forge = new FoundryAssetForge(this.registry, {
@@ -227,6 +245,24 @@ export class FoundryGenerationService {
       },
     ];
 
+    const meshy = configured.get(MESHY_PROVIDER_DESCRIPTOR.id);
+    statuses.push({
+      id: MESHY_PROVIDER_DESCRIPTOR.id,
+      name: MESHY_PROVIDER_DESCRIPTOR.name,
+      configured: Boolean(meshy),
+      available: Boolean(meshy),
+      local: false,
+      requiresNetwork: true,
+      externalCost: true,
+      commercialUseAllowed: true,
+      operations: MESHY_PROVIDER_DESCRIPTOR.operations,
+      kinds: MESHY_PROVIDER_DESCRIPTOR.kinds,
+      note: meshy
+        ? 'Configured. Turns 1–4 views of a character into a textured 3D model; each build asks for your approval and a credit budget first.'
+        : 'Turns a character sheet into a 3D model. Create a Meshy account, copy your API key, and add MESHY_API_KEY=your-key to the .env file, then restart Matterhorn.',
+      estimatedCost: { currency: MESHY_CREDIT_CURRENCY, amount: MESHY_REQUEST_CREDITS },
+    });
+
     const comfy = configured.get('comfyui-local');
     statuses.push({
       id: 'comfyui-local',
@@ -263,6 +299,7 @@ export class FoundryGenerationService {
     for (const descriptor of configured.values()) {
       if (
         descriptor.id === SPRITE_FUSION_PROVIDER_DESCRIPTOR.id ||
+        descriptor.id === MESHY_PROVIDER_DESCRIPTOR.id ||
         descriptor.id === 'comfyui-local'
       ) {
         continue;
@@ -285,7 +322,12 @@ export class FoundryGenerationService {
     return statuses.sort((a, b) => a.id.localeCompare(b.id));
   }
 
-  async execute(raw: unknown, onProgress?: (message: string) => void, signal?: AbortSignal): Promise<FoundryAssetExecution> {
+  async execute(
+    raw: unknown,
+    onProgress?: (message: string) => void,
+    signal?: AbortSignal,
+    onLive?: (update: FoundryLiveUpdate) => void,
+  ): Promise<FoundryAssetExecution> {
     if (this.busy) {
       throw new Error('Another Foundry generation is already in progress.');
     }
@@ -427,6 +469,7 @@ export class FoundryGenerationService {
           outputRoot,
           ...(onProgress ? { onProgress } : {}),
           ...(signal ? { signal } : {}),
+          ...(onLive ? { onLive } : {}),
         },
       });
     } finally {
@@ -551,6 +594,26 @@ export class FoundryGenerationService {
     }));
   }
 
+  /** The live view of a build: the script as it is being written and the latest image. */
+  liveView(jobId: string): { readonly status: FoundryJob['status']; readonly script?: string; readonly frames: number; readonly updatedAt?: string } | undefined {
+    const job = this.jobs.get(jobId);
+    if (!job) return undefined;
+    const live = this.liveViews.get(jobId);
+    return {
+      status: job.status,
+      ...(live?.script !== undefined ? { script: live.script } : {}),
+      frames: live?.frames.length ?? 0,
+      ...(live ? { updatedAt: live.updatedAt } : {}),
+    };
+  }
+
+  /** One picture of the live view by its position (the latest when no position is given). */
+  liveImage(jobId: string, index?: number): string | undefined {
+    const frames = this.liveViews.get(jobId)?.frames ?? [];
+    const image = index === undefined ? frames.at(-1) : frames[index];
+    return image && existsSync(image) ? image : undefined;
+  }
+
   listJobs(): readonly FoundryJobView[] {
     return [...this.jobs.values()].reverse().map((job) => this.jobView(job));
   }
@@ -573,7 +636,18 @@ export class FoundryGenerationService {
       this.persistJobs();
     };
     try {
-      const execution = await this.execute(job.input, progress, abort.signal);
+      const live = (update: FoundryLiveUpdate) => {
+        const current = this.liveViews.get(job.jobId) ?? { frames: [], updatedAt: '' };
+        // Every picture is kept in order so the viewer can play the whole assembly, not just the latest.
+        const frames = update.image ? [...current.frames, update.image].slice(-200) : current.frames;
+        this.liveViews.set(job.jobId, {
+          ...current,
+          ...(update.script !== undefined ? { script: update.script.slice(-40_000) } : {}),
+          frames,
+          updatedAt: new Date().toISOString(),
+        });
+      };
+      const execution = await this.execute(job.input, progress, abort.signal, live);
       job.assetIds = execution.manifests.map((manifest) => manifest.assetId);
       job.providerId = execution.provider.id;
       job.status = 'succeeded';

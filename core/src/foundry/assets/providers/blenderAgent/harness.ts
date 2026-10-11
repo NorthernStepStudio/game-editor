@@ -308,13 +308,13 @@ def place_camera(azimuth_deg, elevation_deg, orthographic):
     camera.location = center + direction * distance
     camera.rotation_euler = (center - camera.location).to_track_quat("-Z", "Y").to_euler()
 
-def render_to(filepath, width, height, pixel_art=False):
+def render_to(filepath, width, height, pixel_art=False, samples=32):
     scene.render.resolution_x = width
     scene.render.resolution_y = height
     scene.render.resolution_percentage = 100
     scene.render.filter_size = 0.0 if pixel_art else 1.5
     if hasattr(scene, "eevee") and hasattr(scene.eevee, "taa_render_samples"):
-        scene.eevee.taa_render_samples = 1 if pixel_art else 32
+        scene.eevee.taa_render_samples = 1 if pixel_art else samples
     scene.render.filepath = filepath
     bpy.ops.render.render(write_still=True)
     return filepath
@@ -340,7 +340,35 @@ def compose_sheet(paths, columns, width, height, destination):
     sheet.save()
     return destination
 
+# Live view: the model assembling part by part (in the order the script made the parts),
+# written frame by frame so Matterhorn can show it while Blender is still working,
+# then a full turn so the finished model can be spun around.
+if CFG.get("liveFrames", True):
+    try:
+        REPORT["stage"] = "live"
+        parts = sorted(meshes, key=lambda o: getattr(o, "session_uid", 0))
+        steps = min(len(parts), 24)
+        hidden = {o.name: o.hide_render for o in parts}
+        place_camera(35, 22, False)
+        build_frames = []
+        for step in range(1, steps + 1):
+            shown = parts[:int(math.ceil(step * len(parts) / float(steps)))]
+            for obj in parts:
+                obj.hide_render = obj not in shown or hidden[obj.name]
+            build_frames.append(render_to(path("build_%02d.png" % step), 384, 384, samples=8))
+        for obj in parts:
+            obj.hide_render = hidden[obj.name]
+        REPORT["build"] = build_frames
+        spin_frames = []
+        for i in range(24):
+            place_camera(i * 15.0, 15, False)
+            spin_frames.append(render_to(path("spin_%02d.png" % i), 384, 384, samples=8))
+        REPORT["spin"] = spin_frames
+    except Exception:
+        REPORT["liveError"] = traceback.format_exc(limit=3)
+
 try:
+    REPORT["stage"] = "render"
     views = [("front", 0, 8), ("three_quarter", 35, 22), ("side", 90, 8), ("back", 180, 8)]
     for label, az, el in views:
         place_camera(az, el, False)

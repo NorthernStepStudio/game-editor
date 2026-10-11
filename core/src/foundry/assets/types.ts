@@ -95,12 +95,21 @@ export interface FoundryAssetRoutingPolicy {
   readonly maxEstimatedCost?: FoundryAssetCost;
 }
 
+export interface FoundryLiveUpdate {
+  /** Everything the AI has written so far for the current attempt. */
+  readonly script?: string;
+  /** Latest image of the asset (a render or the provider's own preview). */
+  readonly image?: string;
+}
+
 export interface FoundryAssetProviderContext {
   readonly projectId?: string;
   readonly outputRoot?: string;
   readonly maxCost?: FoundryAssetCost;
   /** Optional human-readable progress for long-running local providers. */
   readonly onProgress?: (message: string) => void;
+  /** Optional live view of the work in progress: the script as it is written, the latest render. */
+  readonly onLive?: (update: FoundryLiveUpdate) => void;
   /** Aborted when the user cancels; long-running providers stop at their next safe point. */
   readonly signal?: AbortSignal;
 }

@@ -34,13 +34,18 @@ const assets = [
   { assetId: 'crate_ab12', type: 'mesh_3d', displayName: 'Wooden crate', prompt: 'a sturdy wooden crate', generationProvider: 'blender-agent-local', model: 'Ollama:gemma4:12b',
     createdAt: '2026-10-10T08:00:00Z', previewUrl: '/api/foundry/assets/crate_ab12/preview',
     files: [file('crate_ab12', 'crate_ab12.glb', 'main'), file('crate_ab12', 'crate_ab12.blend', 'source'), file('crate_ab12', 'crate_ab12_script.py', 'script'),
-      file('crate_ab12', 'render_front.png', 'render'), file('crate_ab12', 'render_three_quarter.png', 'render')] },
+      file('crate_ab12', 'render_front.png', 'render'), file('crate_ab12', 'render_three_quarter.png', 'render'),
+      ...[0, 1, 2, 3, 4, 5].map((i) => file('crate_ab12', `spin_0${i}.png`, 'spin')), ...[1, 2, 3].map((i) => file('crate_ab12', `build_0${i}.png`, 'build'))] },
   { assetId: 'stall_x1_d1', type: 'mesh_3d', displayName: 'Market stall', prompt: 'market stall', draftGroup: 'stall_x1', createdAt: '2026-10-10T09:00:00Z', generationProvider: 'blender-agent-claude',
     files: [file('stall_x1_d1', 'stall_x1_d1.glb', 'main'), file('stall_x1_d1', 'stall_x1_d1_script.py', 'script'), file('stall_x1_d1', 'render_front.png', 'render')] },
   { assetId: 'imp_yun_cars_sedan_ab1234', type: 'mesh_3d', displayName: 'Sedan', generationProvider: 'imported', source: 'Yun game · kenney/cars', createdAt: '2026-09-01T08:00:00Z',
     previewUrl: '/api/foundry/assets/imp_yun_cars_sedan_ab1234/preview', files: [file('imp_yun_cars_sedan_ab1234', 'sedan.glb', 'main')] },
   { assetId: 'imp_yun_sfx_jump_cd5678', type: 'audio_sfx', displayName: 'Jump', generationProvider: 'imported', source: 'Yun game · sfx', createdAt: '2026-09-01T08:00:00Z',
     files: [file('imp_yun_sfx_jump_cd5678', 'jump.ogg', 'main')] },
+  { assetId: 'imp_ref_front_aa1111', type: 'concept_art', displayName: 'Front', generationProvider: 'imported', source: 'Yun urban adventurer · reference/views_isolated',
+    createdAt: '2026-10-11T08:00:00Z', previewUrl: '/api/foundry/assets/imp_ref_front_aa1111/preview', files: [file('imp_ref_front_aa1111', 'front.png', 'main')] },
+  { assetId: 'imp_ref_back_bb2222', type: 'concept_art', displayName: 'Back', generationProvider: 'imported', source: 'Yun urban adventurer · reference/views_isolated',
+    createdAt: '2026-10-11T08:00:00Z', previewUrl: '/api/foundry/assets/imp_ref_back_bb2222/preview', files: [file('imp_ref_back_bb2222', 'back.png', 'main')] },
   { assetId: 'stall_x1_d2', type: 'mesh_3d', displayName: 'Market stall', prompt: 'market stall', draftGroup: 'stall_x1', createdAt: '2026-10-10T09:10:00Z', generationProvider: 'blender-agent-claude',
     files: [file('stall_x1_d2', 'stall_x1_d2.glb', 'main')] },
 ];
@@ -93,6 +98,8 @@ function fixture(path, method, body) {
   if (p === '/api/foundry/assets') return { assets, count: assets.length };
   if (p === '/api/foundry/jobs' && method === 'GET') return { jobs };
   if (p === '/api/foundry/jobs') return { job: { ...jobs[0], jobId: '33333333-3333-3333-3333-333333333333', assetId: body.assetId, displayName: body.displayName, status: 'queued' } };
+  if (/^\/api\/foundry\/jobs\/[^/]+\/live$/.test(p)) return { status: 'running', script: 'import bpy\nbody =bpy.ops.mesh.primitive_cylinder_add()', frames: 0, updatedAt: '2026-10-11T09:00:05Z' };
+  if (/^\/api\/foundry\/jobs\/[0-9a-f-]{36}$/.test(p)) return { job: jobs.find((j) => p.endsWith(j.jobId)) ?? jobs[0] };
   if (/^\/api\/foundry\/jobs\/[^/]+\/(cancel|retry)$/.test(p)) return { job: { ...jobs[1], assetId: 'lamp_z9_r2', status: 'queued' } };
   if (p === '/api/foundry/packs') return { jobs: body.items.map((i) => ({ ...jobs[0], assetId: i.name })) };
   if (p === '/api/foundry/styles' && method === 'GET') return { styles: [{ id: '44444444-4444-4444-4444-444444444444', name: 'Calle', description: 'warm pastel street' }] };
@@ -107,7 +114,8 @@ function fixture(path, method, body) {
   if (p === '/api/foundry/providers') return { providers: [
     { id: 'blender-agent-claude', name: 'Blender Agent (Claude Code)', available: true, local: false, requiresNetwork: true, note: 'Uses Claude' },
     { id: 'blender-agent-local', name: 'Blender Agent (local gemma4:12b)', available: true, local: true, requiresNetwork: false, note: 'Local' },
-    { id: 'comfyui-local', name: 'ComfyUI Local', available: false, note: 'Configure ComfyUI' }] };
+    { id: 'comfyui-local', name: 'ComfyUI Local', available: false, note: 'Configure ComfyUI' },
+    { id: 'meshy-image-to-3d', name: 'Meshy (images to 3D)', available: true, requiresNetwork: true, externalCost: true, estimatedCost: { currency: 'MESHY_CREDITS', amount: 30 }, note: 'Configured' }] };
   const assetAction = /^\/api\/foundry\/assets\/([^/]+)(?:\/(send|keep|hide|show|rename))?$/.exec(p);
   if (assetAction) {
     const asset = assets.find((a) => a.assetId === decodeURIComponent(assetAction[1]));
@@ -176,7 +184,7 @@ test('every control in the new Matterhorn UI does something real', async () => {
   assert.deepEqual([...document.querySelectorAll('.sidebar a.nav')].map((a) => a.textContent.trim()), ['Studio', 'My Game', 'Assets', 'Settings']);
 
   const routes = ['#studio', '#game/changes', '#game/changes/run-failed', '#game/checks', '#game/files', '#assets', '#assets/crate_ab12', '#assets/stall_x1_d1',
-    '#assets/build/22222222-2222-2222-2222-222222222222', '#assets/build/11111111-1111-1111-1111-111111111111', '#assets/imp_yun_sfx_jump_cd5678', '#assets/imp_yun_cars_sedan_ab1234', '#settings', '#settings/brand', '#settings/guide'];
+    '#assets/build/22222222-2222-2222-2222-222222222222', '#assets/build/11111111-1111-1111-1111-111111111111', '#assets/imp_yun_sfx_jump_cd5678', '#assets/imp_yun_cars_sedan_ab1234', '#assets/imp_ref_front_aa1111', '#settings', '#settings/brand', '#settings/guide'];
   const dead = [];
   let clicked = 0;
   for (const route of routes) {
@@ -304,7 +312,49 @@ test('every control in the new Matterhorn UI does something real', async () => {
   assert.match(document.querySelector('#asset-grid').textContent, /In Yun/);
   await go('#assets/imp_yun_sfx_jump_cd5678');
   assert.ok(document.querySelector('audio'), 'sounds can be played');
+
+  // A character sheet's views become a 3D model through Meshy, only with the credits approved.
+  await go('#assets/imp_ref_front_aa1111');
+  const make3d = () => [...document.querySelectorAll('button')].find((b) => b.textContent === 'Make 3D model');
+  calls.length = 0;
+  make3d().click();
+  await flush();
+  assert.doesNotMatch(calls.join(' '), /POST \/api\/foundry\/jobs/, 'no paid build without approval');
+  document.querySelector('#i23-approve').click();
+  const sentBodies = [];
+  const plainFetch = globalThis.fetch;
+  globalThis.fetch = async (path, options) => { if (options?.body) sentBodies.push(JSON.parse(options.body)); return plainFetch(path, options); };
+  make3d().click();
+  await flush(20);
+  globalThis.fetch = plainFetch;
+  const sent = { body: sentBodies.findLast((b) => b.operation) };
+  assert.match(calls.join(' '), /POST \/api\/foundry\/jobs/);
+  assert.equal(sent?.body.operation, 'image_to_3d');
+  assert.deepEqual(sent?.body.referenceAssets, ['imp_ref_front_aa1111', 'imp_ref_back_bb2222']);
+  assert.deepEqual(sent?.body.maxCost, { currency: 'MESHY_CREDITS', amount: 30 });
+  assert.equal(sent?.body.approveExternalCost, true);
   assert.match(document.querySelector('#setup-status').textContent, /need/);
+
+  // A 3D model can be turned by dragging, and its build can be replayed.
+  await go('#assets/crate_ab12');
+  const spinImg = document.querySelector('.spin img');
+  const before3d = spinImg.src;
+  const stage = document.querySelector('.spin');
+  stage.dispatchEvent(new window.MouseEvent('pointerdown', { clientX: 100, bubbles: true }));
+  stage.dispatchEvent(new window.MouseEvent('pointermove', { clientX: 140, bubbles: true }));
+  stage.dispatchEvent(new window.MouseEvent('pointerup', { clientX: 140, bubbles: true }));
+  assert.notEqual(document.querySelector('.spin img').src, before3d, 'dragging turns the model');
+  [...document.querySelectorAll('button')].find((b) => b.textContent === 'Replay the build').click();
+  assert.match(document.querySelector('.spin img').src, /build_01\.png/);
+
+  // A running build shows a live view: its steps, the script as it is written, and where Matterhorn is now.
+  await go('#assets/build/11111111-1111-1111-1111-111111111111');
+  await new Promise((resolve) => setTimeout(resolve, 900));
+  await flush(10);
+  assert.match(document.querySelector('#live-steps').textContent, /building in Blender/);
+  assert.match(document.querySelector('#live-script').textContent, /primitive_cylinder_add/);
+  assert.match(document.querySelector('#activity').textContent, /Building Barrel/);
+  assert.equal(document.querySelector('#activity').getAttribute('href'), '#assets/build/11111111-1111-1111-1111-111111111111');
 
   // No fake character/rig claims anywhere in the new UI.
   assert.doesNotMatch(document.body.textContent, /Humanoid \(18 bones\)|Landmark Match Score/);

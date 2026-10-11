@@ -139,3 +139,9 @@ export const store = {
     for (const listener of this.listeners) listener(this);
   },
 };
+
+/** Elapsed time as m:ss. */
+export function elapsed(since) {
+  const seconds = Math.max(0, Math.round((Date.now() - new Date(since).getTime()) / 1000));
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+}

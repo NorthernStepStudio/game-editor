@@ -134,6 +134,10 @@ test('every control in the new Matterhorn UI does something real', async () => {
     Node: window.Node, HTMLElement: window.HTMLElement,
   });
   window.confirm = () => true;
+  window.URL.createObjectURL = () => 'blob:test';
+  window.URL.revokeObjectURL = () => undefined;
+  globalThis.URL.createObjectURL = window.URL.createObjectURL;
+  globalThis.URL.revokeObjectURL = window.URL.revokeObjectURL;
   globalThis.fetch = async (path, options = {}) => {
     const method = options.method ?? 'GET';
     const body = options.body ? JSON.parse(options.body) : undefined;
@@ -169,7 +173,7 @@ test('every control in the new Matterhorn UI does something real', async () => {
   assert.deepEqual([...document.querySelectorAll('.sidebar a.nav')].map((a) => a.textContent.trim()), ['Studio', 'My Game', 'Assets', 'Settings']);
 
   const routes = ['#studio', '#game/changes', '#game/changes/run-failed', '#game/checks', '#game/files', '#assets', '#assets/crate_ab12', '#assets/stall_x1_d1',
-    '#assets/build/22222222-2222-2222-2222-222222222222', '#assets/build/11111111-1111-1111-1111-111111111111', '#assets/imp_yun_sfx_jump_cd5678', '#assets/imp_yun_cars_sedan_ab1234', '#settings', '#settings/guide'];
+    '#assets/build/22222222-2222-2222-2222-222222222222', '#assets/build/11111111-1111-1111-1111-111111111111', '#assets/imp_yun_sfx_jump_cd5678', '#assets/imp_yun_cars_sedan_ab1234', '#settings', '#settings/brand', '#settings/guide'];
   const dead = [];
   let clicked = 0;
   for (const route of routes) {
@@ -247,6 +251,15 @@ test('every control in the new Matterhorn UI does something real', async () => {
   assert.match(document.querySelector('#ai-settings').textContent, /Local AI is ready/);
   assert.match(document.querySelector('#ai-settings').textContent, /RX 7700 XT with 12 GB/);
   assert.equal(document.querySelector('#role-chat').value, 'qwen3:8b');
+
+  // The brand page shows both designs, and choosing one changes the sidebar logo.
+  await go('#settings/brand');
+  assert.match(document.querySelector('#main').textContent, /IDEAS UNDER CONTROL/);
+  assert.equal(document.querySelectorAll('.version-card').length, 8);
+  [...document.querySelectorAll('.choice')].find((b) => b.querySelector('strong')?.textContent === 'Summit').click();
+  await flush();
+  assert.equal(JSON.parse(localStorage.getItem('matterhorn.logo')).mark, 'summit');
+  assert.ok(document.querySelector('.sidebar .brand svg'), 'sidebar shows the logo');
 
   // Every guide section renders, and imported assets say where they came from.
   await go('#settings/guide');

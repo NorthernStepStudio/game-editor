@@ -3,6 +3,7 @@ import * as studioPage from './pageStudio.js';
 import * as gamePage from './pageGame.js';
 import * as assetsPage from './pageAssets.js';
 import * as settingsPage from './pageSettings.js';
+import { logo, logoPreference, svgText } from './brand.js';
 
 const pages = {
   studio: { title: 'Studio', module: studioPage },
@@ -143,7 +144,34 @@ async function loadGames() {
   }
 }
 
+/** Draws the chosen logo in the sidebar and as the browser-tab icon. */
+function paintBrand() {
+  const pref = logoPreference();
+  const brand = document.querySelector('.brand');
+  if (brand) {
+    brand.replaceChildren();
+    // The mark is SVG; the words are real text so they stay crisp at sidebar size.
+    const mark = pref.style === 'tile'
+      ? logo(pref.mark, 'tile', { layout: 'tile', title: 'Matterhorn' })
+      : logo(pref.mark, pref.style, { layout: 'mark', title: 'Matterhorn' });
+    mark.classList.add(pref.style === 'tile' ? 'brand-tile' : 'brand-mark');
+    brand.append(mark, h('span', { class: 'brand-text' },
+      h('span', { class: 'brand-word' }, 'MATTERHORN'),
+      pref.tagline ? h('span', { class: 'brand-tag' }, 'IDEAS UNDER CONTROL') : null));
+  }
+  let icon = document.querySelector('link[rel="icon"]');
+  if (!icon) {
+    icon = document.createElement('link');
+    icon.rel = 'icon';
+    document.head.append(icon);
+  }
+  icon.type = 'image/svg+xml';
+  icon.href = `data:image/svg+xml,${encodeURIComponent(svgText(logo(pref.mark, 'tile', { layout: 'tile' })))}`;
+}
+
 export async function start() {
+  paintBrand();
+  window.addEventListener('matterhorn-logo', paintBrand);
   initAssistant();
   window.addEventListener('hashchange', route);
   document.querySelector('#setup-status').addEventListener('click', async () => {

@@ -38,8 +38,7 @@ p{margin:0}
 /* ── Layout ─────────────────────────────────────────────── */
 .app{display:flex;flex-wrap:wrap;min-height:100vh}
 .sidebar{flex:1 1 220px;max-width:240px;min-width:200px;background:var(--rail);border-right:1px solid #1B2940;padding:22px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
-.brand{display:flex;align-items:center;gap:10px;padding:0 10px 22px;color:var(--text);text-decoration:none;font:700 18px var(--display)}
-.brand-mark{width:34px;height:34px;padding:7px;border-radius:9px;background:var(--blue);fill:none;stroke:#fff;stroke-width:2.2;stroke-linejoin:round}
+.brand{display:flex;align-items:center;gap:10px;padding:0 6px 22px;color:var(--text);text-decoration:none;font:700 18px var(--display)}
 .nav{display:flex;align-items:center;gap:12px;min-height:46px;padding:0 14px;border-radius:var(--r-sm);color:#AEBBD0;text-decoration:none;font-weight:500}
 .nav svg,.assistant-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .nav:hover{background:#13213A;color:var(--text)}
@@ -230,3 +229,38 @@ select.field{min-height:44px}
 .guide ol,.guide ul{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;color:var(--soft)}
 .guide .tip{padding:12px 14px;border-radius:var(--r-sm);background:var(--card-2);border:1px solid var(--line);color:var(--soft)}
 @media (max-width:760px){.guide dl{grid-template-columns:1fr}.guide dd{margin-bottom:8px}}
+
+/* Brand */
+.brand{min-height:58px}
+.brand .brand-mark{width:50px;height:auto;flex:none}
+.brand .brand-tile{width:40px;height:40px;flex:none}
+.brand-text{display:flex;flex-direction:column;gap:3px;min-width:0}
+.brand-word{font:600 14px var(--display);letter-spacing:.2em;color:var(--text)}
+.brand-tag{font:500 8.5px var(--font);letter-spacing:.24em;color:#7FB2FF;white-space:nowrap}
+.brand-hero{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px;padding:36px clamp(20px,4vw,48px);border-radius:var(--r);border:1px solid var(--line);background:radial-gradient(ellipse at 30% 30%,#14264A 0%,#0B1220 60%,#070D18 100%)}
+.brand-hero-logo{flex:1 1 360px;max-width:520px}
+.brand-hero-logo svg{width:100%;height:auto;display:block}
+.motto{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;color:#C9D6E6;font:500 13px var(--font);letter-spacing:.42em}
+.motto::after{content:"";width:36px;height:2px;background:var(--blue-2)}
+.choice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.choice{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px;border-radius:var(--r);border:1px solid var(--line-2);background:var(--card-2);color:var(--text);text-align:left;cursor:pointer;font:inherit}
+.choice:hover{border-color:#3A5276}
+.choice.active{border:2px solid var(--blue);background:#10203B}
+.choice-preview{display:flex;align-items:center;justify-content:center;width:100%;height:84px;border-radius:var(--r-sm);background:#0B1220;padding:8px}
+.choice-preview svg{max-width:100%;max-height:100%;height:auto}
+.attributes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.attribute{display:flex;gap:12px;align-items:flex-start}
+.attr-icon{width:28px;height:28px;color:var(--blue-ink);flex:none}
+.motto-meaning{display:grid;grid-template-columns:minmax(110px,160px) 1fr;gap:8px 16px;margin:0}
+.motto-meaning dt{font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:13px}
+.motto-meaning dd{margin:0;color:var(--soft)}
+.version-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.version-card{margin:0;border-radius:var(--r);border:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column}
+.version-card .version-art{display:flex;align-items:center;justify-content:center;height:170px;padding:18px}
+.version-card.dark .version-art{background:#0B1220}
+.version-card.light .version-art{background:#F4F6FA}
+.version-art svg{max-width:100%;max-height:100%;height:auto}
+.version-card figcaption{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;background:var(--card);font-size:13px;color:var(--soft)}
+.construction{background:#0D1627;border-radius:var(--r-sm);padding:12px;display:flex;justify-content:center}
+.construction svg{width:100%;max-width:520px;height:auto}
+@media (max-width:760px){.motto-meaning{grid-template-columns:1fr}}

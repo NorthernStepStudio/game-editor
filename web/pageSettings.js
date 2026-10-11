@@ -1,5 +1,6 @@
 import { api, tryApi, h, clear, btn, action, toast } from './ui.js';
 import { renderGuide } from './guide.js';
+import { renderBrand } from './pageBrand.js';
 
 const CLAUDE_STEPS = [
   'Open Windows Terminal from the Start menu (not a terminal inside the Claude app).',
@@ -96,15 +97,17 @@ export function leave() {
 
 export async function render(main, sub = '') {
   clearTimeout(state.pollAi);
-  const tab = sub.startsWith('guide') ? 'guide' : 'setup';
+  const tab = sub.startsWith('guide') ? 'guide' : sub.startsWith('brand') ? 'brand' : 'setup';
   clear(main,
     h('header', { class: 'page-head' }, h('h1', {}, 'Settings')),
     h('nav', { class: 'tabs', 'aria-label': 'Settings sections' },
       h('a', { href: '#settings', class: `tab${tab === 'setup' ? ' active' : ''}`, 'aria-current': tab === 'setup' ? 'page' : undefined }, 'Setup'),
+      h('a', { href: '#settings/brand', class: `tab${tab === 'brand' ? ' active' : ''}`, 'aria-current': tab === 'brand' ? 'page' : undefined }, 'Brand'),
       h('a', { href: '#settings/guide', class: `tab${tab === 'guide' ? ' active' : ''}`, 'aria-current': tab === 'guide' ? 'page' : undefined }, 'Guide')),
     h('div', { id: 'settings-body' }));
   const body = document.querySelector('#settings-body');
   if (tab === 'guide') return renderGuide(body, sub.slice('guide'.length + 1));
+  if (tab === 'brand') return renderBrand(body);
 
   clear(body,
     h('section', { class: 'card', 'aria-labelledby': 'conn-title' },

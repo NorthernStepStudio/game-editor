@@ -652,6 +652,7 @@ export class FoundryGenerationService {
       'http://127.0.0.1:11434';
     const claude = findClaudeCodeExecutable(this.env);
     const resolveParentScript = (assetId: string) => this.parentScript(assetId);
+    const resolveParentFile = (assetId: string) => this.parentFile(assetId);
 
     if (!blender) {
       const note = 'Install Blender 4.2 or newer (or set MATTERHORN_BLENDER_BIN) to build assets from a description.';
@@ -666,6 +667,7 @@ export class FoundryGenerationService {
         author: new OllamaScriptAuthor(ollamaBase, () => chosen?.() ?? ollamaModel),
         blenderExecutable: blender,
         resolveParentScript,
+        resolveParentFile,
       }));
       this.blenderAgentNotes.set(
         'blender-agent-local',
@@ -680,6 +682,7 @@ export class FoundryGenerationService {
         author: new ClaudeCodeScriptAuthor(claude, this.env.MATTERHORN_ASSET_AGENT_CLAUDE_MODEL?.trim() || undefined),
         blenderExecutable: blender,
         resolveParentScript,
+        resolveParentFile,
       }));
       this.blenderAgentNotes.set(
         'blender-agent-claude',
@@ -691,6 +694,15 @@ export class FoundryGenerationService {
         'Install Claude Code (npm install -g @anthropic-ai/claude-code) and sign in to build higher-quality assets.',
       );
     }
+  }
+
+  /** An existing asset's own 3D file, so work can continue on assets made outside the Blender Agent. */
+  private parentFile(assetId: string): string | undefined {
+    const manifest = this.assets.store.get(assetId);
+    if (!manifest) return undefined;
+    const candidates = [manifest.localPath, ...(manifest.companionFiles ?? [])].filter((file): file is string => Boolean(file));
+    const pick = (ext: RegExp) => candidates.find((file) => ext.test(file) && existsSync(file));
+    return pick(/\.blend$/i) ?? pick(/\.(glb|gltf)$/i);
   }
 
   private parentScript(assetId: string): string | undefined {

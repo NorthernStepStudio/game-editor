@@ -15,6 +15,7 @@ import { resolveDefaultPortStateFilePath, writePortStateFile } from "./config/po
 import type { NssAskRequestPayload, NssHealthResponse } from "./models/contracts.js";
 import { handleAskRequest, streamAskRequest } from "./services/askService.js";
 import { appSummary, isAssetQuestion, searchAssets } from "./services/assistant.js";
+import { decideAction, runAction, type ChatRef } from "./services/assistantActions.js";
 
 const WEB_DIR = fs.existsSync(path.resolve(__dirname, "../../web"))
   ? path.resolve(__dirname, "../../web")
@@ -91,7 +92,7 @@ export async function startNssWorkspaceAiServer(
       if (request.method === "POST" && request.url === "/api/assistant") {
         // The in-app chat: asset questions are answered from the library itself; anything else
         // goes to the chat model with a factual summary of the app so it never has to guess.
-        const body = (await readJsonBody(request)) as { message?: unknown; page?: unknown; history?: unknown };
+        const body = (await readJsonBody(request)) as { message?: unknown; page?: unknown; history?: unknown; ref?: unknown };
         const message = typeof body?.message === "string" ? body.message.trim().slice(0, 4000) : "";
         if (!message) { await respondJson(response, 400, { error: "Type a message first." }); return; }
         const page = typeof body.page === "string" ? body.page.slice(0, 200) : "Studio";
@@ -99,6 +100,21 @@ export async function startNssWorkspaceAiServer(
         const games = studio.projects.map((p) => p.name);
         if (isAssetQuestion(message)) {
           await respondJson(response, 200, searchAssets(message, assets, games));
+          return;
+        }
+        // Requests to do something (build, change this asset, retry, plan a game change) are carried out.
+        const rawRef = (body.ref && typeof body.ref === "object" ? body.ref : {}) as { kind?: unknown; id?: unknown };
+        const ref: ChatRef = {
+          ...(rawRef.kind === "asset" || rawRef.kind === "build" || rawRef.kind === "game" ? { kind: rawRef.kind } : {}),
+          ...(typeof rawRef.id === "string" ? { id: rawRef.id.slice(0, 240) } : {}),
+        };
+        const action = await decideAction(message, ref, studio);
+        if (action.action !== "answer") {
+          try {
+            await respondJson(response, 200, await runAction(action, studio));
+          } catch (error) {
+            await respondJson(response, 200, { answeredBy: "action", reply: `I couldn't do that: ${error instanceof Error ? error.message : String(error)}` });
+          }
           return;
         }
         const history = Array.isArray(body.history) ? (body.history as { role: string; content: string }[]).slice(-12) : [];

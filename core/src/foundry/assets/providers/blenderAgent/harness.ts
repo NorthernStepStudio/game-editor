@@ -34,6 +34,41 @@ def path(name):
 
 # ---------------------------------------------------------------- run script
 bpy.ops.wm.read_factory_settings(use_empty=True)
+
+# Continuing work on an existing asset: the harness (never the model) loads it first.
+BASE = CFG.get("baseFile")
+if BASE:
+    REPORT["stage"] = "load"
+    try:
+        if BASE.lower().endswith(".blend"):
+            bpy.ops.wm.open_mainfile(filepath=BASE, load_ui=False)
+        else:
+            bpy.ops.import_scene.gltf(filepath=BASE)
+    except Exception:
+        fail("load", traceback.format_exc(limit=4))
+    for obj in list(bpy.context.scene.objects):
+        if obj.type in {"CAMERA", "LIGHT"}:
+            bpy.data.objects.remove(obj, do_unlink=True)
+
+if CFG.get("inventoryOnly"):
+    inventory = []
+    for obj in bpy.context.scene.objects:
+        if obj.type != "MESH":
+            continue
+        inventory.append({
+            "name": obj.name,
+            "dimensions": [round(v, 3) for v in obj.dimensions],
+            "location": [round(v, 3) for v in obj.matrix_world.translation],
+            "materials": [slot.material.name for slot in obj.material_slots if slot.material],
+            "parent": obj.parent.name if obj.parent else None,
+        })
+    REPORT["inventory"] = inventory[:120]
+    REPORT["meshCount"] = len(inventory)
+    REPORT["ok"] = True
+    REPORT["stage"] = "inventory"
+    write_report()
+    sys.exit(0)
+
 REPORT["stage"] = "script"
 with open(CFG["scriptPath"], "r", encoding="utf-8") as handle:
     SOURCE = handle.read()

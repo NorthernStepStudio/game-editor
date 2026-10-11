@@ -11,7 +11,7 @@ const UI_KEY = 'matterhorn.chat.ui';
 const MAX_SAVED = 60;
 
 let messages = [];
-let ui = { open: false, minimized: false, left: null, top: null, width: null, height: null };
+let ui = { open: false, minimized: false, dock: null, dockWidth: 400, left: null, top: null, width: null, height: null };
 
 function load() {
   try {
@@ -38,13 +38,30 @@ function save() {
 
 const $ = (id) => document.querySelector(id);
 
+/** Docked = a column at the right that the page makes room for; otherwise it floats. */
+function docked() {
+  return ui.dock ?? window.innerWidth >= 1100;
+}
+
 function apply() {
   const panel = $('#assistant');
   const pill = $('#chat-pill');
   panel.hidden = !ui.open || ui.minimized;
   pill.hidden = !ui.open || !ui.minimized;
-  const unread = messages.length && messages.at(-1).role === 'assistant' && ui.minimized && ui.unread;
-  pill.classList.toggle('unread', Boolean(unread));
+  pill.classList.toggle('unread', Boolean(ui.minimized && ui.unread));
+  const isDocked = docked() && !narrow();
+  document.body.classList.toggle('chat-docked', isDocked && !panel.hidden);
+  panel.classList.toggle('docked', isDocked);
+  document.documentElement.style.setProperty('--chat-w', `${clamp(ui.dockWidth ?? 400, 300, Math.round(window.innerWidth * 0.5))}px`);
+  const dockButton = $('#assistant-dock');
+  dockButton.textContent = isDocked ? '⧉' : '⇥';
+  dockButton.title = isDocked ? 'Float over the page' : 'Dock to the side';
+  dockButton.setAttribute('aria-label', isDocked ? 'Float the chat over the page' : 'Dock the chat to the side');
+  dockButton.hidden = narrow();
+  if (isDocked) {
+    for (const prop of ['left', 'top', 'right', 'bottom', 'width', 'height']) panel.style[prop] = '';
+    return;
+  }
   if (!narrow() && ui.left !== null && ui.top !== null) {
     panel.style.left = `${clamp(ui.left, 0, window.innerWidth - 120)}px`;
     panel.style.top = `${clamp(ui.top, 0, window.innerHeight - 60)}px`;
@@ -102,11 +119,100 @@ function renderMessage(message) {
     a.previewUrl ? h('img', { src: a.previewUrl, alt: '', loading: 'lazy' }) : h('span', { class: 'chat-asset-kind' }, kindLabel(a.type)),
     h('span', { class: 'chat-asset-name' }, a.name)))));
   }
+  if (message.job) node.append(jobCard(message));
+  if (message.plan) node.append(planCard(message));
+  if (message.needsDirtyConfirm) {
+    node.append(h('button', { type: 'button', class: 'btn small', onclick: () => send(`plan anyway: ${message.needsDirtyConfirm.goal}`, { allowDirty: true, goal: message.needsDirtyConfirm.goal }) },
+      'Plan anyway (my game has unsaved changes)'));
+  }
   if (message.assets) {
     node.append(h('a', { class: 'btn small', href: message.assets.openHash },
       message.assets.total > (message.assets.shown?.length ?? 0) ? `Open all ${message.assets.total} in Assets` : 'Open in Assets'));
   }
   return node;
+}
+
+const STATUS_TEXT = { queued: 'Waiting…', running: 'Working…', succeeded: 'Done', failed: 'Couldn’t finish', cancelled: 'Cancelled' };
+
+function jobCard(message) {
+  const job = message.job;
+  const status = job.status ?? 'queued';
+  const card = h('div', { class: `chat-job ${status}` },
+    h('div', { class: 'row spread' }, h('strong', {}, job.displayName ?? job.assetId), h('span', { class: `status ${status === 'succeeded' ? 'ok' : status === 'failed' ? 'bad' : 'active'}` }, STATUS_TEXT[status] ?? status)),
+    job.progress ? h('span', { class: 'muted small' }, job.progress) : null,
+    job.error ? h('span', { class: 'error-text small' }, job.error) : null,
+    status === 'succeeded' && job.previewUrl ? h('a', { href: `#assets/${encodeURIComponent(job.assetId)}`, class: 'chat-job-preview' }, h('img', { src: job.previewUrl, alt: job.displayName ?? '' })) : null,
+    h('div', { class: 'row' },
+      status === 'succeeded'
+        ? h('a', { class: 'btn small primary', href: `#assets/${encodeURIComponent(job.assetId)}` }, 'Open it')
+        : h('a', { class: 'btn small', href: `#assets/build/${job.jobId}` }, status === 'failed' ? 'See why' : 'Watch'),
+      status === 'queued' || status === 'running'
+        ? h('button', { type: 'button', class: 'btn small quiet', onclick: async () => {
+          try { await api(`/api/foundry/jobs/${job.jobId}/cancel`, {}); toast('Cancelled.'); } catch (error) { toast(error.message, 'error'); }
+          followJobs();
+        } }, 'Cancel')
+        : null,
+      status === 'failed' ? h('button', { type: 'button', class: 'btn small quiet', onclick: () => send('try again with Claude') }, 'Try again with Claude') : null));
+  return card;
+}
+
+function planCard(message) {
+  const plan = message.plan;
+  return h('div', { class: 'chat-plan' },
+    h('span', { class: 'label' }, `Plan for ${plan.game}`),
+    h('ol', {}, plan.tasks.map((t) => h('li', {}, t))),
+    plan.started
+      ? h('a', { class: 'btn small', href: '#game/changes' }, 'Follow it in My Game')
+      : h('div', { class: 'row' },
+        h('button', { type: 'button', class: 'btn small primary', onclick: async (event) => {
+          event.currentTarget.disabled = true;
+          try {
+            await api('/api/studio/runs', plan.payload);
+            plan.started = true;
+            save();
+            renderLog();
+            toast(`Approved. Building in ${plan.game}.`);
+          } catch (error) {
+            event.currentTarget.disabled = false;
+            toast(error.message, 'error');
+          }
+        } }, 'Approve & build'),
+        h('a', { class: 'btn small quiet', href: '#studio' }, 'Change it in Studio')));
+}
+
+let followTimer;
+
+/** Keeps build cards in the chat up to date until they finish. */
+async function followJobs() {
+  clearTimeout(followTimer);
+  const open = messages.filter((m) => m.job && !['succeeded', 'failed', 'cancelled'].includes(m.job.status ?? 'queued'));
+  if (!open.length) return;
+  let changed = false;
+  for (const message of open) {
+    try {
+      const { job } = await api(`/api/foundry/jobs/${message.job.jobId}`);
+      const progress = job.progress?.at(-1)?.message;
+      if (job.status !== message.job.status || progress !== message.job.progress) {
+        message.job = { ...message.job, status: job.status, progress, ...(job.error ? { error: job.error.split('. Last: ').pop().slice(0, 240) } : {}) };
+        if (job.status === 'succeeded') {
+          const assetId = job.assetIds?.[0] ?? message.job.assetId;
+          const detail = await api(`/api/foundry/assets/${encodeURIComponent(assetId)}`).catch(() => undefined);
+          message.job = { ...message.job, assetId, ...(detail?.asset?.previewUrl ? { previewUrl: detail.asset.previewUrl } : {}) };
+          if (ui.minimized) ui.unread = true;
+          toast(`${message.job.displayName ?? 'Your asset'} is ready.`);
+        }
+        changed = true;
+      }
+    } catch {
+      // Try again on the next tick.
+    }
+  }
+  if (changed) {
+    save();
+    renderLog();
+    apply();
+  }
+  followTimer = setTimeout(followJobs, 3000);
 }
 
 function kindLabel(type) {
@@ -117,7 +223,7 @@ function kindLabel(type) {
 
 let busy = false;
 
-async function send(text) {
+async function send(text, extra = {}) {
   const input = $('#assistant-input');
   const message = (text ?? input.value).trim();
   if (busy) return;
@@ -135,8 +241,17 @@ async function send(text) {
   try {
     const history = messages.filter((m) => !m.pending && !m.error).slice(-12)
       .map((m) => ({ role: m.role, content: m.text }));
-    const answer = await api('/api/assistant', { message, page: store.context, history });
-    messages[messages.length - 1] = { role: 'assistant', text: answer.reply, ...(answer.assets ? { assets: answer.assets } : {}) };
+    const answer = extra.allowDirty
+      ? await planAnyway(extra.goal)
+      : await api('/api/assistant', { message, page: store.context, history, ...(store.ref ? { ref: store.ref } : {}) });
+    messages[messages.length - 1] = {
+      role: 'assistant', text: answer.reply,
+      ...(answer.assets ? { assets: answer.assets } : {}),
+      ...(answer.job ? { job: { ...answer.job, status: 'queued' } } : {}),
+      ...(answer.plan ? { plan: answer.plan } : {}),
+      ...(answer.needsDirtyConfirm ? { needsDirtyConfirm: answer.needsDirtyConfirm } : {}),
+    };
+    if (answer.job) followJobs();
     if (ui.minimized) ui.unread = true;
   } catch (error) {
     messages[messages.length - 1] = { role: 'assistant', text: `I couldn't answer: ${error?.message || error}. Your message is back in the box.`, error: true };
@@ -150,10 +265,17 @@ async function send(text) {
   }
 }
 
+async function planAnyway(goal) {
+  const game = store.games.find((g) => g.id === store.gameId) ?? store.games[0];
+  const payload = { projectId: game.id, goal, criteria: [], allowDirty: true };
+  const plan = await api('/api/studio/plan', payload);
+  return { reply: `Here's the plan for ${game.name}. Nothing changes until you approve it.`, plan: { goal: plan.goal, game: game.name, tasks: plan.tasks.map((t) => t.title), payload } };
+}
+
 function enableDrag(panel, handle) {
   let start;
   handle.addEventListener('pointerdown', (event) => {
-    if (narrow() || event.target.closest('button')) return;
+    if (narrow() || docked() || event.target.closest('button')) return;
     const rect = panel.getBoundingClientRect();
     start = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
     handle.setPointerCapture?.(event.pointerId);
@@ -215,6 +337,23 @@ export function initChat() {
   $('#assistant-close').addEventListener('click', () => { ui.open = false; save(); apply(); });
   $('#assistant-min').addEventListener('click', () => { ui.minimized = true; save(); apply(); });
   $('#chat-pill').addEventListener('click', openChat);
+  $('#assistant-dock').addEventListener('click', () => { ui.dock = !docked(); save(); apply(); });
+  // Docked: drag the left edge to make the chat wider or narrower.
+  const grip = $('#chat-grip');
+  let gripStart;
+  grip.addEventListener('pointerdown', (event) => {
+    if (!docked()) return;
+    gripStart = { x: event.clientX, width: ui.dockWidth ?? 400 };
+    grip.setPointerCapture?.(event.pointerId);
+  });
+  grip.addEventListener('pointermove', (event) => {
+    if (!gripStart) return;
+    ui.dockWidth = clamp(gripStart.width + gripStart.x - event.clientX, 300, Math.round(window.innerWidth * 0.5));
+    apply();
+  });
+  const gripEnd = () => { if (gripStart) { gripStart = undefined; save(); } };
+  grip.addEventListener('pointerup', gripEnd);
+  grip.addEventListener('pointercancel', gripEnd);
   $('#assistant-clear').addEventListener('click', () => { messages = []; save(); renderLog(); });
   $('#assistant-send').addEventListener('click', () => send());
   $('#assistant-input').addEventListener('keydown', (event) => {
@@ -228,4 +367,5 @@ export function initChat() {
   window.addEventListener('resize', apply);
   renderLog();
   apply();
+  followJobs();
 }

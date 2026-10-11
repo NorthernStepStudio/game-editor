@@ -11,6 +11,7 @@
   <a class="skip" href="#main">Skip to content</a>
   <div class="app">
     <nav class="sidebar" aria-label="Main">
+      <button type="button" class="icon-btn nav-collapse" id="nav-collapse" aria-label="Hide the menu" title="Hide the menu">‹</button>
       <a class="brand" href="#studio" aria-label="Matterhorn — Studio"><span class="brand-word">MATTERHORN</span></a>
       <a class="nav" data-nav="studio" href="#studio">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"></path></svg>Studio</a>
@@ -29,11 +30,15 @@
 
   </div>
 
+  <button type="button" class="icon-btn nav-expand" id="nav-expand" aria-label="Show the menu" title="Show the menu" hidden>☰</button>
+
   <aside id="assistant" class="chat" role="dialog" aria-label="Matterhorn chat" hidden>
+    <div class="chat-grip" id="chat-grip" title="Drag to resize" aria-hidden="true"></div>
     <div class="chat-head" id="chat-head" title="Drag to move · double-click to reset">
       <strong>Matterhorn</strong>
       <span class="context" id="assistant-context">Studio</span>
       <span class="spacer"></span>
+      <button type="button" class="icon-btn" id="assistant-dock" aria-label="Float the chat over the page" title="Float">⧉</button>
       <button type="button" class="icon-btn" id="assistant-clear" aria-label="Clear the conversation" title="Clear">⟲</button>
       <button type="button" class="icon-btn" id="assistant-min" aria-label="Minimize chat" title="Minimize">–</button>
       <button type="button" class="icon-btn" id="assistant-close" aria-label="Close chat" title="Close">✕</button>

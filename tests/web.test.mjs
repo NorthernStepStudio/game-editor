@@ -259,6 +259,11 @@ test('every control in the new Matterhorn UI does something real', async () => {
   await go('#studio');
   document.querySelector('#assistant-toggle').click();
   await flush();
+  // The button toggles: if the crawler left the chat open, the first click minimized it.
+  if (document.querySelector('#assistant').hidden) {
+    document.querySelector('#assistant-toggle').click();
+    await flush();
+  }
   assert.equal(document.querySelector('#assistant').hidden, false);
   document.querySelector('#assistant-input').value = 'can you show me the assets?';
   document.querySelector('#assistant-send').click();

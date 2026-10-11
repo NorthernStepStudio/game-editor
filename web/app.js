@@ -49,7 +49,7 @@ async function route() {
   if (current && current.page !== page) current.module.leave?.();
   current = { page, module: pages[page].module };
   document.title = `${pages[page].title} · Matterhorn`;
-  store.set({ context: pages[page].title });
+  store.set({ context: pages[page].title, ref: undefined });
   const main = document.querySelector('#main');
   main.focus({ preventScroll: true });
   try {
@@ -111,8 +111,29 @@ function paintBrand() {
   icon.href = `data:image/svg+xml,${encodeURIComponent(svgText(logo(pref.mark, 'tile', { layout: 'tile' })))}`;
 }
 
+/** The left menu can be hidden with a small button and brought back with another. */
+function initNavToggle() {
+  const KEY = 'matterhorn.navHidden';
+  const applyNav = (hidden) => {
+    document.body.classList.toggle('nav-hidden', hidden);
+    // Truly hidden (not just invisible) so its controls cannot be reached while collapsed.
+    document.querySelector('.sidebar').hidden = hidden && window.innerWidth >= 760;
+    document.querySelector('#nav-expand').hidden = !hidden;
+    try { localStorage.setItem(KEY, hidden ? '1' : '0'); } catch { /* storage optional */ }
+  };
+  let hidden = false;
+  try { hidden = localStorage.getItem(KEY) === '1'; } catch { hidden = false; }
+  applyNav(hidden);
+  document.querySelector('#nav-collapse').addEventListener('click', () => applyNav(true));
+  document.querySelector('#nav-expand').addEventListener('click', () => {
+    applyNav(false);
+    document.querySelector('#nav-collapse').focus();
+  });
+}
+
 export async function start() {
   paintBrand();
+  initNavToggle();
   window.addEventListener('matterhorn-logo', paintBrand);
   initChat();
   window.addEventListener('hashchange', route);

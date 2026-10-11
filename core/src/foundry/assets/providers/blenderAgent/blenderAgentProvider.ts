@@ -38,6 +38,8 @@ export interface BlenderAgentProviderOptions {
   readonly blenderTimeoutMs?: number;
   /** Returns the generator script of an existing asset, used when iterating on it. */
   readonly resolveParentScript?: (assetId: string) => string | undefined;
+  /** Returns an existing asset's 3D file (.glb/.gltf/.blend) to continue from when it has no script. */
+  readonly resolveParentFile?: (assetId: string) => string | undefined;
 }
 
 interface HarnessReport {
@@ -118,8 +120,11 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
     const mode = request.kind === "sprite_sheet" ? "sprite_sheet" : request.kind === "pixel_sprite" ? "pixel_sprite" : "model";
     const frameSize = request.dimensions?.width ?? (mode === "pixel_sprite" ? 64 : 128);
     const parentScript = request.parentAsset ? this.options.resolveParentScript?.(request.parentAsset) : undefined;
-    if (request.parentAsset && !parentScript) {
-      throw new Error(`No Blender Agent script is stored for ${request.parentAsset}; it cannot be iterated on.`);
+    // Assets made outside the Blender Agent (imported models, hand-made .blend files) are
+    // continued from their own file: the harness loads it, the script changes it.
+    const baseFile = request.parentAsset && !parentScript ? this.options.resolveParentFile?.(request.parentAsset) : undefined;
+    if (request.parentAsset && !parentScript && !baseFile) {
+      throw new Error(`${request.parentAsset} has no Blender script or 3D file to continue from.`);
     }
 
     const harnessPath = join(jobDir, "matterhorn_harness.py");
@@ -127,7 +132,7 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
     const reportPath = join(jobDir, "report.json");
     const configPath = join(jobDir, "job.json");
     writeFileSync(harnessPath, BLENDER_AGENT_HARNESS, "utf8");
-    writeFileSync(configPath, JSON.stringify({
+    const config = {
       outputDir: jobDir.replace(/\\/g, "/"),
       scriptPath: scriptPath.replace(/\\/g, "/"),
       reportPath: reportPath.replace(/\\/g, "/"),
@@ -136,14 +141,40 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
       frameSize,
       directions: 8,
       allowedModules: BLENDER_AGENT_ALLOWED_MODULES,
-      maxTriangles: 500000,
-      // Floating parts are a defect unless the request is deliberately scattered.
-      requireConnected: !/\b(float\w*|scatter\w*|debris|particles?|pieces|kit|set of|collection|separate)\b/i.test(request.prompt),
-    }, null, 2), "utf8");
+      maxTriangles: baseFile ? 3_000_000 : 500000,
+      ...(baseFile ? { baseFile: baseFile.replace(/\\/g, "/") } : {}),
+      // Floating parts are a defect unless the request is deliberately scattered. Existing
+      // assets (kits, scenes) may legitimately have separate pieces, so they are not held to it.
+      requireConnected: !baseFile && !/\b(float\w*|scatter\w*|debris|particles?|pieces|kit|set of|collection|separate)\b/i.test(request.prompt),
+    };
+    writeFileSync(configPath, JSON.stringify(config, null, 2), "utf8");
 
-    let prompt = parentScript
-      ? `Here is the current script for this asset:\n\n\`\`\`python\n${parentScript}\`\`\`\n\nRewrite the complete script with this change: ${request.prompt}`
-      : `Build this asset: ${request.prompt}`;
+    let prompt: string;
+    if (parentScript) {
+      prompt = `Here is the current script for this asset:\n\n\`\`\`python\n${parentScript}\`\`\`\n\nRewrite the complete script with this change: ${request.prompt}`;
+    } else if (baseFile) {
+      progress("Opening the existing asset in Blender to see what it contains…");
+      const inventoryConfig = join(jobDir, "inventory-job.json");
+      const inventoryReport = join(jobDir, "inventory.json");
+      writeFileSync(inventoryConfig, JSON.stringify({ ...config, inventoryOnly: true, reportPath: inventoryReport.replace(/\\/g, "/") }, null, 2), "utf8");
+      await runBlender(blender, ["--background", "--factory-startup", "--disable-autoexec", "--python-exit-code", "1", "--python", harnessPath, "--", inventoryConfig], jobDir, 180_000, context.signal);
+      const inventory = existsSync(inventoryReport)
+        ? (JSON.parse(readFileSync(inventoryReport, "utf8")) as { ok?: boolean; inventory?: { name: string; dimensions: number[]; location: number[]; materials: string[]; parent?: string | null }[]; meshCount?: number; error?: string })
+        : undefined;
+      if (!inventory?.ok) throw new Error(`Blender could not open the existing asset: ${firstLine(inventory?.error ?? "unknown error")}`);
+      const lines = (inventory.inventory ?? []).map((o) =>
+        `- "${o.name}": size ${o.dimensions.join(" × ")} m at (${o.location.join(", ")})${o.materials.length ? `, materials ${o.materials.join(", ")}` : ""}${o.parent ? `, child of "${o.parent}"` : ""}`);
+      prompt = [
+        "The scene ALREADY CONTAINS an existing asset that Matterhorn loaded for you. Do not import, open or delete files.",
+        `Its ${inventory.meshCount ?? lines.length} mesh objects${(inventory.meshCount ?? 0) > lines.length ? ` (first ${lines.length} listed)` : ""}:`,
+        ...lines,
+        "",
+        `Write a script that changes this asset as follows: ${request.prompt}`,
+        'Find existing objects with bpy.data.objects["Name"]. Move, scale, recolor, add or remove objects as needed and keep everything the change does not mention. Start the script from this existing scene — do not reset it.',
+      ].join("\n");
+    } else {
+      prompt = `Build this asset: ${request.prompt}`;
+    }
     if (mode !== "model") {
       prompt += `\n\nIt will be rendered as ${mode === "sprite_sheet" ? "an 8-direction sprite sheet" : "a small pixel-art sprite"}, so favor a bold readable silhouette and strong color blocking.`;
     }

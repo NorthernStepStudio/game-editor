@@ -268,6 +268,7 @@ async function retry(job, providerId) {
 // ── Failed / running build detail ────────────────────────────────────
 function renderJob(main, jobId) {
   const job = state.data.jobs.find((j) => j.jobId === jobId);
+  store.set({ ref: { kind: 'build', id: jobId } });
   if (!job) {
     clear(main, h('div', { class: 'empty' }, h('p', {}, 'That build is no longer in the history.'), h('a', { class: 'btn', href: '#assets' }, 'Back to assets')));
     return;
@@ -316,7 +317,7 @@ async function renderDetail(main, assetId) {
   }
   const asset = detail.asset;
   const name = assetName(asset);
-  store.set({ context: `Assets › ${name}` });
+  store.set({ context: `Assets › ${name}`, ref: { kind: 'asset', id: asset.assetId } });
   const files = asset.files ?? [];
   const renders = files.filter((f) => f.role === 'render').sort((a, b) => RENDER_ORDER.indexOf(a.name) - RENDER_ORDER.indexOf(b.name));
   const frames = files.filter((f) => f.role === 'frame');
@@ -362,7 +363,7 @@ async function renderDetail(main, assetId) {
         frames.length ? h('details', { class: 'card' }, h('summary', {}, `All ${frames.length} sprite directions`),
           h('div', { class: 'frames' }, frames.map((f) => h('img', { src: f.url, alt: f.name })))) : null),
       h('aside', { class: 'side' },
-        hasScript ? changeCard(asset) : null,
+        hasScript || canContinue(asset, files) ? changeCard(asset, hasScript) : null,
         sendCard(asset),
         downloadCard(files),
         versionsCard(detail.lineage ?? [], asset.assetId),
@@ -378,25 +379,44 @@ function viewLabel(fileName = '') {
   return fileName.replace(/^render_/, '').replace(/\.png$/, '').replace('_', '-').replace('three-quarter', '3/4') || 'preview';
 }
 
-function changeCard(asset) {
-  const input = h('textarea', { id: 'change-it', class: 'field', rows: 3, placeholder: 'e.g. make it taller and add rust to the metal' });
+/** 3D assets without a Blender Agent script can still be continued from their own .glb/.blend file. */
+function canContinue(asset, files) {
+  return asset.type === 'mesh_3d' && files.some((f) => /\.(glb|gltf|blend)$/i.test(f.name));
+}
+
+function changeCard(asset, hasScript) {
+  const input = h('textarea', { id: 'change-it', class: 'field', rows: 3, placeholder: 'e.g. make it taller, add rust to the metal, paint the awning red' });
+  const builders = state.data.builders;
+  let builderId = (builders.find((b) => b.id === 'blender-agent-claude') ?? builders.find((b) => b.id === asset.generationProvider) ?? defaultBuilder())?.id;
+  const picker = h('div');
+  const paintPicker = () => clear(picker, builders.length > 1
+    ? pills(builders.map((b) => ({ id: b.id, label: b.id === 'blender-agent-claude' ? 'Claude · best' : 'Local · free' })), builderId,
+      (id) => { builderId = id; paintPicker(); }, 'Who does the work')
+    : null);
+  paintPicker();
   return h('section', { class: 'card form' },
-    h('label', { for: 'change-it', class: 'label' }, 'Change it'),
+    h('label', { for: 'change-it', class: 'label' }, hasScript ? 'Change it' : 'Keep working on it'),
+    hasScript ? null : h('p', { class: 'muted small' }, 'Matterhorn opens this model in Blender and the AI changes it. The original stays as it is.'),
     input,
+    picker,
     action('Make new version', async () => {
       const change = input.value.trim();
       if (!change) {
         input.focus();
         throw new Error('Describe what to change first.');
       }
-      const builder = state.data.builders.find((b) => b.id === asset.generationProvider) ?? defaultBuilder();
+      const builder = builders.find((b) => b.id === builderId) ?? defaultBuilder();
       if (!builder) throw new Error('No asset builder is available. Check Blender in Settings.');
+      if (builder.requiresNetwork && !state.data.routing.allowNetworkProviders) {
+        state.data.routing = await api('/api/studio/routing', { allowNetworkProviders: true }, 'PUT');
+        toast('Online AI switched on so Claude can work. You can turn it off in Settings › Advanced.');
+      }
       const base = asset.assetId.replace(/_v\d+$/, '');
       let version = Number(/_v(\d+)$/.exec(asset.assetId)?.[1] ?? 1) + 1;
       while (state.data.assets.some((a) => a.assetId === `${base}_v${version}`)) version += 1;
       await api('/api/foundry/jobs', {
         projectId: 'library', assetId: `${base}_v${version}`, kind: asset.type, operation: 'edit',
-        prompt: change, parentAsset: asset.assetId, providerId: builder.id, allowNetwork: builder.requiresNetwork,
+        prompt: change, parentAsset: asset.assetId, providerId: builder.id, allowNetwork: Boolean(builder.requiresNetwork),
         displayName: `${assetName(asset).replace(/ \(v\d+\)$/, '')} (v${version})`,
       });
       toast(`Making version ${version}. The current version stays in Versions.`);

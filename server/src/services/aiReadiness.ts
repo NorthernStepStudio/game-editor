@@ -163,6 +163,29 @@ export class AiReadiness {
     });
   }
 
+  /** Asks the chat model for a JSON object (used to route chat requests to actions). */
+  async json(system: string, user: string): Promise<Record<string, unknown> | undefined> {
+    const model = await this.chatModel();
+    if (!model) return undefined;
+    try {
+      const response = await fetch(`${this.baseUrl}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(90_000),
+        body: JSON.stringify({
+          model, stream: false, think: false, format: 'json', keep_alive: '30m',
+          options: { temperature: 0 },
+          messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+        }),
+      });
+      const data = (await response.json()) as { message?: { content?: string } };
+      const parsed = JSON.parse(data.message?.content ?? '');
+      return parsed && typeof parsed === 'object' ? parsed as Record<string, unknown> : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
   // ── Roles ──────────────────────────────────────────────────────────
   async chatModel(): Promise<string | undefined> {
     return this.resolveRole('chat');

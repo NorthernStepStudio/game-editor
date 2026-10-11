@@ -6,16 +6,17 @@ The web product must organize capabilities that actually exist. Do not invent fi
 
 ## Primary navigation
 
-Matterhorn has exactly six primary pages:
+Matterhorn has exactly seven primary pages:
 
-1. **Home** — create a run, active work, attention items, recent runs.
-2. **Runs** — one guided production flow: Plan → Build → Validate → Repair → Verified → Promote.
-3. **Projects** — configured projects, files, proposals/change sets, project validations, run handoff.
-4. **Assets** — Foundry catalog, filters, generation entry point, provenance/lineage inspector.
-5. **Validation** — Sentinel/run evidence summarized as passed, pending/attention, and failed.
-6. **Settings** — AI providers, routing, runtime capabilities, specialists/readiness under Advanced.
+1. **Home** — "Your studio" capability cards (Agent, Asset Generator, Game Engine; every status line read from a live endpoint), create a run, active work, attention items, recent runs.
+2. **Create** — Character Studio workbench (`#create`, `#characters/<mode>` for model3d, art2d, refine, motion, game-preview). Replaces the former Assets → Motion Studio tab.
+3. **Runs** — one guided production flow: Plan → Build → Validate → Repair → Verified → Promote.
+4. **Projects** — configured projects, files, proposals/change sets, project validations, run handoff.
+5. **Assets** — Foundry catalog, filters, generation entry point, provenance/lineage inspector.
+6. **Validation** — Sentinel/run evidence summarized as passed, pending/attention, and failed.
+7. **Settings** — AI providers, routing, runtime capabilities, specialists/readiness under Advanced.
 
-Do not add a seventh primary page without a real, implemented backend workflow and an explicit product decision.
+Do not add an eighth primary page without a real, implemented backend workflow and an explicit product decision.
 
 ## Secondary surfaces
 
@@ -33,7 +34,7 @@ These are contextual, not primary navigation:
 Until implementation is production-usable:
 
 - no top-level **Releases** page;
-- no top-level **Characters** page;
+- no top-level **Characters** page (character work lives in Create);
 - no top-level **Specialists** page;
 - no top-level **Project Memory** knowledge center;
 - no Motion or Repo/Build controls that imply those planned agents are active.
@@ -55,7 +56,7 @@ Use the approved Matterhorn studio design:
 - no decorative AI gradients, fake analytics, invented progress percentages, or fabricated previews;
 - system plumbing lives in Settings, not Home.
 
-Home should answer only: **What can I ask Matterhorn to do? What is running? What needs me?**
+Home should answer only: **What can I ask Matterhorn to do? What is running? What needs me?** The capability cards answer the first question; a card must show Unknown/Offline/Not configured rather than imply readiness.
 
 Runs should answer only: **What stage is this run in? Who is working? What proof exists? Does promotion need me?**
 
@@ -83,4 +84,4 @@ Existing deep links may redirect:
 - `#specialists` → Settings / Advanced
 - `#chat` → assistant drawer
 
-The standalone UI regression test must preserve the six-page navigation contract.
+The standalone UI regression test must preserve the seven-page navigation contract.

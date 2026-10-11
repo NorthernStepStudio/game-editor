@@ -6,12 +6,15 @@ import { initSpecialists, loadSpecialists } from './specialists.js';
 import { initAssets, loadAssets, loadAssetProviders } from './assets.js';
 import { initRoutingPreferences, loadRoutingPreferences } from './routing.js';
 import { loadCompletionScorecard } from './completion.js';
-import { initMotionStudio, renderMotionStudio } from './motionStudio.js';
+import { initMotionStudio } from './motionStudio.js';
+
+import { initCharacterWorkbench, setWorkbenchMode } from './characterWorkbench.js';
+import { loadStudioStack } from './studioStack.js';
 
 const routeMap = {
   home: 'home',
   studio: 'home',
-  create: 'home',
+  create: 'create-page',
   runs: 'runs-page',
   pipeline: 'runs-page',
   output: 'runs-page',
@@ -26,7 +29,7 @@ const routeMap = {
 const titleMap = {
   home: 'Home',
   studio: 'Home',
-  create: 'Home',
+  create: 'Create / Character Studio',
   runs: 'Runs',
   pipeline: 'Runs',
   output: 'Runs',
@@ -40,7 +43,8 @@ const titleMap = {
 
 function updateSidebarSelection(hash) {
   const normalized =
-    ['studio', 'create'].includes(hash) ? 'home' :
+    hash.startsWith('characters/') || hash === 'create' ? 'create' :
+    hash === 'studio' ? 'home' :
     ['pipeline', 'output'].includes(hash) ? 'runs' :
     hash === 'evidence' ? 'validation' : hash;
 
@@ -61,7 +65,23 @@ function route() {
     return;
   }
 
-  const pageId = routeMap[hash] || 'home';
+  let pageId = routeMap[hash];
+  let workbenchMode = 'model3d';
+
+  if (!pageId) {
+    if (hash.startsWith('characters/')) {
+      pageId = 'create-page';
+      if (hash.includes('/refine')) workbenchMode = 'refine';
+      else if (hash.includes('/motion')) workbenchMode = 'motion';
+      else if (hash.includes('/art2d')) workbenchMode = 'art2d';
+      else if (hash.includes('/game-preview')) workbenchMode = 'game-preview';
+      else if (hash.includes('/model3d')) workbenchMode = 'model3d';
+      else workbenchMode = 'characters';
+    } else {
+      pageId = 'home';
+    }
+  }
+
   if (pageId !== 'assets-page') closeAssetDrawers();
   for (const page of document.querySelectorAll('.page')) {
     page.hidden = page.id !== pageId;
@@ -69,7 +89,16 @@ function route() {
 
   updateSidebarSelection(hash);
   const breadcrumb = document.querySelector('#breadcrumb');
-  if (breadcrumb) breadcrumb.textContent = titleMap[hash] || 'Home';
+  if (breadcrumb) {
+    breadcrumb.textContent =
+      hash.startsWith('characters/')
+        ? `Create / Character Studio / ${workbenchMode.toUpperCase()}`
+        : titleMap[hash] || 'Home';
+  }
+
+  if (pageId === 'create-page') {
+    setWorkbenchMode(workbenchMode);
+  }
 
   if (pageId === 'validation') refreshRuns().catch(notice);
   if (pageId === 'runs-page') refreshRuns().catch(notice);
@@ -92,21 +121,6 @@ function initInternalTabs() {
   }
   for (const button of document.querySelectorAll('[data-project-tab]')) {
     button.onclick = () => switchPanel('project', button.dataset.projectTab);
-  }
-  for (const button of document.querySelectorAll('[data-assets-tab]')) {
-    button.onclick = () => {
-      const target = button.dataset.assetsTab;
-      for (const btn of document.querySelectorAll('[data-assets-tab]')) {
-        btn.classList.toggle('active', btn === button);
-      }
-      const catalogPanel = document.querySelector('#assets-panel-catalog');
-      const motionPanel = document.querySelector('#assets-panel-motion');
-      if (catalogPanel) catalogPanel.hidden = target !== 'catalog';
-      if (motionPanel) {
-        motionPanel.hidden = target !== 'motion';
-        if (target === 'motion') renderMotionStudio();
-      }
-    };
   }
 }
 
@@ -249,6 +263,7 @@ initWorkspace();
 initSpecialists();
 initAssets();
 initMotionStudio();
+initCharacterWorkbench();
 initRoutingPreferences();
 initInternalTabs();
 initValidationFilters();
@@ -258,10 +273,11 @@ route();
 
 window.addEventListener('hashchange', route);
 document.querySelector('#recheck').onclick = () =>
-  Promise.all([health(), runtimeCapabilities()]).catch(notice);
+  Promise.all([health(), runtimeCapabilities(), loadStudioStack()]).catch(notice);
 
 for (const task of [
   health,
+  loadStudioStack,
   runtimeCapabilities,
   providers,
   loadProjects,

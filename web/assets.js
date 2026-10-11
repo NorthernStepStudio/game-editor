@@ -226,10 +226,9 @@ async function selectAsset(assetId) {
       openMotionBtn.className = 'primary-action';
       openMotionBtn.style.marginTop = '8px';
       openMotionBtn.style.width = '100%';
-      openMotionBtn.textContent = 'Open in Motion Studio →';
+      openMotionBtn.textContent = 'Open in Character Studio →';
       openMotionBtn.onclick = () => {
-        const motionTab = document.querySelector('#assets-tab-motion');
-        if (motionTab) motionTab.click();
+        location.hash = '#characters/motion';
       };
 
       motionSection.append(

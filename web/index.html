@@ -16,6 +16,7 @@
 
     <nav class="sidebar-nav" aria-label="Primary navigation">
       <a href="#home" class="nav-item active"><span class="nav-glyph">⌂</span><span>Home</span></a>
+      <a href="#create" class="nav-item" id="nav-btn-create"><span class="nav-glyph">⚡</span><span>Create</span></a>
       <a href="#runs" class="nav-item"><span class="nav-glyph">▣</span><span>Runs</span></a>
       <a href="#projects" class="nav-item"><span class="nav-glyph">□</span><span>Projects</span></a>
       <a href="#assets" class="nav-item"><span class="nav-glyph">◇</span><span>Assets</span></a>
@@ -51,6 +52,8 @@
             <p>Start new work, see what is running, and handle only what needs you.</p>
           </div>
         </div>
+
+        <div id="studio-stack" class="studio-stack" aria-label="Your studio"></div>
 
         <div class="home-grid">
           <div class="home-primary">
@@ -123,6 +126,11 @@
             </div>
           </aside>
         </div>
+      </section>
+
+      <!-- CREATE / CHARACTER WORKBENCH -->
+      <section id="create-page" class="page" hidden>
+        <div id="workbench-shell" class="workbench-shell"></div>
       </section>
 
       <!-- RUNS -->
@@ -320,33 +328,22 @@
           <button id="open-asset-generator" class="primary-action" type="button">Generate Asset</button>
         </div>
 
-        <div class="tab-strip" data-tab-group="assets" style="margin-bottom: 12px;">
-          <button class="tab-button active" id="assets-tab-catalog" data-assets-tab="catalog" type="button">Catalog</button>
-          <button class="tab-button" id="assets-tab-motion" data-assets-tab="motion" type="button">Motion Studio</button>
+        <div class="asset-toolbar surface">
+          <input id="asset-search" type="search" placeholder="Search assets…">
+          <div class="asset-category-row">
+            <button type="button" data-asset-category="all" class="active">All</button>
+            <button type="button" data-asset-category="characters">Characters</button>
+            <button type="button" data-asset-category="environments">Environments</button>
+            <button type="button" data-asset-category="props">Props</button>
+            <button type="button" data-asset-category="ui">UI</button>
+            <button type="button" data-asset-category="3d">3D</button>
+            <button type="button" data-asset-category="audio">Audio</button>
+          </div>
+          <button id="refresh-assets" type="button" class="secondary-action">Refresh</button>
         </div>
 
-        <div id="assets-panel-catalog">
-          <div class="asset-toolbar surface">
-            <input id="asset-search" type="search" placeholder="Search assets…">
-            <div class="asset-category-row">
-              <button type="button" data-asset-category="all" class="active">All</button>
-              <button type="button" data-asset-category="characters">Characters</button>
-              <button type="button" data-asset-category="environments">Environments</button>
-              <button type="button" data-asset-category="props">Props</button>
-              <button type="button" data-asset-category="ui">UI</button>
-              <button type="button" data-asset-category="3d">3D</button>
-              <button type="button" data-asset-category="audio">Audio</button>
-            </div>
-            <button id="refresh-assets" type="button" class="secondary-action">Refresh</button>
-          </div>
-
-          <div class="assets-layout">
-            <div id="asset-gallery" class="asset-gallery"></div>
-          </div>
-        </div>
-
-        <div id="assets-panel-motion" hidden>
-          <div id="motion-studio-container"></div>
+        <div class="assets-layout">
+          <div id="asset-gallery" class="asset-gallery"></div>
         </div>
       </section>
 

@@ -73,26 +73,15 @@ export async function loadMotionStudioCharacters() {
   if (!characters.length) {
     characters = [
       {
-        assetId: 'yun_player_base_v2',
-        displayName: 'Yun Player Base v2 (Refined Stylized Athlete)',
-        type: 'rig',
+        assetId: 'yun_urban_adventurer',
+        displayName: 'Yun Urban Adventurer (Production Character)',
+        type: 'character',
         meshFormat: 'GLB',
         rigStatus: 'Rigged (18 bones)',
-        skinWeightStatus: 'Normalized (Automatic Heat)',
-        animations: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
+        skinWeightStatus: 'Normalized (Clean Hierarchy)',
+        animations: ['idle', 'walk', 'run', 'sprint', 'jump', 'turn'],
         godotValidated: true,
-        previewUrl: '/previews/yun_player_base_v2.png',
-      },
-      {
-        assetId: 'yun_player_base',
-        displayName: 'Yun Player Base (Production Athlete)',
-        type: 'rig',
-        meshFormat: 'GLB',
-        rigStatus: 'Rigged (18 bones)',
-        skinWeightStatus: 'Normalized (Automatic Heat)',
-        animations: ['idle', 'walk', 'run', 'sprint'],
-        godotValidated: true,
-        previewUrl: '/previews/yun_player_base.png',
+        previewUrl: '/previews/yun_urban_adventurer-front.png',
       },
       {
         assetId: 'character-male-a',
@@ -282,15 +271,13 @@ export function renderMotionStudio() {
   anglesRow.style.marginBottom = '12px';
   anglesRow.style.width = '100%';
 
-  const assetBase = char.assetId.includes('yun_player_base_v2')
-    ? 'yun_player_base_v2'
-    : char.assetId.includes('yun_player_base')
-    ? 'yun_player_base'
+  const assetBase = char.assetId.includes('yun_urban_adventurer')
+    ? 'yun_urban_adventurer'
     : 'character-male-a';
 
   const viewAngles = [
     { label: 'Front Angle', src: `/previews/${assetBase}-front.png` },
-    { label: '3/4 Perspective', src: `/previews/${assetBase}.png` },
+    { label: '3/4 Perspective', src: `/previews/${assetBase}-three-quarter.png` },
     { label: 'Side Profile', src: `/previews/${assetBase}-side.png` },
   ];
 

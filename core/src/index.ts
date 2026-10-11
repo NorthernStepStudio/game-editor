@@ -42,3 +42,4 @@ export * from "./studio/assets/characterRiggingPipeline.js";
 export * from "./studio/repo/gitSafety.js";
 export * from "./studio/repo/workspaceManager.js";
 export * from "./studio/release/promotionApprovalStore.js";
+export * from "./studio/liveToolSession.js";

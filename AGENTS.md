@@ -13,6 +13,14 @@ This is a hard repository workflow rule. Re-run the preflight after switching br
 
 The current Gate 0 candidate requires Gate 0 before adding further autonomy features. Integrating already-reviewed work onto the canonical integration line does not authorize advancing to the next autonomy feature until the local Gate 0 commands pass.
 
+## Visible creation mode — mandatory for visual assets
+
+Before creating or substantially modifying characters, buildings, environments, props, animation, UI art, materials, textures, lighting or other visual assets, read and follow `docs/VISIBLE-CREATION-MODE.md`.
+
+When the owner is present at the PC, use the actual visual application and stop at each required checkpoint: `v01-blockout`, `v02-structure`, `v03-details`, `v04-materials` and `v05-final`. Show the required viewport/game views and wait for owner review before advancing. A correction must be made and shown before later-stage work continues.
+
+Automation and background scripts are allowed only when their results are refreshed in the visible application at the current checkpoint. Logs, metrics, JSON and headless tests are supporting evidence, not a substitute for visual review. Fully autonomous visual production is allowed only when the owner explicitly says `run it in the background` or `finish it without me`.
+
 ## Canonical product UI
 
 Before changing `web/`, read `docs/UI-DESIGN.md`.

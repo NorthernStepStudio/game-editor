@@ -4,6 +4,8 @@ import { studioRoutes } from "./services/studioRoutes.js";
 import { foundryRoutes } from "./services/foundryRoutes.js";
 import { createIntelligenceService } from "./services/intelligenceService.js";
 import { intelligenceRoutes } from "./services/intelligenceRoutes.js";
+import { LiveSessionService } from "./services/liveSessionService.js";
+import { liveSessionRoutes } from "./services/liveSessionRoutes.js";
 import * as fs from "node:fs";
 import * as http from "node:http";
 import * as path from "node:path";
@@ -65,6 +67,8 @@ export async function startNssWorkspaceAiServer(
   if (!["127.0.0.1", "localhost", "::1"].includes(host)) throw new Error("Matterhorn standalone must bind to loopback.");
   const studio = createStudioService();
   const intelligence = createIntelligenceService(config, studio.projects);
+  const dataDirectory = process.env.MATTERHORN_DATA_DIR ?? path.resolve(process.cwd(), '.matterhorn');
+  const liveSession = new LiveSessionService(dataDirectory);
   const workspaceRoutes = createWorkspaceRoutes(studio, config);
   const server = http.createServer(async (request, response) => {
     try {
@@ -76,6 +80,7 @@ export async function startNssWorkspaceAiServer(
       if (['POST', 'PUT', 'PATCH'].includes(request.method ?? '') && !request.headers['content-type']?.startsWith('application/json')) {
         await respondJson(response, 415, { error: "Content-Type must be application/json." }); return;
       }
+      if (await liveSessionRoutes(request, response, liveSession, () => readJsonBody(request))) return;
       if (await workspaceRoutes(request, response, () => readJsonBody(request))) return;
       if (await intelligenceRoutes(request, response, intelligence, () => readJsonBody(request))) return;
       if (await foundryRoutes(request, response, studio, () => readJsonBody(request))) return;

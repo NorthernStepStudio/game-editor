@@ -48,26 +48,15 @@ export async function studioRoutes(
     send(response, 200, {
       characters: [
         {
-          assetId: 'yun_player_base',
-          displayName: 'Yun Player Base (Production Athlete)',
-          type: 'rig',
+          assetId: 'yun_urban_adventurer',
+          displayName: 'Yun Urban Adventurer (Production Character)',
+          type: 'character',
           meshFormat: 'GLB',
           rigStatus: 'Rigged (18 bones)',
-          skinWeightStatus: 'Normalized (Automatic Heat)',
-          animations: ['idle', 'walk', 'run', 'sprint'],
+          skinWeightStatus: 'Normalized (Clean Hierarchy)',
+          animations: ['idle', 'walk', 'run', 'sprint', 'jump', 'turn'],
           godotValidated: true,
-          previewUrl: '/previews/yun_player_base.png',
-        },
-        {
-          assetId: 'yun_player_base_v2',
-          displayName: 'Yun Player Base v2 (Refined Stylized Athlete)',
-          type: 'rig',
-          meshFormat: 'GLB',
-          rigStatus: 'Rigged (18 bones)',
-          skinWeightStatus: 'Normalized (Automatic Heat)',
-          animations: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
-          godotValidated: true,
-          previewUrl: '/previews/yun_player_base_v2.png',
+          previewUrl: '/previews/yun_urban_adventurer-front.png',
         },
         {
           assetId: 'character-male-a',
@@ -79,6 +68,20 @@ export async function studioRoutes(
           animations: ['idle', 'walk', 'sprint'],
           godotValidated: true,
           previewUrl: '/previews/character-male-a.png',
+        },
+      ],
+      tombstones: [
+        {
+          assetId: 'yun_player_base',
+          state: 'rejected',
+          reason: 'Legacy bad-form character fixture rejected for Character Studio human review',
+          lineage: 'historical-phase3h',
+        },
+        {
+          assetId: 'yun_player_base_v2',
+          state: 'rejected',
+          reason: 'Deformed limb hierarchy and proportions rejected for Character Studio human review',
+          lineage: 'yun_player_base',
         },
       ],
       providers: [
@@ -95,7 +98,7 @@ export async function studioRoutes(
     const body = (await readBody()) as { characterId?: string; providerId?: string };
     send(response, 200, {
       success: true,
-      characterId: body.characterId ?? 'yun_player_base_v2',
+      characterId: body.characterId ?? 'yun_urban_adventurer',
       provider: body.providerId ?? 'blender-native',
       skeleton: {
         topology: 'humanoid',
@@ -111,8 +114,8 @@ export async function studioRoutes(
     const body = (await readBody()) as { characterId?: string; targetPath?: string };
     send(response, 200, {
       success: true,
-      characterId: body.characterId ?? 'yun_player_base_v2',
-      target: body.targetPath ?? 'games/Yun/assets/matterhorn/yun_player_base_v2.glb',
+      characterId: body.characterId ?? 'yun_urban_adventurer',
+      target: body.targetPath ?? 'games/Yun/assets/matterhorn/yun_urban_adventurer.glb',
       actionsExported: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
       status: 'exported_to_game',
     });

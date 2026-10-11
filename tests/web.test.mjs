@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { JSDOM } from 'jsdom';
 
-test('approved six-page UI preserves real Matterhorn workflows without invented product surfaces', async () => {
+test('approved seven-page UI preserves real Matterhorn workflows without invented product surfaces', async () => {
   const dom = new JSDOM(
     await readFile(new URL('../web/index.html', import.meta.url), 'utf8'),
     { url: 'http://localhost/#home' },
@@ -61,18 +61,50 @@ test('approved six-page UI preserves real Matterhorn workflows without invented 
     else if (path === '/api/motion/characters') data = {
       characters: [
         {
-          assetId: 'yun_player_base_v2',
-          displayName: 'Yun Player Base v2 (Refined Stylized Athlete)',
-          type: 'rig',
+          assetId: 'yun_urban_adventurer',
+          displayName: 'Yun Urban Adventurer (Production Character)',
+          type: 'character',
           meshFormat: 'GLB',
           rigStatus: 'Rigged (18 bones)',
-          skinWeightStatus: 'Normalized (Automatic Heat)',
-          animations: ['idle', 'walk', 'run', 'sprint', 'turn', 'celebration'],
+          skinWeightStatus: 'Normalized (Clean Hierarchy)',
+          animations: ['idle', 'walk', 'run', 'sprint', 'jump', 'turn'],
           godotValidated: true,
-          previewUrl: '/games/street-yun.webp',
+          previewUrl: '/previews/yun_urban_adventurer-front.png',
+        },
+      ],
+      tombstones: [
+        {
+          assetId: 'yun_player_base',
+          state: 'rejected',
+          reason: 'Legacy bad-form character fixture rejected for Character Studio human review',
+          lineage: 'historical-phase3h',
         },
       ],
       providers: [],
+    };
+    else if (path.startsWith('/api/characters/')) data = {
+      character: {
+        assetId: 'yun_urban_adventurer',
+        displayName: 'Yun Urban Adventurer (Production Character)',
+        referenceImages: { front: '/previews/yun_urban_adventurer-front.png' },
+      },
+    };
+    else if (path === '/api/live-sessions') data = {
+      sessions: [{
+        sessionId: 'live-workbench-default',
+        characterId: 'yun_urban_adventurer',
+        characterRevision: 'mesh-v12',
+        tool: 'blender',
+        stage: 'Head / Face',
+        activePart: 'head',
+        completedParts: [],
+        status: 'waiting-for-review',
+        previewUri: '/previews/yun_urban_adventurer-front.png',
+        checkpointId: 'head-polish-v3',
+        toolState: { connected: true, mode: 'live' },
+        measurements: [],
+        revisions: [],
+      }],
     };
     else if (path === '/api/studio/completion') data = {
       productionReadiness: 42,
@@ -143,11 +175,18 @@ test('approved six-page UI preserves real Matterhorn workflows without invented 
       /Graphiti|DeepEval|Langfuse|Browser Harness/,
     );
 
+    const stack = document.querySelector('#studio-stack').textContent;
+    assert.match(stack, /AGENT/);
+    assert.match(stack, /ASSET GENERATOR/);
+    assert.match(stack, /GAME ENGINE/);
+    assert.match(stack, /Mock — choose a real model/);
+
     const primaryNav = [...document.querySelectorAll('.sidebar-nav a')].map(link => link.textContent.trim());
-    assert.deepEqual(primaryNav, ['⌂Home', '▣Runs', '□Projects', '◇Assets', '✓Validation', '⚙Settings']);
+    assert.deepEqual(primaryNav, ['⌂Home', '⚡Create', '▣Runs', '□Projects', '◇Assets', '✓Validation', '⚙Settings']);
 
     for (const [hash, pageId] of [
       ['home', 'home'],
+      ['create', 'create-page'],
       ['runs', 'runs-page'],
       ['projects', 'projects'],
       ['assets', 'assets-page'],
@@ -162,6 +201,13 @@ test('approved six-page UI preserves real Matterhorn workflows without invented 
       await flush();
       assert.equal(document.querySelector(`#${pageId}`).hidden, false);
     }
+
+    location.hash = '#characters/yun_urban_adventurer/model3d/refine';
+    window.dispatchEvent(new window.Event('hashchange'));
+    await flush();
+    assert.ok(document.querySelector('#workbench-shell'));
+    assert.ok(document.querySelector('.part-pipeline-list'));
+    assert.match(document.querySelector('.part-pipeline-item.active').textContent, /Head & Face/);
 
     document.querySelector('#assistant-toggle').click();
     assert.equal(document.querySelector('#chat-drawer').hidden, false);

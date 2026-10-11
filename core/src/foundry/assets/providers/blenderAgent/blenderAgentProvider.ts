@@ -265,7 +265,9 @@ function tail(text: string, max: number): string {
   return text.length > max ? text.slice(-max) : text;
 }
 
+/** One-line summary: a Python traceback's final line names the error; other messages lead with it. */
 function firstLine(text: string): string {
   const lines = text.trim().split(/\r?\n/);
-  return (lines.at(-1) ?? "").slice(0, 300);
+  const line = lines[0]?.startsWith("Traceback") ? lines.at(-1) : lines[0];
+  return (line ?? "").slice(0, 300);
 }

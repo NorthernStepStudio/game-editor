@@ -88,6 +88,12 @@ Required Matterhorn behavior:
 - private project context remains local/self-hosted by default;
 - memory failure does not invent state.
 
+Local setup (`tools/setup-matterhorn-project-memory.ps1`, Python 3.12+):
+
+- **Graph engine:** FalkorDB Lite ships no Windows build, so `-GraphEngine auto` installs `graphiti-core[kuzu]` on Windows and FalkorDB Lite elsewhere; the service reads `MATTERHORN_MEMORY_GRAPH_ENGINE`. Kuzu's Graphiti driver has no `health_check`, so `/healthcheck` falls back to a `RETURN 1` query.
+- **Models:** local Ollama through its OpenAI-compatible endpoint, e.g. `-LlmBaseUrl http://127.0.0.1:11434/v1 -LlmModel gemma4:12b -EmbeddingModel nomic-embed-text -EmbeddingDim 768`. The first start downloads the BGE reranker.
+- **Port:** pick a free one with `-Port` (this PC uses 8765 because another app holds 8000) and set `MATTERHORN_PROJECT_MEMORY_URL` plus the `MATTERHORN_MEMORY_*` model settings in the root `.env`; `npm run studio` then starts the service with the rest of the stack.
+
 ### Run insights
 
 Status: **standard OTLP/HTTP JSON exporter implemented and connected to Studio events.**

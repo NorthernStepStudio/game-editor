@@ -39,7 +39,13 @@ test('approved seven-page UI preserves real Matterhorn workflows without invente
 
     if (path === '/health') data = { mode: 'mock' };
     else if (path === '/providers') data = { current: 'mock', providers: [{ id: 'mock', label: 'Mock', available: true }] };
-    else if (path === '/api/studio/health') data = { available: false };
+    else if (path === '/api/studio/health') data = {
+      available: false,
+      executionBackends: {
+        codex: { configured: true },
+        codeAgent: { agent: 'claude', installed: true, signedIn: false, ready: false, note: 'Claude Code is installed but not signed in: run `claude` once in a terminal and sign in.' },
+      },
+    };
     else if (path === '/api/studio/runtime') data = [
       { capability: 'browser-control', title: 'Local browser', state: 'ready' },
       { capability: 'project-memory', title: 'Project memory', state: 'unavailable' },
@@ -180,6 +186,10 @@ test('approved seven-page UI preserves real Matterhorn workflows without invente
     assert.match(stack, /ASSET GENERATOR/);
     assert.match(stack, /GAME ENGINE/);
     assert.match(stack, /Mock — choose a real model/);
+    // A configured-but-unsigned code agent must not read as ready.
+    assert.match(stack, /Claude Code not signed in/);
+    assert.match(stack, /run `claude` once/);
+    assert.doesNotMatch(stack, /Code agent\s*Ready/);
 
     const primaryNav = [...document.querySelectorAll('.sidebar-nav a')].map(link => link.textContent.trim());
     assert.deepEqual(primaryNav, ['⌂Home', '⚡Create', '▣Runs', '□Projects', '◇Assets', '✓Validation', '⚙Settings']);

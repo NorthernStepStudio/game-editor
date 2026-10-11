@@ -13,6 +13,23 @@ function statusRow(label, value, state) {
   return row;
 }
 
+function codeAgentRow(agent) {
+  const name = agent.agent === 'claude' ? 'Claude Code' : agent.agent === 'codex' ? 'Codex' : agent.agent;
+  const value = agent.ready
+    ? `${name} ready`
+    : !agent.installed
+      ? `${name} not installed`
+      : agent.signedIn === false
+        ? `${name} not signed in`
+        : `${name} not ready`;
+  const row = statusRow('Code agent', value, agent.ready ? 'ready' : 'warn');
+  if (agent.ready || !agent.note) return row;
+  // Not ready: show what to do, not just that something is wrong.
+  const group = el('div', undefined, 'stack-row-group');
+  group.append(row, el('p', agent.note, 'stack-hint'));
+  return group;
+}
+
 function card({ kicker, title, line, rows, actions }) {
   const node = el('article', undefined, 'stack-card surface');
   node.append(el('p', kicker, 'eyebrow'), el('h3', title, 'stack-title'), el('p', line, 'stack-line'));
@@ -51,6 +68,7 @@ export async function loadStudioStack() {
   const characters = motion?.characters ?? [];
   const flyrail = daemon?.available === true;
   const codex = daemon?.executionBackends?.codex?.configured === true;
+  const codeAgent = daemon?.executionBackends?.codeAgent;
   const godotAi = daemon?.executionBackends?.godotAi?.configured === true;
 
   container.replaceChildren(
@@ -88,7 +106,7 @@ export async function loadStudioStack() {
       rows: [
         statusRow('Execution', daemon ? (flyrail ? 'Connected' : 'Offline — start the daemon on this PC') : 'Unknown', flyrail ? 'ready' : 'warn'),
         statusRow('Editor tools', godotAi ? 'Godot editor tools configured' : 'Not configured', godotAi ? 'ready' : 'off'),
-        statusRow('Code agent', codex ? 'Ready' : 'Not configured', codex ? 'ready' : 'off'),
+        codeAgent ? codeAgentRow(codeAgent) : statusRow('Code agent', codex ? 'Ready' : 'Not configured', codex ? 'ready' : 'off'),
       ],
       actions: [
         { label: 'Open projects', href: '#projects', primary: true },

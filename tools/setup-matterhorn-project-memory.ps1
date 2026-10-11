@@ -6,7 +6,9 @@ param(
   [Parameter(Mandatory=$true)][string]$EmbeddingModel,
   [int]$EmbeddingDim = 1024,
   [int]$Port = 8000,
-  [string]$PythonCommand = "python"
+  [string]$PythonCommand = "python",
+  # Embedded graph engine: FalkorDB Lite has no Windows build, so Windows uses Kuzu.
+  [ValidateSet("auto", "kuzu", "falkordblite")][string]$GraphEngine = "auto"
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,7 +21,11 @@ if (-not $python) { throw "Python 3.12+ is required for embedded Matterhorn Proj
 $versionOutput = & $python.Source -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
 $parts = $versionOutput.Trim().Split('.')
 if ([int]$parts[0] -lt 3 -or ([int]$parts[0] -eq 3 -and [int]$parts[1] -lt 12)) {
-  throw "Matterhorn Project Memory requires Python 3.12+ for embedded FalkorDB Lite."
+  throw "Matterhorn Project Memory requires Python 3.12+."
+}
+
+if ($GraphEngine -eq "auto") {
+  $GraphEngine = if ($env:OS -eq "Windows_NT") { "kuzu" } else { "falkordblite" }
 }
 
 New-Item -ItemType Directory -Force -Path $InstallRoot | Out-Null
@@ -32,7 +38,7 @@ if (-not (Test-Path $venv)) {
 $venvPython = Join-Path $venv "Scripts\python.exe"
 $venvPip = Join-Path $venv "Scripts\pip.exe"
 $packages = @(
-  "graphiti-core[falkordblite,sentence-transformers]==0.30.2",
+  "graphiti-core[$GraphEngine,sentence-transformers]==0.30.2",
   "fastapi>=0.115,<1",
   "uvicorn[standard]>=0.34,<1"
 )
@@ -56,6 +62,7 @@ $env:MATTERHORN_MEMORY_EMBEDDING_MODEL = $EmbeddingModel
 $env:MATTERHORN_MEMORY_EMBEDDING_DIM = "$EmbeddingDim"
 $env:MATTERHORN_MEMORY_DB_PATH = $dbPath
 $env:GRAPHITI_TELEMETRY_ENABLED = "false"
+$env:MATTERHORN_MEMORY_GRAPH_ENGINE = $GraphEngine
 
 $healthUrl = "http://127.0.0.1:$Port/healthcheck"
 try {
@@ -69,7 +76,7 @@ try {
 $process = Start-Process -FilePath $venvPython -ArgumentList @(
   "-m", "uvicorn",
   "matterhorn_project_memory:app",
-  "--app-dir", $InstallRoot,
+  "--app-dir", "`"$InstallRoot`"",  # quoted: Start-Process does not quote paths with spaces
   "--host", "127.0.0.1",
   "--port", "$Port",
   "--no-access-log"
@@ -85,7 +92,7 @@ do {
     $health = Invoke-RestMethod -Uri $healthUrl -Method Get -TimeoutSec 2
     if ($health.status -eq "healthy") {
       Write-Host "Matterhorn Project Memory ready at http://127.0.0.1:$Port/"
-      Write-Host "Graph engine: Graphiti 0.30.2 + embedded FalkorDB Lite"
+      Write-Host "Graph engine: Graphiti 0.30.2 + embedded $GraphEngine"
       Write-Host "Set MATTERHORN_PROJECT_MEMORY_URL=http://127.0.0.1:$Port/"
       exit 0
     }

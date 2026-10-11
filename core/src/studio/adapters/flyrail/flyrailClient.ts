@@ -45,6 +45,7 @@ export interface FlyrailHealthResponse {
   role?: string;
   autonomy?: {
     codex?: { configured?: boolean; command?: string; prefixArgs?: number; sandbox?: string };
+    codeAgent?: { agent?: string; installed?: boolean; signedIn?: boolean | null; ready?: boolean; note?: string };
     godotAi?: { configured?: boolean; pluginInstalled?: boolean; transport?: string; command?: string; argsCount?: number; allowedTools?: string[] };
   };
 }

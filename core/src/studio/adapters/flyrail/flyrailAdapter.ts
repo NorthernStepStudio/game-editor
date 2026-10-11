@@ -91,6 +91,8 @@ export class FlyrailAdapter implements SpecialistAdapter {
 
   async getExecutionBackends(): Promise<{
     codex: { configured: boolean; sandbox?: string };
+    /** The implementation worker Flyrail will actually use, with real install/sign-in state (newer daemons only). */
+    codeAgent?: { agent: string; installed: boolean; signedIn: boolean | null; ready: boolean; note: string };
     godotAi: { configured: boolean; pluginInstalled: boolean; transport?: string; allowedTools: readonly string[] };
   }> {
     const health = await this.client.health();
@@ -99,6 +101,17 @@ export class FlyrailAdapter implements SpecialistAdapter {
         configured: health.autonomy?.codex?.configured === true,
         ...(health.autonomy?.codex?.sandbox ? { sandbox: health.autonomy.codex.sandbox } : {}),
       },
+      ...(health.autonomy?.codeAgent?.agent
+        ? {
+            codeAgent: {
+              agent: String(health.autonomy.codeAgent.agent),
+              installed: health.autonomy.codeAgent.installed === true,
+              signedIn: typeof health.autonomy.codeAgent.signedIn === 'boolean' ? health.autonomy.codeAgent.signedIn : null,
+              ready: health.autonomy.codeAgent.ready === true,
+              note: String(health.autonomy.codeAgent.note ?? '').slice(0, 300),
+            },
+          }
+        : {}),
       godotAi: {
         configured: health.autonomy?.godotAi?.configured === true,
         pluginInstalled: health.autonomy?.godotAi?.pluginInstalled === true,

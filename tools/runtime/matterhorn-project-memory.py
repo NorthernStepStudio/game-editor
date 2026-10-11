@@ -9,13 +9,13 @@ EMBEDDING_DIM = int(os.environ.get("MATTERHORN_MEMORY_EMBEDDING_DIM", "1024"))
 os.environ["EMBEDDING_DIM"] = str(EMBEDDING_DIM)
 os.environ.setdefault("GRAPHITI_TELEMETRY_ENABLED", "false")
 
+import sys
+
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field
-from redislite.async_falkordb_client import AsyncFalkorDB
 
 from graphiti_core import Graphiti
 from graphiti_core.cross_encoder.bge_reranker_client import BGERerankerClient
-from graphiti_core.driver.falkordb_driver import FalkorDriver
 from graphiti_core.embedder import OpenAIEmbedder, OpenAIEmbedderConfig
 from graphiti_core.llm_client import LLMConfig
 from graphiti_core.llm_client.openai_generic_client import OpenAIGenericClient
@@ -55,6 +55,25 @@ DB_PATH = Path(
     )
 ).expanduser().resolve()
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+# Embedded graph engine. FalkorDB Lite ships no Windows build, so Windows defaults to Kuzu.
+GRAPH_ENGINE = os.environ.get(
+    "MATTERHORN_MEMORY_GRAPH_ENGINE",
+    "kuzu" if sys.platform == "win32" else "falkordblite",
+).strip().lower()
+if GRAPH_ENGINE not in ("kuzu", "falkordblite"):
+    raise RuntimeError("MATTERHORN_MEMORY_GRAPH_ENGINE must be 'kuzu' or 'falkordblite'.")
+
+
+def _graph_driver():
+    if GRAPH_ENGINE == "kuzu":
+        from graphiti_core.driver.kuzu_driver import KuzuDriver
+
+        return KuzuDriver(db=str(DB_PATH.with_suffix(".kuzu")))
+    from graphiti_core.driver.falkordb_driver import FalkorDriver
+    from redislite.async_falkordb_client import AsyncFalkorDB
+
+    return FalkorDriver(falkor_db=AsyncFalkorDB(dbfilename=str(DB_PATH)))
 
 
 class MemoryMessage(BaseModel):
@@ -105,8 +124,7 @@ graphiti: Graphiti | None = None
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     global graphiti
-    falkor = AsyncFalkorDB(dbfilename=str(DB_PATH))
-    driver = FalkorDriver(falkor_db=falkor)
+    driver = _graph_driver()
 
     llm = OpenAIGenericClient(
         config=LLMConfig(
@@ -161,7 +179,11 @@ def _memory() -> Graphiti:
 async def healthcheck():
     memory = _memory()
     try:
-        await memory.driver.health_check()
+        if hasattr(memory.driver, "health_check"):
+            await memory.driver.health_check()
+        else:
+            # Kuzu's Graphiti driver has no health_check; a trivial query proves the database answers.
+            await memory.driver.execute_query("RETURN 1")
     except Exception as exc:
         raise HTTPException(status_code=503, detail="Project-memory database is unavailable.") from exc
     return {"status": "healthy", "service": "Matterhorn Project Memory"}

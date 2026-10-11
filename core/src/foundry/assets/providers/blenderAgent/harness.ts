@@ -175,7 +175,14 @@ if CFG.get("requireConnected", True):
             nearest = min(gap(islands[a], islands[b]) for a in group for b in main)
             names = sorted(set(islands[k][0] for k in group))
             details.append("%s floats %.3f m away from the main body" % ("/".join(names[:3]), nearest))
-        fail("validate", "The asset has %d disconnected groups of parts: %s. Move or extend parts so every piece touches or overlaps the rest." % (len(groups), "; ".join(details)))
+        layout = []
+        for obj in meshes[:16]:
+            evaluated = obj.evaluated_get(depsgraph)
+            corners = [evaluated.matrix_world @ Vector(c) for c in evaluated.bound_box]
+            omin = Vector((min(c.x for c in corners), min(c.y for c in corners), min(c.z for c in corners)))
+            omax = Vector((max(c.x for c in corners), max(c.y for c in corners), max(c.z for c in corners)))
+            layout.append("  %s: x %.3f..%.3f, y %.3f..%.3f, z %.3f..%.3f" % (obj.name, omin.x, omax.x, omin.y, omax.y, omin.z, omax.z))
+        fail("validate", "The asset has %d disconnected groups of parts: %s. Move or extend parts so every piece touches or overlaps the rest.\nMeasured world-space bounds of each part (meters):\n%s" % (len(groups), "; ".join(details), "\n".join(layout)))
 
 REPORT["stats"] = {
     "objects": len(meshes),

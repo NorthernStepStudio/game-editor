@@ -29,6 +29,7 @@ const FORBIDDEN_PATTERNS: readonly (readonly [RegExp, string])[] = [
   [/\bbpy\s*\.\s*data\s*\.\s*(?:texts|libraries)\b/, "text blocks and linked libraries are reserved"],
   [/\.\s*(?:filepath|filepath_raw|directory)\s*=/, "assigning file paths is reserved for the harness"],
   [/\bbpy\s*\.\s*data\s*\.\s*images\s*\.\s*load\b/, "loading external images is not allowed"],
+  [/\bbpy\s*\.\s*ops\s*\.\s*object\s*\.\s*join\b/, "do not join objects: keep parts as separate named objects parented to one root Empty (joining deletes objects your script still references)"],
 ];
 
 export interface BlenderScriptGuardResult {

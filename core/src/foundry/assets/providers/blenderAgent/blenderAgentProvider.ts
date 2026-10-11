@@ -61,10 +61,10 @@ Rules:
 - Real-world scale in meters, Z up, the asset centered on the origin and resting on Z=0, front facing -Y.
 - Game-ready: clean low-to-mid poly topology, sensible proportions, recognizable silhouette, no stray or floating parts unless the design calls for them.
 - Give every part a Principled BSDF material with a fitting base color (and roughness/metallic), using material node_tree where needed. Name objects and materials meaningfully.
-- Parent or join parts so the result is one coherent asset.
+- Keep parts as separate, meaningfully named objects and parent them all to one root Empty named after the asset (obj.parent = root). Never call bpy.ops.object.join(); Matterhorn exports all parts together.
+- Parts must physically touch or overlap: floating, disconnected pieces are rejected. Compute positions from the dimensions of the parts they attach to.
 
 Blender 4/5 pitfalls to avoid:
-- bpy.ops.object.join() deletes every selected object except the active one; never touch the other objects' Python references afterwards. Prefer joining once, at the very end.
 - Select explicitly before operators: deselect all, obj.select_set(True), bpy.context.view_layer.objects.active = obj.
 - Prefer bmesh or object-mode operators over edit-mode bpy.ops calls that need a specific context.
 - Principled BSDF inputs are named "Base Color", "Metallic", "Roughness", "Emission Color", "Emission Strength", "Alpha".

@@ -36,6 +36,7 @@ test("Blender Agent guard rejects file, process, network and introspection escap
     "bpy.app.handlers.load_post.append(f)": "handlers",
     "bpy.data.texts.new('run')": "text blocks",
     "img.filepath = 'C:/x.png'": "file paths",
+    "bpy.ops.object.join()": "do not join objects",
     "f = lambda: 0\nf.__globals__": "introspection",
   };
   for (const [line, expected] of Object.entries(cases)) {

@@ -41,6 +41,15 @@ export async function foundryRoutes(
     return true;
   }
 
+  if (pathname === '/api/foundry/import' && request.method === 'GET') {
+    sendJson(response, 200, service.foundryImporter.status());
+    return true;
+  }
+  if (pathname === '/api/foundry/import/scan' && request.method === 'POST') {
+    sendJson(response, 200, await service.foundryImporter.scan());
+    return true;
+  }
+
   if (request.method === 'GET' && pathname === '/api/foundry/projects') {
     sendJson(response, 200, {
       projects: service.foundryProjects.map((project) => ({ id: project.id, name: project.name })),

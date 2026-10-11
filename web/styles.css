@@ -214,3 +214,19 @@ select.field{min-height:44px}
   h1{font-size:25px}
   .steps .step-label{font-size:12px}
 }
+
+/* Imports, AI models, guide */
+.source-select{max-width:240px}
+.audio{width:100%}
+.model-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding:14px 0;border-top:1px solid #1B2940}
+.model-main{flex:1 1 360px;display:flex;flex-direction:column;gap:4px}
+.guide{display:flex;flex-direction:column;gap:18px}
+.guide-toc{display:flex;flex-wrap:wrap;gap:8px}
+.guide section{scroll-margin-top:16px}
+.guide h3{margin:4px 0 8px}
+.guide dl{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:8px 18px;margin:0}
+.guide dt{font-weight:600;color:var(--text)}
+.guide dd{margin:0;color:var(--soft)}
+.guide ol,.guide ul{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px;color:var(--soft)}
+.guide .tip{padding:12px 14px;border-radius:var(--r-sm);background:var(--card-2);border:1px solid var(--line);color:var(--soft)}
+@media (max-width:760px){.guide dl{grid-template-columns:1fr}.guide dd{margin-bottom:8px}}

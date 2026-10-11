@@ -25,6 +25,20 @@ export interface ScriptAuthor {
 
 const AUTHOR_TIMEOUT_MS = 6 * 60_000;
 
+/**
+ * Environment for running the user's own Claude Code. Drops the session variables a host
+ * (such as the Claude desktop app) sets for its own children, so Claude Code uses the
+ * user's login and behaves the same however Matterhorn was started.
+ */
+export function cleanClaudeEnvironment(env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+  const clean: NodeJS.ProcessEnv = {};
+  for (const [key, value] of Object.entries(env)) {
+    if (/^(CLAUDECODE|CLAUDE_CODE_|CLAUDE_AGENT_SDK_|CLAUDE_PID$|CLAUDE_EFFORT$|CLAUDE_PREVIEW_|ANTHROPIC_BASE_URL$)/i.test(key)) continue;
+    clean[key] = value;
+  }
+  return clean;
+}
+
 export function findClaudeCodeExecutable(env: NodeJS.ProcessEnv = process.env): string | undefined {
   const explicit = env.MATTERHORN_CLAUDE_BIN?.trim();
   if (explicit) return existsSync(explicit) ? explicit : undefined;
@@ -69,6 +83,7 @@ export class ClaudeCodeScriptAuthor implements ScriptAuthor {
         stdio: ["pipe", "pipe", "pipe"],
         windowsHide: true,
         shell: false,
+        env: cleanClaudeEnvironment(),
       });
       let stdout = "";
       let stderr = "";
@@ -111,10 +126,17 @@ export class OllamaScriptAuthor implements ScriptAuthor {
   readonly id = "ollama" as const;
   readonly label = "Ollama";
 
+  /** `model` may be a function so the user's model choice applies without restarting. */
   constructor(
     private readonly baseUrl: string,
-    readonly model: string,
+    private readonly modelSource: string | (() => string | undefined),
   ) {}
+
+  get model(): string {
+    const value = typeof this.modelSource === "function" ? this.modelSource() : this.modelSource;
+    if (!value) throw new Error("No local model is chosen for building assets. Pick one in Settings › AI.");
+    return value;
+  }
 
   async author(request: ScriptAuthorRequest): Promise<string> {
     const signal = request.signal

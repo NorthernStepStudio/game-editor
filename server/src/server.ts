@@ -68,6 +68,11 @@ export async function startNssWorkspaceAiServer(
     options.portStateFilePath === false ? undefined : options.portStateFilePath ?? resolveDefaultPortStateFilePath();
   if (!["127.0.0.1", "localhost", "::1"].includes(host)) throw new Error("Matterhorn standalone must bind to loopback.");
   const studio = createStudioService();
+  // Make local AI ready without the user doing anything: start Ollama and pre-load the chat model.
+  // Skipped in mock mode (tests) so test runs never start or load real models.
+  if (config.mCore.providerMode !== 'mock' && process.env.MATTERHORN_SKIP_AI_STARTUP !== '1') void studio.ai.start();
+  // Bring assets that already exist in game and work folders into the library (and keep it current).
+  if (config.mCore.providerMode !== 'mock') void studio.foundryImporter.scan();
   const intelligence = createIntelligenceService(config, studio.projects);
   const dataDirectory = process.env.MATTERHORN_DATA_DIR ?? path.resolve(process.cwd(), '.matterhorn');
   const liveSession = new LiveSessionService(dataDirectory);
@@ -106,10 +111,14 @@ export async function startNssWorkspaceAiServer(
           typeof (rawBody as { _provider?: string })._provider === "string"
             ? (rawBody as { _provider: string })._provider
             : undefined;
+        const effectiveProvider = providerOverride ?? config.mCore.providerMode;
+        // Chat uses the model chosen in Settings › AI unless a request names one explicitly.
         const modelOverride =
           typeof (rawBody as { _model?: string })._model === "string"
             ? (rawBody as { _model: string })._model
-            : undefined;
+            : effectiveProvider === "ollama"
+              ? await studio.ai.chatModel()
+              : undefined;
         const payload = rawBody as NssAskRequestPayload;
 
         if (wantsStream) {

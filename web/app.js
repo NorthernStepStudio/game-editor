@@ -90,13 +90,11 @@ function initAssistant() {
     log.scrollTop = log.scrollHeight;
     input.value = '';
     try {
-      const provider = localStorage.getItem('matterhorn.chatProvider') || undefined;
       const answer = await api('/ask', {
         prompt: `[The user is looking at: ${store.context}]\n${text}`,
         intent: 'ask',
         workspace: { name: 'Matterhorn' },
         history: history.slice(-12),
-        ...(provider ? { _provider: provider } : {}),
       });
       pending.textContent = answer.response;
       history.push({ role: 'user', content: text }, { role: 'assistant', content: answer.response });

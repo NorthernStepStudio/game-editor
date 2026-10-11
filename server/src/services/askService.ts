@@ -16,16 +16,20 @@ function applyProviderOverride(
   providerOverride?: string,
   modelOverride?: string,
 ): NssWorkspaceAiServerConfig {
-  if (!providerOverride || !VALID_PROVIDER_MODES.has(providerOverride)) {
+  // A model override applies to the active provider even when no provider override is given.
+  const provider = providerOverride && VALID_PROVIDER_MODES.has(providerOverride)
+    ? providerOverride
+    : modelOverride ? config.mCore.providerMode : undefined;
+  if (!provider) {
     return config;
   }
 
-  const modelConfig = modelOverride ? createModelOverride(providerOverride, modelOverride) : {};
+  const modelConfig = modelOverride ? createModelOverride(provider, modelOverride) : {};
   return {
     ...config,
     mCore: {
       ...config.mCore,
-      providerMode: providerOverride as ResponseOsProviderMode,
+      providerMode: provider as ResponseOsProviderMode,
       ...modelConfig,
     },
   };

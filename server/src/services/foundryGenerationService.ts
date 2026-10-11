@@ -110,6 +110,8 @@ export interface FoundryGenerationServiceOptions {
   readonly providers?: readonly FoundryAssetProvider[];
   readonly routingPreferences?: () => StudioRoutingPreferences;
   readonly styles?: FoundryStyleStore;
+  /** The user's chosen local model for writing Blender scripts (read at build time). */
+  readonly assetModel?: () => string | undefined;
   /** Where build history is kept; defaults to the asset store's data directory. */
   readonly jobsPath?: string | false;
 }
@@ -147,6 +149,7 @@ export class FoundryGenerationService {
   private readonly aborts = new Map<string, AbortController>();
   private readonly styles?: FoundryStyleStore;
   private readonly jobsPath?: string;
+  private readonly assetModel?: () => string | undefined;
 
   constructor(
     private readonly projects: readonly StudioProject[],
@@ -156,6 +159,7 @@ export class FoundryGenerationService {
     this.env = options.env ?? process.env;
     this.routingPreferences = options.routingPreferences;
     this.styles = options.styles;
+    this.assetModel = options.assetModel;
     this.jobsPath = options.jobsPath === false
       ? undefined
       : options.jobsPath ?? join(this.assets.dataDirectory, 'foundry-assets', 'jobs.json');
@@ -656,15 +660,16 @@ export class FoundryGenerationService {
       return;
     }
 
-    if (ollamaModel) {
+    if (ollamaModel || this.assetModel) {
+      const chosen = this.assetModel;
       this.registry.register(new BlenderAgentAssetProvider({
-        author: new OllamaScriptAuthor(ollamaBase, ollamaModel),
+        author: new OllamaScriptAuthor(ollamaBase, () => chosen?.() ?? ollamaModel),
         blenderExecutable: blender,
         resolveParentScript,
       }));
       this.blenderAgentNotes.set(
         'blender-agent-local',
-        `Local and free: ${ollamaModel} writes the Blender script on this PC. Quality is basic; Claude Code builds better assets.`,
+        'Local and free: your chosen local model writes the Blender script on this PC (Settings › AI). Good for simple props; Claude Code builds better multi-part assets.',
       );
     } else {
       this.blenderAgentNotes.set('blender-agent-local', 'Set OLLAMA_MODEL on the Matterhorn server to build assets with a local model.');

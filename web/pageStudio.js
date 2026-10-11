@@ -139,8 +139,7 @@ async function ask(text) {
   state.result = { kind: 'answer', question: text, answer: null };
   paintResult();
   try {
-    const provider = localStorage.getItem('matterhorn.chatProvider') || undefined;
-    const answer = await api('/ask', { prompt: text, intent: 'ask', workspace: { name: 'Matterhorn' }, ...(provider ? { _provider: provider } : {}) });
+    const answer = await api('/ask', { prompt: text, intent: 'ask', workspace: { name: 'Matterhorn' } });
     state.result = { kind: 'answer', question: text, answer: answer.response };
   } catch (error) {
     state.result = { kind: 'error', text: `Couldn't answer: ${error.message}` };

@@ -81,7 +81,7 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
     this.blenderTimeoutMs = options.blenderTimeoutMs ?? 10 * 60_000;
     this.descriptor = {
       id: remote ? "blender-agent-claude" : "blender-agent-local",
-      name: remote ? "Blender Agent (Claude Code)" : `Blender Agent (local ${options.author.model ?? "model"})`,
+      name: remote ? "Blender Agent (Claude Code)" : "Blender Agent (local model)",
       operations: ["generate", "edit", "direction_set"],
       kinds: BLENDER_AGENT_KINDS,
       local: !remote,
@@ -138,7 +138,7 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
       allowedModules: BLENDER_AGENT_ALLOWED_MODULES,
       maxTriangles: 500000,
       // Floating parts are a defect unless the request is deliberately scattered.
-      requireConnected: !/(float\w*|scatter\w*|debris|particles?|pieces|kit|set of|collection|separate)/i.test(request.prompt),
+      requireConnected: !/\b(float\w*|scatter\w*|debris|particles?|pieces|kit|set of|collection|separate)\b/i.test(request.prompt),
     }, null, 2), "utf8");
 
     let prompt = parentScript

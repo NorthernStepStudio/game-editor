@@ -22,7 +22,7 @@ const MAX_SCRIPT_BYTES = 200_000;
 
 const FORBIDDEN_PATTERNS: readonly (readonly [RegExp, string])[] = [
   [/__(?:class|bases|base|mro|subclasses|globals|builtins|dict|code|func|self|closure|getattribute|getattr|setattr|delattr|import|loader|spec|reduce|reduce_ex|module|qualname|traceback|frame|f_\w+|gi_\w+|cr_\w+)__/, "introspection names are not allowed"],
-  [/(?:f_globals|f_locals|f_back|gi_frame|cr_frame|tb_frame|co_code)/, "frame/code introspection is not allowed"],
+  [/\b(?:f_globals|f_locals|f_back|gi_frame|cr_frame|tb_frame|co_code)\b/, "frame/code introspection is not allowed"],
   [/\b(?:eval|exec|compile|open|input|breakpoint|globals|locals|vars|getattr|setattr|delattr|memoryview)\s*\(/, "builtin escape hatch"],
   [/\bbpy\s*\.\s*ops\s*\.\s*(?:wm|export_scene|import_scene|export_mesh|import_mesh|script|preferences|file|text|render\s*\.\s*render)\b/, "file, script or render operators are reserved for the harness"],
   [/\bbpy\s*\.\s*(?:app\s*\.\s*handlers|utils|context\s*\.\s*preferences)\b/, "handlers, utils and preferences are reserved"],

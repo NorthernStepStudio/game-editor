@@ -7,12 +7,22 @@ const KIND_LABEL = {
 const FILTERS = [
   { id: 'all', label: 'All' },
   { id: '3d', label: '3D models' },
-  { id: '2d', label: 'Sprites & images' },
+  { id: '2d', label: 'Images & sprites' },
+  { id: 'audio', label: 'Sounds' },
   { id: 'attention', label: 'Needs attention' },
 ];
+const AUDIO_KINDS = new Set(['audio_sfx', 'audio_music', 'audio_voice']);
+const PAGE_SIZE = 120;
 const RENDER_ORDER = ['render_front.png', 'render_three_quarter.png', 'render_side.png', 'render_back.png'];
 
-const state = { filter: 'all', query: '', data: null, poll: undefined };
+const state = { filter: 'all', source: 'all', query: '', limit: PAGE_SIZE, data: null, poll: undefined };
+
+/** Where an asset came from: made here, in one of the games, or a work file. */
+function originOf(asset) {
+  if (asset.generationProvider !== 'imported') return 'made';
+  const game = state.data.games.find((g) => (asset.source ?? '').startsWith(`${g.name} game`));
+  return game ? `game:${game.id}` : 'work';
+}
 
 async function loadData() {
   const [assets, jobs, styles, providers, projects, routing] = await Promise.all([
@@ -53,11 +63,13 @@ function assetName(asset) {
 
 function matchesFilter(item) {
   const { filter, query } = state;
-  const text = `${item.name} ${item.prompt ?? ''}`.toLowerCase();
+  const text = `${item.name} ${item.prompt ?? ''} ${item.asset?.source ?? ''}`.toLowerCase();
   if (query && !text.includes(query)) return false;
+  if (state.source !== 'all' && (item.type !== 'asset' ? state.source !== 'made' : originOf(item.asset) !== state.source)) return false;
   if (filter === 'attention') return item.status === 'failed';
   if (filter === '3d') return item.kind === 'mesh_3d';
-  if (filter === '2d') return item.kind !== 'mesh_3d' && item.kind !== undefined;
+  if (filter === 'audio') return AUDIO_KINDS.has(item.kind);
+  if (filter === '2d') return item.kind !== 'mesh_3d' && !AUDIO_KINDS.has(item.kind) && item.kind !== undefined;
   return true;
 }
 
@@ -73,14 +85,26 @@ function libraryItems() {
     }
   }
   const groups = new Map();
+  // Numbered revisions of the same imported piece (…_r8, _r8b, _v02, _lod1) fold into one card.
+  const revisions = new Map();
+  for (const asset of assets) {
+    if (asset.hidden || asset.generationProvider !== 'imported') continue;
+    const key = revisionKey(asset);
+    const list = revisions.get(key) ?? [];
+    list.push(asset);
+    revisions.set(key, list);
+  }
+  for (const list of revisions.values()) list.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)) || b.assetId.localeCompare(a.assetId));
   for (const asset of assets) {
     if (asset.hidden) continue;
+    if (asset.generationProvider === 'imported' && revisions.get(revisionKey(asset))?.[0] !== asset) continue;
     if (asset.draftGroup) {
       const group = groups.get(asset.draftGroup) ?? [];
       group.push(asset);
       groups.set(asset.draftGroup, group);
     }
-    items.push({ type: 'asset', status: 'ready', asset, name: assetName(asset), kind: asset.type, prompt: asset.prompt, created: asset.createdAt });
+    const older = asset.generationProvider === 'imported' ? revisions.get(revisionKey(asset)).length - 1 : 0;
+    items.push({ type: 'asset', status: 'ready', asset, name: assetName(asset), kind: asset.type, prompt: asset.prompt, created: asset.createdAt, older });
   }
   for (const item of items) {
     if (item.type === 'asset' && item.asset.draftGroup) {
@@ -92,7 +116,18 @@ function libraryItems() {
 }
 
 function rank(item) {
-  return item.status === 'building' ? 0 : item.status === 'failed' ? 1 : 2;
+  if (item.status === 'building') return 0;
+  if (item.status === 'failed') return 1;
+  const origin = originOf(item.asset);
+  return origin === 'made' ? 2 : origin.startsWith('game:') ? 3 : 4;
+}
+
+/** Same folder + same name once revision markers are removed = the same piece. */
+export function revisionKey(asset) {
+  const name = (asset.displayName ?? asset.assetId).toLowerCase()
+    .replace(/\b(v\d+|r\d+[a-z]?|lod\d+|scale|rev\d+|final|candidate)\b/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+  return `${asset.source ?? ''}|${asset.type}|${name}`;
 }
 
 function renderGrid(main) {
@@ -104,11 +139,25 @@ function renderGrid(main) {
     h('header', { class: 'page-head' },
       h('h1', {}, 'Assets'),
       h('div', { class: 'row end' },
+        action('Find new files', async () => {
+          const result = await api('/api/foundry/import/scan', {});
+          toast(result.lastScan?.added
+            ? `Found ${result.lastScan.added} new file(s) in your game and work folders.`
+            : 'No new files. Everything in your game and work folders is already here.');
+          await refresh();
+        }, 'quiet', { title: 'Look for models, images and sounds added to your game and work folders' }),
         btn('Styles', () => openStyles()),
         btn('+ Make an asset', () => openMake(), 'primary'))),
     h('div', { class: 'toolbar' },
       h('label', { for: 'asset-search', class: 'sr-only' }, 'Search assets'), search,
+      h('label', { for: 'asset-source', class: 'sr-only' }, 'Where from'),
+      h('select', { id: 'asset-source', class: 'field source-select', onchange: (e) => { state.source = e.target.value; state.limit = PAGE_SIZE; paintGrid(); } },
+        h('option', { value: 'all', selected: state.source === 'all' }, 'From everywhere'),
+        h('option', { value: 'made', selected: state.source === 'made' }, 'Made in Matterhorn'),
+        state.data.games.map((g) => h('option', { value: `game:${g.id}`, selected: state.source === `game:${g.id}` }, `In ${g.name}`)),
+        h('option', { value: 'work', selected: state.source === 'work' }, 'Work files (artifacts)')),
       h('div', { id: 'asset-filters' })),
+    h('p', { id: 'asset-count', class: 'muted small' }),
     h('div', { id: 'asset-grid', class: 'grid', 'aria-live': 'polite' }),
   );
   paintGrid();
@@ -118,9 +167,11 @@ function paintGrid() {
   const grid = document.querySelector('#asset-grid');
   const filters = document.querySelector('#asset-filters');
   if (!grid || !filters) return;
-  clear(filters, pills(FILTERS, state.filter, (id) => { state.filter = id; paintGrid(); }, 'Filter assets'));
+  clear(filters, pills(FILTERS, state.filter, (id) => { state.filter = id; state.limit = PAGE_SIZE; paintGrid(); }, 'Filter assets'));
   const all = libraryItems();
   const items = all.filter(matchesFilter);
+  const count = document.querySelector('#asset-count');
+  if (count) count.textContent = `${items.length} of ${all.length} assets`;
   if (!all.length) {
     clear(grid, h('div', { class: 'empty wide' },
       h('p', {}, 'No assets yet. Describe one and Matterhorn builds it in Blender on this PC.'),
@@ -128,7 +179,10 @@ function paintGrid() {
   } else if (!items.length) {
     clear(grid, h('div', { class: 'empty wide' }, h('p', {}, 'Nothing matches.'), btn('Show all', () => { state.filter = 'all'; state.query = ''; render(document.querySelector('#main'), ''); })));
   } else {
-    clear(grid, items.map(card));
+    clear(grid, items.slice(0, state.limit).map(card),
+      items.length > state.limit
+        ? h('div', { class: 'empty wide' }, btn(`Show ${Math.min(PAGE_SIZE, items.length - state.limit)} more`, () => { state.limit += PAGE_SIZE; paintGrid(); }))
+        : null);
   }
   schedulePoll();
 }
@@ -161,9 +215,17 @@ function card(item) {
       h('strong', {}, item.name),
       item.draft
         ? h('span', { class: 'status warn' }, `Draft ${item.draft.index} of ${item.draft.total} — pick one`)
-        : h('span', { class: 'status ok' }, 'Ready'),
-      h('span', { class: 'muted small clamp' }, item.prompt ?? timeAgo(asset.createdAt)),
+        : h('span', { class: 'status ok' }, originLabel(asset)),
+      h('span', { class: 'muted small clamp' }, asset.source ?? item.prompt ?? timeAgo(asset.createdAt)),
+      item.older ? h('span', { class: 'muted small' }, `+${item.older} older version${item.older > 1 ? 's' : ''}`) : null,
       h('div', { class: 'row' }, h('a', { class: 'btn small', href: `#assets/${encodeURIComponent(asset.assetId)}` }, 'Open'))));
+}
+
+function originLabel(asset) {
+  const origin = originOf(asset);
+  if (origin === 'made') return 'Ready';
+  if (origin === 'work') return 'Work file';
+  return `In ${state.data.games.find((g) => origin === `game:${g.id}`)?.name ?? 'game'}`;
 }
 
 function firstSentence(text = '') {
@@ -264,7 +326,8 @@ async function renderDetail(main, assetId) {
   }, h('img', { src: v.url, alt: '' }), h('span', {}, viewLabel(v.name))));
 
   const kind = KIND_LABEL[asset.type] ?? asset.type;
-  const meta = [kind, asset.model ? `made with ${asset.model}` : null, timeAgo(asset.createdAt)].filter(Boolean).join(' · ');
+  const meta = [kind, asset.source ? `from ${asset.source}` : asset.model ? `made with ${asset.model}` : null, timeAgo(asset.createdAt)].filter(Boolean).join(' · ');
+  const audioFile = AUDIO_KINDS.has(asset.type) ? files.find((f) => f.role === 'main') : undefined;
 
   clear(main,
     h('a', { class: 'btn quiet', href: '#assets' }, '← All assets'),
@@ -280,7 +343,12 @@ async function renderDetail(main, assetId) {
       }, 'primary')) : null,
     h('div', { class: 'split' },
       h('section', { class: 'viewer', 'aria-label': 'Views' },
-        views.length ? big : h('div', { class: 'view-main placeholder' }, h('p', { class: 'muted' }, 'No preview image for this asset.')),
+        audioFile
+          ? h('div', { class: 'card' }, h('span', { class: 'label' }, 'Listen'), h('audio', { controls: true, preload: 'none', src: audioFile.url, class: 'audio' }))
+          : views.length ? big : h('div', { class: 'view-main placeholder' }, h('p', { class: 'muted' },
+            asset.generationProvider === 'imported' && asset.type === 'mesh_3d'
+              ? 'A preview is being rendered in Blender — check back in a minute.'
+              : 'No preview image for this asset.')),
         views.length > 1 ? h('div', { class: 'view-row' }, viewButtons) : null,
         frames.length ? h('details', { class: 'card' }, h('summary', {}, `All ${frames.length} sprite directions`),
           h('div', { class: 'frames' }, frames.map((f) => h('img', { src: f.url, alt: f.name })))) : null),
@@ -328,7 +396,12 @@ function changeCard(asset) {
 }
 
 function sendCard(asset) {
-  const games = state.data.games;
+  const origin = originOf(asset);
+  const games = state.data.games.filter((g) => origin !== `game:${g.id}`);
+  if (origin.startsWith('game:') && !games.length) {
+    return h('section', { class: 'card' }, h('span', { class: 'label' }, 'Use it in a game'),
+      h('p', { class: 'muted' }, `Already in ${state.data.games.find((g) => origin === `game:${g.id}`)?.name ?? 'your game'}.`));
+  }
   if (!games.length) {
     return h('section', { class: 'card' }, h('span', { class: 'label' }, 'Use it in a game'),
       h('p', { class: 'muted' }, 'No game is set up yet.'), h('a', { class: 'btn', href: '#game' }, 'Set up a game'));
@@ -355,9 +428,14 @@ function downloadCard(files) {
 }
 
 function versionsCard(lineage, currentId) {
+  const current = state.data.assets.find((a) => a.assetId === currentId);
   const chain = [...lineage].reverse();
   const children = state.data.assets.filter((a) => a.parentAsset === currentId && !a.hidden);
-  const items = [...chain, ...children];
+  const siblings = current?.generationProvider === 'imported'
+    ? state.data.assets.filter((a) => !a.hidden && a.generationProvider === 'imported' && revisionKey(a) === revisionKey(current))
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)) || b.assetId.localeCompare(a.assetId))
+    : [];
+  const items = siblings.length ? siblings : [...chain, ...children];
   if (items.length <= 1) return null;
   return h('section', { class: 'card' },
     h('span', { class: 'label' }, 'Versions'),

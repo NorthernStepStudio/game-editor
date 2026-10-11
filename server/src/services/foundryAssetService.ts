@@ -41,6 +41,9 @@ const FILE_MIME: Readonly<Record<string, string>> = {
   '.blend': 'application/octet-stream',
   '.py': 'text/plain; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.ogg': 'audio/ogg',
+  '.wav': 'audio/wav',
+  '.mp3': 'audio/mpeg',
 };
 
 export interface FoundryAssetFileView {
@@ -76,6 +79,8 @@ export interface FoundryAssetView {
   readonly draftGroup?: string;
   readonly styleId?: string;
   readonly hidden?: boolean;
+  /** Where an imported asset came from, e.g. "Yun game · characters". */
+  readonly source?: string;
 }
 
 export interface FoundryAssetMeta {
@@ -84,6 +89,9 @@ export interface FoundryAssetMeta {
   readonly draftGroup?: string;
   readonly styleId?: string;
   readonly hidden?: boolean;
+  readonly source?: string;
+  /** Preview rendered later (e.g. for imported models), stored under the data directory. */
+  readonly previewPath?: string;
 }
 
 export interface FoundryAssetPreview {
@@ -105,11 +113,13 @@ export class FoundryAssetService {
   private readonly projects: readonly StudioProject[];
   readonly dataDirectory: string;
   private readonly metaPath: string;
-  private meta: Record<string, FoundryAssetMeta> = {};
+  private meta_: Record<string, FoundryAssetMeta> = {};
 
   constructor(
     dataDirectory: string,
     projects: readonly StudioProject[],
+    /** Extra folders whose files may be served (imported work folders). */
+    extraRoots: readonly string[] = [],
   ) {
     this.store = new FoundryAssetStore(dataDirectory);
     this.projects = projects;
@@ -118,14 +128,15 @@ export class FoundryAssetService {
     if (existsSync(this.metaPath)) {
       try {
         const parsed = JSON.parse(readFileSync(this.metaPath, 'utf8')) as { assets?: Record<string, FoundryAssetMeta> };
-        this.meta = parsed.assets && typeof parsed.assets === 'object' ? parsed.assets : {};
+        this.meta_ = parsed.assets && typeof parsed.assets === 'object' ? parsed.assets : {};
       } catch {
-        this.meta = {};
+        this.meta_ = {};
       }
     }
     this.allowedRoots = [
       resolve(dataDirectory),
       ...projects.map((project) => resolve(project.path)),
+      ...extraRoots.map((root) => resolve(root)),
     ];
   }
 
@@ -247,6 +258,7 @@ export class FoundryAssetService {
     if (name.endsWith('_script.py')) return 'script';
     if (name.endsWith('.blend')) return 'source';
     if (name.startsWith('render_')) return 'render';
+    if (manifest.generationProvider === 'imported' && PREVIEW_MIME[extname(name).toLowerCase()]) return 'render';
     if (name.startsWith('dir_')) return 'frame';
     if (name.endsWith('.json')) return 'report';
     if (file === manifest.previewPath) return 'preview';
@@ -256,25 +268,46 @@ export class FoundryAssetService {
   /** Merges user-facing metadata (name, description, draft group, visibility) for an asset. */
   setMeta(assetId: string, patch: FoundryAssetMeta): FoundryAssetView {
     if (!this.store.get(assetId)) throw new Error('Asset not found.');
-    const next: Record<string, unknown> = { ...this.meta[assetId] };
+    this.mergeMeta(assetId, patch);
+    this.persistMeta();
+    return this.get(assetId)!;
+  }
+
+  /** Same as setMeta for many assets with one write (imports). */
+  setMetaMany(entries: readonly (readonly [string, FoundryAssetMeta])[]): void {
+    for (const [assetId, patch] of entries) {
+      if (this.store.get(assetId)) this.mergeMeta(assetId, patch);
+    }
+    this.persistMeta();
+  }
+
+  meta(assetId: string): FoundryAssetMeta | undefined {
+    const value = this.meta_[assetId];
+    return value ? { ...value } : undefined;
+  }
+
+  private mergeMeta(assetId: string, patch: FoundryAssetMeta): void {
+    const next: Record<string, unknown> = { ...this.meta_[assetId] };
     for (const [key, value] of Object.entries(patch)) {
       if (value === undefined) delete next[key];
       else next[key] = value;
     }
-    this.meta[assetId] = next as FoundryAssetMeta;
+    this.meta_[assetId] = next as FoundryAssetMeta;
+  }
+
+  private persistMeta(): void {
     mkdirSync(dirname(this.metaPath), { recursive: true });
     const temp = `${this.metaPath}.tmp`;
-    writeFileSync(temp, JSON.stringify({ version: 1, assets: this.meta }), 'utf8');
+    writeFileSync(temp, JSON.stringify({ version: 1, assets: this.meta_ }), 'utf8');
     renameSync(temp, this.metaPath);
-    return this.get(assetId)!;
   }
 
   /** Keeps one draft of a group and hides its siblings (they stay on disk and can be shown again). */
   keepDraft(assetId: string): readonly FoundryAssetView[] {
-    const group = this.meta[assetId]?.draftGroup;
+    const group = this.meta_[assetId]?.draftGroup;
     if (!group) throw new Error('This asset is not one of a set of drafts.');
     const changed: FoundryAssetView[] = [];
-    for (const [id, meta] of Object.entries(this.meta)) {
+    for (const [id, meta] of Object.entries(this.meta_)) {
       if (meta.draftGroup !== group || !this.store.get(id)) continue;
       changed.push(this.setMeta(id, { hidden: id === assetId ? undefined : true, draftGroup: id === assetId ? undefined : group }));
     }
@@ -282,7 +315,7 @@ export class FoundryAssetService {
   }
 
   private toView(manifest: FoundryAssetManifest): FoundryAssetView {
-    const meta = this.meta[manifest.assetId] ?? {};
+    const meta = this.meta_[manifest.assetId] ?? {};
     return {
       assetId: manifest.assetId,
       type: manifest.type,
@@ -314,7 +347,7 @@ export class FoundryAssetService {
             )}/preview`,
           }
         : {}),
-      ...(manifest.companionFiles?.length
+      ...(manifest.companionFiles?.length || manifest.generationProvider === 'imported'
         ? {
             files: this.assetFiles(manifest)
               .filter((file) => FILE_MIME[extname(file).toLowerCase()] && existsSync(file))
@@ -330,11 +363,12 @@ export class FoundryAssetService {
       ...(meta.draftGroup ? { draftGroup: meta.draftGroup } : {}),
       ...(meta.styleId ? { styleId: meta.styleId } : {}),
       ...(meta.hidden ? { hidden: true } : {}),
+      ...(meta.source ? { source: meta.source } : {}),
     };
   }
 
   private safePreviewPath(manifest: FoundryAssetManifest): string | undefined {
-    const localPath = [manifest.previewPath, manifest.localPath].find(
+    const localPath = [manifest.previewPath, this.meta_[manifest.assetId]?.previewPath, manifest.localPath].find(
       (path) => path && isAbsolute(path) && PREVIEW_MIME[extname(path).toLowerCase()] && existsSync(path),
     );
     return localPath ? this.safePath(localPath) : undefined;

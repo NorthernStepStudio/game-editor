@@ -34,6 +34,37 @@ export async function studioRoutes(
     return true;
   }
 
+  if (pathname.startsWith('/api/ai/')) {
+    try {
+      if (request.method === 'GET' && pathname === '/api/ai/status') {
+        send(response, 200, await service.ai.status());
+      } else if (request.method === 'POST' && pathname === '/api/ai/start') {
+        const ok = await service.ai.ensureOllama();
+        const chat = ok ? await service.ai.chatModel() : undefined;
+        if (chat) await service.ai.warm(chat);
+        send(response, ok ? 200 : 409, ok ? await service.ai.status() : { error: 'Ollama could not be started. Install it from ollama.com.' });
+      } else if (request.method === 'POST' && pathname === '/api/ai/roles') {
+        const body = (await readBody()) as { role?: unknown; model?: unknown };
+        if (typeof body?.model !== 'string') throw new Error('Choose a model.');
+        await service.ai.setRole(body.role as 'chat' | 'assets', body.model);
+        service.refreshAssetModel();
+        send(response, 200, await service.ai.status());
+      } else if (request.method === 'POST' && pathname === '/api/ai/models/pull') {
+        const body = (await readBody()) as { name?: unknown };
+        if (typeof body?.name !== 'string') throw new Error('Choose a model to download.');
+        service.ai.pull(body.name);
+        send(response, 202, { started: true });
+      } else if (request.method === 'POST' && pathname === '/api/ai/claude/check') {
+        send(response, 200, await service.ai.checkClaude(true));
+      } else {
+        send(response, 404, { error: 'AI route not found.' });
+      }
+    } catch (error) {
+      send(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return true;
+  }
+
   if (request.method === 'POST' && (pathname === '/api/studio/play' || pathname === '/api/studio/play/stop')) {
     const body = (await readBody()) as { projectId?: unknown; runtimeSessionId?: unknown };
     try {

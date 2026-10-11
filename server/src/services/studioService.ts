@@ -6,6 +6,23 @@ import { StudioHistory } from './studioHistory.js';
 import { FoundryAssetService } from './foundryAssetService.js';
 import { FoundryGenerationService } from './foundryGenerationService.js';
 import { FoundryStyleStore } from './foundryStyles.js';
+import { AiReadiness } from './aiReadiness.js';
+import { FoundryImporter, type ImportRoot } from './foundryImport.js';
+
+/** Work folders scanned for existing assets (JSON array in MATTERHORN_ASSET_SCAN_DIRS; default: the repo's artifacts folder). */
+function workspaceScanRoots(): string[] {
+  const raw = process.env.MATTERHORN_ASSET_SCAN_DIRS?.trim();
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      if (Array.isArray(parsed)) return parsed.filter((p): p is string => typeof p === 'string' && isAbsolute(p)).map((p) => resolve(p));
+    } catch {
+      // Fall through to the default.
+    }
+  }
+  const artifacts = resolve(__dirname, '../../../artifacts');
+  return existsSync(artifacts) ? [artifacts] : [];
+}
 import { StudioRoutingPreferencesStore } from './studioRoutingPreferences.js';
 import { createStudioPlannerPlan, inferDomains, type StudioAssetRequestInput, type StudioPlanningDomain } from './studioPlanner.js';
 import { FoundryStudioAdapter } from './foundryStudioAdapter.js';
@@ -75,12 +92,26 @@ export function createStudioService() {
   ]));
   const history = new StudioHistory(dataDirectory);
   const promotionApprovals = new MatterhornPromotionApprovalStore(dataDirectory);
-  const foundryAssets = new FoundryAssetService(dataDirectory, assetProjects);
+  const scanRoots = workspaceScanRoots();
+  const foundryAssets = new FoundryAssetService(dataDirectory, assetProjects, scanRoots);
+  const foundryImporter = new FoundryImporter(foundryAssets, (): ImportRoot[] => [
+    ...projects.map((project) => {
+      const assetsDir = resolve(project.path, 'assets');
+      return { label: project.name, path: existsSync(assetsDir) ? assetsDir : project.path, kind: 'game' as const };
+    }),
+    ...scanRoots.map((path) => ({ label: path.split(/[\/]/).pop() ?? 'work', path, kind: 'workspace' as const })),
+  ]);
   const routingPreferences = new StudioRoutingPreferencesStore(dataDirectory);
   const foundryStyles = new FoundryStyleStore(dataDirectory);
+  const ai = new AiReadiness(dataDirectory);
+  let assetModelCache: string | undefined;
+  const refreshAssetModel = () => { void ai.assetModel().then((model) => { assetModelCache = model; }); };
+  refreshAssetModel();
+  setInterval(refreshAssetModel, 15_000).unref();
   const foundryGeneration = new FoundryGenerationService(assetProjects, foundryAssets, {
     routingPreferences: () => routingPreferences.get(),
     styles: foundryStyles,
+    assetModel: () => ai.assetModelSync(assetModelCache),
   });
 
   registry.register(adapter);
@@ -416,6 +447,9 @@ export function createStudioService() {
     foundryGeneration,
     foundryProjects: assetProjects,
     foundryStyles,
+    foundryImporter,
+    ai,
+    refreshAssetModel,
     routingPreferences,
     ensureRecovered,
     getRecoveryState: () => recoveryState,

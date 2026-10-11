@@ -37,6 +37,10 @@ const assets = [
       file('crate_ab12', 'render_front.png', 'render'), file('crate_ab12', 'render_three_quarter.png', 'render')] },
   { assetId: 'stall_x1_d1', type: 'mesh_3d', displayName: 'Market stall', prompt: 'market stall', draftGroup: 'stall_x1', createdAt: '2026-10-10T09:00:00Z', generationProvider: 'blender-agent-claude',
     files: [file('stall_x1_d1', 'stall_x1_d1.glb', 'main'), file('stall_x1_d1', 'stall_x1_d1_script.py', 'script'), file('stall_x1_d1', 'render_front.png', 'render')] },
+  { assetId: 'imp_yun_cars_sedan_ab1234', type: 'mesh_3d', displayName: 'Sedan', generationProvider: 'imported', source: 'Yun game · kenney/cars', createdAt: '2026-09-01T08:00:00Z',
+    previewUrl: '/api/foundry/assets/imp_yun_cars_sedan_ab1234/preview', files: [file('imp_yun_cars_sedan_ab1234', 'sedan.glb', 'main')] },
+  { assetId: 'imp_yun_sfx_jump_cd5678', type: 'audio_sfx', displayName: 'Jump', generationProvider: 'imported', source: 'Yun game · sfx', createdAt: '2026-09-01T08:00:00Z',
+    files: [file('imp_yun_sfx_jump_cd5678', 'jump.ogg', 'main')] },
   { assetId: 'stall_x1_d2', type: 'mesh_3d', displayName: 'Market stall', prompt: 'market stall', draftGroup: 'stall_x1', createdAt: '2026-10-10T09:10:00Z', generationProvider: 'blender-agent-claude',
     files: [file('stall_x1_d2', 'stall_x1_d2.glb', 'main')] },
 ];
@@ -47,6 +51,19 @@ const jobs = [
     error: 'Blender Agent could not build "lamp_z9" after 3 attempt(s). Last: validate: The asset has 3 disconnected groups of parts.',
     progress: [], createdAt: '2026-10-10T07:00:00Z', providerId: 'blender-agent-local' },
 ];
+
+const aiStatus = {
+  ollama: { state: 'running', version: '0.40.2' },
+  hardware: { gpu: 'AMD Radeon RX 7700 XT', vramGb: 12, ramGb: 32 },
+  roles: { chat: 'qwen3:8b', assets: 'qwen2.5-coder:14b' },
+  loaded: ['qwen3:8b'],
+  models: [
+    { name: 'qwen3:8b', title: 'Qwen 3 · 8B', downloadGb: 5.2, vramGb: 6.5, roles: ['chat'], good: 'Fast chat', installed: true, fit: 'gpu' },
+    { name: 'qwen2.5-coder:14b', title: 'Qwen 2.5 Coder · 14B', downloadGb: 9, vramGb: 10.5, roles: ['assets', 'chat'], good: 'Code', installed: true, fit: 'gpu' },
+    { name: 'qwen3:14b', title: 'Qwen 3 · 14B', downloadGb: 9.3, vramGb: 11, roles: ['chat'], good: 'Smarter', installed: false, fit: 'gpu' },
+  ],
+  claude: { state: 'not-signed-in', detail: 'Installed, not signed in.' },
+};
 
 function fixture(path, method, body) {
   const url = new URL(path, 'http://localhost');
@@ -78,6 +95,11 @@ function fixture(path, method, body) {
   if (p === '/api/foundry/styles' && method === 'GET') return { styles: [{ id: '44444444-4444-4444-4444-444444444444', name: 'Calle', description: 'warm pastel street' }] };
   if (p === '/api/foundry/styles') return { style: { id: '55555555-5555-5555-5555-555555555555', ...body } };
   if (/^\/api\/foundry\/styles\/[^/]+\/delete$/.test(p)) return { deleted: true };
+  if (p === '/api/foundry/import') return { scanning: false, lastScan: { at: '2026-10-11T10:00:00Z', added: 0, total: 5, roots: 2 }, previews: { queued: 0, done: 2, failed: 0 } };
+  if (p === '/api/foundry/import/scan') return { scanning: false, lastScan: { at: '2026-10-11T10:00:00Z', added: 3, total: 8, roots: 2 }, previews: { queued: 1, done: 2, failed: 0 } };
+  if (p === '/api/ai/status' || p === '/api/ai/roles' || p === '/api/ai/start') return aiStatus;
+  if (p === '/api/ai/models/pull') return { started: true };
+  if (p === '/api/ai/claude/check') return aiStatus.claude;
   if (p === '/api/foundry/projects') return { projects: [{ id: 'library', name: 'Asset Library' }, { id: 'yun', name: 'Yun' }] };
   if (p === '/api/foundry/providers') return { providers: [
     { id: 'blender-agent-claude', name: 'Blender Agent (Claude Code)', available: true, local: false, requiresNetwork: true, note: 'Uses Claude' },
@@ -147,7 +169,7 @@ test('every control in the new Matterhorn UI does something real', async () => {
   assert.deepEqual([...document.querySelectorAll('.sidebar a.nav')].map((a) => a.textContent.trim()), ['Studio', 'My Game', 'Assets', 'Settings']);
 
   const routes = ['#studio', '#game/changes', '#game/changes/run-failed', '#game/checks', '#game/files', '#assets', '#assets/crate_ab12', '#assets/stall_x1_d1',
-    '#assets/build/22222222-2222-2222-2222-222222222222', '#assets/build/11111111-1111-1111-1111-111111111111', '#settings'];
+    '#assets/build/22222222-2222-2222-2222-222222222222', '#assets/build/11111111-1111-1111-1111-111111111111', '#assets/imp_yun_sfx_jump_cd5678', '#assets/imp_yun_cars_sedan_ab1234', '#settings', '#settings/guide'];
   const dead = [];
   let clicked = 0;
   for (const route of routes) {
@@ -222,6 +244,27 @@ test('every control in the new Matterhorn UI does something real', async () => {
   await go('#settings');
   await flush(20);
   assert.match(document.querySelector('#connections').textContent, /Claude Code\s*Installed, not signed in/);
+  assert.match(document.querySelector('#ai-settings').textContent, /Local AI is ready/);
+  assert.match(document.querySelector('#ai-settings').textContent, /RX 7700 XT with 12 GB/);
+  assert.equal(document.querySelector('#role-chat').value, 'qwen3:8b');
+
+  // Every guide section renders, and imported assets say where they came from.
+  await go('#settings/guide');
+  for (const id of ['start', 'studio', 'game', 'assets', 'settings', 'howto', 'trouble', 'files']) {
+    assert.ok(document.querySelector(`#guide-${id}`), `guide section ${id}`);
+  }
+  await go('#assets');
+  const source = document.querySelector('#asset-source');
+  source.value = 'all';
+  source.dispatchEvent(new window.Event('change'));
+  const search = document.querySelector('#asset-search');
+  search.value = '';
+  search.dispatchEvent(new window.Event('input'));
+  [...document.querySelectorAll('#asset-filters .pill')].find((p) => p.textContent === 'All')?.click();
+  await flush();
+  assert.match(document.querySelector('#asset-grid').textContent, /In Yun/);
+  await go('#assets/imp_yun_sfx_jump_cd5678');
+  assert.ok(document.querySelector('audio'), 'sounds can be played');
   assert.match(document.querySelector('#setup-status').textContent, /need/);
 
   // No fake character/rig claims anywhere in the new UI.

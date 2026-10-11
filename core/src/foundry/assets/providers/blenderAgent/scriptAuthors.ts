@@ -16,6 +16,8 @@ export interface ScriptAuthorRequest {
   readonly signal?: AbortSignal;
   /** Called with everything written so far, while the author is still writing. */
   readonly onText?: (soFar: string) => void;
+  /** Called while the author is still planning (thinking) before it writes, with a rough word count. */
+  readonly onThinking?: (words: number) => void;
 }
 
 export interface ScriptAuthor {
@@ -26,6 +28,8 @@ export interface ScriptAuthor {
 }
 
 const AUTHOR_TIMEOUT_MS = 6 * 60_000;
+/** Claude plans large assets (characters, buildings) for several minutes before writing. */
+const CLAUDE_TIMEOUT_MS = 15 * 60_000;
 
 /**
  * Environment for running the user's own Claude Code. Drops the session variables a host
@@ -96,7 +100,7 @@ export class ClaudeCodeScriptAuthor implements ScriptAuthor {
       let stderr = "";
       const readLine = (line: string) => {
         if (!line.trim()) return;
-        let event: { type?: string; event?: { type?: string; delta?: { type?: string; text?: unknown } }; result?: unknown; is_error?: boolean; terminal_reason?: string };
+        let event: { type?: string; event?: { type?: string; delta?: { type?: string; text?: unknown; thinking?: unknown } }; result?: unknown; is_error?: boolean; terminal_reason?: string };
         try {
           event = JSON.parse(line);
         } catch {
@@ -108,8 +112,17 @@ export class ClaudeCodeScriptAuthor implements ScriptAuthor {
           written += delta.text;
           request.onText?.(written);
         }
+        if (event.type === "stream_event" && delta?.type === "thinking_delta" && typeof delta.thinking === "string") {
+          thinkingWords += delta.thinking.split(/\s+/).filter(Boolean).length;
+          request.onThinking?.(thinkingWords);
+        }
       };
-      const timer = setTimeout(() => child.kill(), AUTHOR_TIMEOUT_MS);
+      let thinkingWords = 0;
+      let timedOut = false;
+      const timer = setTimeout(() => {
+        timedOut = true;
+        child.kill();
+      }, CLAUDE_TIMEOUT_MS);
       const abort = () => child.kill();
       request.signal?.addEventListener("abort", abort, { once: true });
       child.stdout.on("data", (chunk) => {
@@ -130,6 +143,10 @@ export class ClaudeCodeScriptAuthor implements ScriptAuthor {
         const parsed = final;
         if (code === 0 && parsed && !parsed.is_error && typeof parsed.result === "string") {
           resolvePromise(parsed.result);
+          return;
+        }
+        if (timedOut) {
+          reject(new Error(`Claude Code did not finish the script within ${CLAUDE_TIMEOUT_MS / 60_000} minutes. Try a simpler description or split the asset into parts.`));
           return;
         }
         const reason = parsed?.terminal_reason ?? (stderr.trim().split(/\r?\n/).pop() || `exit ${code}`);

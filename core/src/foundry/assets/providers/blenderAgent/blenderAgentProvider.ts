@@ -118,8 +118,9 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
 
     const progress = context.onProgress ?? (() => undefined);
     const baseName = request.assetId.replace(/[^a-zA-Z0-9_-]+/g, "_").slice(0, 80) || "asset";
-    const jobDir = resolve(context.outputRoot, baseName);
-    if (existsSync(jobDir)) throw new Error(`Output folder already exists for ${request.assetId}.`);
+    // A folder left by an earlier failed or cancelled try is kept as it is; this try gets its own.
+    let jobDir = resolve(context.outputRoot, baseName);
+    for (let n = 2; existsSync(jobDir); n++) jobDir = resolve(context.outputRoot, `${baseName}_try${n}`);
     mkdirSync(jobDir, { recursive: true });
 
     const mode = request.kind === "sprite_sheet" ? "sprite_sheet" : request.kind === "pixel_sprite" ? "pixel_sprite" : "model";
@@ -198,7 +199,7 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
         system: BLENDER_AGENT_SYSTEM_PROMPT,
         prompt,
         ...(signal ? { signal } : {}),
-        ...(live ? { onText: (script: string) => live({ script }) } : {}),
+        ...(live ? { onText: (script: string) => live({ script }), onThinking: (thinking: number) => live({ thinking }) } : {}),
       });
       stopIfCancelled();
       const script = extractPythonScript(reply);

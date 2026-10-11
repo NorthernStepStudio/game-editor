@@ -1,0 +1,113 @@
+{
+  "ok": true,
+  "stage": "done",
+  "files": {
+    "blend": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/yun_urban_v01_blockout.blend",
+    "glb": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/yun_urban_v01_blockout.glb"
+  },
+  "renders": {
+    "front": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/render_front.png",
+    "three_quarter": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/render_three_quarter.png",
+    "side": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/render_side.png",
+    "back": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/render_back.png"
+  },
+  "normalizedOffset": [
+    -0.0,
+    -0.0607,
+    -0.0
+  ],
+  "stats": {
+    "objects": 35,
+    "vertices": 16266,
+    "triangles": 31648,
+    "materials": [
+      "MAT_Bag_Black",
+      "MAT_Belt_Dark",
+      "MAT_Black_Fabric",
+      "MAT_Buckle_Metal",
+      "MAT_Eye_DarkBrown",
+      "MAT_Eye_Highlight",
+      "MAT_Gold",
+      "MAT_Hair_DarkBrown",
+      "MAT_Jacket_Cream",
+      "MAT_Leggings_Black",
+      "MAT_Leggings_Sheer",
+      "MAT_Mouth",
+      "MAT_Orange",
+      "MAT_Orange_Yellow",
+      "MAT_Shorts_OliveKhaki",
+      "MAT_Skin",
+      "MAT_Sneaker_White",
+      "MAT_Trim_LightGrey"
+    ],
+    "dimensions": [
+      1.331,
+      0.5115,
+      1.6
+    ],
+    "min": [
+      -0.6655,
+      -0.2557,
+      0.0
+    ],
+    "max": [
+      0.6655,
+      0.2557,
+      1.6
+    ]
+  },
+  "build": [
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_01.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_02.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_03.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_04.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_05.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_06.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_07.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_08.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_09.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_10.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_11.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_12.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_13.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_14.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_15.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_16.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_17.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_18.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_19.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_20.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_21.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_22.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_23.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/build_24.png"
+  ],
+  "spin": [
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_00.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_01.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_02.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_03.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_04.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_05.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_06.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_07.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_08.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_09.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_10.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_11.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_12.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_13.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_14.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_15.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_16.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_17.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_18.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_19.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_20.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_21.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_22.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_v01_blockout_try2/spin_23.png"
+  ],
+  "engine": "BLENDER_EEVEE",
+  "blenderVersion": "5.2.1 LTS"
+}

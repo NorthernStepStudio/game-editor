@@ -100,6 +100,8 @@ export interface FoundryLiveUpdate {
   readonly script?: string;
   /** Latest image of the asset (a render or the provider's own preview). */
   readonly image?: string;
+  /** Roughly how many words the AI has spent planning before writing. */
+  readonly thinking?: number;
 }
 
 export interface FoundryAssetProviderContext {

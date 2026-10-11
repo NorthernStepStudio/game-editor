@@ -399,6 +399,10 @@ async function followLive(main, job) {
     const clock = document.querySelector('#live-elapsed');
     if (clock && current.startedAt) clock.textContent = elapsed(current.startedAt);
     const pre = document.querySelector('#live-script');
+    if (pre && !view.script && view.thinking) {
+      clear(pre, h('span', { class: 'muted' }, `Planning the build before writing it… (about ${view.thinking.toLocaleString()} words of planning so far)`),
+        h('span', { class: 'caret', 'aria-hidden': 'true' }));
+    }
     if (pre && typeof view.script === 'string' && view.script.length !== live.scriptLength) {
       const stuck = pre.scrollHeight - pre.scrollTop - pre.clientHeight < 40;
       if (view.script.length < live.scriptLength) {

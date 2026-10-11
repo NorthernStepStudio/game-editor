@@ -153,7 +153,7 @@ export class FoundryGenerationService {
   private jobQueue: Promise<void> = Promise.resolve();
   private readonly aborts = new Map<string, AbortController>();
   /** What a running build is doing right now (kept in memory only; it is a view, not history). */
-  private readonly liveViews = new Map<string, { script?: string; frames: string[]; updatedAt: string }>();
+  private readonly liveViews = new Map<string, { script?: string; thinking?: number; frames: string[]; updatedAt: string }>();
   private readonly styles?: FoundryStyleStore;
   private readonly jobsPath?: string;
   private readonly assetModel?: () => string | undefined;
@@ -595,7 +595,7 @@ export class FoundryGenerationService {
   }
 
   /** The live view of a build: the script as it is being written and the latest image. */
-  liveView(jobId: string): { readonly status: FoundryJob['status']; readonly script?: string; readonly frames: number; readonly updatedAt?: string } | undefined {
+  liveView(jobId: string): { readonly status: FoundryJob['status']; readonly script?: string; readonly thinking?: number; readonly frames: number; readonly updatedAt?: string } | undefined {
     const job = this.jobs.get(jobId);
     if (!job) return undefined;
     const live = this.liveViews.get(jobId);
@@ -603,6 +603,7 @@ export class FoundryGenerationService {
       status: job.status,
       ...(live?.script !== undefined ? { script: live.script } : {}),
       frames: live?.frames.length ?? 0,
+      ...(live?.thinking ? { thinking: live.thinking } : {}),
       ...(live ? { updatedAt: live.updatedAt } : {}),
     };
   }
@@ -643,6 +644,7 @@ export class FoundryGenerationService {
         this.liveViews.set(job.jobId, {
           ...current,
           ...(update.script !== undefined ? { script: update.script.slice(-40_000) } : {}),
+          ...(update.thinking !== undefined ? { thinking: update.thinking } : {}),
           frames,
           updatedAt: new Date().toISOString(),
         });

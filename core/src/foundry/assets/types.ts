@@ -99,6 +99,8 @@ export interface FoundryAssetProviderContext {
   readonly projectId?: string;
   readonly outputRoot?: string;
   readonly maxCost?: FoundryAssetCost;
+  /** Optional human-readable progress for long-running local providers. */
+  readonly onProgress?: (message: string) => void;
 }
 
 export interface FoundryGeneratedAsset {
@@ -114,6 +116,8 @@ export interface FoundryGeneratedAsset {
   readonly seed?: string | number;
   readonly cost?: FoundryAssetCost;
   readonly sourceUrl?: string;
+  readonly previewPath?: string;
+  readonly companionFiles?: readonly string[];
   readonly metadata?: Readonly<Record<string, unknown>>;
 }
 

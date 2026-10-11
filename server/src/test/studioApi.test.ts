@@ -12,16 +12,27 @@ async function readJson<T>(response: Response): Promise<T> {
 
 let testDataDir = '';
 let previousDataDir: string | undefined;
+let previousFlyrailUrl: string | undefined;
+let previousFlyrailToken: string | undefined;
 
 beforeEach(async () => {
   previousDataDir = process.env.MATTERHORN_DATA_DIR;
   testDataDir = await mkdtemp(join(tmpdir(), 'matterhorn-data-'));
   process.env.MATTERHORN_DATA_DIR = testDataDir;
+  // Deterministic API tests must never reach a live Flyrail daemon running on this PC.
+  previousFlyrailUrl = process.env.FLYRAIL_DAEMON_URL;
+  previousFlyrailToken = process.env.FLYRAIL_DAEMON_TOKEN;
+  process.env.FLYRAIL_DAEMON_URL = 'ws://127.0.0.1:9';
+  process.env.FLYRAIL_DAEMON_TOKEN = 'test-isolated';
 });
 
 afterEach(async () => {
   if (previousDataDir === undefined) delete process.env.MATTERHORN_DATA_DIR;
   else process.env.MATTERHORN_DATA_DIR = previousDataDir;
+  if (previousFlyrailUrl === undefined) delete process.env.FLYRAIL_DAEMON_URL;
+  else process.env.FLYRAIL_DAEMON_URL = previousFlyrailUrl;
+  if (previousFlyrailToken === undefined) delete process.env.FLYRAIL_DAEMON_TOKEN;
+  else process.env.FLYRAIL_DAEMON_TOKEN = previousFlyrailToken;
   await rm(testDataDir, { recursive: true, force: true });
 });
 

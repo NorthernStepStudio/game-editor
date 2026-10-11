@@ -40,6 +40,8 @@ function serveStaticFile(response: http.ServerResponse, filePath: string): boole
     const data = fs.readFileSync(filePath);
     response.statusCode = 200;
     response.setHeader("Content-Type", mime);
+    // Always revalidate: without this, browsers heuristically cache app JS/CSS and keep running stale UI after updates.
+    response.setHeader("Cache-Control", "no-cache");
     response.end(data);
     return true;
   } catch {

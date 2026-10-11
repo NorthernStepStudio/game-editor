@@ -214,7 +214,8 @@ async function selectAsset(assetId) {
       meta.append(metadataRow('References', asset.referenceAssets.join(', ')));
     }
 
-    if (asset.type === 'mesh_3d' || asset.type === 'rig' || asset.assetId.includes('yun')) {
+    // Only real rigs (and the Yun production characters) carry this rig/motion metadata.
+    if (asset.type === 'rig' || asset.assetId.includes('yun')) {
       const motionSection = el('div', undefined, 'motion-studio-inspector-card surface');
       motionSection.style.marginTop = '12px';
       motionSection.style.padding = '10px';
@@ -243,9 +244,208 @@ async function selectAsset(assetId) {
       meta.append(motionSection);
     }
 
-    inspector.append(meta, renderLineage(detail.lineage ?? [], asset.assetId));
+    inspector.append(meta);
+    if (asset.files?.length) inspector.append(renderAssetFiles(asset));
+    inspector.append(renderLineage(detail.lineage ?? [], asset.assetId));
   } catch (error) {
     renderInspectorEmpty(error?.message || 'Could not load this asset.');
+  }
+}
+
+const RENDER_ORDER = ['render_front.png', 'render_three_quarter.png', 'render_side.png', 'render_back.png'];
+
+function renderAssetFiles(asset) {
+  const section = el('div', undefined, 'asset-files surface');
+  const renders = asset.files
+    .filter((file) => file.role === 'render')
+    .sort((a, b) => RENDER_ORDER.indexOf(a.name) - RENDER_ORDER.indexOf(b.name));
+  if (renders.length) {
+    section.append(el('h4', 'Turnaround', 'eyebrow'));
+    const grid = el('div', undefined, 'asset-turnaround');
+    for (const file of renders) {
+      const figure = el('figure');
+      const img = document.createElement('img');
+      img.src = file.url;
+      img.alt = `${asset.assetId} ${file.name.replace('render_', '').replace('.png', '').replace('_', ' ')} view`;
+      img.loading = 'lazy';
+      figure.append(img, el('figcaption', file.name.replace('render_', '').replace('.png', '').replace('_', ' ')));
+      grid.append(figure);
+    }
+    section.append(grid);
+  }
+
+  const downloads = asset.files.filter((file) => ['main', 'source', 'script'].includes(file.role) || file.name.endsWith('.glb'));
+  if (downloads.length) {
+    section.append(el('h4', 'Files', 'eyebrow'));
+    const list = el('div', undefined, 'asset-downloads');
+    for (const file of downloads) {
+      const link = el('a', file.name, 'text-link');
+      link.href = file.url;
+      link.setAttribute('download', file.name);
+      list.append(link);
+    }
+    section.append(list);
+  }
+
+  const actions = el('div', undefined, 'asset-actions');
+  if (asset.files.some((file) => file.role === 'script')) {
+    const iterate = el('button', 'Iterate on this asset', 'secondary-action');
+    iterate.type = 'button';
+    iterate.onclick = () => openIteration(asset);
+    actions.append(iterate);
+  }
+
+  const gameProjects = foundryProjects.filter((project) => project.id !== 'library');
+  if (gameProjects.length) {
+    const target = document.createElement('select');
+    target.setAttribute('aria-label', 'Game project to send this asset to');
+    for (const project of gameProjects) target.add(new Option(project.name, project.id));
+    const send = el('button', 'Send to game', 'primary-action');
+    send.type = 'button';
+    const result = el('p', '', 'muted-sm');
+    send.onclick = async () => {
+      send.disabled = true;
+      result.textContent = 'Copying files…';
+      try {
+        const sent = await api(`/api/foundry/assets/${encodeURIComponent(asset.assetId)}/send`, { projectId: target.value });
+        result.textContent = `Copied ${sent.files.length} file(s) to ${sent.folder} with a provenance record.`;
+        result.className = 'success-text';
+      } catch (error) {
+        result.textContent = error?.message || 'Could not send this asset.';
+        result.className = 'error-text';
+      } finally {
+        send.disabled = false;
+      }
+    };
+    const row = el('div', undefined, 'asset-send-row');
+    row.append(target, send);
+    actions.append(row, result);
+  }
+  section.append(actions);
+  return section;
+}
+
+function openIteration(asset) {
+  const drawer = document.querySelector('#asset-generator');
+  if (drawer) drawer.hidden = false;
+  const provider = providers.find((candidate) => candidate.id === asset.generationProvider && candidate.available)
+    ?? providers.find((candidate) => candidate.id.startsWith('blender-agent') && candidate.available);
+  if (provider) {
+    document.querySelector('#asset-provider').value = provider.id;
+    providerSelectionTouched = true;
+    updateGenerationControls();
+  }
+  const base = asset.assetId.replace(/_v\d+$/, '');
+  const version = Number(/_v(\d+)$/.exec(asset.assetId)?.[1] ?? 1) + 1;
+  let candidate = `${base}_v${version}`;
+  for (let n = version; assets.some((existing) => existing.assetId === candidate); n++) candidate = `${base}_v${n + 1}`;
+  document.querySelector('#asset-id').value = candidate;
+  document.querySelector('#asset-parent').value = asset.assetId;
+  const kind = document.querySelector('#asset-kind');
+  if ([...kind.options].some((option) => option.value === asset.type)) kind.value = asset.type;
+  const operation = document.querySelector('#asset-operation');
+  if ([...operation.options].some((option) => option.value === 'edit')) operation.value = 'edit';
+  const prompt = document.querySelector('#asset-prompt');
+  prompt.value = '';
+  prompt.placeholder = 'Describe the change, e.g. "make it taller and add rust to the metal"';
+  prompt.focus();
+  setGenerationStatus(`Iterating on ${asset.assetId}: the previous version is kept, this creates ${candidate}.`);
+}
+
+let foundryProjects = [];
+let jobPollTimer;
+
+async function loadFoundryProjects() {
+  try {
+    const response = await api('/api/foundry/projects');
+    foundryProjects = Array.isArray(response.projects) ? response.projects : [];
+  } catch {
+    foundryProjects = [];
+  }
+  populateProjectOptions(foundryProjects);
+  const select = document.querySelector('#asset-project');
+  if (select && !select.value && foundryProjects.some((project) => project.id === 'library')) select.value = 'library';
+}
+
+function renderJobs(jobs) {
+  const container = document.querySelector('#asset-jobs');
+  if (!container) return;
+  container.replaceChildren();
+  if (!jobs.length) {
+    container.append(el('p', 'No builds yet.', 'muted-sm'));
+    return;
+  }
+  for (const job of jobs.slice(0, 12)) {
+    const row = el('div', undefined, `asset-job ${job.status}`);
+    const head = el('div', undefined, 'asset-job-head');
+    head.append(el('strong', job.assetId), el('span', job.status, `status-pill ${job.status}`));
+    row.append(head);
+    const last = job.error ?? job.progress.at(-1)?.message ?? (job.status === 'queued' ? 'Waiting for the previous build to finish…' : '');
+    if (last) row.append(el('p', last, job.status === 'failed' ? 'error-text' : 'muted-sm'));
+    if (job.status === 'succeeded' && job.assetIds?.[0]) {
+      const open = el('button', 'Open', 'text-link');
+      open.type = 'button';
+      open.onclick = () => selectAsset(job.assetIds[0]);
+      row.append(open);
+    }
+    container.append(row);
+  }
+}
+
+async function pollJobs() {
+  clearTimeout(jobPollTimer);
+  try {
+    const { jobs } = await api('/api/foundry/jobs');
+    const before = new Set(assets.map((asset) => asset.assetId));
+    renderJobs(jobs);
+    const finishedNew = jobs.some((job) => job.status === 'succeeded' && job.assetIds?.some((id) => !before.has(id)));
+    if (finishedNew) await loadAssets();
+    if (jobs.some((job) => job.status === 'queued' || job.status === 'running')) {
+      jobPollTimer = setTimeout(pollJobs, 3000);
+    }
+  } catch {
+    // Stop polling on failure; reopening the drawer or queuing a build resumes it.
+  }
+}
+
+async function submitPack() {
+  const provider = currentProvider();
+  const packId = document.querySelector('#asset-id').value.trim();
+  const style = document.querySelector('#asset-pack-style').value.trim();
+  const items = document.querySelector('#asset-pack-items').value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const split = line.indexOf(':');
+      return split > 0
+        ? { name: line.slice(0, split).trim(), prompt: line.slice(split + 1).trim() }
+        : { name: line, prompt: line };
+    });
+  if (!provider?.id.startsWith('blender-agent')) {
+    setGenerationStatus('Packs are built by a Blender Agent provider. Choose one first.', 'error-text');
+    return;
+  }
+  if (!packId || !style || !items.length) {
+    setGenerationStatus('A pack needs a name (Asset ID), a style and at least one item.', 'error-text');
+    return;
+  }
+  try {
+    const { jobs } = await api('/api/foundry/packs', {
+      projectId: document.querySelector('#asset-project').value,
+      packId,
+      style,
+      items,
+      kind: document.querySelector('#asset-kind').value,
+      operation: 'generate',
+      providerId: provider.id,
+      allowNetwork: provider.requiresNetwork ? document.querySelector('#asset-allow-network').checked : false,
+      requireCommercialUse: document.querySelector('#asset-commercial-only').checked,
+    });
+    setGenerationStatus(`Queued ${jobs.length} pack item(s). Progress is shown under Builds.`, 'success-text');
+    pollJobs();
+  } catch (error) {
+    setGenerationStatus(error?.message || 'Could not queue the pack.', 'error-text');
   }
 }
 
@@ -560,6 +760,19 @@ async function generateAsset(event) {
       : {}),
   };
 
+  if (provider.id.startsWith('blender-agent')) {
+    // Blender Agent builds take minutes: queue them and follow progress under Builds.
+    try {
+      await api('/api/foundry/jobs', payload);
+      setGenerationStatus(`Queued ${payload.assetId}. ${provider.name} is building it; progress is shown under Builds.`, 'success-text');
+      document.querySelector('#asset-allow-network').checked = false;
+      pollJobs();
+    } catch (error) {
+      setGenerationStatus(error?.message || 'Could not queue this build.', 'error-text');
+    }
+    return;
+  }
+
   submit.disabled = true;
   setGenerationStatus(`Generating ${payload.assetId} with ${provider.name}…`);
   try {
@@ -596,9 +809,9 @@ export async function loadAssets() {
 }
 
 export function initAssets() {
-  window.addEventListener('workspace-projects', (event) => {
-    populateProjectOptions(Array.isArray(event.detail) ? event.detail : []);
-  });
+  // Foundry projects include the built-in Asset Library, so assets never require a game.
+  window.addEventListener('workspace-projects', () => { loadFoundryProjects(); });
+  loadFoundryProjects();
   window.addEventListener('studio-routing-preferences', (event) => {
     routingPreferences = event.detail ?? null;
     providerSelectionTouched = false;
@@ -652,6 +865,11 @@ export function initAssets() {
       }
     };
   }
+
+  const packSubmit = document.querySelector('#asset-pack-submit');
+  if (packSubmit) packSubmit.onclick = submitPack;
+  const opener = document.querySelector('#open-asset-generator');
+  if (opener) opener.addEventListener('click', () => { pollJobs(); });
 
   renderGallery();
   renderInspectorEmpty();

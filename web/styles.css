@@ -560,3 +560,26 @@ textarea:focus,input:focus,select:focus{border-color:#347fdc;box-shadow:0 0 0 2p
 .stack-actions{display:flex;align-items:center;gap:14px;margin-top:auto;padding-top:8px}
 .stack-cta{padding:7px 12px;font-size:12px}
 @media(max-width:1100px){.studio-stack{grid-template-columns:1fr}}
+
+/* Foundry: Blender Agent builds, turnaround and send-to-game */
+.drawer-section{padding:0 18px 18px;border-top:1px solid var(--line);margin-top:6px}
+.drawer-section h3{font-size:13px;margin:14px 0 8px}
+.asset-jobs{display:flex;flex-direction:column;gap:8px}
+.asset-job{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--panel-2)}
+.asset-job p{margin:4px 0 0;font-size:12px;overflow-wrap:anywhere}
+.asset-job-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px}
+.asset-job-head strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status-pill.queued{color:var(--muted)}
+.status-pill.running{color:var(--blue-2)}
+.status-pill.succeeded{color:var(--green)}
+.status-pill.failed{color:var(--red)}
+.asset-files{margin-top:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.asset-files h4{margin:4px 0 0}
+.asset-turnaround{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.asset-turnaround figure{margin:0;background:#0a1422;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.asset-turnaround img{display:block;width:100%;aspect-ratio:1;object-fit:contain;background:repeating-conic-gradient(#0d1929 0% 25%,#101f33 0% 50%) 50%/18px 18px}
+.asset-turnaround figcaption{font-size:11px;color:var(--muted);padding:4px 8px;text-transform:capitalize}
+.asset-downloads{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px}
+.asset-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.asset-send-row{display:flex;gap:8px}
+.asset-send-row select{flex:1;min-width:0}

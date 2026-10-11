@@ -78,6 +78,10 @@ export interface FoundryAssetManifest {
   readonly createdAt: string;
   readonly contentHash?: string;
   readonly localPath?: string;
+  /** Image shown in the catalog when the main file is not itself an image (e.g. a GLB). */
+  readonly previewPath?: string;
+  /** Other files produced with the asset: editable source, generator script, renders, reports. */
+  readonly companionFiles?: readonly string[];
   readonly godotResource?: string;
   readonly validationEvidence?: readonly string[];
 }

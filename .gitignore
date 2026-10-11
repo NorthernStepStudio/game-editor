@@ -44,3 +44,6 @@ coverage/
 # Machine-local execution history and daemon credentials
 .matterhorn/
 .flyrail-daemon.json
+
+# Matterhorn Asset Library (generated assets live outside the repo history)
+asset-library/

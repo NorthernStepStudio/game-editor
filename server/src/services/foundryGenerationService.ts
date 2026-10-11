@@ -1,7 +1,12 @@
 import { randomUUID } from 'node:crypto';
-import { existsSync, lstatSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+  BlenderAgentAssetProvider,
+  ClaudeCodeScriptAuthor,
+  OllamaScriptAuthor,
+  findBlenderExecutable,
+  findClaudeCodeExecutable,
   FoundryAssetCatalog,
   FoundryAssetForge,
   FoundryAssetProviderRegistry,
@@ -75,6 +80,24 @@ export interface FoundryProviderStatus {
   readonly estimatedCost?: FoundryAssetCost;
 }
 
+export interface FoundryJob {
+  readonly jobId: string;
+  readonly assetId: string;
+  readonly projectId: string;
+  readonly kind: FoundryAssetKind;
+  readonly prompt?: string;
+  status: 'queued' | 'running' | 'succeeded' | 'failed';
+  readonly progress: { at: string; message: string }[];
+  readonly createdAt: string;
+  startedAt?: string;
+  finishedAt?: string;
+  providerId?: string;
+  assetIds?: string[];
+  error?: string;
+}
+
+export type FoundryJobView = Readonly<FoundryJob>;
+
 export interface FoundryGenerationServiceOptions {
   readonly env?: NodeJS.ProcessEnv;
   readonly providers?: readonly FoundryAssetProvider[];
@@ -108,6 +131,9 @@ export class FoundryGenerationService {
     'Configure a local ComfyUI checkpoint on the Matterhorn server to enable generation.';
   private comfyModelLabel?: string;
   private busy = false;
+  private readonly blenderAgentNotes = new Map<string, string>();
+  private readonly jobs = new Map<string, FoundryJob>();
+  private jobQueue: Promise<void> = Promise.resolve();
 
   constructor(
     private readonly projects: readonly StudioProject[],
@@ -139,6 +165,8 @@ export class FoundryGenerationService {
       this.comfyConfigurationNote = comfy.note;
       this.comfyModelLabel = comfy.modelLabel;
       if (comfy.provider) this.registry.register(comfy.provider);
+
+      this.registerBlenderAgents();
     }
 
     this.forge = new FoundryAssetForge(this.registry, {
@@ -193,6 +221,23 @@ export class FoundryGenerationService {
       note: this.comfyConfigurationNote,
     });
 
+    for (const [id, note] of this.blenderAgentNotes) {
+      if (configured.has(id)) continue;
+      statuses.push({
+        id,
+        name: id === 'blender-agent-claude' ? 'Blender Agent (Claude Code)' : 'Blender Agent (local model)',
+        configured: false,
+        available: false,
+        local: id !== 'blender-agent-claude',
+        requiresNetwork: id === 'blender-agent-claude',
+        externalCost: false,
+        commercialUseAllowed: true,
+        operations: [],
+        kinds: [],
+        note,
+      });
+    }
+
     for (const descriptor of configured.values()) {
       if (
         descriptor.id === SPRITE_FUSION_PROVIDER_DESCRIPTOR.id ||
@@ -211,14 +256,14 @@ export class FoundryGenerationService {
         commercialUseAllowed: descriptor.commercialUseAllowed,
         operations: descriptor.operations,
         kinds: descriptor.kinds,
-        note: 'Configured server-side.',
+        note: this.blenderAgentNotes.get(descriptor.id) ?? 'Configured server-side.',
       });
     }
 
     return statuses.sort((a, b) => a.id.localeCompare(b.id));
   }
 
-  async execute(raw: unknown): Promise<FoundryAssetExecution> {
+  async execute(raw: unknown, onProgress?: (message: string) => void): Promise<FoundryAssetExecution> {
     if (this.busy) {
       throw new Error('Another Foundry generation is already in progress.');
     }
@@ -358,11 +403,168 @@ export class FoundryGenerationService {
         context: {
           projectId: project.id,
           outputRoot,
+          ...(onProgress ? { onProgress } : {}),
         },
       });
     } finally {
       this.busy = false;
     }
+  }
+
+  /** Queues a generation to run in the background; long Blender Agent builds report progress here. */
+  submitJob(raw: unknown): FoundryJobView {
+    const body = this.parseBody(raw);
+    if (!this.projects.some((project) => project.id === body.projectId)) {
+      throw new Error('Select a configured project for asset generation.');
+    }
+    const clash = [...this.jobs.values()].find(
+      (job) => job.assetId === body.assetId && (job.status === 'queued' || job.status === 'running'),
+    );
+    if (clash) throw new Error(`Asset ${body.assetId} is already queued.`);
+    if (this.jobs.size >= 200) {
+      for (const [id, job] of this.jobs) {
+        if (job.status === 'succeeded' || job.status === 'failed') {
+          this.jobs.delete(id);
+          break;
+        }
+      }
+    }
+
+    const job: FoundryJob = {
+      jobId: randomUUID(),
+      assetId: body.assetId,
+      projectId: body.projectId,
+      kind: body.kind,
+      ...(body.prompt ? { prompt: body.prompt.slice(0, 400) } : {}),
+      status: 'queued',
+      progress: [],
+      createdAt: new Date().toISOString(),
+    };
+    this.jobs.set(job.jobId, job);
+    this.jobQueue = this.jobQueue.then(() => this.runJob(job, raw));
+    return this.jobView(job);
+  }
+
+  /** A style-matched set: every item shares the pack style and is built one after another. */
+  submitPack(raw: unknown): readonly FoundryJobView[] {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Pack request must be an object.');
+    const body = raw as Record<string, unknown>;
+    const packId = stringField(body.packId, 'packId', 60);
+    if (!/^[a-zA-Z0-9_-]+$/.test(packId)) {
+      throw new Error('packId must contain only letters, numbers, underscores, and dashes.');
+    }
+    const style = stringField(body.style, 'style', 1000);
+    if (!Array.isArray(body.items) || body.items.length < 1 || body.items.length > 12) {
+      throw new Error('A pack needs between 1 and 12 items.');
+    }
+    const items = body.items.map((item: unknown, index: number) => {
+      if (!item || typeof item !== 'object') throw new Error(`Pack item ${index + 1} is invalid.`);
+      const record = item as Record<string, unknown>;
+      const name = stringField(record.name, 'name', 60);
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || `item_${index + 1}`;
+      return { slug, prompt: stringField(record.prompt ?? name, 'prompt', 2000) };
+    });
+    if (new Set(items.map((item) => item.slug)).size !== items.length) {
+      throw new Error('Pack item names must be distinct.');
+    }
+    const { packId: _packId, style: _style, items: _items, ...shared } = body;
+    return items.map((item) => this.submitJob({
+      ...shared,
+      assetId: `${packId}_${item.slug}`,
+      prompt: `${item.prompt}. Shared pack style (keep it consistent with the rest of the set): ${style}`,
+    }));
+  }
+
+  listJobs(): readonly FoundryJobView[] {
+    return [...this.jobs.values()].reverse().map((job) => this.jobView(job));
+  }
+
+  getJob(jobId: string): FoundryJobView | undefined {
+    const job = this.jobs.get(jobId);
+    return job ? this.jobView(job) : undefined;
+  }
+
+  private async runJob(job: FoundryJob, raw: unknown): Promise<void> {
+    job.status = 'running';
+    job.startedAt = new Date().toISOString();
+    const progress = (message: string) => {
+      job.progress.push({ at: new Date().toISOString(), message: message.slice(0, 500) });
+      if (job.progress.length > 60) job.progress.splice(0, job.progress.length - 60);
+    };
+    try {
+      const execution = await this.execute(raw, progress);
+      job.assetIds = execution.manifests.map((manifest) => manifest.assetId);
+      job.providerId = execution.provider.id;
+      job.status = 'succeeded';
+    } catch (error) {
+      job.status = 'failed';
+      job.error = error instanceof Error ? error.message : String(error);
+    } finally {
+      job.finishedAt = new Date().toISOString();
+    }
+  }
+
+  private jobView(job: FoundryJob): FoundryJobView {
+    return structuredClone(job);
+  }
+
+  private registerBlenderAgents(): void {
+    const blender = findBlenderExecutable();
+    const ollamaModel =
+      this.env.MATTERHORN_ASSET_AGENT_OLLAMA_MODEL?.trim() ||
+      this.env.OLLAMA_MODEL?.trim() ||
+      this.env.M_CORE_OLLAMA_MODEL?.trim();
+    const ollamaBase =
+      this.env.OLLAMA_BASE_URL?.trim() ||
+      this.env.M_CORE_OLLAMA_BASE_URL?.trim() ||
+      'http://127.0.0.1:11434';
+    const claude = findClaudeCodeExecutable(this.env);
+    const resolveParentScript = (assetId: string) => this.parentScript(assetId);
+
+    if (!blender) {
+      const note = 'Install Blender 4.2 or newer (or set MATTERHORN_BLENDER_BIN) to build assets from a description.';
+      this.blenderAgentNotes.set('blender-agent-local', note);
+      this.blenderAgentNotes.set('blender-agent-claude', note);
+      return;
+    }
+
+    if (ollamaModel) {
+      this.registry.register(new BlenderAgentAssetProvider({
+        author: new OllamaScriptAuthor(ollamaBase, ollamaModel),
+        blenderExecutable: blender,
+        resolveParentScript,
+      }));
+      this.blenderAgentNotes.set(
+        'blender-agent-local',
+        `Local and free: ${ollamaModel} writes the Blender script on this PC. Quality is basic; Claude Code builds better assets.`,
+      );
+    } else {
+      this.blenderAgentNotes.set('blender-agent-local', 'Set OLLAMA_MODEL on the Matterhorn server to build assets with a local model.');
+    }
+
+    if (claude) {
+      this.registry.register(new BlenderAgentAssetProvider({
+        author: new ClaudeCodeScriptAuthor(claude, this.env.MATTERHORN_ASSET_AGENT_CLAUDE_MODEL?.trim() || undefined),
+        blenderExecutable: blender,
+        resolveParentScript,
+      }));
+      this.blenderAgentNotes.set(
+        'blender-agent-claude',
+        'Uses your Claude subscription through Claude Code (sign in once by running `claude`). Allow network providers in routing settings to use it.',
+      );
+    } else {
+      this.blenderAgentNotes.set(
+        'blender-agent-claude',
+        'Install Claude Code (npm install -g @anthropic-ai/claude-code) and sign in to build higher-quality assets.',
+      );
+    }
+  }
+
+  private parentScript(assetId: string): string | undefined {
+    const manifest = this.assets.store.get(assetId);
+    const script = manifest?.companionFiles?.find((file) => file.endsWith('_script.py'));
+    if (!script || !existsSync(script)) return undefined;
+    return readFileSync(script, 'utf8');
   }
 
   private parseBody(raw: unknown): {

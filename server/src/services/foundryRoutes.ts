@@ -41,6 +41,83 @@ export async function foundryRoutes(
     return true;
   }
 
+  if (request.method === 'GET' && pathname === '/api/foundry/projects') {
+    sendJson(response, 200, {
+      projects: service.foundryProjects.map((project) => ({ id: project.id, name: project.name })),
+    });
+    return true;
+  }
+
+  if (pathname === '/api/foundry/jobs') {
+    if (request.method === 'POST') {
+      try {
+        sendJson(response, 202, { job: service.foundryGeneration.submitJob(await readBody()) });
+      } catch (error) {
+        sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+      }
+      return true;
+    }
+    if (request.method === 'GET') {
+      sendJson(response, 200, { jobs: service.foundryGeneration.listJobs() });
+      return true;
+    }
+  }
+
+  if (request.method === 'POST' && pathname === '/api/foundry/packs') {
+    try {
+      sendJson(response, 202, { jobs: service.foundryGeneration.submitPack(await readBody()) });
+    } catch (error) {
+      sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return true;
+  }
+
+  const jobMatch = /^\/api\/foundry\/jobs\/([a-f0-9-]{36})$/.exec(pathname);
+  if (request.method === 'GET' && jobMatch) {
+    const job = service.foundryGeneration.getJob(jobMatch[1]);
+    if (!job) sendJson(response, 404, { error: 'Job not found.' });
+    else sendJson(response, 200, { job });
+    return true;
+  }
+
+  const sendMatch = /^\/api\/foundry\/assets\/([^/]+)\/send$/.exec(pathname);
+  if (request.method === 'POST' && sendMatch) {
+    const assetId = decodeAssetId(sendMatch[1]);
+    const body = (await readBody()) as { projectId?: unknown };
+    if (!assetId || typeof body?.projectId !== 'string') {
+      sendJson(response, 400, { error: 'Provide an asset and a projectId.' });
+      return true;
+    }
+    try {
+      sendJson(response, 200, service.foundryAssets.sendToProject(assetId, body.projectId));
+    } catch (error) {
+      sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return true;
+  }
+
+  const fileMatch = /^\/api\/foundry\/assets\/([^/]+)\/files\/([^/]+)$/.exec(pathname);
+  if (request.method === 'GET' && fileMatch) {
+    const assetId = decodeAssetId(fileMatch[1]);
+    const name = decodeAssetId(fileMatch[2]);
+    const file = assetId && name ? service.foundryAssets.file(assetId, name) : undefined;
+    if (!file) {
+      sendJson(response, 404, { error: 'File not found for this asset.' });
+      return true;
+    }
+    response.writeHead(200, {
+      'Content-Type': file.contentType,
+      'Content-Length': String(file.contentLength),
+      'Cache-Control': 'no-store',
+      'X-Content-Type-Options': 'nosniff',
+      ...(file.contentType.startsWith('image/') || file.contentType.startsWith('text/') || file.contentType.startsWith('application/json')
+        ? {}
+        : { 'Content-Disposition': `attachment; filename="${name!.replace(/[^a-zA-Z0-9_.-]/g, '_')}"` }),
+    });
+    response.end(file.bytes);
+    return true;
+  }
+
   if (request.method === 'POST' && pathname === '/api/foundry/generate') {
     const execution = await service.foundryGeneration.execute(await readBody());
     const assets = execution.manifests.map((manifest) =>

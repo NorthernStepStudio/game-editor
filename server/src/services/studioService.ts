@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { isAbsolute, resolve } from 'node:path';
-import { existsSync, lstatSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync } from 'node:fs';
 import { BlenderAdapter, FlyrailAdapter, MatterhornAssetLeaseStore, MatterhornLocalAgentEvaluationAdapter, MatterhornLocalBrowserAdapter, MatterhornOciSafeExecutionAdapter, MatterhornOtlpRunInsightsAdapter, MatterhornProjectMemoryGraphAdapter, MatterhornPromotionApprovalStore, MatterhornRuntimeCapabilityRegistry, requireProjectGitMutationSafety, StudioAdapterRegistry, StudioRunController, type MatterhornAgentEvaluationAdapter, type MatterhornProjectMemoryAdapter, type MatterhornSafeExecutionProfile, type NssStudioPlan } from '../../../core/out/index.js';
 import { StudioHistory } from './studioHistory.js';
 import { FoundryAssetService } from './foundryAssetService.js';
@@ -25,8 +25,21 @@ export function configuredProjects(): StudioProject[] {
   });
 }
 
+export const ASSET_LIBRARY_PROJECT_ID = 'library';
+
+/** Built-in Foundry workspace so assets can be created without any game project. */
+export function assetLibraryProject(): StudioProject {
+  const path = resolve(process.env.MATTERHORN_ASSET_LIBRARY?.trim() || resolve(__dirname, '../../../asset-library'));
+  mkdirSync(path, { recursive: true });
+  return { id: ASSET_LIBRARY_PROJECT_ID, name: 'Asset Library', path };
+}
+
 export function createStudioService() {
   const projects = configuredProjects();
+  if (projects.some(project => project.id === ASSET_LIBRARY_PROJECT_ID)) {
+    throw new Error(`Project id "${ASSET_LIBRARY_PROJECT_ID}" is reserved for the built-in Asset Library.`);
+  }
+  const assetProjects = [assetLibraryProject(), ...projects];
   const adapter = new FlyrailAdapter({ requestTimeoutMs: 300000 });
   const registry = new StudioAdapterRegistry();
 
@@ -40,9 +53,9 @@ export function createStudioService() {
   ]));
   const history = new StudioHistory(dataDirectory);
   const promotionApprovals = new MatterhornPromotionApprovalStore(dataDirectory);
-  const foundryAssets = new FoundryAssetService(dataDirectory, projects);
+  const foundryAssets = new FoundryAssetService(dataDirectory, assetProjects);
   const routingPreferences = new StudioRoutingPreferencesStore(dataDirectory);
-  const foundryGeneration = new FoundryGenerationService(projects, foundryAssets, {
+  const foundryGeneration = new FoundryGenerationService(assetProjects, foundryAssets, {
     routingPreferences: () => routingPreferences.get(),
   });
 
@@ -350,6 +363,7 @@ export function createStudioService() {
     history,
     foundryAssets,
     foundryGeneration,
+    foundryProjects: assetProjects,
     routingPreferences,
     ensureRecovered,
     getRecoveryState: () => recoveryState,

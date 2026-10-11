@@ -77,5 +77,9 @@ export function createFoundryAssetManifest(
     createdAt: options.createdAt ?? new Date().toISOString(),
     ...(generated.contentHash ? { contentHash: generated.contentHash } : {}),
     ...(generated.localPath ? { localPath: generated.localPath } : {}),
+    ...(generated.previewPath ? { previewPath: generated.previewPath } : {}),
+    ...(generated.companionFiles?.length
+      ? { companionFiles: generated.companionFiles }
+      : {}),
   };
 }

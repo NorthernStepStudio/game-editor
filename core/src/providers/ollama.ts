@@ -100,6 +100,8 @@ export function createOllamaProvider(config: ResponseOsRuntimeConfig): ResponseO
           model,
           messages: buildMessages(input),
           stream: false,
+          // Chat wants the answer, not visible deliberation; thinking models otherwise take minutes per reply.
+          think: false,
           options: {
             temperature: input.budget.temperature,
             num_predict: input.budget.maxOutputTokens,
@@ -130,6 +132,7 @@ export function createOllamaProvider(config: ResponseOsRuntimeConfig): ResponseO
           model,
           messages: buildMessages(input),
           stream: true,
+          think: false,
           options: {
             temperature: input.budget.temperature,
             num_predict: input.budget.maxOutputTokens,

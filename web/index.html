@@ -503,9 +503,22 @@
           <div class="cost-row"><input id="asset-max-cost" type="number" min="0.01" step="0.01"><span id="asset-cost-currency">budget units</span></div>
         </label>
       </div>
+      <details id="asset-pack" class="advanced-options">
+        <summary>Make a pack (style-matched set)</summary>
+        <div class="advanced-body">
+          <label>Pack style<textarea id="asset-pack-style" rows="2" maxlength="1000" placeholder="Low-poly medieval tavern, warm wood and iron, chunky proportions"></textarea></label>
+          <label>Items, one per line<textarea id="asset-pack-items" rows="4" maxlength="4000" placeholder="barrel&#10;table: round wooden table with four legs&#10;stool"></textarea></label>
+          <p class="subtle">Uses the Asset ID above as the pack name. Each item becomes its own asset, built one after another.</p>
+          <button id="asset-pack-submit" type="button" class="secondary-action">Build pack</button>
+        </div>
+      </details>
       <p id="asset-generate-status" class="subtle">Choose a configured provider before generating.</p>
       <button id="asset-generate-submit" class="primary-action" type="submit">Generate asset</button>
     </form>
+    <div class="drawer-section">
+      <div class="section-title-row"><h3>Builds</h3></div>
+      <div id="asset-jobs" class="asset-jobs"><p class="muted-sm">No builds yet.</p></div>
+    </div>
   </aside>
 
   <script type="module" src="/main.js"></script>

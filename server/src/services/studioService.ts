@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { isAbsolute, resolve } from 'node:path';
-import { existsSync, lstatSync, mkdirSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { BlenderAdapter, FlyrailAdapter, MatterhornAssetLeaseStore, MatterhornLocalAgentEvaluationAdapter, MatterhornLocalBrowserAdapter, MatterhornOciSafeExecutionAdapter, MatterhornOtlpRunInsightsAdapter, MatterhornProjectMemoryGraphAdapter, MatterhornPromotionApprovalStore, MatterhornRuntimeCapabilityRegistry, requireProjectGitMutationSafety, StudioAdapterRegistry, StudioRunController, type MatterhornAgentEvaluationAdapter, type MatterhornProjectMemoryAdapter, type MatterhornSafeExecutionProfile, type NssStudioPlan } from '../../../core/out/index.js';
 import { StudioHistory } from './studioHistory.js';
 import { FoundryAssetService } from './foundryAssetService.js';
 import { FoundryGenerationService } from './foundryGenerationService.js';
+import { FoundryStyleStore } from './foundryStyles.js';
 import { StudioRoutingPreferencesStore } from './studioRoutingPreferences.js';
 import { createStudioPlannerPlan, inferDomains, type StudioAssetRequestInput, type StudioPlanningDomain } from './studioPlanner.js';
 import { FoundryStudioAdapter } from './foundryStudioAdapter.js';
@@ -34,8 +35,29 @@ export function assetLibraryProject(): StudioProject {
   return { id: ASSET_LIBRARY_PROJECT_ID, name: 'Asset Library', path };
 }
 
+/** Games added from the UI, kept beside the server data (MATTERHORN_PROJECTS entries still win). */
+function savedProjects(file: string, taken: Set<string>): StudioProject[] {
+  if (!existsSync(file)) return [];
+  try {
+    const raw = JSON.parse(readFileSync(file, 'utf8')) as { projects?: unknown };
+    if (!Array.isArray(raw.projects)) return [];
+    return raw.projects.flatMap((entry) => {
+      const project = entry as Partial<StudioProject>;
+      if (typeof project?.id !== 'string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(project.id) || taken.has(project.id)) return [];
+      if (typeof project.name !== 'string' || typeof project.path !== 'string' || !isAbsolute(project.path)) return [];
+      taken.add(project.id);
+      return [{ id: project.id, name: project.name, path: resolve(project.path) }];
+    });
+  } catch {
+    return [];
+  }
+}
+
 export function createStudioService() {
-  const projects = configuredProjects();
+  const dataDirectoryEarly = process.env.MATTERHORN_DATA_DIR ?? resolve(__dirname, '../../../.matterhorn');
+  const savedProjectsFile = resolve(dataDirectoryEarly, 'projects.json');
+  const envProjects = configuredProjects();
+  const projects = [...envProjects, ...savedProjects(savedProjectsFile, new Set([...envProjects.map(p => p.id), ASSET_LIBRARY_PROJECT_ID]))];
   if (projects.some(project => project.id === ASSET_LIBRARY_PROJECT_ID)) {
     throw new Error(`Project id "${ASSET_LIBRARY_PROJECT_ID}" is reserved for the built-in Asset Library.`);
   }
@@ -43,7 +65,7 @@ export function createStudioService() {
   const adapter = new FlyrailAdapter({ requestTimeoutMs: 300000 });
   const registry = new StudioAdapterRegistry();
 
-  const dataDirectory = process.env.MATTERHORN_DATA_DIR ?? resolve(__dirname, '../../../.matterhorn');
+  const dataDirectory = dataDirectoryEarly;
   const assetLeaseStores = new Map(projects.map(project => [
     project.id,
     new MatterhornAssetLeaseStore({
@@ -55,8 +77,10 @@ export function createStudioService() {
   const promotionApprovals = new MatterhornPromotionApprovalStore(dataDirectory);
   const foundryAssets = new FoundryAssetService(dataDirectory, assetProjects);
   const routingPreferences = new StudioRoutingPreferencesStore(dataDirectory);
+  const foundryStyles = new FoundryStyleStore(dataDirectory);
   const foundryGeneration = new FoundryGenerationService(assetProjects, foundryAssets, {
     routingPreferences: () => routingPreferences.get(),
+    styles: foundryStyles,
   });
 
   registry.register(adapter);
@@ -342,6 +366,33 @@ export function createStudioService() {
 
   return {
     projects,
+    /** Registers a Godot project from the UI. Takes effect immediately and survives restarts. */
+    addProject(input: { name?: unknown; path?: unknown }): StudioProject {
+      const name = typeof input?.name === 'string' ? input.name.trim() : '';
+      const rawPath = typeof input?.path === 'string' ? input.path.trim().replace(/^"|"$/g, '') : '';
+      if (!name || name.length > 60) throw new Error('Give the game a name (up to 60 characters).');
+      if (!rawPath || !isAbsolute(rawPath)) throw new Error('Paste the full folder path, e.g. D:\dev\MyGame.');
+      const path = resolve(rawPath);
+      if (!existsSync(path) || !lstatSync(path).isDirectory()) throw new Error('That folder does not exist.');
+      if (!existsSync(resolve(path, 'project.godot'))) throw new Error('That folder has no project.godot — choose the Godot project folder.');
+      if (projects.some(project => resolve(project.path) === path)) throw new Error('That game is already added.');
+      const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'game';
+      let id = base;
+      for (let n = 2; id === ASSET_LIBRARY_PROJECT_ID || projects.some(project => project.id === id); n++) id = `${base}-${n}`;
+      const project: StudioProject = { id, name, path };
+      projects.push(project);
+      assetProjects.push(project);
+      assetLeaseStores.set(id, new MatterhornAssetLeaseStore({
+        projectRoot: path,
+        stateFile: resolve(dataDirectory, 'asset-leases', `${id}.json`),
+      }));
+      const envIds = new Set(envProjects.map(p => p.id));
+      mkdirSync(dataDirectory, { recursive: true });
+      const temp = `${savedProjectsFile}.tmp`;
+      writeFileSync(temp, JSON.stringify({ version: 1, projects: projects.filter(p => !envIds.has(p.id)) }, null, 2), 'utf8');
+      renameSync(temp, savedProjectsFile);
+      return project;
+    },
     adapter,
     adapters: registry.list(),
     runtime,
@@ -364,6 +415,7 @@ export function createStudioService() {
     foundryAssets,
     foundryGeneration,
     foundryProjects: assetProjects,
+    foundryStyles,
     routingPreferences,
     ensureRecovered,
     getRecoveryState: () => recoveryState,

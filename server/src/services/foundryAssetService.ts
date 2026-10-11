@@ -5,10 +5,12 @@ import {
   mkdirSync,
   readFileSync,
   realpathSync,
+  renameSync,
   writeFileSync,
 } from 'node:fs';
 import {
   basename,
+  dirname,
   extname,
   isAbsolute,
   join,
@@ -68,6 +70,20 @@ export interface FoundryAssetView {
   readonly sourceLicenseIds?: readonly string[];
   readonly previewUrl?: string;
   readonly files?: readonly FoundryAssetFileView[];
+  /** Friendly name, original description, draft grouping and visibility (user-facing metadata). */
+  readonly displayName?: string;
+  readonly prompt?: string;
+  readonly draftGroup?: string;
+  readonly styleId?: string;
+  readonly hidden?: boolean;
+}
+
+export interface FoundryAssetMeta {
+  readonly displayName?: string;
+  readonly prompt?: string;
+  readonly draftGroup?: string;
+  readonly styleId?: string;
+  readonly hidden?: boolean;
 }
 
 export interface FoundryAssetPreview {
@@ -87,6 +103,9 @@ export class FoundryAssetService {
   readonly store: FoundryAssetStore;
   private readonly allowedRoots: readonly string[];
   private readonly projects: readonly StudioProject[];
+  readonly dataDirectory: string;
+  private readonly metaPath: string;
+  private meta: Record<string, FoundryAssetMeta> = {};
 
   constructor(
     dataDirectory: string,
@@ -94,6 +113,16 @@ export class FoundryAssetService {
   ) {
     this.store = new FoundryAssetStore(dataDirectory);
     this.projects = projects;
+    this.dataDirectory = resolve(dataDirectory);
+    this.metaPath = resolve(dataDirectory, 'foundry-assets', 'meta.json');
+    if (existsSync(this.metaPath)) {
+      try {
+        const parsed = JSON.parse(readFileSync(this.metaPath, 'utf8')) as { assets?: Record<string, FoundryAssetMeta> };
+        this.meta = parsed.assets && typeof parsed.assets === 'object' ? parsed.assets : {};
+      } catch {
+        this.meta = {};
+      }
+    }
     this.allowedRoots = [
       resolve(dataDirectory),
       ...projects.map((project) => resolve(project.path)),
@@ -224,7 +253,36 @@ export class FoundryAssetService {
     return 'other';
   }
 
+  /** Merges user-facing metadata (name, description, draft group, visibility) for an asset. */
+  setMeta(assetId: string, patch: FoundryAssetMeta): FoundryAssetView {
+    if (!this.store.get(assetId)) throw new Error('Asset not found.');
+    const next: Record<string, unknown> = { ...this.meta[assetId] };
+    for (const [key, value] of Object.entries(patch)) {
+      if (value === undefined) delete next[key];
+      else next[key] = value;
+    }
+    this.meta[assetId] = next as FoundryAssetMeta;
+    mkdirSync(dirname(this.metaPath), { recursive: true });
+    const temp = `${this.metaPath}.tmp`;
+    writeFileSync(temp, JSON.stringify({ version: 1, assets: this.meta }), 'utf8');
+    renameSync(temp, this.metaPath);
+    return this.get(assetId)!;
+  }
+
+  /** Keeps one draft of a group and hides its siblings (they stay on disk and can be shown again). */
+  keepDraft(assetId: string): readonly FoundryAssetView[] {
+    const group = this.meta[assetId]?.draftGroup;
+    if (!group) throw new Error('This asset is not one of a set of drafts.');
+    const changed: FoundryAssetView[] = [];
+    for (const [id, meta] of Object.entries(this.meta)) {
+      if (meta.draftGroup !== group || !this.store.get(id)) continue;
+      changed.push(this.setMeta(id, { hidden: id === assetId ? undefined : true, draftGroup: id === assetId ? undefined : group }));
+    }
+    return changed;
+  }
+
   private toView(manifest: FoundryAssetManifest): FoundryAssetView {
+    const meta = this.meta[manifest.assetId] ?? {};
     return {
       assetId: manifest.assetId,
       type: manifest.type,
@@ -267,6 +325,11 @@ export class FoundryAssetService {
               })),
           }
         : {}),
+      ...(meta.displayName ? { displayName: meta.displayName } : {}),
+      ...(meta.prompt ? { prompt: meta.prompt } : {}),
+      ...(meta.draftGroup ? { draftGroup: meta.draftGroup } : {}),
+      ...(meta.styleId ? { styleId: meta.styleId } : {}),
+      ...(meta.hidden ? { hidden: true } : {}),
     };
   }
 

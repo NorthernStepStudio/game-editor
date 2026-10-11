@@ -150,9 +150,15 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
 
     const attempts: { attempt: number; outcome: string }[] = [];
     let report: HarnessReport | undefined;
+    const signal = context.signal;
+    const stopIfCancelled = () => {
+      if (signal?.aborted) throw new Error("Cancelled.");
+    };
     for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
+      stopIfCancelled();
       progress(`Attempt ${attempt}/${this.maxAttempts}: ${this.options.author.label} is writing the Blender script…`);
-      const reply = await this.options.author.author({ system: BLENDER_AGENT_SYSTEM_PROMPT, prompt });
+      const reply = await this.options.author.author({ system: BLENDER_AGENT_SYSTEM_PROMPT, prompt, ...(signal ? { signal } : {}) });
+      stopIfCancelled();
       const script = extractPythonScript(reply);
       writeFileSync(scriptPath, script, "utf8");
 
@@ -168,7 +174,8 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
       const run = await runBlender(blender, [
         "--background", "--factory-startup", "--disable-autoexec",
         "--python-exit-code", "1", "--python", harnessPath, "--", configPath,
-      ], jobDir, this.blenderTimeoutMs);
+      ], jobDir, this.blenderTimeoutMs, signal);
+      stopIfCancelled();
 
       report = existsSync(reportPath) ? JSON.parse(readFileSync(reportPath, "utf8")) as HarnessReport : undefined;
       if (report?.ok) {
@@ -240,6 +247,7 @@ function runBlender(
   args: readonly string[],
   cwd: string,
   timeoutMs: number,
+  signal?: AbortSignal,
 ): Promise<{ code: number | null; output: string; timedOut: boolean }> {
   const env: NodeJS.ProcessEnv = {};
   for (const [key, value] of Object.entries(process.env)) {
@@ -256,8 +264,11 @@ function runBlender(
     child.stdout.on("data", collect);
     child.stderr.on("data", collect);
     const timer = setTimeout(() => { timedOut = true; child.kill(); }, timeoutMs);
-    child.on("error", (error) => { clearTimeout(timer); resolvePromise({ code: null, output: error.message, timedOut }); });
-    child.on("close", (code) => { clearTimeout(timer); resolvePromise({ code, output, timedOut }); });
+    const abort = () => child.kill();
+    signal?.addEventListener("abort", abort, { once: true });
+    const done = () => { clearTimeout(timer); signal?.removeEventListener("abort", abort); };
+    child.on("error", (error) => { done(); resolvePromise({ code: null, output: error.message, timedOut }); });
+    child.on("close", (code) => { done(); resolvePromise({ code, output, timedOut }); });
   });
 }
 

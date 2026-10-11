@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { existsSync, lstatSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import {
   BlenderAgentAssetProvider,
   ClaudeCodeScriptAuthor,
@@ -24,6 +24,7 @@ import {
 } from '../../../core/out/index.js';
 import type { StudioProject } from './studioService.js';
 import type { FoundryAssetService } from './foundryAssetService.js';
+import type { FoundryStyleStore } from './foundryStyles.js';
 import { configureComfyUiProvider } from './comfyUiConfiguration.js';
 import type { StudioRoutingPreferences } from './studioRoutingPreferences.js';
 
@@ -86,7 +87,11 @@ export interface FoundryJob {
   readonly projectId: string;
   readonly kind: FoundryAssetKind;
   readonly prompt?: string;
-  status: 'queued' | 'running' | 'succeeded' | 'failed';
+  readonly displayName?: string;
+  readonly draftGroup?: string;
+  readonly styleId?: string;
+  readonly retryOf?: string;
+  status: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
   readonly progress: { at: string; message: string }[];
   readonly createdAt: string;
   startedAt?: string;
@@ -94,14 +99,19 @@ export interface FoundryJob {
   providerId?: string;
   assetIds?: string[];
   error?: string;
+  /** The submitted request, kept so a failed build can be retried. Not exposed to the browser. */
+  readonly input: Record<string, unknown>;
 }
 
-export type FoundryJobView = Readonly<FoundryJob>;
+export type FoundryJobView = Readonly<Omit<FoundryJob, 'input'>>;
 
 export interface FoundryGenerationServiceOptions {
   readonly env?: NodeJS.ProcessEnv;
   readonly providers?: readonly FoundryAssetProvider[];
   readonly routingPreferences?: () => StudioRoutingPreferences;
+  readonly styles?: FoundryStyleStore;
+  /** Where build history is kept; defaults to the asset store's data directory. */
+  readonly jobsPath?: string | false;
 }
 
 interface GenerationBody {
@@ -134,6 +144,9 @@ export class FoundryGenerationService {
   private readonly blenderAgentNotes = new Map<string, string>();
   private readonly jobs = new Map<string, FoundryJob>();
   private jobQueue: Promise<void> = Promise.resolve();
+  private readonly aborts = new Map<string, AbortController>();
+  private readonly styles?: FoundryStyleStore;
+  private readonly jobsPath?: string;
 
   constructor(
     private readonly projects: readonly StudioProject[],
@@ -142,6 +155,11 @@ export class FoundryGenerationService {
   ) {
     this.env = options.env ?? process.env;
     this.routingPreferences = options.routingPreferences;
+    this.styles = options.styles;
+    this.jobsPath = options.jobsPath === false
+      ? undefined
+      : options.jobsPath ?? join(this.assets.dataDirectory, 'foundry-assets', 'jobs.json');
+    this.loadJobs();
     this.catalog.registerMany(this.assets.store.list());
 
     if (options.providers) {
@@ -263,7 +281,7 @@ export class FoundryGenerationService {
     return statuses.sort((a, b) => a.id.localeCompare(b.id));
   }
 
-  async execute(raw: unknown, onProgress?: (message: string) => void): Promise<FoundryAssetExecution> {
+  async execute(raw: unknown, onProgress?: (message: string) => void, signal?: AbortSignal): Promise<FoundryAssetExecution> {
     if (this.busy) {
       throw new Error('Another Foundry generation is already in progress.');
     }
@@ -404,6 +422,7 @@ export class FoundryGenerationService {
           projectId: project.id,
           outputRoot,
           ...(onProgress ? { onProgress } : {}),
+          ...(signal ? { signal } : {}),
         },
       });
     } finally {
@@ -412,7 +431,7 @@ export class FoundryGenerationService {
   }
 
   /** Queues a generation to run in the background; long Blender Agent builds report progress here. */
-  submitJob(raw: unknown): FoundryJobView {
+  submitJob(raw: unknown, retryOf?: string): FoundryJobView {
     const body = this.parseBody(raw);
     if (!this.projects.some((project) => project.id === body.projectId)) {
       throw new Error('Select a configured project for asset generation.');
@@ -421,14 +440,22 @@ export class FoundryGenerationService {
       (job) => job.assetId === body.assetId && (job.status === 'queued' || job.status === 'running'),
     );
     if (clash) throw new Error(`Asset ${body.assetId} is already queued.`);
-    if (this.jobs.size >= 200) {
-      for (const [id, job] of this.jobs) {
-        if (job.status === 'succeeded' || job.status === 'failed') {
-          this.jobs.delete(id);
-          break;
-        }
-      }
-    }
+
+    const extra = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+    const displayName = typeof extra.displayName === 'string' && extra.displayName.trim()
+      ? extra.displayName.trim().slice(0, 80)
+      : undefined;
+    const draftGroup = typeof extra.draftGroup === 'string' && /^[a-zA-Z0-9_.-]{1,120}$/.test(extra.draftGroup)
+      ? extra.draftGroup
+      : undefined;
+    const style = typeof extra.styleId === 'string' && extra.styleId ? this.styles?.get(extra.styleId) : undefined;
+    if (typeof extra.styleId === 'string' && extra.styleId && !style) throw new Error('That style no longer exists.');
+
+    // The original description is kept for display; the style text is appended only to what the builder sees.
+    const input: Record<string, unknown> = {
+      ...extra,
+      ...(style && body.prompt ? { prompt: `${body.prompt}. Style for this asset: ${style.description}` } : {}),
+    };
 
     const job: FoundryJob = {
       jobId: randomUUID(),
@@ -436,12 +463,56 @@ export class FoundryGenerationService {
       projectId: body.projectId,
       kind: body.kind,
       ...(body.prompt ? { prompt: body.prompt.slice(0, 400) } : {}),
+      ...(displayName ? { displayName } : {}),
+      ...(draftGroup ? { draftGroup } : {}),
+      ...(style ? { styleId: style.id } : {}),
+      ...(retryOf ? { retryOf } : {}),
       status: 'queued',
       progress: [],
       createdAt: new Date().toISOString(),
+      input,
     };
     this.jobs.set(job.jobId, job);
-    this.jobQueue = this.jobQueue.then(() => this.runJob(job, raw));
+    this.trimJobs();
+    this.persistJobs();
+    this.jobQueue = this.jobQueue.then(() => this.runJob(job));
+    return this.jobView(job);
+  }
+
+  /** Queues the same request again under a fresh asset id (failed or cancelled builds only). */
+  retryJob(jobId: string, overrides: { providerId?: unknown } = {}): FoundryJobView {
+    const job = this.jobs.get(jobId);
+    if (!job) throw new Error('Build not found.');
+    if (job.status !== 'failed' && job.status !== 'cancelled') throw new Error('Only failed or cancelled builds can be retried.');
+    const base = job.assetId.replace(/_r\d+$/, '');
+    let assetId = `${base}_r2`;
+    for (let n = 2; this.assets.store.get(assetId) || [...this.jobs.values()].some((j) => j.assetId === assetId); n++) {
+      assetId = `${base}_r${n + 1}`;
+    }
+    return this.submitJob({
+      ...job.input,
+      assetId,
+      ...(typeof overrides.providerId === 'string' ? { providerId: overrides.providerId, allowNetwork: true } : {}),
+      // Style already folded into input.prompt on the first submission.
+      styleId: undefined,
+    }, job.jobId);
+  }
+
+  /** Cancels a queued build immediately, or stops a running one at its next safe point. */
+  cancelJob(jobId: string): FoundryJobView {
+    const job = this.jobs.get(jobId);
+    if (!job) throw new Error('Build not found.');
+    if (job.status === 'queued') {
+      job.status = 'cancelled';
+      job.finishedAt = new Date().toISOString();
+      job.error = 'Cancelled before it started.';
+    } else if (job.status === 'running') {
+      this.aborts.get(job.jobId)?.abort();
+      job.progress.push({ at: new Date().toISOString(), message: 'Cancelling…' });
+    } else {
+      throw new Error('This build has already finished.');
+    }
+    this.persistJobs();
     return this.jobView(job);
   }
 
@@ -462,7 +533,7 @@ export class FoundryGenerationService {
       const record = item as Record<string, unknown>;
       const name = stringField(record.name, 'name', 60);
       const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || `item_${index + 1}`;
-      return { slug, prompt: stringField(record.prompt ?? name, 'prompt', 2000) };
+      return { slug, name, prompt: stringField(record.prompt ?? name, 'prompt', 2000) };
     });
     if (new Set(items.map((item) => item.slug)).size !== items.length) {
       throw new Error('Pack item names must be distinct.');
@@ -471,6 +542,7 @@ export class FoundryGenerationService {
     return items.map((item) => this.submitJob({
       ...shared,
       assetId: `${packId}_${item.slug}`,
+      displayName: `${item.name} (${packId})`,
       prompt: `${item.prompt}. Shared pack style (keep it consistent with the rest of the set): ${style}`,
     }));
   }
@@ -484,28 +556,84 @@ export class FoundryGenerationService {
     return job ? this.jobView(job) : undefined;
   }
 
-  private async runJob(job: FoundryJob, raw: unknown): Promise<void> {
+  private async runJob(job: FoundryJob): Promise<void> {
+    if (job.status !== 'queued') return;
     job.status = 'running';
     job.startedAt = new Date().toISOString();
+    const abort = new AbortController();
+    this.aborts.set(job.jobId, abort);
+    this.persistJobs();
     const progress = (message: string) => {
       job.progress.push({ at: new Date().toISOString(), message: message.slice(0, 500) });
       if (job.progress.length > 60) job.progress.splice(0, job.progress.length - 60);
+      this.persistJobs();
     };
     try {
-      const execution = await this.execute(raw, progress);
+      const execution = await this.execute(job.input, progress, abort.signal);
       job.assetIds = execution.manifests.map((manifest) => manifest.assetId);
       job.providerId = execution.provider.id;
       job.status = 'succeeded';
+      for (const assetId of job.assetIds) {
+        this.assets.setMeta(assetId, {
+          ...(job.displayName ? { displayName: job.displayName } : {}),
+          ...(job.prompt ? { prompt: job.prompt } : {}),
+          ...(job.draftGroup ? { draftGroup: job.draftGroup } : {}),
+          ...(job.styleId ? { styleId: job.styleId } : {}),
+        });
+      }
     } catch (error) {
-      job.status = 'failed';
-      job.error = error instanceof Error ? error.message : String(error);
+      if (abort.signal.aborted) {
+        job.status = 'cancelled';
+        job.error = 'Cancelled.';
+      } else {
+        job.status = 'failed';
+        job.error = error instanceof Error ? error.message : String(error);
+      }
     } finally {
       job.finishedAt = new Date().toISOString();
+      this.aborts.delete(job.jobId);
+      this.persistJobs();
     }
   }
 
   private jobView(job: FoundryJob): FoundryJobView {
-    return structuredClone(job);
+    const { input: _input, ...view } = job;
+    return structuredClone(view);
+  }
+
+  private trimJobs(): void {
+    const finished = [...this.jobs.values()].filter((job) => job.status !== 'queued' && job.status !== 'running');
+    for (const job of finished.slice(0, Math.max(0, this.jobs.size - 300))) this.jobs.delete(job.jobId);
+  }
+
+  private loadJobs(): void {
+    if (!this.jobsPath || !existsSync(this.jobsPath)) return;
+    try {
+      const saved = JSON.parse(readFileSync(this.jobsPath, 'utf8')) as { jobs?: FoundryJob[] };
+      for (const job of saved.jobs ?? []) {
+        if (job.status === 'queued' || job.status === 'running') {
+          // Never resubmit automatically: the user decides whether to retry interrupted work.
+          job.status = 'failed';
+          job.error = 'Matterhorn restarted before this build finished. Retry it if you still want it.';
+          job.finishedAt = new Date().toISOString();
+        }
+        this.jobs.set(job.jobId, job);
+      }
+    } catch {
+      // A damaged history file must not stop the server; it is rewritten on the next change.
+    }
+  }
+
+  private persistJobs(): void {
+    if (!this.jobsPath) return;
+    try {
+      mkdirSync(dirname(this.jobsPath), { recursive: true });
+      const temp = `${this.jobsPath}.tmp`;
+      writeFileSync(temp, JSON.stringify({ version: 1, jobs: [...this.jobs.values()] }), 'utf8');
+      renameSync(temp, this.jobsPath);
+    } catch {
+      // History is a convenience; a failed write never fails the build itself.
+    }
   }
 
   private registerBlenderAgents(): void {

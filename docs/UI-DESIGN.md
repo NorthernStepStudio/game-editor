@@ -1,87 +1,34 @@
 # Matterhorn UI contract
 
-Status: canonical product UI for the current Matterhorn feature set.
+Status: canonical. Redesign approved by the owner on 2026-10-11 (prototype: “Matterhorn Redesign” canvas, including its Button map board).
 
-The web product must organize capabilities that actually exist. Do not invent finished-looking product surfaces for planned capabilities.
+## The rule that matters most
 
-## Primary navigation
+**Every control does something real.** A control ships only when the backend behind it works. If a feature is not ready it is hidden; if it is ready but needs setup it shows one **How to fix / Set up** path that leads to the fix. `tests/web.test.mjs` clicks every button, link, select and checkbox on every screen and fails if any of them does nothing. Do not weaken that test to make a control pass — make the control work or remove it.
 
-Matterhorn has exactly seven primary pages:
+No made-up numbers: every status, score and pass/fail comes from a real check. No fake previews, progress percentages, rig claims or “ready” badges.
 
-1. **Home** — "Your studio" capability cards (Agent, Asset Generator, Game Engine; every status line read from a live endpoint), create a run, active work, attention items, recent runs.
-2. **Create** — Character Studio workbench (`#create`, `#characters/<mode>` for model3d, art2d, refine, motion, game-preview). Replaces the former Assets → Motion Studio tab.
-3. **Runs** — one guided production flow: Plan → Build → Validate → Repair → Verified → Promote.
-4. **Projects** — configured projects, files, proposals/change sets, project validations, run handoff.
-5. **Assets** — Foundry catalog, filters, generation entry point, provenance/lineage inspector.
-6. **Validation** — Sentinel/run evidence summarized as passed, pending/attention, and failed.
-7. **Settings** — AI providers, routing, runtime capabilities, specialists/readiness under Advanced.
+## Structure: four places plus one assistant
 
-Do not add an eighth primary page without a real, implemented backend workflow and an explicit product decision.
+1. **Studio** (`#studio`, home) — one request box: “What do you want to make or change?”. Go routes the request: asset → a Blender Agent build in the Asset Library; game change → a plan the user approves before anything changes; question → an answer. Below: **Needs you**, **In progress**, **Recent**, all from live runs and builds.
+2. **My Game** (`#game/changes|checks|files`) — one page per game with a game picker (**+ Add a game…** registers a Godot folder). **Play in Godot**, **Run checks**. Changes show Plan → Build → Check → Your OK, “What changed and why”, Approve & keep, Cancel, Try again, Download proof. Checks show real Godot/scenario/playtest criteria and configured project checks. Files: read, Explain, propose an edit (diff first, Apply/Discard, Undo).
+3. **Assets** (`#assets`, `#assets/<id>`, `#assets/build/<jobId>`) — library grid, **+ Make an asset** (type, style, builder, 1–4 drafts, or a matching set), asset page (views, Change it → new version, Send to game, downloads, versions, keep-a-draft, rename, remove), failed builds explain why and offer Retry / Retry with Claude.
+4. **Settings** (`#settings`) — **Connections** (Ollama, Claude Code, Blender, Godot + Flyrail, project memory, ComfyUI) each with real status, How to fix, Check again; **AI** (chat model, asset builder); **Advanced** (safety limits, readiness scorecard, services).
 
-## Secondary surfaces
+**Ask Matterhorn** is a side panel on every page and is told what the user is looking at.
 
-These are contextual, not primary navigation:
+Old links redirect: `#home`→Studio, `#runs`/`#pipeline`/`#output`→My Game, `#projects`→My Game › Files, `#validation`/`#evidence`→My Game › Checks, `#create`→Assets, `#specialists`→Settings, `#chat`→assistant.
 
-- **Chat** — assistant drawer.
-- **Asset generation** — drawer opened from Assets.
-- **Asset inspection** — drawer opened by selecting an asset.
-- **Promotion approval** — part of a verified Run; not a separate Releases product.
-- **Specialists** — Advanced Settings plus contextual labels inside Runs.
-- **Matterhorn 100** — Advanced Settings; it is product/readiness information, not a creation dashboard.
+## Not in the UI until real
 
-## Planned capabilities must not masquerade as finished UI
+- Character rigging/animation and the Character Studio cockpit: the server’s `/api/motion/*`, `/api/characters/*` and live-session landmark scores are placeholders. They come back only when backed by the real rigging pipeline in `core`.
+- Timeline “Undo to here” for game changes (needs checkpoint restore).
+- Styles with reference images (styles are text-only today).
 
-Until implementation is production-usable:
+## Look
 
-- no top-level **Releases** page;
-- no top-level **Characters** page (character work lives in Create);
-- no top-level **Specialists** page;
-- no top-level **Project Memory** knowledge center;
-- no Motion or Repo/Build controls that imply those planned agents are active.
+Dark navy, calm: one obvious primary action per screen, big targets (≥44 px), plain words (“Make”, “Change my game”, “Check”, “Approve”), progress as clear steps, works at phone width. System font (Segoe UI on Windows); the server’s Content-Security-Policy forbids inline styles and third-party fonts, so all styling lives in `web/styles.css`.
 
-When these capabilities become real, update the backend status and this UI contract together.
+## Code map
 
-## Visual system
-
-Use the approved Matterhorn studio design:
-
-- dark navy workspace;
-- narrow persistent left navigation;
-- restrained electric-blue active state;
-- subtle borders rather than stacked glowing panels;
-- one obvious primary action per surface;
-- progressive disclosure instead of showing every control at once;
-- compact status pills for running/passed/blocked/approval states;
-- generous negative space;
-- no decorative AI gradients, fake analytics, invented progress percentages, or fabricated previews;
-- system plumbing lives in Settings, not Home.
-
-Home should answer only: **What can I ask Matterhorn to do? What is running? What needs me?** The capability cards answer the first question; a card must show Unknown/Offline/Not configured rather than imply readiness.
-
-Runs should answer only: **What stage is this run in? Who is working? What proof exists? Does promotion need me?**
-
-Validation should answer only: **What passed, what needs attention, what failed, and what evidence supports it?**
-
-## Product identity
-
-Normal UI uses Matterhorn names:
-
-- Project memory
-- Local browser
-- Safe execution
-- Run insights
-- Agent validation
-
-Underlying Graphiti, Browser Harness, DeepEval, Langfuse/OTLP backends, container engines, and other adopted projects belong in diagnostics/provenance/license records, not normal user-facing navigation.
-
-## Compatibility
-
-Existing deep links may redirect:
-
-- `#studio` / `#create` → Home
-- `#pipeline` / `#output` → Runs
-- `#evidence` → Validation
-- `#specialists` → Settings / Advanced
-- `#chat` → assistant drawer
-
-The standalone UI regression test must preserve the seven-page navigation contract.
+`web/index.html` (shell) · `web/app.js` (router, assistant, setup status) · `web/ui.js` (helpers) · `web/pageStudio.js` · `web/pageGame.js` · `web/pageAssets.js` · `web/pageSettings.js` · `web/styles.css`.

@@ -101,6 +101,8 @@ export interface FoundryAssetProviderContext {
   readonly maxCost?: FoundryAssetCost;
   /** Optional human-readable progress for long-running local providers. */
   readonly onProgress?: (message: string) => void;
+  /** Aborted when the user cancels; long-running providers stop at their next safe point. */
+  readonly signal?: AbortSignal;
 }
 
 export interface FoundryGeneratedAsset {

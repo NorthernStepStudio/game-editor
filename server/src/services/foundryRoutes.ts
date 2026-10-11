@@ -80,6 +80,66 @@ export async function foundryRoutes(
     return true;
   }
 
+  const jobAction = /^\/api\/foundry\/jobs\/([a-f0-9-]{36})\/(cancel|retry)$/.exec(pathname);
+  if (request.method === 'POST' && jobAction) {
+    try {
+      const body = (await readBody()) as { providerId?: unknown } | undefined;
+      const job = jobAction[2] === 'cancel'
+        ? service.foundryGeneration.cancelJob(jobAction[1])
+        : service.foundryGeneration.retryJob(jobAction[1], { providerId: body?.providerId });
+      sendJson(response, jobAction[2] === 'cancel' ? 200 : 202, { job });
+    } catch (error) {
+      sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return true;
+  }
+
+  if (pathname === '/api/foundry/styles') {
+    if (request.method === 'GET') {
+      sendJson(response, 200, { styles: service.foundryStyles.list() });
+      return true;
+    }
+    if (request.method === 'POST') {
+      try {
+        sendJson(response, 201, { style: service.foundryStyles.create(await readBody()) });
+      } catch (error) {
+        sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+      }
+      return true;
+    }
+  }
+  const styleMatch = /^\/api\/foundry\/styles\/([a-f0-9-]{36})\/delete$/.exec(pathname);
+  if (request.method === 'POST' && styleMatch) {
+    const removed = service.foundryStyles.delete(styleMatch[1]);
+    sendJson(response, removed ? 200 : 404, removed ? { deleted: true } : { error: 'Style not found.' });
+    return true;
+  }
+
+  const metaMatch = /^\/api\/foundry\/assets\/([^/]+)\/(rename|hide|show|keep)$/.exec(pathname);
+  if (request.method === 'POST' && metaMatch) {
+    const assetId = decodeAssetId(metaMatch[1]);
+    if (!assetId) {
+      sendJson(response, 400, { error: 'Invalid asset ID.' });
+      return true;
+    }
+    try {
+      const action = metaMatch[2];
+      if (action === 'keep') {
+        sendJson(response, 200, { assets: service.foundryAssets.keepDraft(assetId) });
+      } else if (action === 'rename') {
+        const body = (await readBody()) as { displayName?: unknown };
+        const name = typeof body?.displayName === 'string' ? body.displayName.trim() : '';
+        if (!name || name.length > 80) throw new Error('Names must be 1–80 characters.');
+        sendJson(response, 200, { asset: service.foundryAssets.setMeta(assetId, { displayName: name }) });
+      } else {
+        sendJson(response, 200, { asset: service.foundryAssets.setMeta(assetId, { hidden: action === 'hide' ? true : undefined }) });
+      }
+    } catch (error) {
+      sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return true;
+  }
+
   const sendMatch = /^\/api\/foundry\/assets\/([^/]+)\/send$/.exec(pathname);
   if (request.method === 'POST' && sendMatch) {
     const assetId = decodeAssetId(sendMatch[1]);

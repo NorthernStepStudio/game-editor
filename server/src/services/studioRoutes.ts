@@ -34,6 +34,24 @@ export async function studioRoutes(
     return true;
   }
 
+  if (request.method === 'POST' && (pathname === '/api/studio/play' || pathname === '/api/studio/play/stop')) {
+    const body = (await readBody()) as { projectId?: unknown; runtimeSessionId?: unknown };
+    try {
+      if (pathname.endsWith('/stop')) {
+        if (typeof body?.runtimeSessionId !== 'string') throw new Error('Nothing to stop.');
+        await adapter.stopPlay(body.runtimeSessionId);
+        send(response, 200, { stopped: true });
+      } else {
+        const project = service.projects.find(candidate => candidate.id === body?.projectId);
+        if (!project) throw new Error('Choose a game to play.');
+        send(response, 200, await adapter.playProject(project.path));
+      }
+    } catch (error) {
+      send(response, 409, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return true;
+  }
+
   if (request.method === 'GET' && pathname === '/api/studio/agents') {
     send(response, 200, listStudioAgents());
     return true;
@@ -124,6 +142,16 @@ export async function studioRoutes(
 
   if (request.method === 'GET' && pathname === '/api/projects') {
     send(response, 200, service.projects.map(({ id, name }) => ({ id, name })));
+    return true;
+  }
+
+  if (request.method === 'POST' && pathname === '/api/projects') {
+    try {
+      const project = service.addProject((await readBody()) as { name?: unknown; path?: unknown });
+      send(response, 201, { id: project.id, name: project.name });
+    } catch (error) {
+      send(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
     return true;
   }
 

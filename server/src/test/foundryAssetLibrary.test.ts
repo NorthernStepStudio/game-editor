@@ -138,3 +138,71 @@ test('Packs queue one style-matched job per item and failed builds are reported,
     await Promise.all([data, library].map((dir) => rm(dir, { recursive: true, force: true })));
   }
 });
+
+test('Builds can be cancelled and retried, history survives a restart, drafts and styles work', async () => {
+  const data = await mkdtemp(join(tmpdir(), 'matterhorn-jobs-data-'));
+  const library = await mkdtemp(join(tmpdir(), 'matterhorn-jobs-lib-'));
+  const projects = [{ id: 'library', name: 'Asset Library', path: library }];
+  const prompts: string[] = [];
+  let release: () => void = () => undefined;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  const slow = fakeBlenderAgent(prompts);
+  const slowProvider: FoundryAssetProvider = {
+    descriptor: slow.descriptor,
+    async execute(request, context) {
+      if (request.assetId === 'blocker') {
+        await Promise.race([gate, new Promise((_, reject) => context?.signal?.addEventListener('abort', () => reject(new Error('Cancelled.'))))]);
+      }
+      return slow.execute(request, context);
+    },
+  };
+  try {
+    const { FoundryStyleStore } = await import('../services/foundryStyles.js');
+    const styles = new FoundryStyleStore(data);
+    const style = styles.create({ name: 'Calle', description: 'Dominican street, warm pastel paint, weathered wood' });
+    assert.throws(() => styles.create({ name: 'calle', description: 'dupe' }), /already exists/);
+
+    const assets = new FoundryAssetService(data, projects);
+    const generation = new FoundryGenerationService(projects, assets, { providers: [slowProvider], styles });
+    const base = { projectId: 'library', kind: 'mesh_3d', operation: 'generate', providerId: 'blender-agent-local' };
+
+    const blocker = generation.submitJob({ ...base, assetId: 'blocker', prompt: 'slow' });
+    const queued = generation.submitJob({ ...base, assetId: 'queued_one', prompt: 'never runs' });
+    await waitFor(() => generation.getJob(blocker.jobId)?.status === 'running');
+    assert.equal(generation.cancelJob(queued.jobId).status, 'cancelled');
+    generation.cancelJob(blocker.jobId);
+    await waitFor(() => generation.getJob(blocker.jobId)?.status === 'cancelled');
+    release();
+
+    const retried = generation.retryJob(blocker.jobId);
+    assert.equal(retried.assetId, 'blocker_r2');
+    assert.equal(retried.retryOf, blocker.jobId);
+    await waitFor(() => generation.getJob(retried.jobId)?.status === 'succeeded');
+
+    const drafts = [1, 2].map((n) => generation.submitJob({
+      ...base, assetId: `stall_d${n}`, prompt: 'market stall', displayName: 'Market stall', draftGroup: 'stall', styleId: style.id,
+    }));
+    await waitFor(() => drafts.every((d) => generation.getJob(d.jobId)?.status === 'succeeded'));
+    assert.ok(prompts.at(-1)!.includes('Dominican street'), 'style text reaches the builder');
+    assert.equal(assets.get('stall_d1')?.prompt, 'market stall', 'original description is kept for display');
+    assert.equal(assets.get('stall_d1')?.displayName, 'Market stall');
+    assets.keepDraft('stall_d2');
+    assert.equal(assets.get('stall_d1')?.hidden, true);
+    assert.equal(assets.get('stall_d2')?.hidden, undefined);
+    assert.equal(assets.get('stall_d2')?.draftGroup, undefined);
+
+    // A fresh service (as after a restart) sees the history, never resubmits, and keeps metadata.
+    const running = generation.submitJob({ ...base, assetId: 'interrupted', prompt: 'x' });
+    const reloaded = new FoundryGenerationService(projects, new FoundryAssetService(data, projects), { providers: [slowProvider], styles });
+    const restored = reloaded.getJob(running.jobId);
+    assert.ok(restored);
+    assert.ok(restored.status === 'failed' || restored.status === 'succeeded');
+    if (restored.status === 'failed') assert.match(restored.error ?? '', /restarted/);
+    assert.equal(reloaded.getJob(queued.jobId)?.status, 'cancelled');
+    assert.equal(new FoundryAssetService(data, projects).get('stall_d2')?.displayName, 'Market stall');
+    assert.ok(!('input' in (reloaded.getJob(running.jobId) as object)), 'request body is not exposed');
+  } finally {
+    release();
+    await Promise.all([data, library].map((dir) => rm(dir, { recursive: true, force: true })));
+  }
+});

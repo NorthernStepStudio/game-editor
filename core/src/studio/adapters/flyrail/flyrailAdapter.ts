@@ -121,6 +121,32 @@ export class FlyrailAdapter implements SpecialistAdapter {
     };
   }
 
+  /**
+   * Opens a project in Flyrail and launches the game in a visible Godot window for the
+   * user to play. Never installs add-ons: playing must not modify the game folder.
+   */
+  async playProject(projectPath: string): Promise<{ runtimeSessionId: string }> {
+    await this.client.connect();
+    const opened = (await this.client.call("project.open", { path: projectPath, installAddons: false })) as { sessionId?: unknown };
+    if (typeof opened?.sessionId !== "string") {
+      throw new SpecialistError("SPECIALIST_UNAVAILABLE", "Flyrail could not open the project.");
+    }
+    const launched = (await this.client.call("runtime.launch", { sessionId: opened.sessionId, headless: false })) as {
+      runtime?: { sessionId?: unknown };
+      runtimeSessionId?: unknown;
+    };
+    const runtimeSessionId = launched?.runtime?.sessionId ?? launched?.runtimeSessionId;
+    if (typeof runtimeSessionId !== "string") {
+      throw new SpecialistError("SPECIALIST_UNAVAILABLE", "Godot did not start the game.");
+    }
+    return { runtimeSessionId };
+  }
+
+  async stopPlay(runtimeSessionId: string): Promise<void> {
+    await this.client.connect();
+    await this.client.call("runtime.stop", { runtimeSessionId });
+  }
+
   // ── Capabilities ────────────────────────────────────────────────
 
   async getCapabilities(): Promise<SpecialistCapabilitySet> {

@@ -35,3 +35,12 @@ test("one-piece models (image-to-3D) are rigged from their shape with soft weigh
   // Named-part models keep the rigid per-part weights.
   assert.match(MINI_RIG_SCRIPT, /for obj in \(\[\] if SHAPE_MODE else parts\):/);
 });
+
+test("one-piece joints come from a ray-cast silhouette, robust to sparse vertices, ponytails and long clothes", () => {
+  // simplified meshes have few vertices on flat areas, so the shape is read with rays, not vertices
+  assert.match(MINI_RIG_SCRIPT, /tree\.ray_cast\(Vector\(\(xc\(c\), lo_all\.y - 1, zb\(b\)\)\)/);
+  // a row is as wide as its shorter side, so a one-sided ponytail is never taken for the arms
+  assert.match(MINI_RIG_SCRIPT, /a row is as wide as its shorter side/);
+  // only what lies within a leg's width below the hips follows that leg
+  assert.match(MINI_RIG_SCRIPT, /inside = 1 - smooth\(reach, reach \+ 0\.025/);
+});

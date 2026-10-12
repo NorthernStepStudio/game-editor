@@ -130,38 +130,74 @@ try:
     REPORT["mode"] = "shape" if SHAPE_MODE else "parts"
     shape = {}
     if SHAPE_MODE:
-        pts = [o.matrix_world @ v.co for o in parts for v in o.data.vertices]
+        # The front silhouette, cast with rays: simplified image-to-3D meshes have big flat triangles with few
+        # vertices, so reading vertices alone sees gaps in the chest and misses the torso's real width.
+        from mathutils.bvhtree import BVHTree
+        verts, polys = [], []
+        for o in parts:
+            offset = len(verts)
+            verts += [o.matrix_world @ v.co for v in o.data.vertices]
+            polys += [[offset + i for i in p.vertices] for p in o.data.polygons]
+        tree = BVHTree.FromPolygons(verts, polys)
         z0, z1 = lo_all.z, hi_all.z
         height = z1 - z0
         bins = 160
-        half = [0.0] * bins
-        centre_hit = [False] * bins
-        gap = 0.012 * height / 0.7
-        for p in pts:
-            b = min(bins - 1, int((p.z - z0) / height * bins))
-            half[b] = max(half[b], abs(p.x))
-            if abs(p.x) < gap:
-                centre_hit[b] = True
         zb = lambda b: z0 + (b + 0.5) * height / bins
+        xstep = height / 320
+        ncols = int((hi_all.x - lo_all.x) / xstep) + 1
+        xc = lambda c: lo_all.x + (c + 0.5) * xstep
+        sil = [[tree.ray_cast(Vector((xc(c), lo_all.y - 1, zb(b))), Vector((0, 1, 0)), 10)[0] is not None for c in range(ncols)] for b in range(bins)]
+        centre = min(range(ncols), key=lambda c: abs(xc(c)))
+        # arms reach out on both sides; a ponytail or a bag sticks out on one, so a row is as wide as its shorter side
+        half = [min(max([xc(c) for c in range(ncols) if sil[b][c]] or [0.0]), max([-xc(c) for c in range(ncols) if sil[b][c]] or [0.0])) for b in range(bins)]
+        filled = lambda b: any(sil[b][c] for c in (centre - 1, centre, centre + 1) if 0 <= c < ncols)
         # arms: the widest band in the lower 75 % (T-pose); hair can be wide but sits higher
         low = range(int(bins * 0.2), int(bins * 0.75))
         peak = max(low, key=lambda b: half[b])
         widest = half[peak]
-        # the hands are the widest point in T-pose; the sleeve is about 13 % of the height thick around it
         band_bins = max(2, int(bins * 0.065))
         arm_bot, arm_top = max(0, peak - band_bins), min(bins - 1, peak + band_bins)
         arm_z = (zb(arm_bot) + zb(arm_top)) / 2
-        # shoulders: how wide the body is just below the arms
-        below = [abs(p.x) for p in pts if zb(arm_bot) - 0.035 * height < p.z < zb(arm_bot) - 0.01 * height]
-        below.sort()
-        shoulder_x = below[int(len(below) * 0.95)] if below else widest * 0.4
-        # hips: going down from the arms, the legs separate where the centre line becomes empty
-        crotch = next((b + 1 for b in range(arm_bot, int(bins * 0.03), -1) if not centre_hit[b] and not centre_hit[b - 1]), int(bins * 0.2))
+
+        def central_run(b):
+            """Half-width of the solid run around the centre line in row b (the torso, not arms beside it)."""
+            if not sil[b][centre]:
+                return None
+            left = right = centre
+            while left > 0 and sil[b][left - 1]:
+                left -= 1
+            while right < ncols - 1 and sil[b][right + 1]:
+                right += 1
+            return (xc(right) - xc(left)) / 2
+
+        # shoulders: the torso's width under the arms (a low quartile, so a drooping arm that touches the side
+        # in a few rows does not count as torso)
+        runs = sorted(r for r in (central_run(b) for b in range(max(0, arm_bot - int(bins * 0.08)), arm_bot)) if r)
+        shoulder_x = runs[len(runs) // 4] if runs else widest * 0.4
+        shoulder_x = min(shoulder_x, widest * 0.6)
+        # hips: going down from the arms, the legs separate where the centre line stays empty
+        crotch = next((b + 1 for b in range(arm_bot, 2, -1) if not filled(b) and not filled(b - 1) and not filled(b - 2)), int(bins * 0.17))
         hip_z = zb(crotch) + 0.04 * height
         legs = {}
         for side in (1, -1):
-            xs = [p.x for p in pts if zb(crotch) - 0.06 * height < p.z < zb(crotch) - 0.01 * height and p.x * side > gap]
+            xs = [xc(c) for b in range(bins) if zb(crotch) - 0.06 * height < zb(b) < zb(crotch) - 0.01 * height
+                  for c in range(ncols) if sil[b][c] and xc(c) * side > xstep]
             legs[side] = sum(xs) / len(xs) if xs else side * shoulder_x * 0.5
+        # how wide each leg is (thigh to shoe): clothing or hair that hangs below the hips outside it stays with the body
+        leg_reach = {}
+        for side in (1, -1):
+            lc = min(range(ncols), key=lambda c: abs(xc(c) - legs[side]))
+            reach = 0.0
+            for b in range(int(bins * 0.03), max(int(bins * 0.03) + 1, crotch)):
+                if not sil[b][lc]:
+                    continue
+                left = right = lc
+                while left > 0 and sil[b][left - 1] and xc(left - 1) * side > 0:
+                    left -= 1
+                while right < ncols - 1 and sil[b][right + 1] and xc(right + 1) * side > 0:
+                    right += 1
+                reach = max(reach, abs(xc(left) - legs[side]), abs(xc(right) - legs[side]))
+            leg_reach[side] = min(max(reach, 0.03 * height), 0.12 * height)
         neck_z = zb(arm_top) + 0.02 * height
         joints = {
             "arm-left": [shoulder_x, arm_z],
@@ -170,7 +206,8 @@ try:
             "leg-right": [legs[-1], hip_z],
             "head": [0.0, neck_z],
         }
-        shape = {"armBand": [round(zb(arm_bot), 4), round(zb(arm_top), 4)], "shoulderX": round(shoulder_x, 4), "crotchZ": round(zb(crotch), 4)}
+        shape = {"armBand": [round(zb(arm_bot), 4), round(zb(arm_top), 4)], "shoulderX": round(shoulder_x, 4), "crotchZ": round(zb(crotch), 4),
+                 "legReach": [round(leg_reach[1], 4), round(leg_reach[-1], 4)]}
         REPORT["shape"] = shape
     REPORT["detectedJoints"] = {k: [round(c, 4) for c in v] for k, v in joints.items()}
     for name, value in (CFG.get("joints") or {}).items():
@@ -264,8 +301,11 @@ try:
         arm = smooth(sx - 0.005, sx + 0.035, abs(p.x)) * in_band * rest
         w["arm-left" if p.x > 0 else "arm-right"] = arm
         rest -= arm
-        leg = (1 - smooth(hip - 0.035, hip + 0.01, p.z)) * rest
-        w["leg-left" if p.x > 0 else "leg-right"] = leg
+        side_name = "leg-left" if p.x > 0 else "leg-right"
+        reach = shape["legReach"][0 if p.x > 0 else 1]
+        inside = 1 - smooth(reach, reach + 0.025, abs(p.x - joints[side_name][0]))
+        leg = (1 - smooth(hip - 0.035, hip + 0.01, p.z)) * inside * rest
+        w[side_name] = leg
         rest -= leg
         w["torso"] = max(0.0, rest)
         return w

@@ -226,6 +226,38 @@ def finish_model():
         o.name = o.data.name = "Body" if i == 0 else "Body.%03d" % i
         for poly in o.data.polygons:
             poly.use_smooth = True
+    # a floor or shadow in the picture can come out as a thin plate at the feet: remove ground-level faces that are
+    # not under the shoes (the shoes are what stands just above the ground), then fit again
+    import bmesh
+    from mathutils.kdtree import KDTree
+    tall = hi.z - lo.z
+    ground = lo.z + 0.015 * tall
+    feet = [v.co for o in meshes for v in o.data.vertices if ground < v.co.z < lo.z + 0.08 * tall]
+    removed = 0
+    if feet:
+        tree = KDTree(len(feet))
+        for i, co in enumerate(feet):
+            tree.insert(Vector((co.x, co.y, 0.0)), i)
+        tree.balance()
+        for o in meshes:
+            bm = bmesh.new()
+            bm.from_mesh(o.data)
+            plate = [f for f in bm.faces if all(v.co.z < ground for v in f.verts)
+                     and tree.find(Vector((f.calc_center_median().x, f.calc_center_median().y, 0.0)))[2] > 0.015 * tall]
+            removed += len(plate)
+            bmesh.ops.delete(bm, geom=plate, context="FACES")
+            loose = [v for v in bm.verts if not v.link_faces]
+            bmesh.ops.delete(bm, geom=loose, context="VERTS")
+            bm.to_mesh(o.data)
+            bm.free()
+    REPORT["groundFacesRemoved"] = removed
+    if removed:
+        pts = [v.co for o in meshes for v in o.data.vertices]
+        lo, hi = Vector(map(min, *pts)), Vector(map(max, *pts))
+        s = float(CFG.get("height", 0.72)) / max(hi.z - lo.z, 1e-6)
+        refit = Matrix.Diagonal((s, s, s, 1.0)) @ Matrix.Translation(Vector((-(lo.x + hi.x) / 2, -(lo.y + hi.y) / 2, -lo.z)))
+        for o in meshes:
+            o.data.transform(refit)
     pts = [v.co for o in meshes for v in o.data.vertices]
     lo, hi = Vector(map(min, *pts)), Vector(map(max, *pts))
     REPORT["faces"] = [faces, sum(len(o.data.polygons) for o in meshes)]

@@ -99,7 +99,7 @@ def grow(mask, within):
         out = nxt
 
 
-def find_eyes(grid):
+def find_eyes(grid, grid_x0):
     """Two dark, eye-sized blobs ringed by lighter skin, side by side: (left, right) as (cx, cy, top, bottom) px."""
     lum = grid[:, :, :3] @ np.array([0.3, 0.59, 0.11], dtype=np.float32)
     dark = (lum < 0.16) & (grid[:, :, 3] > 0)
@@ -135,10 +135,16 @@ def find_eyes(grid):
             continue
         blobs.append((xs.mean(), ys.mean(), ys.min(), ys.max(), area))
     best = None
+    tall = hi.z - lo.z
     for i in range(len(blobs)):
         for j in range(len(blobs)):
             a, b = blobs[i], blobs[j]
             if a[0] >= b[0] or abs(a[1] - b[1]) > 0.35 * (a[3] - a[2]) or max(a[4], b[4]) > 1.7 * min(a[4], b[4]):
+                continue
+            # roster eyes sit 12-22 % of the height apart, either side of the middle (not headphones or ear cups)
+            spacing = (b[0] - a[0]) * STEP
+            middle = grid_x0 + (a[0] + b[0]) / 2 * STEP
+            if not 0.12 * tall <= spacing <= 0.22 * tall or abs(middle) > 0.03 * tall:
                 continue
             if best is None or a[4] + b[4] > best[0][4] + best[1][4]:
                 best = (a, b)
@@ -148,7 +154,7 @@ def find_eyes(grid):
 if MODE == "autosmile":
     OUT, REPORT_FILE = args[2], args[3]
     grid, gx0, gz1 = face_map_grid()
-    eyes = find_eyes(grid)
+    eyes = find_eyes(grid, gx0)
     if not eyes:
         json.dump({"ok": False, "reason": "no clear pair of eyes on the face"}, open(REPORT_FILE, "w"))
         print("AUTOSMILE_SKIP")

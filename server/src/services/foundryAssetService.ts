@@ -94,7 +94,7 @@ export const ASSET_CATEGORIES = ['characters', 'animals', 'props', 'buildings', 
 export type AssetCategory = (typeof ASSET_CATEGORIES)[number];
 
 const CATEGORY_WORDS: readonly [AssetCategory, RegExp][] = [
-  ['characters', /\b(characters?|player|mini_characters|npc|person|people|adventurer|avatar|hero|attacker|defender|rigged|mascot|figure)\b/],
+  ['characters', /\b(characters?|player|mini_characters|npc|person|people|adventurer|avatar|hero|attacker|defender|rigged|mascot|figure|chibi)\b/],
   ['animals', /\b(dogs?|puppy|cats?|kitten|birds?|chickens?|roosters?|hens?|goats?|pigs?|cows?|horses?|donkeys?|animals?|shepherd|pigeons?|parrots?|fish)\b/],
   ['vehicles', /\b(cars?|sedan|truck|bus|van|taxi|motor\w*|moto|bike|bicycle|scooter|vehicles?|kart|guagua|carro|pickup)\b/],
   ['buildings', /\b(house|houses|buildings?|colmado|shop|store|walls?|doors?|windows?|roofs?|balcon\w*|stairs?|facade|kiosk|stall|market|apartments?|fence|gate|awning|street_kit|storefront|church|school|bodega|street block|block|blocks|plaza|malecon|neighborhood|barrio)\b/],

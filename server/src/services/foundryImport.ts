@@ -25,6 +25,15 @@ const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 const AUDIO_EXT = new Set(['.ogg', '.wav', '.mp3']);
 const RENDER_HINT = /(three[-_]?quarter|preview|front|render|thumb|turntable|beauty)/i;
 const MAX_FILES = 3000;
+export const MAX_PICTURE_BYTES = 25 * 1024 * 1024;
+
+/** The file type from the picture's first bytes (never trust a name or a header for it). */
+export function pictureExtension(bytes: Buffer): '.png' | '.jpg' | '.webp' | undefined {
+  if (bytes.length > 8 && bytes.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return '.png';
+  if (bytes.length > 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return '.jpg';
+  if (bytes.length > 12 && bytes.toString('latin1', 0, 4) === 'RIFF' && bytes.toString('latin1', 8, 12) === 'WEBP') return '.webp';
+  return undefined;
+}
 /** Work-folder images are imported only from reference folders (sheets and views to build from). */
 const REFERENCE_DIR = /(^|[\\/])(reference|references|views_isolated)([\\/]|$)/i;
 
@@ -215,6 +224,41 @@ export class FoundryImporter {
       source,
       license: /kenney/i.test(rel) ? 'CC0-1.0' : 'project-owned',
     };
+  }
+
+  /**
+   * A picture the owner adds from their computer (a character sheet, a front view): saved in the Matterhorn data
+   * folder and added to the library as reference art, so it can be turned into a 3D model.
+   */
+  addPicture(name: string, bytes: Buffer): FoundryAssetManifest {
+    const ext = pictureExtension(bytes);
+    if (!ext) throw new Error('Only PNG, JPG and WEBP pictures can be added.');
+    if (bytes.length > MAX_PICTURE_BYTES) throw new Error('The picture is larger than 25 MB.');
+    const displayName = name.replace(/\.[a-z0-9]+$/i, '').replace(/[\u0000-\u001f]/g, '').trim().slice(0, 80) || 'Picture';
+    const hash = createHash('sha256').update(bytes).digest('hex');
+    const slugged = displayName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60) || 'picture';
+    const assetId = `pic_${slugged}_${hash.slice(0, 6)}`;
+    const existing = this.assets.store.get(assetId);
+    if (existing) return existing;
+    const dir = resolve(this.assets.dataDirectory, 'foundry-assets', 'pictures');
+    mkdirSync(dir, { recursive: true });
+    const file = join(dir, `${assetId}${ext}`);
+    writeFileSync(file, bytes);
+    const manifest: FoundryAssetManifest = {
+      assetId,
+      type: 'concept_art',
+      operation: 'import',
+      sourceIds: ['import:upload:owner'],
+      sourceLicenseIds: ['project-owned'],
+      generationProvider: 'imported',
+      createdAt: new Date().toISOString(),
+      contentHash: hash,
+      localPath: file,
+      previewPath: file,
+    };
+    this.assets.store.registerMany([manifest]);
+    this.assets.setMetaMany([[assetId, { displayName, source: 'Added pictures' }]]);
+    return manifest;
   }
 
   /** Renders a preview for imported 3D files that have none, one at a time, in the background. */

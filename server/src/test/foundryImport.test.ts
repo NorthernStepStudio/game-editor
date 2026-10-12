@@ -65,3 +65,22 @@ test('existing game and work files are imported once, with sources, previews and
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('a picture added from the computer joins the library as reference art, checked by its bytes', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'matterhorn-picture-'));
+  try {
+    const assets = new FoundryAssetService(join(root, 'data'), [], []);
+    const importer = new FoundryImporter(assets, () => [], { renderPreviews: false });
+    const png = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from('rest of a png')]);
+    const added = importer.addPicture('Yun sheet.png', png);
+    assert.match(added.assetId, /^pic_yun_sheet_[0-9a-f]{6}$/);
+    assert.equal(added.type, 'concept_art');
+    assert.ok(added.localPath?.startsWith(join(root, 'data', 'foundry-assets', 'pictures')));
+    assert.equal(assets.meta(added.assetId)?.displayName, 'Yun sheet');
+    // The same picture again is the same asset, not a copy.
+    assert.equal(importer.addPicture('Yun sheet.png', png).assetId, added.assetId);
+    assert.throws(() => importer.addPicture('notes.png', Buffer.from('<script>alert(1)</script>')), /Only PNG, JPG and WEBP/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

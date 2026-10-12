@@ -17,6 +17,10 @@ import {
   MiniRigProvider,
   MINI_RIG_PROVIDER_ID,
   parseJoints,
+  findTrellisTool,
+  parseTrellisSettings,
+  TrellisImageTo3DProvider,
+  TRELLIS_PROVIDER_ID,
   type MiniRigSetup,
   SPRITE_FUSION_CREDIT_CURRENCY,
   SPRITE_FUSION_REQUEST_CREDITS,
@@ -36,6 +40,13 @@ import type { FoundryAssetService } from './foundryAssetService.js';
 import type { FoundryStyleStore } from './foundryStyles.js';
 import { configureComfyUiProvider } from './comfyUiConfiguration.js';
 import type { StudioRoutingPreferences } from './studioRoutingPreferences.js';
+
+/** Names for tools that are not set up yet (their providers are not registered, so no descriptor is at hand). */
+const UNCONFIGURED_NAMES: Readonly<Record<string, string>> = {
+  'blender-agent-claude': 'Blender Agent (Claude Code)',
+  [MINI_RIG_PROVIDER_ID]: 'Mini character rigger (local Blender)',
+  [TRELLIS_PROVIDER_ID]: 'TRELLIS (picture to 3D, on this PC)',
+};
 
 const ASSET_ID = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,119}$/;
 const KINDS = new Set<FoundryAssetKind>([
@@ -203,6 +214,7 @@ export class FoundryGenerationService {
 
       this.registerBlenderAgents();
       this.registerRigger();
+      this.registerTrellis();
 
       const meshyKey = this.env.MESHY_API_KEY?.trim();
       if (meshyKey) {
@@ -290,7 +302,7 @@ export class FoundryGenerationService {
       if (configured.has(id)) continue;
       statuses.push({
         id,
-        name: id === 'blender-agent-claude' ? 'Blender Agent (Claude Code)' : 'Blender Agent (local model)',
+        name: UNCONFIGURED_NAMES[id] ?? 'Blender Agent (local model)',
         configured: false,
         available: false,
         local: id !== 'blender-agent-claude',
@@ -809,6 +821,24 @@ export class FoundryGenerationService {
     this.blenderAgentNotes.set(MINI_RIG_PROVIDER_ID, 'Local and free: gives a character model the game\'s mini skeleton and its animations (idle, walk, sprint, jump and more).');
   }
 
+  /** Picture-to-3D on this PC: trellis.cpp installed under <data>/tools/trellis (or MATTERHORN_TRELLIS_DIR), plus Blender. */
+  private registerTrellis(): void {
+    const dir = this.env.MATTERHORN_TRELLIS_DIR?.trim() || join(this.assets.dataDirectory, 'tools', 'trellis');
+    const tool = findTrellisTool(dir);
+    if (!tool || !findBlenderExecutable()) {
+      this.blenderAgentNotes.set(TRELLIS_PROVIDER_ID, 'Free picture-to-3D on this PC. Needs Blender and TRELLIS (trellis.cpp) with its models in .matterhorn/tools/trellis (bin and models folders), and a graphics card with about 12 GB of memory.');
+      return;
+    }
+    this.registry.register(new TrellisImageTo3DProvider({
+      tool,
+      resolveImagePath: (assetId) => {
+        const file = this.assets.store.get(assetId)?.localPath;
+        return file && /\.(png|jpe?g|webp)$/i.test(file) && existsSync(file) ? file : undefined;
+      },
+    }));
+    this.blenderAgentNotes.set(TRELLIS_PROVIDER_ID, 'Local and free: turns one front-view picture of a character into a textured 3D model on your graphics card (about 20 minutes), sized for the game and ready to rig.');
+  }
+
   /** Finds a model's joints and renders a front view, so the owner can check or place them before rigging. */
   async rigSetup(assetId: string): Promise<MiniRigSetup> {
     if (!this.rigger) throw new Error('Rigging is not available: it needs Blender and a game with Kenney mini characters.');
@@ -986,10 +1016,14 @@ function parseParameters(value: unknown): Readonly<Record<string, unknown>> | un
   if (typeof value !== 'object' || Array.isArray(value)) throw new Error('parameters must be an object.');
   const record = value as Record<string, unknown>;
   if (JSON.stringify(record).length > 4000) throw new Error('parameters are too large.');
-  const known = new Set(['joints']);
+  const known = new Set(['joints', 'crop', 'quality', 'height', 'maxFaces']);
   for (const key of Object.keys(record)) if (!known.has(key)) throw new Error(`Unknown parameter: ${key}`);
   const joints = parseJoints(record.joints);
-  return joints ? { joints } : undefined;
+  const picture = ['crop', 'quality', 'height', 'maxFaces'].some((key) => record[key] !== undefined)
+    ? parseTrellisSettings(record)
+    : undefined;
+  const parsed = { ...(joints ? { joints } : {}), ...(picture ?? {}) };
+  return Object.keys(parsed).length ? parsed : undefined;
 }
 
 function parseCost(value: unknown): FoundryAssetCost | undefined {

@@ -371,3 +371,8 @@ select.field{min-height:44px}
 .removed-list{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
 .removed-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid #1B2940}
 .row.space{justify-content:space-between;align-items:center}
+.crop-scroll{max-height:62vh;overflow:auto;border-radius:12px}
+.crop-stage{position:relative;width:100%;margin:0 auto;border-radius:12px;overflow:hidden;background:#0E1726;touch-action:none;user-select:none;cursor:crosshair}
+.crop-stage img{width:100%;height:auto;display:block;pointer-events:none}
+.crop-box{position:absolute;border:2px solid var(--blue);box-shadow:0 0 0 9999px #000a;pointer-events:none}
+.crop-box[hidden]{display:none}

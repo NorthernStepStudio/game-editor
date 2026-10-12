@@ -42,6 +42,7 @@ async function loadData() {
     styles: styles.styles ?? [],
     builders: (providers.providers ?? []).filter((p) => p.id.startsWith('blender-agent') && p.available),
     meshy: (providers.providers ?? []).find((p) => p.id === 'meshy-image-to-3d'),
+    trellis: (providers.providers ?? []).find((p) => p.id === 'trellis-local'),
     rigger: (providers.providers ?? []).find((p) => p.id === 'mini-rigger'),
     games: (projects.projects ?? []).filter((p) => p.id !== 'library'),
     routing,
@@ -147,6 +148,30 @@ export function revisionKey(asset) {
   return `${asset.source ?? ''}|${asset.type}|${name}`;
 }
 
+/** Adds a picture from the owner's computer to the library and opens it (where "Make a 3D model" is). */
+function pickPicture() {
+  const input = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp', hidden: true });
+  input.addEventListener('change', async () => {
+    const file = input.files?.[0];
+    input.remove();
+    if (!file) return;
+    try {
+      if (file.size > 25 * 1024 * 1024) throw new Error('The picture is larger than 25 MB.');
+      const response = await fetch(`/api/foundry/import/picture?name=${encodeURIComponent(file.name)}`, {
+        method: 'POST', headers: { 'Content-Type': file.type }, body: file,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `Adding the picture failed (${response.status})`);
+      toast(`Added “${file.name}” to the library.`);
+      location.hash = `#assets/${encodeURIComponent(data.assetId)}`;
+    } catch (error) {
+      toast(error instanceof Error ? error.message : String(error), 'error');
+    }
+  });
+  document.body.append(input);
+  input.click();
+}
+
 function renderGrid(main) {
   const search = h('input', {
     id: 'asset-search', class: 'field', type: 'search', placeholder: 'Search by name or description', value: state.query,
@@ -163,6 +188,7 @@ function renderGrid(main) {
             : 'No new files. Everything in your game and work folders is already here.');
           await refresh();
         }, 'quiet', { title: 'Look for models, images and sounds added to your game and work folders' }),
+        btn('Add a picture', () => pickPicture(), '', { title: 'Add a character sheet or front view from your computer, e.g. to turn it into a 3D model' }),
         btn('Styles', () => openStyles()),
         btn('+ Make an asset', () => openMake(), 'primary'))),
     h('div', { class: 'toolbar' },
@@ -808,15 +834,119 @@ function viewRank(asset) {
   return index < 0 ? VIEW_ORDER.length : index;
 }
 
-/** Image-to-3D: this image (and other views from the same folder) become a textured 3D model. */
+/** Image-to-3D: free on this PC with TRELLIS (one front view), or Meshy online (up to 4 views, paid). */
 function imageTo3dCard(asset) {
-  const meshy = state.data.meshy;
+  const { trellis, meshy } = state.data;
   const head = h('span', { class: 'label' }, 'Make a 3D model from this');
-  if (!meshy?.available) {
+  if (!trellis?.available && !meshy?.available) {
     return h('section', { class: 'card' }, head,
-      h('p', { class: 'muted small' }, 'Image-to-3D uses Meshy, a paid online service. Create a Meshy account, copy your API key, add MESHY_API_KEY=your-key to the .env file in the Matterhorn folder, and restart Matterhorn.'),
+      h('p', { class: 'muted small' }, trellis?.note ?? 'Free picture-to-3D needs TRELLIS installed in .matterhorn/tools/trellis.'),
+      h('p', { class: 'muted small' }, 'Or use Meshy, a paid online service: add MESHY_API_KEY=your-key to the .env file in the Matterhorn folder and restart Matterhorn.'),
       h('a', { class: 'btn small', href: '#settings/guide' }, 'How to set it up'));
   }
+  return h('section', { class: 'card form' }, head,
+    trellis?.available ? trellisForm(asset) : h('p', { class: 'muted small' }, trellis?.note ?? ''),
+    meshy?.available
+      ? (trellis?.available ? h('details', {}, h('summary', {}, 'Use Meshy instead (paid, online, up to 4 views)'), meshyForm(asset)) : meshyForm(asset))
+      : null);
+}
+
+/** TRELLIS: one picture (or just the front view on a character sheet) becomes a game-sized model on this PC. */
+function trellisForm(asset) {
+  let crop = null;
+  const cropNote = h('p', { class: 'muted small', 'aria-live': 'polite' });
+  const paintCrop = () => {
+    cropNote.textContent = crop
+      ? 'Using the area you chose.'
+      : 'Uses the whole picture. If it shows several views (a character sheet), choose just the front view.';
+  };
+  paintCrop();
+  const quality = h('select', { id: 'i3d-quality', class: 'field' },
+    h('option', { value: 'standard' }, 'Standard (about 20 minutes)'),
+    h('option', { value: 'high' }, 'High detail (about 45 minutes, sharper face, needs more graphics memory)'));
+  const nameInput = h('input', { id: 'i3d-name', class: 'field', maxlength: 60, value: `${assetName(asset).replace(/\b(front|left|right|back|three quarter|a pose|sheet)\b/gi, '').replace(/\s+/g, ' ').trim() || 'Character'} 3D` });
+  return h('div', { class: 'stack form' },
+    h('p', { class: 'muted small' }, 'Free, on this PC: builds a textured 3D model from one clear front view (T- or A-pose works best), sized for the game. The back is guessed from the front. Afterwards, use “Rig for the game” on the new model.'),
+    cropNote,
+    btn('Choose the front view', () => openCropper(asset, crop, (chosen) => { crop = chosen; paintCrop(); })),
+    h('label', { for: 'i3d-quality', class: 'label' }, 'Quality'), quality,
+    h('label', { for: 'i3d-name', class: 'label' }, 'Name'), nameInput,
+    action('Make 3D model', async () => {
+      const name = nameInput.value.trim() || '3D model';
+      let assetId = `${slug(name)}_3d`;
+      for (let n = 2; state.data.assets.some((a) => a.assetId === assetId); n++) assetId = `${slug(name)}_3d${n}`;
+      const { job } = await api('/api/foundry/jobs', {
+        projectId: 'library', assetId, kind: 'mesh_3d', operation: 'image_to_3d', referenceAssets: [asset.assetId],
+        providerId: state.data.trellis.id, displayName: name,
+        parameters: { quality: quality.value, ...(crop ? { crop } : {}) },
+      });
+      toast(`Building “${name}” on your graphics card. It shows up in the library when it is done.`);
+      location.hash = `#assets/build/${encodeURIComponent(job.jobId)}`;
+    }, 'primary'));
+}
+
+/** Drag a box around the part of the picture to build from (e.g. the front view on a character sheet). */
+function openCropper(asset, current, onDone) {
+  let box = current ? [...current] : null;
+  const frame = h('div', { class: 'crop-box' });
+  const img = h('img', { src: asset.previewUrl, alt: `${assetName(asset)}: drag a box around the front view`, draggable: 'false' });
+  const stage = h('div', { class: 'crop-stage' }, img, frame);
+  const scroller = h('div', { class: 'crop-scroll' }, stage);
+  const status = h('p', { class: 'small', 'aria-live': 'polite' });
+  let zoom = 1;
+  const zoomTo = (level) => {
+    zoom = level;
+    stage.style.width = `${level * 100}%`;
+    // keep the box (or the middle) in view
+    const [cx, cy] = box ? [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2] : [0.5, 0.5];
+    requestAnimationFrame(() => {
+      scroller.scrollLeft = cx * stage.offsetWidth - scroller.clientWidth / 2;
+      scroller.scrollTop = cy * stage.offsetHeight - scroller.clientHeight / 2;
+    });
+    paintZoom();
+  };
+  const zoomRow = h('div', { class: 'row wrap' });
+  const paintZoom = () => clear(zoomRow, pills([{ id: 1, label: 'Fit' }, { id: 2, label: '2\u00d7' }, { id: 4, label: '4\u00d7' }], zoom, zoomTo, 'Zoom'));
+  paintZoom();
+  const paint = () => {
+    frame.hidden = !box;
+    status.textContent = box ? 'Drag again to redraw the box.' : 'Drag a box around the character’s front view.';
+    if (!box) return;
+    Object.assign(frame.style, { left: `${box[0] * 100}%`, top: `${box[1] * 100}%`, width: `${(box[2] - box[0]) * 100}%`, height: `${(box[3] - box[1]) * 100}%` });
+  };
+  const at = (e) => {
+    const r = img.getBoundingClientRect();
+    return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))];
+  };
+  stage.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    stage.setPointerCapture?.(e.pointerId);
+    const start = at(e);
+    const drag = (ev) => {
+      const end = at(ev);
+      box = [Math.min(start[0], end[0]), Math.min(start[1], end[1]), Math.max(start[0], end[0]), Math.max(start[1], end[1])].map((v) => Math.round(v * 1000) / 1000);
+      paint();
+    };
+    const stop = () => { stage.removeEventListener('pointermove', drag); stage.removeEventListener('pointerup', stop); };
+    stage.addEventListener('pointermove', drag);
+    stage.addEventListener('pointerup', stop);
+  });
+  paint();
+  openSheet(`Choose the front view — ${assetName(asset)}`,
+    h('p', { class: 'muted small' }, 'Draw a box around one full view of the character, head to shoes, with a little space around it. Labels and other views outside the box are ignored. Zoom in to draw it exactly.'),
+    zoomRow, scroller, status,
+    h('div', { class: 'row wrap' },
+      btn('Use the whole picture', () => { onDone(null); closeSheet(); }),
+      btn('Use this area', () => {
+        if (!box || box[2] - box[0] < 0.02 || box[3] - box[1] < 0.02) return toast('Drag a bigger box around the character first.', 'error');
+        onDone(box);
+        closeSheet();
+      }, 'primary')));
+}
+
+/** Meshy: up to 4 views from the same folder become a textured model (paid, online). */
+function meshyForm(asset) {
+  const meshy = state.data.meshy;
   const siblings = state.data.assets
     .filter((a) => !a.hidden && IMAGE_KINDS.has(a.type) && a.source && a.source === asset.source)
     .sort((a, b) => viewRank(a) - viewRank(b) || a.assetId.localeCompare(b.assetId));
@@ -842,7 +972,7 @@ function imageTo3dCard(asset) {
   paintStatus();
   const nameInput = h('input', { id: 'i23-name', class: 'field', maxlength: 60, value: `${assetName(asset).replace(/\b(front|left|right|back|three quarter|a pose)\b/gi, '').trim() || 'Character'} 3D` });
   const approve = h('input', { type: 'checkbox', id: 'i23-approve' });
-  return h('section', { class: 'card form' }, head,
+  return h('div', { class: 'stack form' },
     h('p', { class: 'muted small' }, 'Meshy builds a textured 3D model from up to 4 views of the same character (front, side, back, 3/4) in a relaxed A-pose. Afterwards you can keep working on it here with Blender.'),
     list, status,
     h('label', { for: 'i23-name', class: 'label' }, 'Name'), nameInput,

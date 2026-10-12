@@ -2,6 +2,26 @@ import { readFileSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { extname } from 'node:path';
 import type { StudioService } from './studioService.js';
+import { MAX_PICTURE_BYTES } from './foundryImport.js';
+
+/** The request body as bytes, refused once it passes the limit. */
+function readRawBody(request: IncomingMessage, limit: number): Promise<Buffer> {
+  return new Promise((resolvePromise, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    request.on('data', (chunk: Buffer) => {
+      size += chunk.length;
+      if (size > limit) {
+        reject(new Error('The picture is larger than 25 MB.'));
+        request.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    request.on('end', () => resolvePromise(Buffer.concat(chunks)));
+    request.on('error', reject);
+  });
+}
 
 const LIVE_IMAGE_TYPES: Readonly<Record<string, string>> = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' };
 
@@ -48,6 +68,16 @@ export async function foundryRoutes(
 
   if (pathname === '/api/foundry/import' && request.method === 'GET') {
     sendJson(response, 200, service.foundryImporter.status());
+    return true;
+  }
+  if (pathname === '/api/foundry/import/picture' && request.method === 'POST') {
+    try {
+      const bytes = await readRawBody(request, MAX_PICTURE_BYTES);
+      const manifest = service.foundryImporter.addPicture(url.searchParams.get('name') ?? 'Picture', bytes);
+      sendJson(response, 200, { assetId: manifest.assetId });
+    } catch (error) {
+      sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
     return true;
   }
   if (pathname === '/api/foundry/import/scan' && request.method === 'POST') {

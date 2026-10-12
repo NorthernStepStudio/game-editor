@@ -86,7 +86,9 @@ export async function startNssWorkspaceAiServer(
       if (!/^(127\.0\.0\.1|localhost|\[::1\])(?::[0-9]+)?$/.test(hostHeader) || (request.headers.origin && request.headers.origin !== `http://${hostHeader}`) || request.headers['sec-fetch-site'] === 'cross-site') {
         await respondJson(response, 403, { error: "Only same-origin local requests are accepted." }); return;
       }
-      if (['POST', 'PUT', 'PATCH'].includes(request.method ?? '') && !request.headers['content-type']?.startsWith('application/json')) {
+      // Pictures are sent as raw bytes; image/* is not a CORS-safelisted type either, so it still needs a preflight.
+      const pictureUpload = request.url?.startsWith('/api/foundry/import/picture?') && /^image\/(png|jpeg|webp)$/.test(request.headers['content-type'] ?? '');
+      if (['POST', 'PUT', 'PATCH'].includes(request.method ?? '') && !pictureUpload && !request.headers['content-type']?.startsWith('application/json')) {
         await respondJson(response, 415, { error: "Content-Type must be application/json." }); return;
       }
       if (request.method === "POST" && request.url === "/api/assistant") {

@@ -3,3 +3,4 @@ export * from "./comfyUI.js";
 export * from "./blenderAgent/index.js";
 export * from "./meshy.js";
 export * from "./miniRig/miniRigProvider.js";
+export * from "./trellis/trellisProvider.js";

@@ -1,5 +1,6 @@
 {
  "remove": [
+  "Bag_Patch",
   "Beanie*",
   "Cap*",
   "Cat_Ear*",
@@ -15,6 +16,8 @@
   "Headband*",
   "Headphones*",
   "Hip_Strap",
+  "Jacket_Logo",
+  "Jacket_Star",
   "Neckwear*",
   "Scrunchie",
   "Star*"
@@ -104,6 +107,9 @@
  ],
  "slots": {
   "Head": [
+   "Jet_Skin"
+  ],
+  "Neck": [
    "Jet_Skin"
   ],
   "Torso": [

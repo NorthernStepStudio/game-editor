@@ -1,22 +1,53 @@
 {
  "remove": [
-  "Hair_*",
-  "Hat*",
-  "Cap*",
+  "Bag_Patch",
   "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
   "Glasses*",
   "Goggles*",
-  "Headphones*",
-  "Neckwear*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
   "Headband*",
-  "Earcup*",
-  "Cat_Ear*",
-  "Star*",
-  "Clip*"
+  "Headphones*",
+  "Hip_Strap",
+  "Jacket_Logo",
+  "Jacket_Star",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
  ],
  "materials": {
   "Neo_Hair": "#D9B57E",
-  "Neo_Glasses": "#1A1A1E"
+  "Neo_Glasses": "#1A1A1E",
+  "Neo_Skin": "#F1CBA8",
+  "Neo_Torso": "#F4F1EE",
+  "Neo_Top": "#F4F1EE",
+  "Neo_Body": "#3E9E64",
+  "Neo_Panel": "#3E9E64",
+  "Neo_Trim": "#F2F0EE",
+  "Neo_Up": "#3E9E64",
+  "Neo_Band": "#F2F0EE",
+  "Neo_Low": "#3E9E64",
+  "Neo_Collar": "#F2F0EE",
+  "Neo_Lining": "#3E9E64",
+  "Neo_Shorts": "#1E1E22",
+  "Neo_Hem": "#2A2A2E",
+  "Neo_Shoe": "#2E7D4F",
+  "Neo_Shoe_panel": "#1E1E22",
+  "Neo_Shoe_accent": "#F4F1EE",
+  "Neo_Sole": "#F4F1EE",
+  "Neo_Bag": "#1E1E22",
+  "Neo_Flap": "#3E9E64",
+  "Neo_Strap": "#1E1E22",
+  "Neo_Belt": "#2A2A2E",
+  "Neo_Buckle": "#C9C9CF",
+  "Neo_Brows": "#8C6A3A"
  },
  "pieces": [
   {
@@ -69,5 +100,84 @@
    "material": "Neo_Glasses",
    "radius": 0.045
   }
- ]
+ ],
+ "slots": {
+  "Head": [
+   "Neo_Skin"
+  ],
+  "Neck": [
+   "Neo_Skin"
+  ],
+  "Torso": [
+   "Neo_Torso"
+  ],
+  "CropTop": [
+   "Neo_Top"
+  ],
+  "Jacket": [
+   "Neo_Body",
+   "Neo_Panel",
+   "Neo_Trim"
+  ],
+  "Arm_L": [
+   "Neo_Up",
+   "Neo_Band",
+   "Neo_Low"
+  ],
+  "Arm_R": [
+   "Neo_Up",
+   "Neo_Band",
+   "Neo_Low"
+  ],
+  "Collar": [
+   "Neo_Collar",
+   "Neo_Lining"
+  ],
+  "Hand_L": [
+   "Neo_Skin",
+   "Neo_Skin",
+   "Neo_Skin"
+  ],
+  "Hand_R": [
+   "Neo_Skin",
+   "Neo_Skin",
+   "Neo_Skin"
+  ],
+  "Shorts": [
+   "Neo_Shorts",
+   "Neo_Hem"
+  ],
+  "Leg_L": [
+   "Neo_Skin"
+  ],
+  "Leg_R": [
+   "Neo_Skin"
+  ],
+  "Shoe_L": [
+   "Neo_Shoe",
+   "Neo_Shoe_panel",
+   "Neo_Shoe_accent",
+   "Neo_Sole"
+  ],
+  "Shoe_R": [
+   "Neo_Shoe",
+   "Neo_Shoe_panel",
+   "Neo_Shoe_accent",
+   "Neo_Sole"
+  ],
+  "Bag": [
+   "Neo_Bag",
+   "Neo_Flap"
+  ],
+  "Bag_Strap": [
+   "Neo_Strap"
+  ],
+  "Belt": [
+   "Neo_Belt",
+   "Neo_Buckle"
+  ],
+  "Eyebrows": [
+   "Neo_Brows"
+  ]
+ }
 }

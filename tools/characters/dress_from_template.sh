@@ -5,7 +5,7 @@ set -euo pipefail
 nn="$1"; id="$2"
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 dir="$root/artifacts/yun-character-candidate/roster/$id"
-template="$root/artifacts/yun-character-candidate/yun_urban_adventurer/checkpoints/chibi-v10/yun_urban_chibi_v10.blend"
+template="$root/artifacts/yun-character-candidate/roster/template-v11/template_v11.blend"
 blender="$(node -e "import('file:///$(cygpath -m "$root" | sed 's/ /%20/g')/core/out/index.js').then(m=>console.log(m.findBlenderExecutable()))")"
 win() { cygpath -m "$1"; }
 MSYS2_ARG_CONV_EXCL='*' "$blender" --background --factory-startup --python "$(win "$root/tools/characters/dress_character.py")" -- \

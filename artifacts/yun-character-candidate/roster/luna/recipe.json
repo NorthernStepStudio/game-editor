@@ -1,22 +1,54 @@
 {
  "remove": [
-  "Hair_*",
-  "Hat*",
-  "Cap*",
+  "Bag_Patch",
   "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
   "Glasses*",
   "Goggles*",
-  "Headphones*",
-  "Neckwear*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
   "Headband*",
-  "Earcup*",
-  "Cat_Ear*",
-  "Star*",
-  "Clip*"
+  "Headphones*",
+  "Hip_Strap",
+  "Jacket_Logo",
+  "Jacket_Star",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
  ],
  "materials": {
   "Luna_Hair": "#A47BE6",
-  "Luna_Star": "#F2C04D"
+  "Luna_Star": "#F2C04D",
+  "Luna_Skin": "#F3CDB0",
+  "Luna_Torso": "#1E1E22",
+  "Luna_Top": "#1E1E22",
+  "Luna_Body": "#8F5BD8",
+  "Luna_Panel": "#8F5BD8",
+  "Luna_Trim": "#F2C04D",
+  "Luna_Up": "#8F5BD8",
+  "Luna_Band": "#8F5BD8",
+  "Luna_Low": "#F4F1EE",
+  "Luna_Collar": "#8F5BD8",
+  "Luna_Lining": "#1E1E22",
+  "Luna_Accent": "#8F5BD8",
+  "Luna_Shorts": "#8C8A93",
+  "Luna_Hem": "#6E6C76",
+  "Luna_Shoe": "#F4F1EE",
+  "Luna_Shoe_panel": "#9A6BE0",
+  "Luna_Shoe_accent": "#9A6BE0",
+  "Luna_Sole": "#F4F1EE",
+  "Luna_Bag": "#9A6BE0",
+  "Luna_Flap": "#F2C04D",
+  "Luna_Strap": "#1E1E22",
+  "Luna_Belt": "#2A2A2E",
+  "Luna_Buckle": "#F2C04D",
+  "Luna_Brows": "#7A55B8"
  },
  "pieces": [
   {
@@ -72,5 +104,84 @@
    "radius": 0.032,
    "y": -0.035
   }
- ]
+ ],
+ "slots": {
+  "Head": [
+   "Luna_Skin"
+  ],
+  "Neck": [
+   "Luna_Skin"
+  ],
+  "Torso": [
+   "Luna_Torso"
+  ],
+  "CropTop": [
+   "Luna_Top"
+  ],
+  "Jacket": [
+   "Luna_Body",
+   "Luna_Panel",
+   "Luna_Trim"
+  ],
+  "Arm_L": [
+   "Luna_Up",
+   "Luna_Band",
+   "Luna_Low"
+  ],
+  "Arm_R": [
+   "Luna_Up",
+   "Luna_Band",
+   "Luna_Low"
+  ],
+  "Collar": [
+   "Luna_Collar",
+   "Luna_Lining"
+  ],
+  "Hand_L": [
+   "Luna_Skin",
+   "Luna_Skin",
+   "Luna_Accent"
+  ],
+  "Hand_R": [
+   "Luna_Skin",
+   "Luna_Skin",
+   "Luna_Accent"
+  ],
+  "Shorts": [
+   "Luna_Shorts",
+   "Luna_Hem"
+  ],
+  "Leg_L": [
+   "Luna_Skin"
+  ],
+  "Leg_R": [
+   "Luna_Skin"
+  ],
+  "Shoe_L": [
+   "Luna_Shoe",
+   "Luna_Shoe_panel",
+   "Luna_Shoe_accent",
+   "Luna_Sole"
+  ],
+  "Shoe_R": [
+   "Luna_Shoe",
+   "Luna_Shoe_panel",
+   "Luna_Shoe_accent",
+   "Luna_Sole"
+  ],
+  "Bag": [
+   "Luna_Bag",
+   "Luna_Flap"
+  ],
+  "Bag_Strap": [
+   "Luna_Strap"
+  ],
+  "Belt": [
+   "Luna_Belt",
+   "Luna_Buckle"
+  ],
+  "Eyebrows": [
+   "Luna_Brows"
+  ]
+ }
 }

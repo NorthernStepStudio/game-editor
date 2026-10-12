@@ -1,10 +1,43 @@
 {
  "remove": [
-  "Hair_*"
+  "Bag_Patch",
+  "Earrings",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hip_Strap",
+  "Jacket_Logo",
+  "Jacket_Star",
+  "Scrunchie"
  ],
  "materials": {
   "Riko_Hair": "#6E3A22",
-  "Riko_Scrunchie": "#F06AA8"
+  "Riko_Scrunchie": "#F06AA8",
+  "Riko_Skin": "#F2C6A4",
+  "Riko_Torso": "#F4F1EE",
+  "Riko_Top": "#F4F1EE",
+  "Riko_Body": "#E8508A",
+  "Riko_Panel": "#1E1E22",
+  "Riko_Trim": "#E8508A",
+  "Riko_Up": "#E8508A",
+  "Riko_Band": "#1E1E22",
+  "Riko_Low": "#E8508A",
+  "Riko_Collar": "#E8508A",
+  "Riko_Lining": "#F4F1EE",
+  "Riko_Glove": "#1E1E22",
+  "Riko_Accent": "#F06AA8",
+  "Riko_Shorts": "#1E1E22",
+  "Riko_Hem": "#2A2A2E",
+  "Riko_Shoe": "#F4F1EE",
+  "Riko_Shoe_panel": "#F06AA8",
+  "Riko_Shoe_accent": "#F06AA8",
+  "Riko_Sole": "#F4F1EE",
+  "Riko_Bag": "#1E1E22",
+  "Riko_Flap": "#F06AA8",
+  "Riko_Strap": "#1E1E22",
+  "Riko_Belt": "#2A2A2E",
+  "Riko_Buckle": "#C9C9CF",
+  "Riko_Brows": "#4A2615"
  },
  "pieces": [
   {
@@ -52,5 +85,84 @@
    "tie": "Riko_Scrunchie",
    "tie_name": "Hair_Scrunchie"
   }
- ]
+ ],
+ "slots": {
+  "Head": [
+   "Riko_Skin"
+  ],
+  "Neck": [
+   "Riko_Skin"
+  ],
+  "Torso": [
+   "Riko_Torso"
+  ],
+  "CropTop": [
+   "Riko_Top"
+  ],
+  "Jacket": [
+   "Riko_Body",
+   "Riko_Panel",
+   "Riko_Trim"
+  ],
+  "Arm_L": [
+   "Riko_Up",
+   "Riko_Band",
+   "Riko_Low"
+  ],
+  "Arm_R": [
+   "Riko_Up",
+   "Riko_Band",
+   "Riko_Low"
+  ],
+  "Collar": [
+   "Riko_Collar",
+   "Riko_Lining"
+  ],
+  "Hand_L": [
+   "Riko_Glove",
+   "Riko_Skin",
+   "Riko_Accent"
+  ],
+  "Hand_R": [
+   "Riko_Glove",
+   "Riko_Skin",
+   "Riko_Accent"
+  ],
+  "Shorts": [
+   "Riko_Shorts",
+   "Riko_Hem"
+  ],
+  "Leg_L": [
+   "Riko_Skin"
+  ],
+  "Leg_R": [
+   "Riko_Skin"
+  ],
+  "Shoe_L": [
+   "Riko_Shoe",
+   "Riko_Shoe_panel",
+   "Riko_Shoe_accent",
+   "Riko_Sole"
+  ],
+  "Shoe_R": [
+   "Riko_Shoe",
+   "Riko_Shoe_panel",
+   "Riko_Shoe_accent",
+   "Riko_Sole"
+  ],
+  "Bag": [
+   "Riko_Bag",
+   "Riko_Flap"
+  ],
+  "Bag_Strap": [
+   "Riko_Strap"
+  ],
+  "Belt": [
+   "Riko_Belt",
+   "Riko_Buckle"
+  ],
+  "Eyebrows": [
+   "Riko_Brows"
+  ]
+ }
 }

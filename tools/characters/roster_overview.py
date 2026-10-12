@@ -17,7 +17,7 @@ cols = []
 for entry in ROSTER:
     nn, cid = entry.split("-")
     if cid == "yun":
-        render = ROOT / "artifacts/yun-character-candidate/yun_urban_adventurer/checkpoints/chibi-v10" / f"render_{view}.png"
+        render = ROOT / "artifacts/yun-character-candidate/roster/template-v11" / f"render_{view}.png"
         sheet = ROOT / "docs/yun/roster/12-sol.png"  # Yun appears in every sheet's in-game panel
         crop = (1290, 740, 1510, 960)
     else:

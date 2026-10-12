@@ -1,23 +1,55 @@
 {
  "remove": [
-  "Hair_*",
-  "Hat*",
-  "Cap*",
+  "Bag_Patch",
   "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
   "Glasses*",
   "Goggles*",
-  "Headphones*",
-  "Neckwear*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
   "Headband*",
-  "Earcup*",
-  "Cat_Ear*",
-  "Star*",
-  "Clip*"
+  "Headphones*",
+  "Hip_Strap",
+  "Jacket_Logo",
+  "Jacket_Star",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
  ],
  "materials": {
   "Ace_Hair": "#2A1D18",
   "Ace_Cap": "#E03A3E",
-  "Ace_CapBand": "#2A2A2E"
+  "Ace_CapBand": "#2A2A2E",
+  "Ace_Skin": "#7A4A2E",
+  "Ace_Torso": "#F4F1EE",
+  "Ace_Top": "#F4F1EE",
+  "Ace_Body": "#D9363E",
+  "Ace_Panel": "#D9363E",
+  "Ace_Trim": "#F2F0EE",
+  "Ace_Up": "#F2F0EE",
+  "Ace_Band": "#D9363E",
+  "Ace_Low": "#F2F0EE",
+  "Ace_Collar": "#F2F0EE",
+  "Ace_Lining": "#D9363E",
+  "Ace_Accent": "#D9363E",
+  "Ace_Shorts": "#1E1E22",
+  "Ace_Hem": "#2A2A2E",
+  "Ace_Shoe": "#D9363E",
+  "Ace_Shoe_panel": "#F4F1EE",
+  "Ace_Shoe_accent": "#1E1E22",
+  "Ace_Sole": "#F4F1EE",
+  "Ace_Bag": "#1E1E22",
+  "Ace_Flap": "#2A2A2E",
+  "Ace_Strap": "#1E1E22",
+  "Ace_Belt": "#2A2A2E",
+  "Ace_Buckle": "#C9C9CF",
+  "Ace_Brows": "#2A1D18"
  },
  "pieces": [
   {
@@ -62,20 +94,82 @@
   }
  ],
  "slots": {
+  "Head": [
+   "Ace_Skin"
+  ],
+  "Neck": [
+   "Ace_Skin"
+  ],
+  "Torso": [
+   "Ace_Torso"
+  ],
+  "CropTop": [
+   "Ace_Top"
+  ],
   "Jacket": [
-   "Ace_Jacket_Red",
-   "Ace_Jacket_Red",
-   "Ace_Jacket_White"
+   "Ace_Body",
+   "Ace_Panel",
+   "Ace_Trim"
   ],
   "Arm_L": [
-   "Ace_Jacket_White",
-   "Ace_Jacket_Red",
-   "Ace_Jacket_White"
+   "Ace_Up",
+   "Ace_Band",
+   "Ace_Low"
   ],
   "Arm_R": [
-   "Ace_Jacket_White",
-   "Ace_Jacket_Red",
-   "Ace_Jacket_White"
+   "Ace_Up",
+   "Ace_Band",
+   "Ace_Low"
+  ],
+  "Collar": [
+   "Ace_Collar",
+   "Ace_Lining"
+  ],
+  "Hand_L": [
+   "Ace_Skin",
+   "Ace_Skin",
+   "Ace_Accent"
+  ],
+  "Hand_R": [
+   "Ace_Skin",
+   "Ace_Skin",
+   "Ace_Accent"
+  ],
+  "Shorts": [
+   "Ace_Shorts",
+   "Ace_Hem"
+  ],
+  "Leg_L": [
+   "Ace_Skin"
+  ],
+  "Leg_R": [
+   "Ace_Skin"
+  ],
+  "Shoe_L": [
+   "Ace_Shoe",
+   "Ace_Shoe_panel",
+   "Ace_Shoe_accent",
+   "Ace_Sole"
+  ],
+  "Shoe_R": [
+   "Ace_Shoe",
+   "Ace_Shoe_panel",
+   "Ace_Shoe_accent",
+   "Ace_Sole"
+  ],
+  "Bag": [
+   "Ace_Bag",
+   "Ace_Flap"
+  ],
+  "Bag_Strap": [
+   "Ace_Strap"
+  ],
+  "Belt": [
+   "Ace_Belt",
+   "Ace_Buckle"
+  ],
+  "Eyebrows": [
+   "Ace_Brows"
   ]
  }
 }

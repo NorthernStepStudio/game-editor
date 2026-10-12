@@ -1,23 +1,54 @@
 {
  "remove": [
-  "Hair_*",
-  "Hat*",
-  "Cap*",
+  "Bag_Patch",
   "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
   "Glasses*",
   "Goggles*",
-  "Headphones*",
-  "Neckwear*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
   "Headband*",
-  "Earcup*",
-  "Cat_Ear*",
-  "Star*",
-  "Clip*"
+  "Headphones*",
+  "Hip_Strap",
+  "Jacket_Logo",
+  "Jacket_Star",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
  ],
  "materials": {
   "Kai_Hair": "#1E2233",
   "Kai_Phones_White": "#E8E8EC",
-  "Kai_Phones_Black": "#1A1A1E"
+  "Kai_Phones_Black": "#1A1A1E",
+  "Kai_Skin": "#F0C8A2",
+  "Kai_Torso": "#F4F1EE",
+  "Kai_Top": "#F4F1EE",
+  "Kai_Body": "#2F6BD8",
+  "Kai_Panel": "#2F6BD8",
+  "Kai_Trim": "#F2F0EE",
+  "Kai_Up": "#2F6BD8",
+  "Kai_Band": "#F2F0EE",
+  "Kai_Low": "#2F6BD8",
+  "Kai_Collar": "#F2F0EE",
+  "Kai_Lining": "#2F6BD8",
+  "Kai_Shorts": "#1E1E22",
+  "Kai_Hem": "#2A2A2E",
+  "Kai_Shoe": "#F4F1EE",
+  "Kai_Shoe_panel": "#2F6BD8",
+  "Kai_Shoe_accent": "#2F6BD8",
+  "Kai_Sole": "#F4F1EE",
+  "Kai_Bag": "#1E1E22",
+  "Kai_Flap": "#2A2A2E",
+  "Kai_Strap": "#1E1E22",
+  "Kai_Belt": "#2A2A2E",
+  "Kai_Buckle": "#C9C9CF",
+  "Kai_Brows": "#1E2233"
  },
  "pieces": [
   {
@@ -66,7 +97,88 @@
    "name": "Neckwear_Band",
    "band": "Kai_Phones_Black",
    "cups": "Kai_Phones_White",
-   "cup": 0.058
+   "cup": 0.05,
+   "x": 0.55,
+   "t": -0.1
   }
- ]
+ ],
+ "slots": {
+  "Head": [
+   "Kai_Skin"
+  ],
+  "Neck": [
+   "Kai_Skin"
+  ],
+  "Torso": [
+   "Kai_Torso"
+  ],
+  "CropTop": [
+   "Kai_Top"
+  ],
+  "Jacket": [
+   "Kai_Body",
+   "Kai_Panel",
+   "Kai_Trim"
+  ],
+  "Arm_L": [
+   "Kai_Up",
+   "Kai_Band",
+   "Kai_Low"
+  ],
+  "Arm_R": [
+   "Kai_Up",
+   "Kai_Band",
+   "Kai_Low"
+  ],
+  "Collar": [
+   "Kai_Collar",
+   "Kai_Lining"
+  ],
+  "Hand_L": [
+   "Kai_Skin",
+   "Kai_Skin",
+   "Kai_Skin"
+  ],
+  "Hand_R": [
+   "Kai_Skin",
+   "Kai_Skin",
+   "Kai_Skin"
+  ],
+  "Shorts": [
+   "Kai_Shorts",
+   "Kai_Hem"
+  ],
+  "Leg_L": [
+   "Kai_Skin"
+  ],
+  "Leg_R": [
+   "Kai_Skin"
+  ],
+  "Shoe_L": [
+   "Kai_Shoe",
+   "Kai_Shoe_panel",
+   "Kai_Shoe_accent",
+   "Kai_Sole"
+  ],
+  "Shoe_R": [
+   "Kai_Shoe",
+   "Kai_Shoe_panel",
+   "Kai_Shoe_accent",
+   "Kai_Sole"
+  ],
+  "Bag": [
+   "Kai_Bag",
+   "Kai_Flap"
+  ],
+  "Bag_Strap": [
+   "Kai_Strap"
+  ],
+  "Belt": [
+   "Kai_Belt",
+   "Kai_Buckle"
+  ],
+  "Eyebrows": [
+   "Kai_Brows"
+  ]
+ }
 }

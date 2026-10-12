@@ -1,5 +1,6 @@
 {
  "remove": [
+  "Bag_Patch",
   "Beanie*",
   "Cap*",
   "Cat_Ear*",
@@ -15,6 +16,8 @@
   "Headband*",
   "Headphones*",
   "Hip_Strap",
+  "Jacket_Logo",
+  "Jacket_Star",
   "Neckwear*",
   "Scrunchie",
   "Star*"
@@ -27,8 +30,8 @@
   "Rae_Skin": "#EDBF9A",
   "Rae_Torso": "#F4F1EE",
   "Rae_Top": "#F4F1EE",
-  "Rae_Body": "#1E1E22",
-  "Rae_Panel": "#EC4F9A",
+  "Rae_Body": "#EC4F9A",
+  "Rae_Panel": "#1E1E22",
   "Rae_Trim": "#EC4F9A",
   "Rae_Up": "#EC4F9A",
   "Rae_Band": "#1E1E22",
@@ -110,6 +113,9 @@
  ],
  "slots": {
   "Head": [
+   "Rae_Skin"
+  ],
+  "Neck": [
    "Rae_Skin"
   ],
   "Torso": [

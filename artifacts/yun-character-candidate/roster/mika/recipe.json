@@ -1,24 +1,57 @@
 {
  "remove": [
-  "Hair_*",
-  "Hat*",
-  "Cap*",
+  "Bag_Patch",
   "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
   "Glasses*",
   "Goggles*",
-  "Headphones*",
-  "Neckwear*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
   "Headband*",
-  "Earcup*",
-  "Cat_Ear*",
-  "Star*",
-  "Clip*"
+  "Headphones*",
+  "Hip_Strap",
+  "Jacket_Logo",
+  "Jacket_Star",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
  ],
  "materials": {
   "Mika_Hair": "#2E2622",
   "Mika_Tie": "#F2B935",
   "Mika_Jacket": "#F2B935",
-  "Mika_Cream": "#F6E7C8"
+  "Mika_Cream": "#F6E7C8",
+  "Mika_Skin": "#F2CCAA",
+  "Mika_Torso": "#F6E7C8",
+  "Mika_Top": "#F6E7C8",
+  "Mika_Body": "#F2B935",
+  "Mika_Panel": "#F2B935",
+  "Mika_Trim": "#F6E7C8",
+  "Mika_Up": "#F2B935",
+  "Mika_Band": "#F6E7C8",
+  "Mika_Low": "#F2B935",
+  "Mika_Collar": "#F6E7C8",
+  "Mika_Lining": "#F2B935",
+  "Mika_Glove": "#1E1E22",
+  "Mika_Accent": "#F6E7C8",
+  "Mika_Shorts": "#9A6A3A",
+  "Mika_Hem": "#F6E7C8",
+  "Mika_Shoe": "#F4F1EE",
+  "Mika_Shoe_panel": "#F2B935",
+  "Mika_Shoe_accent": "#F2B935",
+  "Mika_Sole": "#F4F1EE",
+  "Mika_Bag": "#1E1E22",
+  "Mika_Flap": "#2A2A2E",
+  "Mika_Strap": "#1E1E22",
+  "Mika_Belt": "#2A2A2E",
+  "Mika_Buckle": "#C9C9CF",
+  "Mika_Brows": "#2E2622"
  },
  "pieces": [
   {
@@ -65,20 +98,82 @@
   }
  ],
  "slots": {
+  "Head": [
+   "Mika_Skin"
+  ],
+  "Neck": [
+   "Mika_Skin"
+  ],
+  "Torso": [
+   "Mika_Torso"
+  ],
+  "CropTop": [
+   "Mika_Top"
+  ],
   "Jacket": [
-   "Mika_Jacket",
-   "Mika_Jacket",
-   "Mika_Cream"
+   "Mika_Body",
+   "Mika_Panel",
+   "Mika_Trim"
   ],
   "Arm_L": [
-   "Mika_Jacket",
-   "Mika_Cream",
-   "Mika_Jacket"
+   "Mika_Up",
+   "Mika_Band",
+   "Mika_Low"
   ],
   "Arm_R": [
-   "Mika_Jacket",
-   "Mika_Cream",
-   "Mika_Jacket"
+   "Mika_Up",
+   "Mika_Band",
+   "Mika_Low"
+  ],
+  "Collar": [
+   "Mika_Collar",
+   "Mika_Lining"
+  ],
+  "Hand_L": [
+   "Mika_Glove",
+   "Mika_Skin",
+   "Mika_Accent"
+  ],
+  "Hand_R": [
+   "Mika_Glove",
+   "Mika_Skin",
+   "Mika_Accent"
+  ],
+  "Shorts": [
+   "Mika_Shorts",
+   "Mika_Hem"
+  ],
+  "Leg_L": [
+   "Mika_Skin"
+  ],
+  "Leg_R": [
+   "Mika_Skin"
+  ],
+  "Shoe_L": [
+   "Mika_Shoe",
+   "Mika_Shoe_panel",
+   "Mika_Shoe_accent",
+   "Mika_Sole"
+  ],
+  "Shoe_R": [
+   "Mika_Shoe",
+   "Mika_Shoe_panel",
+   "Mika_Shoe_accent",
+   "Mika_Sole"
+  ],
+  "Bag": [
+   "Mika_Bag",
+   "Mika_Flap"
+  ],
+  "Bag_Strap": [
+   "Mika_Strap"
+  ],
+  "Belt": [
+   "Mika_Belt",
+   "Mika_Buckle"
+  ],
+  "Eyebrows": [
+   "Mika_Brows"
   ]
  }
 }

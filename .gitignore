@@ -47,3 +47,34 @@ coverage/
 
 # Matterhorn Asset Library (generated assets live outside the repo history)
 asset-library/
+
+# Workspace root: this folder also hosts the studio's other repositories and local tools. They are never part of
+# this repo (see WORKSPACES.md); signing keys especially must never be committed.
+/apps/
+/games/
+/HQ/
+/archive/
+/build-artifacts/
+/studioos/
+/scratch/
+/private-keys/
+**/private-keys/
+/.worktrees/
+/.expo/
+/.next/
+/.wrangler/
+/.tmp-chrome-delete-account/
+/artifacts/backups/
+
+# Installed third-party programs (download them, do not version them)
+/tools/7z/
+/tools/audacity/
+/tools/inkscape/
+/tools/material_maker_1_7_windows/
+/tools/android-build-center/
+/tools/android-build-center-ui/
+
+# Blender autosaves and Python caches
+*.blend1
+__pycache__/
+*.pyc

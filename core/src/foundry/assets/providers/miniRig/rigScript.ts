@@ -125,6 +125,53 @@ try:
         "leg-right": [(leg_r[0].x + leg_r[1].x) / 2, ref["leg-right"].z * scale_z] if leg_r else [ref["leg-right"].x, ref["leg-right"].z * scale_z],
         "head": [0.0, head[0].z] if head else [0.0, ref["head"].z * scale_z],
     }
+    # One-piece models (e.g. image-to-3D) have no named parts: find the joints from the shape instead.
+    SHAPE_MODE = len(parts) == 1 or not (arm_l or arm_r or head)
+    REPORT["mode"] = "shape" if SHAPE_MODE else "parts"
+    shape = {}
+    if SHAPE_MODE:
+        pts = [o.matrix_world @ v.co for o in parts for v in o.data.vertices]
+        z0, z1 = lo_all.z, hi_all.z
+        height = z1 - z0
+        bins = 160
+        half = [0.0] * bins
+        centre_hit = [False] * bins
+        gap = 0.012 * height / 0.7
+        for p in pts:
+            b = min(bins - 1, int((p.z - z0) / height * bins))
+            half[b] = max(half[b], abs(p.x))
+            if abs(p.x) < gap:
+                centre_hit[b] = True
+        zb = lambda b: z0 + (b + 0.5) * height / bins
+        # arms: the widest band in the lower 75 % (T-pose); hair can be wide but sits higher
+        low = range(int(bins * 0.2), int(bins * 0.75))
+        peak = max(low, key=lambda b: half[b])
+        widest = half[peak]
+        # the hands are the widest point in T-pose; the sleeve is about 13 % of the height thick around it
+        band_bins = max(2, int(bins * 0.065))
+        arm_bot, arm_top = max(0, peak - band_bins), min(bins - 1, peak + band_bins)
+        arm_z = (zb(arm_bot) + zb(arm_top)) / 2
+        # shoulders: how wide the body is just below the arms
+        below = [abs(p.x) for p in pts if zb(arm_bot) - 0.035 * height < p.z < zb(arm_bot) - 0.01 * height]
+        below.sort()
+        shoulder_x = below[int(len(below) * 0.95)] if below else widest * 0.4
+        # hips: going down from the arms, the legs separate where the centre line becomes empty
+        crotch = next((b + 1 for b in range(arm_bot, int(bins * 0.03), -1) if not centre_hit[b] and not centre_hit[b - 1]), int(bins * 0.2))
+        hip_z = zb(crotch) + 0.04 * height
+        legs = {}
+        for side in (1, -1):
+            xs = [p.x for p in pts if zb(crotch) - 0.06 * height < p.z < zb(crotch) - 0.01 * height and p.x * side > gap]
+            legs[side] = sum(xs) / len(xs) if xs else side * shoulder_x * 0.5
+        neck_z = zb(arm_top) + 0.02 * height
+        joints = {
+            "arm-left": [shoulder_x, arm_z],
+            "arm-right": [-shoulder_x, arm_z],
+            "leg-left": [legs[1], hip_z],
+            "leg-right": [legs[-1], hip_z],
+            "head": [0.0, neck_z],
+        }
+        shape = {"armBand": [round(zb(arm_bot), 4), round(zb(arm_top), 4)], "shoulderX": round(shoulder_x, 4), "crotchZ": round(zb(crotch), 4)}
+        REPORT["shape"] = shape
     REPORT["detectedJoints"] = {k: [round(c, 4) for c in v] for k, v in joints.items()}
     for name, value in (CFG.get("joints") or {}).items():
         if name in joints and isinstance(value, list) and len(value) == 2:
@@ -197,8 +244,47 @@ try:
         lo, hi = bounds([obj])
         return lo.x < -0.02 and hi.x > 0.02 and lo.z < hip_z - 0.01
 
+    def smooth(a, b, x):
+        t = min(1.0, max(0.0, (x - a) / max(b - a, 1e-6)))
+        return t * t * (3 - 2 * t)
+
+    def shape_weights(p):
+        """Soft weights by position for one-piece models: head above the neck, arms beyond the shoulders,
+        legs below the hips, torso elsewhere; joints blend over a few centimetres so nothing tears."""
+        neck = joints["head"][1]
+        sx = (joints["arm-left"][0] - joints["arm-right"][0]) / 2
+        hip = hip_z
+        # the arm band follows the arm joint, so a hand-placed shoulder moves the weights too
+        arm_mid = (joints["arm-left"][1] + joints["arm-right"][1]) / 2
+        half_band = (shape["armBand"][1] - shape["armBand"][0]) / 2
+        band_lo, band_hi = arm_mid - half_band, arm_mid + half_band
+        w = {"head": smooth(neck - 0.012, neck + 0.02, p.z)}
+        rest = 1.0 - w["head"]
+        in_band = smooth(band_lo - 0.05, band_lo - 0.01, p.z) * (1 - smooth(band_hi + 0.01, band_hi + 0.05, p.z))
+        arm = smooth(sx - 0.005, sx + 0.035, abs(p.x)) * in_band * rest
+        w["arm-left" if p.x > 0 else "arm-right"] = arm
+        rest -= arm
+        leg = (1 - smooth(hip - 0.035, hip + 0.01, p.z)) * rest
+        w["leg-left" if p.x > 0 else "leg-right"] = leg
+        rest -= leg
+        w["torso"] = max(0.0, rest)
+        return w
+
     assignment = {}
-    for obj in parts:
+    if SHAPE_MODE:
+        for obj in parts:
+            groups = {b.name: obj.vertex_groups.new(name=b.name) for b in armature.data.bones}
+            used = {}
+            for v in obj.data.vertices:
+                for bone, weight in shape_weights(v.co).items():
+                    if weight > 0.001:
+                        groups[bone].add([v.index], weight, "REPLACE")
+                        used[bone] = used.get(bone, 0) + 1
+            assignment[obj.name] = used
+            modifier = obj.modifiers.new("Armature", "ARMATURE")
+            modifier.object = armature
+            obj.parent = armature
+    for obj in ([] if SHAPE_MODE else parts):
         groups = {b.name: obj.vertex_groups.new(name=b.name) for b in armature.data.bones}
         fixed = bone_for_part(obj.name)
         split = not fixed and splits_at_hips(obj)

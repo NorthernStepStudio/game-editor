@@ -1,0 +1,167 @@
+{
+  "ok": true,
+  "stage": "done",
+  "mode": "shape",
+  "centeringShift": [
+    -0.0,
+    0.0288,
+    -0.0
+  ],
+  "height": 0.72,
+  "shape": {
+    "armBand": [
+      0.1958,
+      0.2858
+    ],
+    "shoulderX": 0.1097,
+    "crotchZ": 0.1103
+  },
+  "detectedJoints": {
+    "arm-left": [
+      0.1097,
+      0.2408
+    ],
+    "arm-right": [
+      -0.1097,
+      0.2408
+    ],
+    "leg-left": [
+      0.0567,
+      0.1391
+    ],
+    "leg-right": [
+      -0.0617,
+      0.1391
+    ],
+    "head": [
+      0.0,
+      0.3002
+    ]
+  },
+  "joints": {
+    "arm-left": [
+      0.1097,
+      0.2408
+    ],
+    "arm-right": [
+      -0.1097,
+      0.2408
+    ],
+    "leg-left": [
+      0.0567,
+      0.1391
+    ],
+    "leg-right": [
+      -0.0617,
+      0.1391
+    ],
+    "head": [
+      0.0,
+      0.3002
+    ]
+  },
+  "clips": [
+    "attack-kick-left",
+    "attack-kick-right",
+    "attack-melee-left",
+    "attack-melee-right",
+    "crouch",
+    "die",
+    "drive",
+    "emote-no",
+    "emote-yes",
+    "fall",
+    "holding-both",
+    "holding-both-shoot",
+    "holding-left",
+    "holding-left-shoot",
+    "holding-right",
+    "holding-right-shoot",
+    "idle",
+    "interact-left",
+    "interact-right",
+    "jump",
+    "pick-up",
+    "sit",
+    "sprint",
+    "static",
+    "walk",
+    "wheelchair-look-left",
+    "wheelchair-look-right",
+    "wheelchair-move-back",
+    "wheelchair-move-forward",
+    "wheelchair-move-left",
+    "wheelchair-move-right",
+    "wheelchair-sit"
+  ],
+  "assignment": {
+    "Body": {
+      "arm-right": 1429,
+      "head": 40058,
+      "torso": 6905,
+      "arm-left": 1812,
+      "leg-right": 1828,
+      "leg-left": 1647
+    }
+  },
+  "glb": "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/riko_trellis_rigged.glb",
+  "blend": "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/riko_trellis_rigged.blend",
+  "previews": {
+    "idle": [
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_00.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_01.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_02.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_03.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_04.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_05.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_06.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_07.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_08.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_09.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_10.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_idle_11.png"
+    ],
+    "walk": [
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_00.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_01.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_02.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_03.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_04.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_05.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_06.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_07.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_08.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_09.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_10.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_walk_11.png"
+    ],
+    "sprint": [
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_00.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_01.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_02.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_03.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_04.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_05.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_06.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_07.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_08.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_09.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_10.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_sprint_11.png"
+    ],
+    "jump": [
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_00.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_01.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_02.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_03.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_04.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_05.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_06.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_07.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_08.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_09.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_10.png",
+      "D:/dev/Northern Step Studio/artifacts/yun-character-candidate/roster/trellis-test/anim_jump_11.png"
+    ]
+  }
+}

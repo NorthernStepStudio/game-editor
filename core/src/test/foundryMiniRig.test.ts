@@ -24,3 +24,14 @@ test("the rigger is local and free, rigs only from a parent model, and only move
   assert.match(MINI_RIG_SCRIPT, /bone\.head \+= delta\s+bone\.tail \+= delta/);
   assert.doesNotMatch(MINI_RIG_SCRIPT, /\.roll\s*=/);
 });
+
+test("one-piece models (image-to-3D) are rigged from their shape with soft weights", () => {
+  // A single mesh, or parts without arm/head names, switches to shape mode.
+  assert.match(MINI_RIG_SCRIPT, /SHAPE_MODE = len\(parts\) == 1 or not \(arm_l or arm_r or head\)/);
+  assert.match(MINI_RIG_SCRIPT, /REPORT\["mode"\] = "shape" if SHAPE_MODE else "parts"/);
+  // Weights blend smoothly across each joint instead of cutting at it, so the mesh bends without tearing.
+  assert.match(MINI_RIG_SCRIPT, /def smooth\(a, b, x\)/);
+  assert.match(MINI_RIG_SCRIPT, /w\["torso"\] = max\(0\.0, rest\)/);
+  // Named-part models keep the rigid per-part weights.
+  assert.match(MINI_RIG_SCRIPT, /for obj in \(\[\] if SHAPE_MODE else parts\):/);
+});

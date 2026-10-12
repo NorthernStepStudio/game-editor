@@ -176,7 +176,12 @@ try:
         shoulder_x = runs[len(runs) // 4] if runs else widest * 0.4
         shoulder_x = min(shoulder_x, widest * 0.6)
         # hips: going down from the arms, the legs separate where the centre line stays empty
-        crotch = next((b + 1 for b in range(arm_bot, 2, -1) if not filled(b) and not filled(b - 1) and not filled(b - 2)), int(bins * 0.17))
+        # a strap or keychain hanging between the legs is thin: the body is joined there only where the centre is
+        # solid over a real width (otherwise the hips land at the ankles and only the feet move)
+        joined = lambda b: filled(b) and (central_run(b) or 0.0) > 0.025 * height
+        crotch = next((b + 1 for b in range(arm_bot, 2, -1) if not joined(b) and not joined(b - 1) and not joined(b - 2)), int(bins * 0.17))
+        if zb(crotch) < z0 + 0.1 * height:  # never at the feet: chibi hips sit at about a sixth of the height
+            crotch = int(bins * 0.17)
         hip_z = zb(crotch) + 0.04 * height
         legs = {}
         for side in (1, -1):
@@ -315,13 +320,140 @@ try:
         w["torso"] = max(0.0, rest)
         return w
 
+    def voxel_weights():
+        """Weights by what each point is connected to through the body, for one-piece models. The model is filled
+        into a solid voxel grid; each body part grows from a core (head above the neck, torso in the chest, arms
+        beyond the shoulders, legs below the hips) and every voxel takes the parts it can reach soonest *through the
+        model*, blended over ~2 voxels. So a puffy sleeve follows its arm, a shoe sole its leg, and hair lying on the
+        back the torso, whatever their screen position. Returns {object name: {bone: weights per vertex}} or None."""
+        import numpy as np
+        h = hi_all.z - lo_all.z
+        vs = h / 110.0
+        lo = np.array([lo_all.x, lo_all.y, lo_all.z]) - 3 * vs
+        dims = (np.ceil((np.array([hi_all.x, hi_all.y, hi_all.z]) + 3 * vs - lo) / vs)).astype(int) + 1
+        surf = np.zeros(dims, dtype=bool)
+        meshes = []
+        for obj in parts:
+            me = obj.data
+            me.calc_loop_triangles()
+            co = np.empty(len(me.vertices) * 3)
+            me.vertices.foreach_get("co", co)
+            co = co.reshape(-1, 3)
+            tri = np.empty(len(me.loop_triangles) * 3, dtype=np.int64)
+            me.loop_triangles.foreach_get("vertices", tri)
+            tri = tri.reshape(-1, 3)
+            meshes.append((obj, co))
+            if not len(tri):
+                continue
+            a, b, c = co[tri[:, 0]], co[tri[:, 1]], co[tri[:, 2]]
+            longest = np.maximum(np.maximum(np.linalg.norm(b - a, axis=1), np.linalg.norm(c - b, axis=1)), np.linalg.norm(a - c, axis=1))
+            steps = np.clip(np.ceil(longest / (vs * 0.5)), 1, 48).astype(int)
+            for n in np.unique(steps):
+                sel = steps == n
+                i, j = np.meshgrid(np.arange(n + 1), np.arange(n + 1), indexing="ij")
+                keep = (i + j) <= n
+                u, v = (i[keep] / n)[None, :, None], (j[keep] / n)[None, :, None]
+                pts = (a[sel][:, None] + (b[sel] - a[sel])[:, None] * u + (c[sel] - a[sel])[:, None] * v).reshape(-1, 3)
+                idx = np.clip(((pts - lo) / vs).astype(int), 0, dims - 1)
+                surf[idx[:, 0], idx[:, 1], idx[:, 2]] = True
+
+        def grow(mask, within, steps=1):
+            for _ in range(steps):
+                g = mask.copy()
+                g[1:] |= mask[:-1]; g[:-1] |= mask[1:]
+                g[:, 1:] |= mask[:, :-1]; g[:, :-1] |= mask[:, 1:]
+                g[:, :, 1:] |= mask[:, :, :-1]; g[:, :, :-1] |= mask[:, :, 1:]
+                mask = g & within if within is not None else g
+            return mask
+
+        surf = grow(surf, None, 1)  # close pinholes between samples
+        outside = np.zeros(dims, dtype=bool)
+        outside[0], outside[-1], outside[:, 0], outside[:, -1], outside[:, :, 0], outside[:, :, -1] = True, True, True, True, True, True
+        outside &= ~surf
+        while True:
+            nxt = grow(outside, ~surf, 4)
+            if np.array_equal(nxt, outside):
+                break
+            outside = nxt
+        solid = ~outside
+        if solid.sum() < 1000:
+            REPORT["voxelWeightsSkipped"] = "the model did not fill into a solid"
+            return None
+        gx, gy, gz = (lo[k] + (np.arange(dims[k]) + 0.5) * vs for k in range(3))
+        X, Y, Z = np.meshgrid(gx, gy, gz, indexing="ij")
+
+        neck = joints["head"][1]
+        sx = (joints["arm-left"][0] - joints["arm-right"][0]) / 2
+        arm_mid = (joints["arm-left"][1] + joints["arm-right"][1]) / 2
+        half_band = (shape["armBand"][1] - shape["armBand"][0]) / 2
+        crotch = shape["crotchZ"]
+        seeds = {
+            "head": Z > neck + 0.03 * h,
+            "torso": (np.abs(X) < 0.6 * sx) & (Z > hip_z + 0.03 * h) & (Z < neck - 0.03 * h),
+            "arm-left": (X > sx + 0.04 * h) & (np.abs(Z - arm_mid) < half_band),
+            "arm-right": (X < -sx - 0.04 * h) & (np.abs(Z - arm_mid) < half_band),
+        }
+        for side, name in ((1, "leg-left"), (-1, "leg-right")):
+            lx = joints[name][0]
+            r = min(shape["legReach"][0 if side > 0 else 1], 0.06 * h)
+            slab = solid & (np.abs(X - lx) < r * 0.6) & (Z > crotch - 0.06 * h) & (Z < crotch - 0.02 * h)
+            ly = float(np.median(Y[slab])) if slab.any() else 0.0
+            seeds[name] = ((X - lx) ** 2 + (Y - ly) ** 2 < r * r) & (Z > 0.05 * h) & (Z < crotch - 0.02 * h)
+
+        INF = 1e9
+        dist = {}
+        for name, seed in seeds.items():
+            d = np.where(solid & seed, 0.0, INF)
+            if not (solid & seed).any():
+                REPORT["voxelWeightsSkipped"] = "no solid core for " + name
+                return None
+            for _ in range(600):
+                n = d.copy()
+                for axis in range(3):
+                    for shift in (1, -1):
+                        rolled = np.roll(d, shift, axis=axis)
+                        edge = [slice(None)] * 3
+                        edge[axis] = 0 if shift == 1 else -1
+                        rolled[tuple(edge)] = INF
+                        n = np.minimum(n, rolled + 1.0)
+                n = np.where(solid, n, INF)
+                if np.array_equal(n, d):
+                    break
+                d = n
+            dist[name] = d
+
+        names = list(dist)
+        D = np.stack([dist[k] for k in names])
+        reach = D.min(axis=0)
+        W = np.where(D < INF, np.exp(-(D - reach[None]) / 2.0), 0.0)
+        W[W < 0.03] = 0.0
+        total = W.sum(axis=0)
+        out = {}
+        for obj, co in meshes:
+            idx = np.clip(((co - lo) / vs).astype(int), 0, dims - 1)
+            per = W[:, idx[:, 0], idx[:, 1], idx[:, 2]]
+            tot = total[idx[:, 0], idx[:, 1], idx[:, 2]]
+            ok = tot > 0
+            per = np.where(ok[None], per / np.maximum(tot, 1e-9)[None], 0.0)
+            out[obj.name] = ({k: per[i] for i, k in enumerate(names)}, ok)
+        REPORT["voxelWeights"] = {"voxel": round(vs, 4), "solid": int(solid.sum()), "grid": [int(v) for v in dims]}
+        return out
+
     assignment = {}
     if SHAPE_MODE:
+        REPORT["stage"] = "weights"
+        connected = voxel_weights()
+        REPORT["weighting"] = "connected" if connected else "position"
         for obj in parts:
             groups = {b.name: obj.vertex_groups.new(name=b.name) for b in armature.data.bones}
             used = {}
+            per, ok = connected[obj.name] if connected else ({}, None)
             for v in obj.data.vertices:
-                for bone, weight in shape_weights(v.co).items():
+                if ok is not None and ok[v.index]:
+                    weights = {bone: float(values[v.index]) for bone, values in per.items()}
+                else:
+                    weights = shape_weights(v.co)  # loose bits the body does not reach: by position
+                for bone, weight in weights.items():
                     if weight > 0.001:
                         groups[bone].add([v.index], weight, "REPLACE")
                         used[bone] = used.get(bone, 0) + 1

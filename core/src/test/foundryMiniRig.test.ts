@@ -44,3 +44,14 @@ test("one-piece joints come from a ray-cast silhouette, robust to sparse vertice
   // only what lies within a leg's width below the hips follows that leg
   assert.match(MINI_RIG_SCRIPT, /inside = 1 - smooth\(reach, reach \+ 0\.025/);
 });
+
+test("one-piece weights follow what each point is joined to, and a hanging strap never sets the hips", () => {
+  // the model is filled into a solid and each body part grows from its core through it
+  assert.match(MINI_RIG_SCRIPT, /def voxel_weights\(\):/);
+  assert.match(MINI_RIG_SCRIPT, /REPORT\["weighting"\] = "connected" if connected else "position"/);
+  // points the body does not reach keep the position rule
+  assert.match(MINI_RIG_SCRIPT, /weights = shape_weights\(v\.co\)/);
+  // the hips need the centre to be solid over a real width, and never sit at the feet
+  assert.match(MINI_RIG_SCRIPT, /central_run\(b\) or 0\.0\) > 0\.025 \* height/);
+  assert.match(MINI_RIG_SCRIPT, /if zb\(crotch\) < z0 \+ 0\.1 \* height:/);
+});

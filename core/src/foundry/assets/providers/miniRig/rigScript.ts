@@ -305,7 +305,12 @@ try:
         reach = shape["legReach"][0 if p.x > 0 else 1]
         inside = 1 - smooth(reach, reach + 0.025, abs(p.x - joints[side_name][0]))
         leg = (1 - smooth(hip - 0.035, hip + 0.01, p.z)) * inside * rest
-        w[side_name] = leg
+        # between the legs (a hanging strap, the crotch of shorts) follow both legs equally, shifting to one leg
+        # only toward it: legs swing opposite ways, so the middle stays put instead of stretching into a spike
+        lean = smooth(0.0, 0.6 * abs(joints[side_name][0]), abs(p.x))
+        other = "leg-right" if side_name == "leg-left" else "leg-left"
+        w[side_name] = leg * (0.5 + 0.5 * lean)
+        w[other] = leg * (0.5 - 0.5 * lean)
         rest -= leg
         w["torso"] = max(0.0, rest)
         return w

@@ -4,71 +4,347 @@
   "baseline": "artifacts/yun-character-candidate/yun_urban_adventurer/checkpoints/mini-v02/yun_urban_mini_v02.glb",
   "gameScale": 1.2,
   "size": {
-    "height": { "target": 0.672, "tolerance": 0.01 },
-    "armSpan": { "min": 0.74, "max": 0.8 },
+    "height": {
+      "target": 0.672,
+      "tolerance": 0.01
+    },
+    "armSpan": {
+      "min": 0.74,
+      "max": 0.8
+    },
     "facing": "-Y",
     "feetAtZ": 0
   },
   "proportions": {
-    "head": { "width": 0.44, "depth": 0.33, "height": 0.3, "bottomZ": 0.345 },
-    "headWithHair": { "maxWidth": 0.58, "maxDepth": 0.38 },
-    "torso": { "width": 0.26, "depth": 0.18, "bottomZ": 0.17, "topZ": 0.36 },
-    "arms": { "thickness": [0.08, 0.09], "pose": "T", "shoulder": { "x": 0.13, "z": 0.305 } },
-    "hands": { "size": 0.09 },
-    "legs": { "bottomZ": 0.04, "topZ": 0.17, "hip": { "x": 0.065, "z": 0.176 } },
-    "shoes": { "topZ": 0.105, "widerThanLegs": true }
+    "head": {
+      "width": 0.44,
+      "depth": 0.33,
+      "height": 0.3,
+      "bottomZ": 0.345
+    },
+    "headWithHair": {
+      "maxWidth": 0.58,
+      "maxDepth": 0.38
+    },
+    "torso": {
+      "width": 0.26,
+      "depth": 0.18,
+      "bottomZ": 0.17,
+      "topZ": 0.36
+    },
+    "arms": {
+      "thickness": [
+        0.08,
+        0.09
+      ],
+      "pose": "T",
+      "shoulder": {
+        "x": 0.13,
+        "z": 0.305
+      }
+    },
+    "hands": {
+      "size": 0.09
+    },
+    "legs": {
+      "bottomZ": 0.04,
+      "topZ": 0.17,
+      "hip": {
+        "x": 0.065,
+        "z": 0.176
+      }
+    },
+    "shoes": {
+      "topZ": 0.105,
+      "widerThanLegs": true
+    }
   },
-  "allowedVariation": { "headWidth": 0.02, "torsoWidth": 0.02, "height": 0 },
+  "allowedVariation": {
+    "headWidth": 0.02,
+    "torsoWidth": 0.02,
+    "height": 0
+  },
   "face": {
-    "eyes": { "shape": "dark vertical oval with white highlight", "centerZ": 0.485, "centerX": 0.085 },
-    "brows": { "z": 0.54 },
-    "mouth": { "z": 0.42 },
-    "blush": { "z": 0.44, "x": 0.145 },
+    "eyes": {
+      "shape": "dark vertical oval with white highlight",
+      "centerZ": 0.485,
+      "centerX": 0.085
+    },
+    "brows": {
+      "z": 0.54
+    },
+    "mouth": {
+      "z": 0.42
+    },
+    "blush": {
+      "z": 0.44,
+      "x": 0.145
+    },
     "ears": "small, on the sides of the head box"
   },
   "construction": {
     "shapes": "soft beveled boxes (2-3 bevel segments) and rounded blobs, smooth shading",
     "colors": "flat solid colors only, no textures, no detail smaller than ~1 cm",
-    "parts": [15, 30],
+    "parts": [
+      15,
+      30
+    ],
     "maxTriangles": 20000,
     "connected": true
   },
   "materials": {
-    "cloth": { "roughness": [0.55, 0.8], "metallic": 0 },
-    "hair": { "roughness": 0.8, "metallic": 0 },
-    "eyes": { "roughness": 0.3, "metallic": 0 },
-    "metal": { "roughness": 0.3, "metallic": 1 },
+    "cloth": {
+      "roughness": [
+        0.55,
+        0.8
+      ],
+      "metallic": 0
+    },
+    "hair": {
+      "roughness": 0.8,
+      "metallic": 0
+    },
+    "eyes": {
+      "roughness": 0.3,
+      "metallic": 0
+    },
+    "metal": {
+      "roughness": 0.3,
+      "metallic": 1
+    },
     "sharedNeutrals": {
-      "black": "#0F0F12", "charcoal": "#29292B", "cream": "#F2E8D1", "sneakerWhite": "#F5F5F2",
-      "sole": "#DBD9D1", "lightGrey": "#C7C7BF", "blush": "#CC7561", "mouth": "#591F19", "gold": "#FFC24C"
+      "black": "#0F0F12",
+      "charcoal": "#29292B",
+      "cream": "#F2E8D1",
+      "sneakerWhite": "#F5F5F2",
+      "sole": "#DBD9D1",
+      "lightGrey": "#C7C7BF",
+      "blush": "#CC7561",
+      "mouth": "#591F19",
+      "gold": "#FFC24C"
     }
   },
   "rig": {
     "skeleton": "Kenney mini (games/Yun/assets/kenney/mini_characters)",
-    "bones": ["root", "torso", "head", "arm-left", "arm-right", "leg-left", "leg-right"],
+    "bones": [
+      "root",
+      "torso",
+      "head",
+      "arm-left",
+      "arm-right",
+      "leg-left",
+      "leg-right"
+    ],
     "clips": 32,
     "partNaming": {
-      "head": ["head", "hair", "face", "eye", "brow", "mouth", "cheek", "ear", "scrunchie", "hat", "cap", "glasses", "nose"],
-      "arm": ["arm", "hand", "glove", "sleeve", "cuff", "wrist", "bracelet"],
-      "leg": ["leg", "shoe", "sneaker", "boot", "sock", "foot", "knee"],
-      "sideSuffix": ["_L", "_R"],
+      "head": [
+        "head",
+        "hair",
+        "face",
+        "eye",
+        "brow",
+        "mouth",
+        "cheek",
+        "ear",
+        "scrunchie",
+        "hat",
+        "cap",
+        "glasses",
+        "nose"
+      ],
+      "arm": [
+        "arm",
+        "hand",
+        "glove",
+        "sleeve",
+        "cuff",
+        "wrist",
+        "bracelet"
+      ],
+      "leg": [
+        "leg",
+        "shoe",
+        "sneaker",
+        "boot",
+        "sock",
+        "foot",
+        "knee"
+      ],
+      "sideSuffix": [
+        "_L",
+        "_R"
+      ],
       "otherwise": "torso; clothing crossing the middle below the hips is split onto the legs"
     }
   },
-  "uniqueness": ["hairSilhouette", "accentColor", "outfitArchetype", "heroAccessory", "shoes"],
+  "uniqueness": [
+    "hairSilhouette",
+    "accentColor",
+    "outfitArchetype",
+    "heroAccessory",
+    "shoes"
+  ],
   "roster": [
     {
       "id": "yun",
       "name": "Yun",
       "hairSilhouette": "curly volume + high ponytail, orange scrunchie",
-      "accentColor": ["#F57319", "#FFA826"],
+      "accentColor": [
+        "#F57319",
+        "#FFA826"
+      ],
       "outfitArchetype": "cropped cream bomber, black crop top, olive cargo shorts, black leggings",
-      "heroAccessory": "black crossbody bag",
+      "heroAccessory": "gold hoop earrings",
       "shoes": "white high-tops with orange and black",
       "skin": "#A16B47",
       "hair": "#2B1912",
       "model": "artifacts/yun-character-candidate/yun_urban_adventurer/checkpoints/mini-v02/yun_urban_mini_v02.glb",
-      "status": "mini v02 rigged, awaiting owner review"
+      "status": "approved look; rigged (checkpoints/mini-v02-rigged)"
+    },
+    {
+      "id": "riko",
+      "name": "Riko",
+      "hairSilhouette": "long brown hair, high ponytail with pink scrunchie, bangs",
+      "accentColor": "pink / rose",
+      "outfitArchetype": "pink-and-black bomber with a star, black shorts",
+      "heroAccessory": "pink scrunchie",
+      "shoes": "pink/white sneakers",
+      "skin": "light",
+      "status": "concept"
+    },
+    {
+      "id": "kai",
+      "name": "Kai",
+      "hairSilhouette": "spiky black hair",
+      "accentColor": "royal blue",
+      "outfitArchetype": "blue jacket with white collar, black shorts",
+      "heroAccessory": "headphones around the neck",
+      "shoes": "blue/white sneakers",
+      "skin": "light",
+      "status": "concept"
+    },
+    {
+      "id": "luna",
+      "name": "Luna",
+      "hairSilhouette": "long purple hair, twin space buns, star clip",
+      "accentColor": "purple / lavender",
+      "outfitArchetype": "lavender jacket with white sleeves, grey shorts",
+      "heroAccessory": "star hair clip",
+      "shoes": "purple sneakers",
+      "skin": "light",
+      "status": "concept"
+    },
+    {
+      "id": "ace",
+      "name": "Ace",
+      "hairSilhouette": "short dark hair under a backwards cap",
+      "accentColor": "red",
+      "outfitArchetype": "red-and-white varsity jacket, black shorts",
+      "heroAccessory": "backwards red cap",
+      "shoes": "red/white sneakers",
+      "skin": "dark brown",
+      "status": "concept"
+    },
+    {
+      "id": "neo",
+      "name": "Neo",
+      "hairSilhouette": "fluffy blond hair",
+      "accentColor": "green",
+      "outfitArchetype": "green-and-white varsity jacket, black shorts",
+      "heroAccessory": "round glasses",
+      "shoes": "green/black sneakers",
+      "skin": "light",
+      "status": "concept"
+    },
+    {
+      "id": "mika",
+      "name": "Mika",
+      "hairSilhouette": "black hair, two buns with yellow ties, bangs",
+      "accentColor": "yellow",
+      "outfitArchetype": "yellow jacket, brown shorts",
+      "heroAccessory": "yellow bun ties",
+      "shoes": "yellow/white sneakers",
+      "skin": "light",
+      "status": "concept"
+    },
+    {
+      "id": "zen",
+      "name": "Zen",
+      "hairSilhouette": "long dark hair under a beanie",
+      "accentColor": "sky blue",
+      "outfitArchetype": "denim-blue jacket, dark shorts",
+      "heroAccessory": "light-blue beanie",
+      "shoes": "blue/black sneakers",
+      "skin": "dark brown",
+      "status": "concept"
+    },
+    {
+      "id": "jet",
+      "name": "Jet",
+      "hairSilhouette": "spiky orange hair",
+      "accentColor": "orange / black",
+      "outfitArchetype": "orange-and-black jacket, black shorts",
+      "heroAccessory": "aviator goggles on the head",
+      "shoes": "black/orange sneakers",
+      "skin": "light",
+      "status": "concept"
+    },
+    {
+      "id": "nami",
+      "name": "Nami",
+      "hairSilhouette": "long teal hair with a star clip",
+      "accentColor": "teal / mint",
+      "outfitArchetype": "black jacket over a teal top",
+      "heroAccessory": "star clip, yellow hip bag",
+      "shoes": "green/white sneakers",
+      "skin": "light",
+      "status": "concept"
+    },
+    {
+      "id": "rae",
+      "name": "Rae",
+      "hairSilhouette": "brown hair with a pink streak",
+      "accentColor": "hot pink",
+      "outfitArchetype": "pink-and-black jacket, black shorts",
+      "heroAccessory": "pink cat-ear headphones",
+      "shoes": "pink/white sneakers",
+      "skin": "medium",
+      "status": "concept"
+    },
+    {
+      "id": "sol",
+      "name": "Sol",
+      "hairSilhouette": "spiky white/silver hair",
+      "accentColor": "cobalt blue",
+      "outfitArchetype": "blue jacket with white collar, black shorts",
+      "heroAccessory": "none (hair is the signature)",
+      "shoes": "blue/white sneakers",
+      "skin": "dark brown",
+      "status": "concept"
     }
+  ],
+  "sharedFamilyElements": [
+    "crossbody strap or bag",
+    "T-pose",
+    "face construction",
+    "chunky shoes"
+  ],
+  "rosterConcept": "docs/yun/roster-concept-v1.png",
+  "accentClashes": [
+    [
+      "yun",
+      "jet",
+      "orange"
+    ],
+    [
+      "riko",
+      "rae",
+      "pink"
+    ],
+    [
+      "kai",
+      "sol",
+      "blue"
+    ]
   ]
 }

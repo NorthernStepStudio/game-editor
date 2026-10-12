@@ -206,3 +206,66 @@ test('Builds can be cancelled and retried, history survives a restart, drafts an
     await Promise.all([data, library].map((dir) => rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })));
   }
 });
+
+test('Library categories, bulk actions and a restorable Trash keep game files safe', async () => {
+  const data = await mkdtemp(join(tmpdir(), 'matterhorn-trash-data-'));
+  const game = await mkdtemp(join(tmpdir(), 'matterhorn-trash-game-'));
+  try {
+    const made = join(data, 'library', 'assets', 'generated', 'foundry');
+    const file = async (path: string) => { await mkdir(join(path, '..'), { recursive: true }); await writeFile(path, 'x'); return path; };
+    const lamp = await file(join(made, 'street_lamp', 'street_lamp.glb'));
+    const lampRender = await file(join(made, 'street_lamp', 'render_front.png'));
+    const lampV2 = await file(join(made, 'street_lamp_v2', 'street_lamp_v2.glb'));
+    const car = await file(join(game, 'assets', 'cars', 'sedan.glb'));
+    const service = new FoundryAssetService(data, [{ id: 'library', name: 'Library', path: join(data, 'library') }, { id: 'yun', name: 'Yun', path: game }] as never);
+    service.store.registerMany([
+      { assetId: 'street_lamp', type: 'mesh_3d', generationProvider: 'blender-agent-local', createdAt: '2026-10-11T00:00:00Z', localPath: lamp, companionFiles: [lampRender] },
+      { assetId: 'street_lamp_v2', type: 'mesh_3d', generationProvider: 'blender-agent-local', parentAsset: 'street_lamp', createdAt: '2026-10-11T00:00:00Z', localPath: lampV2 },
+      { assetId: 'imp_yun_sedan', type: 'mesh_3d', generationProvider: 'imported', createdAt: '2026-10-11T00:00:00Z', localPath: car },
+      { assetId: 'hero_kai', type: 'mesh_3d', generationProvider: 'blender-agent-local', createdAt: '2026-10-11T00:00:00Z' },
+    ] as never);
+    service.setMeta('hero_kai', { displayName: 'Kai mini character' });
+
+    // Categories come from what things are, and the owner can move anything.
+    assert.equal(service.get('imp_yun_sedan')?.category, 'vehicles');
+    assert.equal(service.get('hero_kai')?.category, 'characters');
+    assert.equal(service.get('street_lamp')?.category, 'props');
+    service.bulk('category', ['street_lamp'], 'buildings');
+    assert.equal(service.get('street_lamp')?.category, 'buildings');
+    assert.equal(service.get('street_lamp')?.categorySetByOwner, true);
+    service.bulk('category', ['street_lamp'], 'auto');
+    assert.equal(service.get('street_lamp')?.category, 'props');
+
+    // A parent cannot go without the versions made from it.
+    assert.throws(() => service.bulk('delete', ['street_lamp']), /made from these/);
+
+    // Deleting: made-in-Matterhorn files go to the Trash; game files are never touched.
+    const result = service.bulk('delete', ['street_lamp', 'street_lamp_v2', 'imp_yun_sedan']);
+    assert.deepEqual([...result.trashed].sort(), ['street_lamp', 'street_lamp_v2']);
+    assert.deepEqual(result.removedFromLibrary, ['imp_yun_sedan']);
+    assert.ok(!existsSync(lamp) && !existsSync(lampRender), 'made files left their folder');
+    assert.ok(existsSync(car), 'the game file is still there');
+    assert.equal(service.get('street_lamp'), undefined);
+    assert.equal(service.get('imp_yun_sedan')?.hidden, true);
+    assert.equal(service.trash().length, 2);
+
+    // Restore puts files and asset back (the parent first).
+    const entries = service.trash();
+    const v2 = entries.find((e) => e.assetId === 'street_lamp_v2')!;
+    assert.throws(() => service.restore(v2.trashId), /Restore "street_lamp" first/);
+    service.restore(entries.find((e) => e.assetId === 'street_lamp')!.trashId);
+    service.restore(v2.trashId);
+    assert.ok(existsSync(lamp) && existsSync(lampRender) && existsSync(lampV2));
+    assert.ok(service.get('street_lamp_v2'));
+    service.bulk('show', ['imp_yun_sedan']);
+    assert.equal(service.get('imp_yun_sedan')?.hidden, undefined);
+
+    // Emptying the Trash is permanent and only removes what is in it.
+    service.bulk('delete', ['hero_kai']);
+    assert.equal(service.emptyTrash(), 1);
+    assert.equal(service.trash().length, 0);
+    assert.ok(existsSync(lamp) && existsSync(car));
+  } finally {
+    await Promise.all([data, game].map((dir) => rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })));
+  }
+});

@@ -2,7 +2,7 @@ import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 import { isAssetQuestion, searchAssets } from '../services/assistant.js';
 
-const asset = (assetId: string, displayName: string, type: string, source?: string) => ({ assetId, displayName, type, createdAt: '2026-10-01T00:00:00Z', ...(source ? { source } : {}) });
+const asset = (assetId: string, displayName: string, type: string, source?: string) => ({ assetId, displayName, type, createdAt: '2026-10-01T00:00:00Z', category: type.startsWith('audio') ? 'sounds' : 'props', ...(source ? { source } : {}) });
 const library = [
   asset('a1', 'V02 structure r6 motorconcho', 'mesh_3d', 'Environment · kit'),
   asset('a2', 'V02 structure r8 controls', 'mesh_3d', 'Environment · kit'),
@@ -28,7 +28,7 @@ test('the chat answers asset questions from the real library', () => {
 
   const sounds = searchAssets('show the sounds in Yun', library, ['Yun']);
   assert.deepEqual(sounds.assets?.shown.map((a) => a.name).sort(), ['Jump', 'Menu theme']);
-  assert.equal(sounds.assets?.openHash, '#assets/search/Yun/audio');
+  assert.equal(sounds.assets?.openHash, '#assets/search/Yun/sounds');
 
   const none = searchAssets('show me assets called dragon', library, ['Yun']);
   assert.equal(none.assets?.total, 0);

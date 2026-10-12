@@ -52,6 +52,12 @@ const assets = [
   { assetId: 'stall_x1_d2', type: 'mesh_3d', displayName: 'Market stall', prompt: 'market stall', draftGroup: 'stall_x1', createdAt: '2026-10-10T09:10:00Z', generationProvider: 'blender-agent-claude',
     files: [file('stall_x1_d2', 'stall_x1_d2.glb', 'main')] },
 ];
+// Categories as the server sets them.
+for (const a of assets) {
+  a.category ??= a.type.startsWith('audio') ? 'sounds' : a.type === 'concept_art' ? 'images' : /yun|character/i.test(a.displayName) ? 'characters' : /sedan|car/i.test(a.displayName) ? 'vehicles' : 'props';
+}
+const trashItems = [{ trashId: '2026-10-11T00-00-00-000Z_old_lamp', assetId: 'old_lamp', displayName: 'Old lamp', type: 'mesh_3d', deletedAt: '2026-10-11T00:00:00Z', files: 3 }];
+
 const jobs = [
   { jobId: '11111111-1111-1111-1111-111111111111', assetId: 'barrel_q1', displayName: 'Barrel', kind: 'mesh_3d', status: 'running', prompt: 'a barrel',
     progress: [{ at: '2026-10-11T09:00:00Z', message: 'Attempt 1/3: building in Blender…' }], createdAt: '2026-10-11T09:00:00Z', providerId: 'blender-agent-local' },
@@ -99,6 +105,12 @@ function fixture(path, method, body) {
   if (p === '/api/studio/play') return { runtimeSessionId: 'rt-1' };
   if (p === '/api/studio/play/stop') return { stopped: true };
   if (p === '/api/foundry/assets') return { assets, count: assets.length };
+  if (p === '/api/foundry/assets/bulk') return body.action === 'delete'
+    ? { changed: [], trashed: body.assetIds.filter((id) => !id.startsWith('imp_')), removedFromLibrary: body.assetIds.filter((id) => id.startsWith('imp_')) }
+    : { changed: body.assetIds, trashed: [], removedFromLibrary: [] };
+  if (p === '/api/foundry/trash') return { items: trashItems };
+  if (p === '/api/foundry/trash/empty') return { deleted: trashItems.length };
+  if (/^\/api\/foundry\/trash\/[^/]+\/restore$/.test(p)) return { asset: { assetId: 'old_lamp', type: 'mesh_3d', category: 'props', createdAt: '2026-10-11T00:00:00Z' } };
   if (p === '/api/foundry/jobs' && method === 'GET') return { jobs };
   if (p === '/api/foundry/jobs') return { job: { ...jobs[0], jobId: '33333333-3333-3333-3333-333333333333', assetId: body.assetId, displayName: body.displayName, status: 'queued' } };
   if (/^\/api\/foundry\/jobs\/[^/]+\/live$/.test(p)) return { status: 'running', script: 'import bpy\nbody =bpy.ops.mesh.primitive_cylinder_add()', frames: 0, updatedAt: '2026-10-11T09:00:05Z' };
@@ -190,7 +202,7 @@ test('every control in the new Matterhorn UI does something real', async () => {
   assert.deepEqual([...document.querySelectorAll('.sidebar a.nav')].map((a) => a.textContent.trim()), ['Studio', 'My Game', 'Assets', 'Settings']);
 
   const routes = ['#studio', '#game/changes', '#game/changes/run-failed', '#game/checks', '#game/files', '#assets', '#assets/crate_ab12', '#assets/stall_x1_d1',
-    '#assets/build/22222222-2222-2222-2222-222222222222', '#assets/build/11111111-1111-1111-1111-111111111111', '#assets/imp_yun_sfx_jump_cd5678', '#assets/imp_yun_cars_sedan_ab1234', '#assets/imp_ref_front_aa1111', '#settings', '#settings/brand', '#settings/guide'];
+    '#assets/build/22222222-2222-2222-2222-222222222222', '#assets/build/11111111-1111-1111-1111-111111111111', '#assets/imp_yun_sfx_jump_cd5678', '#assets/imp_yun_cars_sedan_ab1234', '#assets/imp_ref_front_aa1111', '#assets/removed', '#settings', '#settings/brand', '#settings/guide'];
   const dead = [];
   let clicked = 0;
   for (const route of routes) {
@@ -352,6 +364,51 @@ test('every control in the new Matterhorn UI does something real', async () => {
   assert.notEqual(document.querySelector('.spin img').src, before3d, 'dragging turns the model');
   [...document.querySelectorAll('button')].find((b) => b.textContent === 'Replay the build').click();
   assert.match(document.querySelector('.spin img').src, /build_01\.png/);
+
+  // The library is sorted by what things are, and many assets can be handled at once.
+  await go('#assets');
+  const tabs = [...document.querySelectorAll('#asset-filters .pill')].map((p) => p.textContent);
+  assert.ok(tabs.some((t) => /^Characters \d+$/.test(t)), `category tabs with counts: ${tabs}`);
+  assert.ok(tabs.some((t) => /^Vehicles 1$/.test(t)), `vehicles tab: ${tabs}`);
+  [...document.querySelectorAll('#asset-filters .pill')].find((p) => p.textContent.startsWith('Vehicles')).click();
+  await flush();
+  assert.match(document.querySelector('#asset-grid').textContent, /Sedan/);
+  assert.doesNotMatch(document.querySelector('#asset-grid').textContent, /Wooden crate/);
+  [...document.querySelectorAll('#asset-filters .pill')].find((p) => p.textContent === 'All').click();
+  await flush();
+  document.querySelector('#select-toggle').click();
+  await flush();
+  const pickable = [...document.querySelectorAll('.asset-card.selectable')];
+  assert.ok(pickable.length >= 3, 'cards become selectable');
+  pickable[0].click();
+  await flush();
+  [...document.querySelectorAll('.asset-card.selectable')][2].dispatchEvent(new window.MouseEvent('click', { bubbles: true, shiftKey: true }));
+  await flush();
+  assert.equal(document.querySelectorAll('.asset-card.selected').length, 3, 'shift+click selects the range');
+  assert.match(document.querySelector('.select-count').textContent, /3 selected/);
+  const bulkBodies = [];
+  const fetchBeforeBulk = globalThis.fetch;
+  globalThis.fetch = async (path, options) => { if (options?.body) bulkBodies.push({ path, body: JSON.parse(options.body) }); return fetchBeforeBulk(path, options); };
+  [...document.querySelectorAll('#select-bar button')].find((b) => b.textContent === 'Remove from library').click();
+  await flush(10);
+  assert.equal(bulkBodies.find((b) => b.path === '/api/foundry/assets/bulk')?.body.action, 'hide');
+  assert.equal(bulkBodies.find((b) => b.path === '/api/foundry/assets/bulk')?.body.assetIds.length, 3);
+  document.querySelector('.asset-card.selectable').click();
+  await flush();
+  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Delete', bubbles: true }));
+  await flush();
+  assert.match(document.querySelector('.sheet').textContent, /Delete 1 asset\?/);
+  assert.match(document.querySelector('.sheet').textContent, /Trash|never deletes files/);
+  [...document.querySelectorAll('.sheet button')].find((b) => /^Delete \d/.test(b.textContent)).click();
+  await flush(10);
+  globalThis.fetch = fetchBeforeBulk;
+  assert.equal(bulkBodies.filter((b) => b.body.action === 'delete').length, 1, 'delete only after confirming');
+  document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  await flush();
+  assert.equal(document.querySelectorAll('.asset-card.selectable').length, 0, 'Esc leaves select mode');
+  await go('#assets/removed');
+  assert.match(document.querySelector('#main').textContent, /Trash \(1\)/);
+  assert.match(document.querySelector('#main').textContent, /Old lamp/);
 
   // A 3D character can be rigged automatically or with hand-placed joints, and a rigged one plays its animations.
   await go('#assets/crate_ab12');

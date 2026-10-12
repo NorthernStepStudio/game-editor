@@ -1,11 +1,14 @@
 import {
   copyFileSync,
+  cpSync,
   existsSync,
   lstatSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   realpathSync,
   renameSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs';
 import {
@@ -81,10 +84,54 @@ export interface FoundryAssetView {
   readonly hidden?: boolean;
   /** Where an imported asset came from, e.g. "Yun game · characters". */
   readonly source?: string;
+  /** What it is (characters, props, buildings…), set automatically unless the owner chose one. */
+  readonly category: string;
+  readonly categorySetByOwner?: boolean;
+}
+
+/** What an asset is, for finding it fast. Set automatically; the owner can move anything. */
+export const ASSET_CATEGORIES = ['characters', 'animals', 'props', 'buildings', 'vehicles', 'nature', 'images', 'sounds'] as const;
+export type AssetCategory = (typeof ASSET_CATEGORIES)[number];
+
+const CATEGORY_WORDS: readonly [AssetCategory, RegExp][] = [
+  ['characters', /\b(characters?|player|mini_characters|npc|person|people|adventurer|avatar|hero|attacker|defender|rigged|mascot|figure)\b/],
+  ['animals', /\b(dogs?|puppy|cats?|kitten|birds?|chickens?|roosters?|hens?|goats?|pigs?|cows?|horses?|donkeys?|animals?|shepherd|pigeons?|parrots?|fish)\b/],
+  ['vehicles', /\b(cars?|sedan|truck|bus|van|taxi|motor\w*|moto|bike|bicycle|scooter|vehicles?|kart|guagua|carro|pickup)\b/],
+  ['buildings', /\b(house|houses|buildings?|colmado|shop|store|walls?|doors?|windows?|roofs?|balcon\w*|stairs?|facade|kiosk|stall|market|apartments?|fence|gate|awning|street_kit|storefront|church|school|bodega|street block|block|blocks|plaza|malecon|neighborhood|barrio)\b/],
+  ['nature', /\b(trees?|palms?|plants?|bush\w*|flowers?|rocks?|stones?|grass|leaf|leaves|nature|cactus|mango|coconut|foliage|flora|hedge|vines?)\b/],
+];
+
+/** Picks a category from the asset's kind, name and description. */
+export function autoCategory(type: string, name: string, more = ''): AssetCategory {
+  if (type.startsWith('audio')) return 'sounds';
+  if (type !== 'mesh_3d' && type !== 'rig' && type !== 'animation') return 'images';
+  if (type === 'rig' || type === 'animation') return 'characters';
+  // The asset's own name and description decide first; file and folder names only when those say nothing.
+  for (const text of [name, more]) {
+    const words = text.toLowerCase().replace(/[_\-./]+/g, ' ');
+    for (const [category, pattern] of CATEGORY_WORDS) if (pattern.test(words)) return category;
+  }
+  return 'props';
+}
+
+export interface FoundryTrashEntry {
+  readonly trashId: string;
+  readonly assetId: string;
+  readonly displayName?: string;
+  readonly type: string;
+  readonly deletedAt: string;
+  readonly files: number;
+}
+
+export interface FoundryBulkResult {
+  readonly changed: readonly string[];
+  readonly trashed: readonly string[];
+  readonly removedFromLibrary: readonly string[];
 }
 
 export interface FoundryAssetMeta {
   readonly displayName?: string;
+  readonly category?: AssetCategory;
   readonly prompt?: string;
   readonly draftGroup?: string;
   readonly styleId?: string;
@@ -306,6 +353,125 @@ export class FoundryAssetService {
   }
 
   /** Keeps one draft of a group and hides its siblings (they stay on disk and can be shown again). */
+  /**
+   * One action on many assets: hide/show, set a category, or delete. Delete moves files made in Matterhorn
+   * to the Trash (restorable); files that live in a game or work folder are never deleted, those assets
+   * only leave the library. Assets other assets were made from can only be deleted together with them.
+   */
+  bulk(action: string, assetIds: readonly string[], category?: string): FoundryBulkResult {
+    const ids = [...new Set(assetIds)];
+    if (!ids.length || ids.length > 2000) throw new Error('Select between 1 and 2000 assets.');
+    for (const id of ids) if (!this.store.get(id)) throw new Error(`Asset not found: ${id}`);
+    if (action === 'hide' || action === 'show') {
+      this.setMetaMany(ids.map((id) => [id, { hidden: action === 'hide' ? true : undefined }]));
+      return { changed: ids, trashed: [], removedFromLibrary: [] };
+    }
+    if (action === 'category') {
+      if (category !== 'auto' && !(ASSET_CATEGORIES as readonly string[]).includes(category ?? '')) throw new Error('Choose a category.');
+      this.setMetaMany(ids.map((id) => [id, { category: category === 'auto' ? undefined : category as AssetCategory }]));
+      return { changed: ids, trashed: [], removedFromLibrary: [] };
+    }
+    if (action !== 'delete') throw new Error(`Unknown action: ${action}`);
+
+    const selected = new Set(ids);
+    const blocked = this.store.list().filter((m) => m.parentAsset && selected.has(m.parentAsset) && !selected.has(m.assetId));
+    if (blocked.length) {
+      const names = blocked.slice(0, 5).map((m) => this.meta_[m.assetId]?.displayName ?? m.assetId).join(', ');
+      throw new Error(`Other assets were made from these: ${names}${blocked.length > 5 ? ` and ${blocked.length - 5} more` : ''}. Select them too, or remove them from the library instead.`);
+    }
+    const made = ids.filter((id) => this.store.get(id)?.generationProvider !== 'imported');
+    const imported = ids.filter((id) => !made.includes(id));
+    for (const id of made) this.moveToTrash(id);
+    this.store.removeMany(made);
+    for (const id of made) delete this.meta_[id];
+    if (imported.length) this.setMetaMany(imported.map((id) => [id, { hidden: true }]));
+    else this.persistMeta();
+    return { changed: [], trashed: made, removedFromLibrary: imported };
+  }
+
+  trash(): readonly FoundryTrashEntry[] {
+    if (!existsSync(this.trashDir)) return [];
+    return readdirSync(this.trashDir)
+      .map((name) => {
+        try {
+          const record = JSON.parse(readFileSync(join(this.trashDir, name, 'record.json'), 'utf8')) as TrashRecord;
+          return { trashId: name, assetId: record.manifest.assetId, ...(record.meta?.displayName ? { displayName: record.meta.displayName } : {}), type: record.manifest.type, deletedAt: record.deletedAt, files: record.moved.length };
+        } catch {
+          return undefined;
+        }
+      })
+      .filter((entry): entry is FoundryTrashEntry => Boolean(entry))
+      .sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
+  }
+
+  /** Puts a deleted asset back: files to where they were, and the asset back in the library. */
+  restore(trashId: string): FoundryAssetView {
+    if (!/^[a-zA-Z0-9_.-]+$/.test(trashId)) throw new Error('Invalid trash entry.');
+    const folder = join(this.trashDir, trashId);
+    const record = JSON.parse(readFileSync(join(folder, 'record.json'), 'utf8')) as TrashRecord;
+    const manifest = record.manifest;
+    if (this.store.get(manifest.assetId)) throw new Error('An asset with this name is already in the library.');
+    if (manifest.parentAsset && !this.store.get(manifest.parentAsset)) {
+      throw new Error(`Restore "${manifest.parentAsset}" first; this asset was made from it.`);
+    }
+    for (const { from, to } of record.moved) {
+      if (existsSync(from)) throw new Error(`Something already exists where this asset's files were: ${from}`);
+    }
+    for (const { from, to } of record.moved) {
+      mkdirSync(dirname(from), { recursive: true });
+      moveFile(to, from);
+    }
+    this.store.register(manifest);
+    if (record.meta) this.meta_[manifest.assetId] = record.meta;
+    this.persistMeta();
+    rmSync(folder, { recursive: true, force: true });
+    return this.get(manifest.assetId)!;
+  }
+
+  /** Permanently deletes everything in the Trash (only ever on the owner's click). */
+  emptyTrash(): number {
+    const count = this.trash().length;
+    if (existsSync(this.trashDir)) rmSync(this.trashDir, { recursive: true, force: true });
+    return count;
+  }
+
+  private get trashDir(): string {
+    return join(this.dataDirectory, 'foundry-assets', 'trash');
+  }
+
+  /** Moves a made-in-Matterhorn asset's folder (or its own files) into the Trash with a record to restore it. */
+  private moveToTrash(assetId: string): void {
+    const manifest = this.store.require(assetId);
+    const files = this.assetFiles(manifest).map((file) => this.safePath(file)).filter((file): file is string => Boolean(file));
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const folder = join(this.trashDir, `${stamp}_${assetId.replace(/[^a-zA-Z0-9_.-]+/g, '_')}`.slice(0, 180));
+    mkdirSync(folder, { recursive: true });
+    const moved: { from: string; to: string }[] = [];
+    // A build folder that holds only this asset moves as a whole (renders, scripts, work files together).
+    const home = manifest.localPath ? dirname(resolve(manifest.localPath)) : undefined;
+    const others = this.store.list().filter((m) => m.assetId !== assetId);
+    const shared = home && others.some((m) => [m.localPath, ...(m.companionFiles ?? [])].some((f) => f && resolve(f).startsWith(home + sep)));
+    if (home && existsSync(home) && !shared && /[\\/]generated[\\/]/.test(home) && !this.isRoot(home)) {
+      const to = join(folder, 'files');
+      moveFile(home, to);
+      moved.push({ from: home, to });
+    } else {
+      for (const [index, file] of files.entries()) {
+        const to = join(folder, 'files', `${index}_${basename(file)}`);
+        mkdirSync(dirname(to), { recursive: true });
+        moveFile(file, to);
+        moved.push({ from: file, to });
+      }
+    }
+    const record: TrashRecord = { manifest, meta: this.meta_[assetId], moved, deletedAt: new Date().toISOString() };
+    writeFileSync(join(folder, 'record.json'), JSON.stringify(record, null, 2), 'utf8');
+  }
+
+  private isRoot(path: string): boolean {
+    const target = resolve(path);
+    return this.allowedRoots.some((root) => resolve(root) === target);
+  }
+
   keepDraft(assetId: string): readonly FoundryAssetView[] {
     const group = this.meta_[assetId]?.draftGroup;
     if (!group) throw new Error('This asset is not one of a set of drafts.');
@@ -367,6 +533,12 @@ export class FoundryAssetService {
       ...(meta.styleId ? { styleId: meta.styleId } : {}),
       ...(meta.hidden ? { hidden: true } : {}),
       ...(meta.source ? { source: meta.source } : {}),
+      category: meta.category ?? autoCategory(
+        manifest.type,
+        [meta.displayName, meta.prompt, manifest.generationProvider === 'mini-rigger' ? 'rigged character' : ''].filter(Boolean).join(' '),
+        [manifest.assetId, manifest.localPath ? basename(dirname(manifest.localPath)) : '', manifest.localPath ? basename(manifest.localPath) : ''].filter(Boolean).join(' '),
+      ),
+      ...(meta.category ? { categorySetByOwner: true } : {}),
     };
   }
 
@@ -398,5 +570,24 @@ export class FoundryAssetService {
     });
 
     return allowed ? candidate : undefined;
+  }
+}
+
+interface TrashRecord {
+  readonly manifest: FoundryAssetManifest;
+  readonly meta?: FoundryAssetMeta;
+  readonly moved: readonly { readonly from: string; readonly to: string }[];
+  readonly deletedAt: string;
+}
+
+/** Rename, or copy-and-remove when the Trash is on another drive. */
+function moveFile(from: string, to: string): void {
+  mkdirSync(dirname(to), { recursive: true });
+  try {
+    renameSync(from, to);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EXDEV') throw error;
+    cpSync(from, to, { recursive: true });
+    rmSync(from, { recursive: true, force: true });
   }
 }

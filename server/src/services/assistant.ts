@@ -24,15 +24,22 @@ export interface AssistantReply {
 const ASSET_WORDS = /\b(assets?|models?|meshes|sounds?|music|songs?|audio|sfx|images?|pictures?|sprites?|icons?|logos?|textures?|characters?|props?|files?|library|3d)\b/i;
 const SHOW_WORDS = /\b(show|list|find|see|display|search|look|give|what|which|where|have|got|any|all|every(thing)?|how many)\b/i;
 
-const KIND_FILTERS: { pattern: RegExp; label: string; filter: string; test: (type: string) => boolean }[] = [
-  { pattern: /\b(3d|models?|meshes|props?|characters?)\b/i, label: '3D models', filter: '3d', test: (t) => t === 'mesh_3d' || t === 'rig' },
-  { pattern: /\b(sounds?|music|songs?|audio|sfx)\b/i, label: 'sounds', filter: 'audio', test: (t) => t.startsWith('audio_') },
-  { pattern: /\b(images?|pictures?|sprites?|icons?|logos?|textures?|backgrounds?)\b/i, label: 'images', filter: '2d', test: (t) => !t.startsWith('audio_') && t !== 'mesh_3d' && t !== 'rig' },
+/** Library categories the chat understands; the filter opens the same category tab in Assets. */
+const KIND_FILTERS: { pattern: RegExp; label: string; filter: string; test: (a: FoundryAssetView) => boolean }[] = [
+  { pattern: /\b(characters?|players?|people|heroes)\b/i, label: 'characters', filter: 'characters', test: (a) => a.category === 'characters' },
+  { pattern: /\b(animals?|dogs?|cats?|birds?|pets?)\b/i, label: 'animals', filter: 'animals', test: (a) => a.category === 'animals' },
+  { pattern: /\b(vehicles?|cars?|trucks?|buses|motos?|motorbikes?|bikes?)\b/i, label: 'vehicles', filter: 'vehicles', test: (a) => a.category === 'vehicles' },
+  { pattern: /\b(buildings?|houses?|shops?|stores?|walls?|doors?|colmados?|places?|streets?|blocks?|levels?)\b/i, label: 'buildings', filter: 'buildings', test: (a) => a.category === 'buildings' },
+  { pattern: /\b(nature|trees?|plants?|palms?|rocks?|flowers?)\b/i, label: 'nature', filter: 'nature', test: (a) => a.category === 'nature' },
+  { pattern: /\b(props?|objects?)\b/i, label: 'props', filter: 'props', test: (a) => a.category === 'props' },
+  { pattern: /\b(3d|models?|meshes)\b/i, label: '3D models', filter: '3d', test: (a) => a.type === 'mesh_3d' || a.type === 'rig' },
+  { pattern: /\b(sounds?|music|songs?|audio|sfx)\b/i, label: 'sounds', filter: 'sounds', test: (a) => a.category === 'sounds' },
+  { pattern: /\b(images?|pictures?|sprites?|icons?|logos?|textures?|backgrounds?)\b/i, label: 'images', filter: 'images', test: (a) => a.category === 'images' },
 ];
 
 const STOP = new Set(('show list find see display search look give me us the a an of in on at for to from with and or that this these those we our my i you your can could would will please ' +
   'what which where have has got any all every everything how many do does is are there still still some just only assets asset models model meshes sounds sound music songs song audio sfx images image ' +
-  'pictures picture sprites sprite icons icon logos logo textures texture characters character props prop files file library 3d inside called named version versions').split(/\s+/));
+  'pictures picture sprites sprite icons icon logos logo textures texture characters character props prop vehicles vehicle buildings building nature objects object players player files file library 3d inside called named version versions').split(/\s+/));
 
 export function isAssetQuestion(message: string): boolean {
   return ASSET_WORDS.test(message) && (SHOW_WORDS.test(message) || /^\s*(assets?|models?|sounds?|images?)\b/i.test(message));
@@ -50,7 +57,7 @@ export function searchAssets(message: string, assets: readonly FoundryAssetView[
 
   const haystack = (a: FoundryAssetView) => `${a.displayName ?? ''} ${a.assetId} ${a.source ?? ''} ${a.prompt ?? ''}`.toLowerCase().replace(/[_-]+/g, ' ');
   const matches = visible.filter((a) => {
-    if (kinds.length && !kinds.some((k) => k.test(a.type))) return false;
+    if (kinds.length && !kinds.some((k) => k.test(a))) return false;
     if (game && !(a.source ?? '').toLowerCase().startsWith(`${game.toLowerCase()} game`)) return false;
     const text = haystack(a);
     return terms.every((term) => text.includes(term.replace(/[_-]+/g, ' ')));

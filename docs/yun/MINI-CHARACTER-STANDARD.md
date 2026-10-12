@@ -86,22 +86,38 @@ Every character is unique on **all five** of these. Check them against the roste
 2. **Signature accent colour** — one bold colour nobody else has as their accent.
 3. **Outfit archetype** — bomber jacket, hoodie, baseball jersey, tank top + overalls, guayabera,
    tracksuit, school uniform, vest + tee, dress, windbreaker…
-4. **Hero accessory** — one readable item: crossbody bag, headphones, cap, glasses, chain, backpack,
-   wristbands, bandana, scarf…
+4. **Hero accessory** — one readable item: headphones, cap, glasses, goggles, beanie, hair clip, cat-ear
+   headset, earrings… (the **crossbody strap/bag is shared by the whole family** and does not count).
 5. **Shoes** — high-tops, slides, boots, runners, sandals, skate shoes… (always chunky).
 
 Allowed body variation stays small so silhouettes still match: head width ±0.02 m, torso width ±0.02 m,
 height fixed. Skin tones vary across the roster (the game is set in a Dominican street; show that range).
 
-## 3. Roster
+## 3. Roster (owner's concept design v1)
 
-| # | Character | Hair | Accent | Outfit | Accessory | Shoes | Status |
-|---|---|---|---|---|---|---|---|
-| 1 | **Yun** | curly volume + high ponytail, orange scrunchie | orange `#F57319` / `#FFA826` | cropped cream bomber, black crop top, olive cargo shorts, leggings | black crossbody bag | white high-tops | mini v02 rigged (`checkpoints/mini-v02-rigged`) — awaiting owner review |
-| 2–12 | to be designed | | | | | | |
+Reference sheet: [`roster-concept-v1.png`](roster-concept-v1.png). Better views of each character are coming
+from the owner; build each one from its own views when they arrive.
 
-The game currently names its 12 players Tito, Lina, Paco, Yari, Neno, Cata, Rafi, Meli, Chino, Sofi, Bebo
-and Nati (`scripts/mini_figure.gd`). Whether the new characters take those names is the owner's choice.
+| # | Name | Hair | Accent | Outfit | Hero accessory | Shoes | Skin | Status |
+|---|---|---|---|---|---|---|---|---|
+| 01 | **Yun** | dark curly volume + high ponytail, orange scrunchie | orange | cropped cream/orange bomber, black crop top, olive cargo shorts, leggings | gold hoop earrings | white/orange high-tops | warm brown | **approved look**; rigged (`checkpoints/mini-v02-rigged`) |
+| 02 | **Riko** | long brown hair, high ponytail with pink scrunchie, bangs | pink / rose | pink-and-black bomber with a star, black shorts | pink scrunchie | pink/white sneakers | light | concept |
+| 03 | **Kai** | spiky black hair | royal blue | blue jacket with white collar, black shorts | headphones around the neck | blue/white sneakers | light | concept |
+| 04 | **Luna** | long purple hair, twin space buns, star clip | purple / lavender | lavender jacket with white sleeves, grey shorts | star hair clip | purple sneakers | light | concept |
+| 05 | **Ace** | short dark hair under a backwards cap | red | red-and-white varsity jacket, black shorts | backwards red cap | red/white sneakers | dark brown | concept |
+| 06 | **Neo** | fluffy blond hair | green | green-and-white varsity jacket, black shorts | round glasses | green/black sneakers | light | concept |
+| 07 | **Mika** | black hair, two buns with yellow ties, bangs | yellow | yellow jacket, brown shorts | yellow bun ties | yellow/white sneakers | light | concept |
+| 08 | **Zen** | long dark hair under a beanie | sky blue | denim-blue jacket, dark shorts | light-blue beanie | blue/black sneakers | dark brown | concept |
+| 09 | **Jet** | spiky orange hair | orange / black | orange-and-black jacket, black shorts | aviator goggles on the head | black/orange sneakers | light | concept |
+| 10 | **Nami** | long teal hair with a star clip | teal / mint | black jacket over a teal top, yellow hip bag | star clip, yellow hip bag | green/white sneakers | light | concept |
+| 11 | **Rae** | brown hair with a pink streak | hot pink | pink-and-black jacket, black shorts | pink cat-ear headphones | pink/white sneakers | medium | concept |
+| 12 | **Sol** | spiky white/silver hair | cobalt blue | blue jacket with white collar, black shorts | — (hair is the signature) | blue/white sneakers | dark brown | concept |
+
+**Accent clashes to settle (owner's call):** Yun and Jet are both orange; Riko and Rae are both pink; Kai and
+Sol are both strong blue (Zen is a lighter blue). Suggested split if wanted: Jet → burnt orange/amber with
+black, Yun keeps bright orange; Rae → magenta/hot pink, Riko keeps rose pink; Sol → cobalt with white,
+Kai keeps royal blue, Zen keeps sky blue. Each pair also differs in hair, outfit and accessory, so they will
+still read apart in game.
 
 ## 4. Checks before a character is accepted
 

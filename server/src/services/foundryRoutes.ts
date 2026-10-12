@@ -175,6 +175,34 @@ export async function foundryRoutes(
     return true;
   }
 
+  if (request.method === 'POST' && pathname === '/api/foundry/assets/bulk') {
+    try {
+      const body = (await readBody()) as { action?: unknown; assetIds?: unknown; category?: unknown };
+      if (typeof body?.action !== 'string' || !Array.isArray(body.assetIds) || !body.assetIds.every((id) => typeof id === 'string')) {
+        throw new Error('Send an action and a list of asset IDs.');
+      }
+      sendJson(response, 200, service.foundryAssets.bulk(body.action, body.assetIds as string[], typeof body.category === 'string' ? body.category : undefined));
+    } catch (error) {
+      sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return true;
+  }
+
+  if (pathname === '/api/foundry/trash' && request.method === 'GET') {
+    sendJson(response, 200, { items: service.foundryAssets.trash() });
+    return true;
+  }
+  const trashMatch = /^\/api\/foundry\/trash\/(empty|([a-zA-Z0-9_.-]+)\/restore)$/.exec(pathname);
+  if (request.method === 'POST' && trashMatch) {
+    try {
+      if (trashMatch[1] === 'empty') sendJson(response, 200, { deleted: service.foundryAssets.emptyTrash() });
+      else sendJson(response, 200, { asset: service.foundryAssets.restore(trashMatch[2]) });
+    } catch (error) {
+      sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return true;
+  }
+
   const rigMatch = /^\/api\/foundry\/assets\/([^/]+)\/rig-setup$/.exec(pathname);
   if (request.method === 'POST' && rigMatch) {
     const assetId = decodeAssetId(rigMatch[1]);

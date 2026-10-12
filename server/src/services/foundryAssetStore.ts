@@ -116,6 +116,15 @@ export class FoundryAssetStore {
     this.catalog = candidate;
   }
 
+  /** Takes assets out of the catalog (their files are handled by the caller). */
+  removeMany(assetIds: readonly string[]): void {
+    const gone = new Set(assetIds);
+    const candidate = new FoundryAssetCatalog();
+    candidate.registerMany(this.catalog.list().filter((manifest) => !gone.has(manifest.assetId)));
+    this.persist(candidate.list());
+    this.catalog = candidate;
+  }
+
   registerExecution(execution: FoundryAssetExecution): void {
     this.registerMany(execution.manifests);
   }

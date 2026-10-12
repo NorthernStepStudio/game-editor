@@ -4,18 +4,21 @@ const KIND_LABEL = {
   mesh_3d: '3D model', sprite_sheet: 'Sprite sheet', pixel_sprite: 'Pixel art', rig: 'Rig', animation: 'Animation',
   texture: 'Texture', ui_icon: 'Icon', concept_art: 'Concept art', background: 'Background', tile: 'Tile', tileset: 'Tileset',
 };
+const CATEGORY_LABEL = {
+  characters: 'Characters', animals: 'Animals', props: 'Props', buildings: 'Buildings & places', vehicles: 'Vehicles', nature: 'Nature', images: 'Images', sounds: 'Sounds',
+};
 const FILTERS = [
   { id: 'all', label: 'All' },
-  { id: '3d', label: '3D models' },
-  { id: '2d', label: 'Images & sprites' },
-  { id: 'audio', label: 'Sounds' },
+  ...Object.entries(CATEGORY_LABEL).map(([id, label]) => ({ id, label })),
   { id: 'attention', label: 'Needs attention' },
 ];
+// Links from before categories (and from the chat) keep working.
+const LEGACY_FILTERS = { '2d': 'images', audio: 'sounds', '3d': '3d' };
 const AUDIO_KINDS = new Set(['audio_sfx', 'audio_music', 'audio_voice']);
 const PAGE_SIZE = 120;
 const RENDER_ORDER = ['render_front.png', 'render_three_quarter.png', 'render_side.png', 'render_back.png'];
 
-const state = { filter: 'all', source: 'all', query: '', limit: PAGE_SIZE, data: null, poll: undefined };
+const state = { filter: 'all', source: 'all', query: '', limit: PAGE_SIZE, data: null, poll: undefined, selecting: false, selected: new Set(), anchor: undefined };
 
 /** Where an asset came from: made here, in one of the games, or a work file. */
 function originOf(asset) {
@@ -48,17 +51,19 @@ async function loadData() {
 
 export function leave() {
   clearTimeout(state.poll);
+  stopSelecting();
 }
 
 export async function render(main, sub) {
   clearTimeout(state.poll);
   await loadData();
   if (sub.startsWith('build/')) return renderJob(main, sub.slice(6));
+  if (sub === 'removed') return renderRemoved(main);
   if (sub.startsWith('search/')) {
     // Opened from the chat: show the library filtered by its search.
     const [query, filter] = sub.slice(7).split('/');
     state.query = decodeURIComponent(query ?? '').toLowerCase();
-    state.filter = FILTERS.some((f) => f.id === filter) ? filter : 'all';
+    state.filter = FILTERS.some((f) => f.id === filter) ? filter : LEGACY_FILTERS[filter] ?? 'all';
     state.source = 'all';
     state.limit = PAGE_SIZE;
     return renderGrid(main);
@@ -72,16 +77,15 @@ function assetName(asset) {
   return asset.displayName || asset.assetId;
 }
 
-function matchesFilter(item) {
-  const { filter, query } = state;
-  const text = `${item.name} ${item.prompt ?? ''} ${item.asset?.source ?? ''}`.toLowerCase();
+function matchesFilter(item, filter = state.filter) {
+  const { query } = state;
+  const text = `${item.name} ${item.prompt ?? ''} ${item.asset?.source ?? ''} ${CATEGORY_LABEL[item.asset?.category] ?? ''}`.toLowerCase();
   if (query && !text.includes(query)) return false;
   if (state.source !== 'all' && (item.type !== 'asset' ? state.source !== 'made' : originOf(item.asset) !== state.source)) return false;
+  if (filter === 'all') return true;
   if (filter === 'attention') return item.status === 'failed';
   if (filter === '3d') return item.kind === 'mesh_3d';
-  if (filter === 'audio') return AUDIO_KINDS.has(item.kind);
-  if (filter === '2d') return item.kind !== 'mesh_3d' && !AUDIO_KINDS.has(item.kind) && item.kind !== undefined;
-  return true;
+  return item.type === 'asset' && item.asset.category === filter;
 }
 
 function libraryItems() {
@@ -114,8 +118,10 @@ function libraryItems() {
       group.push(asset);
       groups.set(asset.draftGroup, group);
     }
-    const older = asset.generationProvider === 'imported' ? revisions.get(revisionKey(asset)).length - 1 : 0;
-    items.push({ type: 'asset', status: 'ready', asset, name: assetName(asset), kind: asset.type, prompt: asset.prompt, created: asset.createdAt, older });
+    const fold = asset.generationProvider === 'imported' ? revisions.get(revisionKey(asset)) : [asset];
+    const older = fold.length - 1;
+    // Selecting a folded card selects every version in it.
+    items.push({ type: 'asset', status: 'ready', asset, name: assetName(asset), kind: asset.type, prompt: asset.prompt, created: asset.createdAt, older, ids: fold.map((a) => a.assetId) });
   }
   for (const item of items) {
     if (item.type === 'asset' && item.asset.draftGroup) {
@@ -167,9 +173,12 @@ function renderGrid(main) {
         h('option', { value: 'made', selected: state.source === 'made' }, 'Made in Matterhorn'),
         state.data.games.map((g) => h('option', { value: `game:${g.id}`, selected: state.source === `game:${g.id}` }, `In ${g.name}`)),
         h('option', { value: 'work', selected: state.source === 'work' }, 'Work files (artifacts)')),
-      h('div', { id: 'asset-filters' })),
+      btn(state.selecting ? 'Done selecting' : 'Select', () => (state.selecting ? stopSelecting() : startSelecting()), state.selecting ? 'primary' : '', { id: 'select-toggle', 'aria-pressed': String(state.selecting), title: 'Pick several assets to move, remove or delete' })),
+    h('div', { id: 'asset-filters', class: 'filter-row' }),
     h('p', { id: 'asset-count', class: 'muted small' }),
     h('div', { id: 'asset-grid', class: 'grid', 'aria-live': 'polite' }),
+    h('div', { id: 'select-bar', class: 'select-bar', hidden: !state.selecting, role: 'toolbar', 'aria-label': 'Selected assets' }),
+    h('p', { class: 'muted small removed-link' }, h('a', { href: '#assets/removed' }, 'Removed & Trash')),
   );
   paintGrid();
 }
@@ -178,9 +187,13 @@ function paintGrid() {
   const grid = document.querySelector('#asset-grid');
   const filters = document.querySelector('#asset-filters');
   if (!grid || !filters) return;
-  clear(filters, pills(FILTERS, state.filter, (id) => { state.filter = id; state.limit = PAGE_SIZE; paintGrid(); }, 'Filter assets'));
   const all = libraryItems();
-  const items = all.filter(matchesFilter);
+  const counts = Object.fromEntries(FILTERS.map((f) => [f.id, all.filter((item) => matchesFilter(item, f.id)).length]));
+  clear(filters, pills(FILTERS.filter((f) => f.id === 'all' || counts[f.id] || f.id === state.filter)
+    .map((f) => ({ id: f.id, label: f.id === 'all' ? f.label : `${f.label} ${counts[f.id]}` })),
+  state.filter, (id) => { state.filter = id; state.limit = PAGE_SIZE; paintGrid(); }, 'What it is'));
+  const items = all.filter((item) => matchesFilter(item));
+  state.shown = items.slice(0, state.limit);
   const count = document.querySelector('#asset-count');
   if (count) count.textContent = `${items.length} of ${all.length} assets`;
   if (!all.length) {
@@ -190,15 +203,16 @@ function paintGrid() {
   } else if (!items.length) {
     clear(grid, h('div', { class: 'empty wide' }, h('p', {}, 'Nothing matches.'), btn('Show all', () => { state.filter = 'all'; state.query = ''; render(document.querySelector('#main'), ''); })));
   } else {
-    clear(grid, items.slice(0, state.limit).map(card),
+    clear(grid, state.shown.map((item, index) => card(item, index)),
       items.length > state.limit
         ? h('div', { class: 'empty wide' }, btn(`Show ${Math.min(PAGE_SIZE, items.length - state.limit)} more`, () => { state.limit += PAGE_SIZE; paintGrid(); }))
         : null);
   }
+  paintSelectBar();
   schedulePoll();
 }
 
-function card(item) {
+function card(item, index) {
   const kind = KIND_LABEL[item.kind] ?? item.kind ?? 'Asset';
   if (item.type === 'job') {
     const job = item.job;
@@ -218,6 +232,7 @@ function card(item) {
               action('Retry', async () => { await retry(job); }, 'small quiet')])));
   }
   const asset = item.asset;
+  if (state.selecting) return selectableCard(item, index, kind);
   return h('article', { class: 'asset-card' },
     h('a', { class: 'thumb', href: `#assets/${encodeURIComponent(asset.assetId)}`, 'aria-label': `Open ${item.name}` },
       asset.previewUrl ? h('img', { src: asset.previewUrl, alt: '', loading: 'lazy' }) : null,
@@ -501,12 +516,34 @@ async function renderDetail(main, assetId) {
         sendCard(asset),
         downloadCard(files),
         versionsCard(detail.lineage ?? [], asset.assetId),
+        categoryCard(asset),
         h('section', { class: 'card' },
-          action('Remove from library', async () => {
-            await api(`/api/foundry/assets/${encodeURIComponent(asset.assetId)}/hide`, {});
-            toast(`${name} removed from the library. Its files are still on disk.`);
-            location.hash = '#assets';
-          }, 'quiet danger')))));
+          h('div', { class: 'row wrap' },
+            action('Remove from library', async () => {
+              await api(`/api/foundry/assets/${encodeURIComponent(asset.assetId)}/hide`, {});
+              toast(`${name} removed from the library. Its files are still on disk. (Assets \u203a Removed & Trash to bring it back)`);
+              location.hash = '#assets';
+            }, 'quiet danger'),
+            asset.generationProvider !== 'imported'
+              ? action('Delete\u2026', () => confirmDelete([asset.assetId], () => { location.hash = '#assets'; }), 'quiet danger')
+              : null)))));
+}
+
+/** What the asset is, for the library tabs. Matterhorn picks it; the owner can change it. */
+function categoryCard(asset) {
+  const select = h('select', { id: 'asset-category', class: 'field' },
+    h('option', { value: 'auto', selected: !asset.categorySetByOwner }, `Automatic (${CATEGORY_LABEL[asset.category] ?? asset.category})`),
+    Object.entries(CATEGORY_LABEL).map(([id, label]) => h('option', { value: id, selected: asset.categorySetByOwner && asset.category === id }, label)));
+  select.addEventListener('change', async () => {
+    try {
+      await api('/api/foundry/assets/bulk', { action: 'category', assetIds: [asset.assetId], category: select.value });
+      toast(select.value === 'auto' ? 'Matterhorn will sort it automatically.' : `Moved to ${CATEGORY_LABEL[select.value]}.`);
+      await loadData();
+    } catch (error) {
+      toast(error.message, 'error');
+    }
+  });
+  return h('section', { class: 'card form' }, h('label', { for: 'asset-category', class: 'label' }, 'What it is'), select);
 }
 
 /** Drag (or use the arrow keys) to turn the model; Replay shows it being assembled part by part. */
@@ -1047,4 +1084,204 @@ export function closeSheet() {
   const sheet = document.querySelector('#sheet');
   sheet.hidden = true;
   sheet.replaceChildren();
+}
+
+// ── Select several assets ─────────────────────────────────────────────
+function startSelecting() {
+  state.selecting = true;
+  state.selected = new Set();
+  state.anchor = undefined;
+  document.addEventListener('keydown', selectKeys);
+  renderGrid(document.querySelector('#main'));
+}
+
+function stopSelecting() {
+  if (!state.selecting) return;
+  state.selecting = false;
+  state.selected = new Set();
+  document.removeEventListener('keydown', selectKeys);
+  if (document.querySelector('#asset-grid')) renderGrid(document.querySelector('#main'));
+}
+
+/** Esc stops, Ctrl+A selects everything shown, Delete asks to delete the selection. */
+function selectKeys(event) {
+  if (!document.querySelector('#asset-grid')) return;
+  if (event.target.closest?.('input, textarea, select, .sheet')) return;
+  if (event.key === 'Escape') stopSelecting();
+  else if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
+    event.preventDefault();
+    selectAllShown();
+  } else if (event.key === 'Delete' && state.selected.size) {
+    event.preventDefault();
+    confirmDelete([...state.selected], afterBulk);
+  }
+}
+
+function itemSelected(item) {
+  return item.ids?.length && item.ids.every((id) => state.selected.has(id));
+}
+
+function setItem(item, on) {
+  for (const id of item.ids ?? []) (on ? state.selected.add(id) : state.selected.delete(id));
+}
+
+/** Click toggles one card; Shift+click selects everything between it and the last card clicked. */
+function toggleCard(item, index, shift) {
+  const on = !itemSelected(item);
+  if (shift && state.anchor !== undefined) {
+    const [from, to] = [Math.min(state.anchor, index), Math.max(state.anchor, index)];
+    for (const other of state.shown.slice(from, to + 1)) if (other.type === 'asset') setItem(other, true);
+  } else {
+    setItem(item, on);
+  }
+  state.anchor = index;
+  paintGrid();
+}
+
+function selectAllShown() {
+  const shownAssets = state.shown.filter((item) => item.type === 'asset');
+  const all = shownAssets.every(itemSelected);
+  for (const item of shownAssets) setItem(item, !all);
+  paintGrid();
+}
+
+function selectableCard(item, index, kind) {
+  const asset = item.asset;
+  const on = itemSelected(item);
+  const node = h('article', {
+    class: `asset-card selectable${on ? ' selected' : ''}`, role: 'checkbox', tabindex: '0', 'aria-checked': String(on),
+    'aria-label': `${item.name}${item.older ? ` and ${item.older} older version${item.older > 1 ? 's' : ''}` : ''}`,
+    onclick: (e) => toggleCard(item, index, e.shiftKey),
+    onkeydown: (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggleCard(item, index, e.shiftKey); } },
+  },
+  h('div', { class: 'thumb' },
+    asset.previewUrl ? h('img', { src: asset.previewUrl, alt: '', loading: 'lazy' }) : null,
+    h('span', { class: 'pick', 'aria-hidden': 'true' }, on ? '\u2713' : ''),
+    h('span', { class: 'tag' }, CATEGORY_LABEL[asset.category] ?? kind)),
+  h('div', { class: 'asset-body' },
+    h('strong', {}, item.name),
+    h('span', { class: 'muted small clamp' }, asset.source ?? originLabel(asset)),
+    item.older ? h('span', { class: 'muted small' }, `+${item.older} older version${item.older > 1 ? 's' : ''} (selected together)`) : null));
+  return node;
+}
+
+function paintSelectBar() {
+  const bar = document.querySelector('#select-bar');
+  if (!bar) return;
+  bar.hidden = !state.selecting;
+  if (!state.selecting) return;
+  const n = state.selected.size;
+  const need = () => { if (!n) throw new Error('Select some assets first: click them, or Shift+click a range.'); };
+  const move = h('select', { id: 'bulk-category', class: 'field', 'aria-label': 'Move the selected assets to a category' },
+    h('option', { value: '', selected: true }, 'Move to\u2026'),
+    Object.entries(CATEGORY_LABEL).map(([id, label]) => h('option', { value: id }, label)),
+    h('option', { value: 'auto' }, 'Automatic'));
+  move.addEventListener('change', async () => {
+    const category = move.value;
+    if (!category) return;
+    try {
+      need();
+      await api('/api/foundry/assets/bulk', { action: 'category', assetIds: [...state.selected], category });
+      toast(category === 'auto' ? `${n} asset${n > 1 ? 's' : ''} will be sorted automatically.` : `Moved ${n} asset${n > 1 ? 's' : ''} to ${CATEGORY_LABEL[category]}.`);
+      await afterBulk();
+    } catch (error) {
+      toast(error.message, 'error');
+      move.value = '';
+    }
+  });
+  clear(bar,
+    h('strong', { class: 'select-count' }, n ? `${n} selected` : 'Click assets to select them'),
+    btn('Select all shown', selectAllShown, 'small', { disabled: !state.shown.some((item) => item.type === 'asset') }),
+    move,
+    action('Remove from library', async () => {
+      need();
+      await api('/api/foundry/assets/bulk', { action: 'hide', assetIds: [...state.selected] });
+      toast(`Removed ${n} from the library. Files stay on disk; bring them back from Removed & Trash.`);
+      await afterBulk();
+    }, 'small', { disabled: !n }),
+    action('Delete\u2026', () => { need(); return confirmDelete([...state.selected], afterBulk); }, 'small danger', { disabled: !n }),
+    btn('Done', stopSelecting, 'small quiet'));
+}
+
+async function afterBulk() {
+  state.selected = new Set();
+  await loadData();
+  paintGrid();
+}
+
+/** Says exactly what will happen before deleting: made assets go to the Trash, game files are never deleted. */
+function confirmDelete(ids, done) {
+  const assets = ids.map((id) => state.data.assets.find((a) => a.assetId === id)).filter(Boolean);
+  const made = assets.filter((a) => a.generationProvider !== 'imported');
+  const imported = assets.filter((a) => a.generationProvider === 'imported');
+  const names = (list) => list.slice(0, 6).map(assetName).join(', ') + (list.length > 6 ? ` and ${list.length - 6} more` : '');
+  openSheet(`Delete ${assets.length} asset${assets.length === 1 ? '' : 's'}?`,
+    made.length ? h('p', {}, `${made.length} made in Matterhorn (${names(made)}) will go to the Trash. You can restore them until you empty it.`) : null,
+    imported.length ? h('p', {}, `${imported.length} from your game or work folders (${names(imported)}) will only leave the library. Matterhorn never deletes files in your game.`) : null,
+    h('div', { class: 'row wrap' },
+      action(`Delete ${assets.length}`, async () => {
+        const result = await api('/api/foundry/assets/bulk', { action: 'delete', assetIds: ids });
+        closeSheet();
+        toast([
+          result.trashed.length ? `${result.trashed.length} moved to the Trash` : '',
+          result.removedFromLibrary.length ? `${result.removedFromLibrary.length} removed from the library` : '',
+        ].filter(Boolean).join(' \u00b7 ') + '. Undo from Removed & Trash.');
+        await done?.();
+      }, 'danger'),
+      btn('Cancel', closeSheet)));
+}
+
+// ── Removed & Trash ───────────────────────────────────────────────────
+async function renderRemoved(main) {
+  const trash = (await api('/api/foundry/trash')).items ?? [];
+  const removed = state.data.assets.filter((a) => a.hidden);
+  clear(main,
+    h('a', { class: 'btn quiet', href: '#assets' }, '\u2190 All assets'),
+    h('header', { class: 'page-head' }, h('h1', {}, 'Removed & Trash')),
+    h('section', { class: 'card' },
+      h('div', { class: 'row space' },
+        h('h2', {}, `Removed from the library (${removed.length})`),
+        removed.length ? action('Show all again', async () => {
+          await api('/api/foundry/assets/bulk', { action: 'show', assetIds: removed.map((a) => a.assetId) });
+          toast(`${removed.length} back in the library.`);
+          await loadData();
+          renderRemoved(main);
+        }, 'small') : null),
+      h('p', { class: 'muted small' }, 'Their files are untouched; they are just hidden from the library.'),
+      removed.length
+        ? h('ul', { class: 'removed-list' }, removed.slice(0, 300).map((a) => h('li', {},
+          h('span', {}, assetName(a), h('span', { class: 'muted small' }, ` \u00b7 ${a.source ?? CATEGORY_LABEL[a.category] ?? ''}`)),
+          action('Show again', async () => {
+            await api('/api/foundry/assets/bulk', { action: 'show', assetIds: [a.assetId] });
+            toast(`${assetName(a)} is back in the library.`);
+            await loadData();
+            renderRemoved(main);
+          }, 'small'))))
+        : h('p', { class: 'muted' }, 'Nothing removed.')),
+    h('section', { class: 'card' },
+      h('div', { class: 'row space' },
+        h('h2', {}, `Trash (${trash.length})`),
+        trash.length ? action('Empty trash\u2026', () => {
+          openSheet('Empty the Trash?',
+            h('p', {}, `This permanently deletes the files of ${trash.length} asset${trash.length === 1 ? '' : 's'}. It cannot be undone.`),
+            h('div', { class: 'row wrap' },
+              action('Delete forever', async () => {
+                const result = await api('/api/foundry/trash/empty', {});
+                closeSheet();
+                toast(`Deleted ${result.deleted} for good.`);
+                renderRemoved(main);
+              }, 'danger'),
+              btn('Cancel', closeSheet)));
+        }, 'small danger') : null),
+      h('p', { class: 'muted small' }, 'Things made in Matterhorn that you deleted. Restore puts the files and the asset back.'),
+      trash.length
+        ? h('ul', { class: 'removed-list' }, trash.map((t) => h('li', {},
+          h('span', {}, t.displayName ?? t.assetId, h('span', { class: 'muted small' }, ` \u00b7 deleted ${timeAgo(t.deletedAt)}`)),
+          action('Restore', async () => {
+            await api(`/api/foundry/trash/${encodeURIComponent(t.trashId)}/restore`, {});
+            toast(`${t.displayName ?? t.assetId} restored.`);
+            await loadData();
+            renderRemoved(main);
+          }, 'small'))))
+        : h('p', { class: 'muted' }, 'The Trash is empty.')));
 }

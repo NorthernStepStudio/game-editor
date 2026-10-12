@@ -835,6 +835,11 @@ export class FoundryGenerationService {
         const file = this.assets.store.get(assetId)?.localPath;
         return file && /\.(png|jpe?g|webp)$/i.test(file) && existsSync(file) ? file : undefined;
       },
+      resolveModelFile: (assetId) => {
+        const manifest = this.assets.store.get(assetId);
+        const files = [manifest?.localPath, ...(manifest?.companionFiles ?? [])].filter((file): file is string => Boolean(file));
+        return files.find((file) => /\.glb$/i.test(file) && existsSync(file));
+      },
     }));
     this.blenderAgentNotes.set(TRELLIS_PROVIDER_ID, 'Local and free: turns one front-view picture of a character into a textured 3D model on your graphics card (about 20 minutes), sized for the game and ready to rig.');
   }
@@ -1016,10 +1021,10 @@ function parseParameters(value: unknown): Readonly<Record<string, unknown>> | un
   if (typeof value !== 'object' || Array.isArray(value)) throw new Error('parameters must be an object.');
   const record = value as Record<string, unknown>;
   if (JSON.stringify(record).length > 4000) throw new Error('parameters are too large.');
-  const known = new Set(['joints', 'crop', 'quality', 'height', 'maxFaces']);
+  const known = new Set(['joints', 'crop', 'views', 'quality', 'height', 'maxFaces']);
   for (const key of Object.keys(record)) if (!known.has(key)) throw new Error(`Unknown parameter: ${key}`);
   const joints = parseJoints(record.joints);
-  const picture = ['crop', 'quality', 'height', 'maxFaces'].some((key) => record[key] !== undefined)
+  const picture = ['crop', 'views', 'quality', 'height', 'maxFaces'].some((key) => record[key] !== undefined)
     ? parseTrellisSettings(record)
     : undefined;
   const parsed = { ...(joints ? { joints } : {}), ...(picture ?? {}) };

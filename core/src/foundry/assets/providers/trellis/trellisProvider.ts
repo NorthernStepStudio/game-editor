@@ -19,6 +19,9 @@ import { TRELLIS_BLENDER_SCRIPT } from "./trellisScript.js";
  * (trellis.cpp on the GPU), then fit it to the game height and a polygon budget (Blender).
  * request.parameters: crop [x0, y0, x1, y1] (fractions of the picture, top-left origin), quality "standard" | "high",
  * height (metres, default 0.72, the mini characters' height) and maxFaces (default 40000).
+ * On a character sheet, views { right, back, left } (boxes like crop) mark the other views: the model's back and sides
+ * are then painted from them instead of guessed, and its colours are matched to the drawing.
+ * With parentAsset (a model made earlier) and those views, the existing model is repainted without rebuilding it.
  */
 
 export const TRELLIS_PROVIDER_ID = "trellis-local";
@@ -71,6 +74,8 @@ export interface TrellisProviderOptions {
   readonly tool: TrellisToolPaths;
   /** The picture file of an asset to build from. */
   readonly resolveImagePath: (assetId: string) => string | undefined;
+  /** The model (GLB) of an asset made earlier, to repaint from its sheet. */
+  readonly resolveModelFile?: (assetId: string) => string | undefined;
   readonly blenderExecutable?: string;
   /** For the whole TRELLIS run (default 90 minutes; a standard build takes about 20 on a mid-range GPU). */
   readonly timeoutMs?: number;
@@ -78,8 +83,14 @@ export interface TrellisProviderOptions {
   readonly runTrellis?: (args: readonly string[], onLine: (line: string) => void, signal?: AbortSignal) => Promise<{ code: number | null; output: string }>;
 }
 
+export type TrellisBox = readonly [number, number, number, number];
+export const TRELLIS_SHEET_VIEWS = ["front", "right", "back", "left"] as const;
+export type TrellisSheetView = (typeof TRELLIS_SHEET_VIEWS)[number];
+
 export interface TrellisSettings {
-  readonly crop?: readonly [number, number, number, number];
+  readonly crop?: TrellisBox;
+  /** The sheet's other views; front is the crop. */
+  readonly views?: Partial<Record<TrellisSheetView, TrellisBox>>;
   readonly quality: "standard" | "high";
   readonly height: number;
   readonly maxFaces: number;
@@ -92,11 +103,19 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
 
   async execute(request: FoundryAssetRequest, context?: FoundryAssetProviderContext): Promise<FoundryAssetProviderResult> {
     if (!context?.outputRoot) throw new Error("TRELLIS needs an output folder.");
-    const source = request.referenceAssets?.[0] ?? request.parentAsset;
-    if (!source) throw new Error("Choose the picture to build from.");
+    const repaint = Boolean(request.parentAsset);
+    const source = request.referenceAssets?.[0] ?? (repaint ? undefined : request.parentAsset);
+    if (!source) throw new Error(repaint ? "Choose the character sheet to paint from." : "Choose the picture to build from.");
     const image = this.options.resolveImagePath(source);
     if (!image || !/\.(png|jpe?g|webp)$/i.test(image) || !existsSync(image)) throw new Error(`${source} is not a PNG, JPG or WEBP picture.`);
     const settings = parseTrellisSettings(request.parameters);
+    const sides = TRELLIS_SHEET_VIEWS.filter((view) => view !== "front" && settings.views?.[view]);
+    let parentModel: string | undefined;
+    if (repaint) {
+      parentModel = this.options.resolveModelFile?.(request.parentAsset!);
+      if (!parentModel || !existsSync(parentModel)) throw new Error(`${request.parentAsset} has no .glb model to paint.`);
+      if (!sides.length) throw new Error("Mark at least one of the back, right or left views on the sheet.");
+    }
     const progress = context.onProgress ?? (() => undefined);
     const live = context.onLive ?? (() => undefined);
     const signal = context.signal;
@@ -106,35 +125,67 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
     for (let n = 2; existsSync(jobDir); n++) jobDir = resolve(context.outputRoot, `${baseName}_try${n}`);
     mkdirSync(jobDir, { recursive: true });
 
-    progress("Cutting the character out of the background…");
-    const cutout = join(jobDir, `${baseName}-cutout.png`);
-    const prepared = await this.blender({ mode: "prepare", image, output: cutout, ...(settings.crop ? { crop: settings.crop } : {}) }, jobDir, "prepare", signal);
-    live({ image: cutout });
+    const companions: string[] = [];
+    let model: string;
+    let res = "";
+    let cutoutNote: unknown;
+    if (parentModel) {
+      model = parentModel;
+    } else {
+      progress("Cutting the character out of the background…");
+      const cutout = join(jobDir, `${baseName}-cutout.png`);
+      const prepared = await this.blender({ mode: "prepare", image, output: cutout, ...(settings.crop ? { crop: settings.crop } : {}) }, jobDir, "prepare", signal);
+      cutoutNote = prepared.cutout;
+      live({ image: cutout });
 
-    const raw = join(jobDir, `${baseName}-trellis.glb`);
-    const res = settings.quality === "high" ? "1024" : "512";
-    progress(`Building the 3D model on your graphics card (${settings.quality === "high" ? "high detail, about 45 minutes" : "about 20 minutes"})…`);
-    const args = ["--image", cutout, "--output", raw, "--models", this.options.tool.models, "--res", res, "--require-gpu",
-      ...(request.seed !== undefined ? ["--seed", String(Number.parseInt(String(request.seed), 10) || 42)] : [])];
-    const run = await (this.options.runTrellis ?? ((a, onLine, s) => runTrellisCli(this.options.tool.cli, a, onLine, this.options.timeoutMs ?? 90 * 60_000, s)))(args, (line) => {
-      const step = trellisStep(line);
-      if (step) progress(`Step ${step} of 7: ${TRELLIS_STEPS[step]}…`);
-    }, signal);
-    if (signal?.aborted) throw new Error("Cancelled.");
-    for (const file of readdirSync(jobDir).filter((f) => f.endsWith(".ply"))) rmSync(join(jobDir, file), { force: true });
-    if (run.code !== 0 || !existsSync(raw)) {
-      const reason = run.output.trim().split(/\r?\n/).filter((line) => line && !line.startsWith("[trellis:dbg]")).slice(-1)[0] ?? "no output";
-      throw new Error(`TRELLIS could not build the model: ${reason.slice(0, 300)}`);
+      const raw = join(jobDir, `${baseName}-trellis.glb`);
+      res = settings.quality === "high" ? "1024" : "512";
+      progress(`Building the 3D model on your graphics card (${settings.quality === "high" ? "high detail, about 45 minutes" : "about 20 minutes"})…`);
+      const args = ["--image", cutout, "--output", raw, "--models", this.options.tool.models, "--res", res, "--require-gpu",
+        ...(request.seed !== undefined ? ["--seed", String(Number.parseInt(String(request.seed), 10) || 42)] : [])];
+      const run = await (this.options.runTrellis ?? ((a, onLine, s) => runTrellisCli(this.options.tool.cli, a, onLine, this.options.timeoutMs ?? 90 * 60_000, s)))(args, (line) => {
+        const step = trellisStep(line);
+        if (step) progress(`Step ${step} of 7: ${TRELLIS_STEPS[step]}…`);
+      }, signal);
+      if (signal?.aborted) throw new Error("Cancelled.");
+      for (const file of readdirSync(jobDir).filter((f) => f.endsWith(".ply"))) rmSync(join(jobDir, file), { force: true });
+      if (run.code !== 0 || !existsSync(raw)) {
+        const reason = run.output.trim().split(/\r?\n/).filter((line) => line && !line.startsWith("[trellis:dbg]")).slice(-1)[0] ?? "no output";
+        throw new Error(`TRELLIS could not build the model: ${reason.slice(0, 300)}`);
+      }
+      companions.push(cutout, raw);
+      model = raw;
     }
 
-    progress("Fitting the model to the game's size…");
+    let painted: Record<string, unknown> | undefined;
+    if (sides.length) {
+      if (!parentModel) {
+        // fit first, so the paint step works on the game-sized model
+        progress("Fitting the model to the game's size…");
+        const fitted = join(jobDir, `${baseName}-unpainted.glb`);
+        await this.blender({ mode: "finish", model, output: fitted, previewBase: join(jobDir, `${baseName}-unpainted`), height: settings.height, maxFaces: settings.maxFaces }, jobDir, "fit", signal);
+        model = fitted;
+        companions.push(fitted);
+      }
+      progress(`Painting the ${sides.join(", ")} from the sheet…`);
+      const paintedFile = join(jobDir, `${baseName}-painted.glb`);
+      painted = await this.blender({
+        mode: "paint", model, sheet: image, output: paintedFile,
+        views: { ...(settings.crop ? { front: settings.crop } : {}), ...settings.views },
+      }, jobDir, "paint", signal);
+      model = paintedFile;
+    }
+
+    progress(parentModel ? "Rendering the previews…" : "Fitting the model to the game's size…");
     const glb = join(jobDir, `${baseName}.glb`);
-    const finished = await this.blender({ mode: "finish", model: raw, output: glb, previewBase: join(jobDir, baseName), height: settings.height, maxFaces: settings.maxFaces }, jobDir, "finish", signal);
+    const finished = await this.blender({ mode: "finish", model, output: glb, previewBase: join(jobDir, baseName), height: settings.height, maxFaces: settings.maxFaces }, jobDir, "finish", signal);
     const previews = ((finished.previews ?? []) as string[]).map((file) => resolve(file)).filter((file) => existsSync(file));
     if (previews[0]) live({ image: previews[0] });
     if (!existsSync(glb)) throw new Error("Blender finished but the game-ready model is missing.");
     const faces = finished.faces as [number, number] | undefined;
-    progress(`Done: a ${settings.height} m model with ${faces?.[1] ?? "?"} faces, ready to rig.`);
+    progress(parentModel
+      ? `Done: painted from the ${sides.join(", ")} of the sheet, ready to rig.`
+      : `Done: a ${settings.height} m model with ${faces?.[1] ?? "?"} faces${sides.length ? `, painted from the ${sides.join(", ")} of the sheet` : ""}, ready to rig.`);
 
     const bytes = readFileSync(glb);
     return {
@@ -145,12 +196,15 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
         localPath: resolve(glb),
         contentHash: createHash("sha256").update(bytes).digest("hex"),
         ...(previews[0] ? { previewPath: previews[0] } : {}),
-        companionFiles: [cutout, raw, ...previews],
+        companionFiles: [...companions, ...previews].filter((file) => existsSync(file)),
         ...(request.seed !== undefined ? { seed: request.seed } : {}),
         metadata: {
-          model: `TRELLIS.2 (${res})`,
+          model: parentModel ? "Painted from the sheet" : `TRELLIS.2 (${res})`,
           source,
-          cutout: prepared.cutout,
+          ...(cutoutNote ? { cutout: cutoutNote } : {}),
+          ...(settings.crop ? { crop: settings.crop } : {}),
+          ...(settings.views ? { views: settings.views } : {}),
+          ...(painted ? { paintedFrom: painted.views } : {}),
           faces: finished.faces,
           size: finished.size,
           height: settings.height,
@@ -176,7 +230,8 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
     const report = existsSync(reportPath) ? JSON.parse(readFileSync(reportPath, "utf8")) as Record<string, unknown> : undefined;
     if (!report?.ok) {
       const error = String(report?.error ?? (run.timedOut ? "Blender timed out." : run.output.slice(-1500)));
-      throw new Error(`${step === "prepare" ? "Preparing the picture" : "Fitting the model"} failed: ${error.trim().split(/\r?\n/).slice(-1)[0]}`);
+      const what = step === "prepare" ? "Preparing the picture" : step === "paint" ? "Painting from the sheet" : "Fitting the model";
+      throw new Error(`${what} failed: ${error.trim().split(/\r?\n/).slice(-1)[0]}`);
     }
     return report;
   }
@@ -189,22 +244,33 @@ export function trellisStep(line: string): number | undefined {
   return step >= 1 && step <= 7 ? step : undefined;
 }
 
+/** A box on the picture: [left, top, right, bottom] as fractions between 0 and 1. */
+function parseBox(value: unknown, what: string): TrellisBox {
+  if (!Array.isArray(value) || value.length !== 4 || !value.every((n) => typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 1)) {
+    throw new Error(`${what === "The crop" ? "crop" : what} must be [left, top, right, bottom] as fractions between 0 and 1.`);
+  }
+  if (value[2] - value[0] < 0.02 || value[3] - value[1] < 0.02) throw new Error(`${what} is too small.`);
+  return [value[0], value[1], value[2], value[3]];
+}
+
 /** Reads the owner's settings; anything unusable falls back to the defaults or is refused with a clear reason. */
 export function parseTrellisSettings(parameters: Readonly<Record<string, unknown>> | undefined): TrellisSettings {
   const p = parameters ?? {};
-  let crop: TrellisSettings["crop"];
-  if (p.crop !== undefined && p.crop !== null) {
-    const c = p.crop;
-    if (!Array.isArray(c) || c.length !== 4 || !c.every((n) => typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 1)) {
-      throw new Error("crop must be [left, top, right, bottom] as fractions between 0 and 1.");
+  const crop = p.crop !== undefined && p.crop !== null ? parseBox(p.crop, "The crop") : undefined;
+  let views: Partial<Record<TrellisSheetView, TrellisBox>> | undefined;
+  if (p.views !== undefined && p.views !== null) {
+    if (typeof p.views !== "object" || Array.isArray(p.views)) throw new Error("views must map front, right, back or left to a box.");
+    views = {};
+    for (const [name, box] of Object.entries(p.views as Record<string, unknown>)) {
+      if (!(TRELLIS_SHEET_VIEWS as readonly string[]).includes(name)) throw new Error(`Unknown view: ${name}`);
+      views[name as TrellisSheetView] = parseBox(box, `The ${name} view`);
     }
-    if (c[2] - c[0] < 0.02 || c[3] - c[1] < 0.02) throw new Error("The crop is too small.");
-    crop = [c[0], c[1], c[2], c[3]];
+    if (!Object.keys(views).length) views = undefined;
   }
   const quality = p.quality === "high" ? "high" : "standard";
   const height = typeof p.height === "number" && p.height >= 0.05 && p.height <= 50 ? p.height : 0.72;
   const maxFaces = typeof p.maxFaces === "number" && p.maxFaces >= 2000 && p.maxFaces <= 300_000 ? Math.round(p.maxFaces) : 40_000;
-  return { ...(crop ? { crop } : {}), quality, height, maxFaces };
+  return { ...(crop ? { crop } : {}), ...(views ? { views } : {}), quality, height, maxFaces };
 }
 
 /** Runs trellis-cli, passing each output line on (for progress) and keeping the end of the output. */

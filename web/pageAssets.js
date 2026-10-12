@@ -538,6 +538,7 @@ async function renderDetail(main, assetId) {
             asset.parentAsset ? h('a', { class: 'btn small', href: `#assets/${encodeURIComponent(asset.parentAsset)}` }, 'Open the un-rigged model') : null)
           : hasScript || canContinue(asset, files) ? changeCard(asset, hasScript) : null,
         IMAGE_KINDS.has(asset.type) ? imageTo3dCard(asset) : null,
+        asset.type === 'mesh_3d' && !anims.length ? sheetPaintCard(asset) : null,
         asset.type === 'mesh_3d' && !anims.length && files.some((f) => /\.(glb|gltf)$/i.test(f.name)) ? rigCard(asset) : null,
         sendCard(asset),
         downloadCard(files),
@@ -853,12 +854,15 @@ function imageTo3dCard(asset) {
 
 /** TRELLIS: one picture (or just the front view on a character sheet) becomes a game-sized model on this PC. */
 function trellisForm(asset) {
-  let crop = null;
+  let views = {};
   const cropNote = h('p', { class: 'muted small', 'aria-live': 'polite' });
   const paintCrop = () => {
-    cropNote.textContent = crop
-      ? 'Using the area you chose.'
-      : 'Uses the whole picture. If it shows several views (a character sheet), choose just the front view.';
+    const sides = SHEET_VIEWS.filter((v) => v.id !== 'front' && views[v.id]).map((v) => v.label.toLowerCase());
+    cropNote.textContent = !views.front
+      ? 'Uses the whole picture. If it shows several views (a character sheet), choose the views.'
+      : sides.length
+        ? `Front view chosen; the ${sides.join(', ')} will be painted from the sheet.`
+        : 'Front view chosen. Mark the back and sides too, so they are painted from the sheet instead of guessed.';
   };
   paintCrop();
   const quality = h('select', { id: 'i3d-quality', class: 'field' },
@@ -866,38 +870,75 @@ function trellisForm(asset) {
     h('option', { value: 'high' }, 'High detail (about 45 minutes, sharper face, needs more graphics memory)'));
   const nameInput = h('input', { id: 'i3d-name', class: 'field', maxlength: 60, value: `${assetName(asset).replace(/\b(front|left|right|back|three quarter|a pose|sheet)\b/gi, '').replace(/\s+/g, ' ').trim() || 'Character'} 3D` });
   return h('div', { class: 'stack form' },
-    h('p', { class: 'muted small' }, 'Free, on this PC: builds a textured 3D model from one clear front view (T- or A-pose works best), sized for the game. The back is guessed from the front. Afterwards, use “Rig for the game” on the new model.'),
+    h('p', { class: 'muted small' }, 'Free, on this PC: builds a textured 3D model from one clear front view (T- or A-pose works best), sized for the game. On a character sheet, also mark the back and side views: those parts are then painted from the sheet instead of guessed. Afterwards, use “Rig for the game” on the new model.'),
     cropNote,
-    btn('Choose the front view', () => openCropper(asset, crop, (chosen) => { crop = chosen; paintCrop(); })),
+    btn('Choose the views', () => openCropper(asset, views, (chosen) => { views = chosen; paintCrop(); })),
     h('label', { for: 'i3d-quality', class: 'label' }, 'Quality'), quality,
     h('label', { for: 'i3d-name', class: 'label' }, 'Name'), nameInput,
     action('Make 3D model', async () => {
       const name = nameInput.value.trim() || '3D model';
       let assetId = `${slug(name)}_3d`;
       for (let n = 2; state.data.assets.some((a) => a.assetId === assetId); n++) assetId = `${slug(name)}_3d${n}`;
+      const { front, ...others } = views;
       const { job } = await api('/api/foundry/jobs', {
         projectId: 'library', assetId, kind: 'mesh_3d', operation: 'image_to_3d', referenceAssets: [asset.assetId],
         providerId: state.data.trellis.id, displayName: name,
-        parameters: { quality: quality.value, ...(crop ? { crop } : {}) },
+        parameters: { quality: quality.value, ...(front ? { crop: front } : {}), ...(Object.keys(others).length ? { views: others } : {}) },
       });
       toast(`Building “${name}” on your graphics card. It shows up in the library when it is done.`);
       location.hash = `#assets/build/${encodeURIComponent(job.jobId)}`;
     }, 'primary'));
 }
 
-/** Drag a box around the part of the picture to build from (e.g. the front view on a character sheet). */
+/** A model made from a picture: paint its back and sides from the character sheet's views, without rebuilding it. */
+function sheetPaintCard(asset) {
+  const pictureId = asset.referenceAssets?.[0];
+  const picture = state.data.assets.find((a) => a.assetId === pictureId);
+  if (asset.generationProvider !== 'trellis-local' || !picture || !state.data.trellis?.available) return null;
+  const submit = async (views) => {
+    if (!SHEET_VIEWS.some((v) => v.id !== 'front' && views[v.id])) throw new Error('Mark at least the back view.');
+    const { front, ...others } = views;
+    const base = asset.assetId.replace(/_painted\d*$/, '');
+    let assetId = `${base}_painted`;
+    for (let n = 2; state.data.assets.some((a) => a.assetId === assetId); n++) assetId = `${base}_painted${n}`;
+    const { job } = await api('/api/foundry/jobs', {
+      projectId: 'library', assetId, kind: 'mesh_3d', operation: 'image_to_3d', parentAsset: asset.assetId, referenceAssets: [picture.assetId],
+      providerId: state.data.trellis.id, displayName: `${assetName(asset)} (painted)`,
+      parameters: { ...(front ? { crop: front } : {}), views: others },
+    });
+    toast('Painting the back and sides from the sheet… (under a minute)');
+    location.hash = `#assets/build/${encodeURIComponent(job.jobId)}`;
+  };
+  return h('section', { class: 'card form' }, h('span', { class: 'label' }, 'Paint it from the sheet'),
+    h('p', { class: 'muted small' }, 'The back and sides of a model made from one picture are guessed. Mark the front, back and side views on its character sheet and they are painted from the sheet instead; the front keeps its own detail, with its colours matched to the sheet.'),
+    btn('Choose the views', () => openCropper(picture, {}, (views) => submit(views).catch((error) => toast(error.message, 'error'))), 'primary'));
+}
+
+const SHEET_VIEWS = [
+  { id: 'front', label: 'Front' },
+  { id: 'right', label: 'Right' },
+  { id: 'back', label: 'Back' },
+  { id: 'left', label: 'Left' },
+];
+
+/**
+ * Drag a box around each view of the character on the picture: the front view to build from, and on a character sheet
+ * the right, back and left views to paint from. Pick the view first, then draw its box.
+ */
 function openCropper(asset, current, onDone) {
-  let box = current ? [...current] : null;
-  const frame = h('div', { class: 'crop-box' });
-  const img = h('img', { src: asset.previewUrl, alt: `${assetName(asset)}: drag a box around the front view`, draggable: 'false' });
-  const stage = h('div', { class: 'crop-stage' }, img, frame);
+  const views = { ...(current ?? {}) };
+  let active = 'front';
+  const frames = Object.fromEntries(SHEET_VIEWS.map((v) => [v.id, h('div', { class: `crop-box crop-${v.id}` }, h('span', { class: 'crop-tag' }, v.label))]));
+  const img = h('img', { src: asset.previewUrl, alt: `${assetName(asset)}: drag a box around each view of the character`, draggable: 'false' });
+  const stage = h('div', { class: 'crop-stage' }, img, ...Object.values(frames));
   const scroller = h('div', { class: 'crop-scroll' }, stage);
   const status = h('p', { class: 'small', 'aria-live': 'polite' });
   let zoom = 1;
   const zoomTo = (level) => {
     zoom = level;
     stage.style.width = `${level * 100}%`;
-    // keep the box (or the middle) in view
+    // keep the active box (or the middle) in view
+    const box = views[active];
     const [cx, cy] = box ? [(box[0] + box[2]) / 2, (box[1] + box[3]) / 2] : [0.5, 0.5];
     requestAnimationFrame(() => {
       scroller.scrollLeft = cx * stage.offsetWidth - scroller.clientWidth / 2;
@@ -906,13 +947,22 @@ function openCropper(asset, current, onDone) {
     paintZoom();
   };
   const zoomRow = h('div', { class: 'row wrap' });
-  const paintZoom = () => clear(zoomRow, pills([{ id: 1, label: 'Fit' }, { id: 2, label: '2\u00d7' }, { id: 4, label: '4\u00d7' }], zoom, zoomTo, 'Zoom'));
-  paintZoom();
+  const paintZoom = () => clear(zoomRow, pills([{ id: 1, label: 'Fit' }, { id: 2, label: '2×' }, { id: 4, label: '4×' }], zoom, zoomTo, 'Zoom'));
+  const viewRow = h('div', { class: 'row wrap' });
+  const paintViews = () => clear(viewRow, pills(SHEET_VIEWS.map((v) => ({ id: v.id, label: `${v.label}${views[v.id] ? ' ✓' : ''}` })), active, (id) => { active = id; paint(); }, 'Which view to draw'));
   const paint = () => {
-    frame.hidden = !box;
-    status.textContent = box ? 'Drag again to redraw the box.' : 'Drag a box around the character’s front view.';
-    if (!box) return;
-    Object.assign(frame.style, { left: `${box[0] * 100}%`, top: `${box[1] * 100}%`, width: `${(box[2] - box[0]) * 100}%`, height: `${(box[3] - box[1]) * 100}%` });
+    for (const v of SHEET_VIEWS) {
+      const box = views[v.id];
+      const frame = frames[v.id];
+      frame.hidden = !box;
+      frame.classList.toggle('active', v.id === active);
+      if (box) Object.assign(frame.style, { left: `${box[0] * 100}%`, top: `${box[1] * 100}%`, width: `${(box[2] - box[0]) * 100}%`, height: `${(box[3] - box[1]) * 100}%` });
+    }
+    const label = SHEET_VIEWS.find((v) => v.id === active).label.toLowerCase();
+    status.textContent = views[active]
+      ? `Drag again to redraw the ${label} view, or pick another view above.`
+      : `Drag a box around the character’s ${label} view.`;
+    paintViews();
   };
   const at = (e) => {
     const r = img.getBoundingClientRect();
@@ -924,22 +974,25 @@ function openCropper(asset, current, onDone) {
     const start = at(e);
     const drag = (ev) => {
       const end = at(ev);
-      box = [Math.min(start[0], end[0]), Math.min(start[1], end[1]), Math.max(start[0], end[0]), Math.max(start[1], end[1])].map((v) => Math.round(v * 1000) / 1000);
+      views[active] = [Math.min(start[0], end[0]), Math.min(start[1], end[1]), Math.max(start[0], end[0]), Math.max(start[1], end[1])].map((v) => Math.round(v * 1000) / 1000);
       paint();
     };
     const stop = () => { stage.removeEventListener('pointermove', drag); stage.removeEventListener('pointerup', stop); };
     stage.addEventListener('pointermove', drag);
     stage.addEventListener('pointerup', stop);
   });
+  paintZoom();
   paint();
-  openSheet(`Choose the front view — ${assetName(asset)}`,
-    h('p', { class: 'muted small' }, 'Draw a box around one full view of the character, head to shoes, with a little space around it. Labels and other views outside the box are ignored. Zoom in to draw it exactly.'),
-    zoomRow, scroller, status,
+  openSheet(`Choose the views — ${assetName(asset)}`,
+    h('p', { class: 'muted small' }, 'Pick a view, then draw a box around it: head to shoes, with a little space around it. The front view is what the model is built from; on a character sheet, also box the right, back and left views so those sides are painted from the sheet. Labels and other views outside a box are ignored. Zoom in to draw exactly.'),
+    viewRow, zoomRow, scroller, status,
     h('div', { class: 'row wrap' },
-      btn('Use the whole picture', () => { onDone(null); closeSheet(); }),
-      btn('Use this area', () => {
-        if (!box || box[2] - box[0] < 0.02 || box[3] - box[1] < 0.02) return toast('Drag a bigger box around the character first.', 'error');
-        onDone(box);
+      btn('Clear this box', () => { delete views[active]; paint(); }),
+      btn('Use the whole picture', () => { onDone({}); closeSheet(); }),
+      btn('Use these views', () => {
+        const tiny = Object.entries(views).find(([, b]) => b[2] - b[0] < 0.02 || b[3] - b[1] < 0.02);
+        if (tiny) return toast(`Drag a bigger box around the ${tiny[0]} view first.`, 'error');
+        onDone({ ...views });
         closeSheet();
       }, 'primary')));
 }

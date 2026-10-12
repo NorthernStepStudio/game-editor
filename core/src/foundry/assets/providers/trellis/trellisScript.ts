@@ -42,30 +42,42 @@ def dilate(mask, steps, within=None):
     return mask
 
 
-def prepare():
-    REPORT["stage"] = "read"
-    img = bpy.data.images.load(CFG["image"])
-    w, h = img.size
-    px = np.empty(w * h * 4, dtype=np.float32)
-    img.pixels.foreach_get(px)
-    rgba = px.reshape(h, w, 4)[::-1]  # top row first
-    crop = CFG.get("crop") or [0, 0, 1, 1]
+PICTURES = {}
+
+
+def load_crop(path, crop):
+    """The picture's pixels (top row first, 0-1 floats) inside crop = [x0, y0, x1, y1] fractions."""
+    if path not in PICTURES:
+        img = bpy.data.images.load(path)
+        w, h = img.size
+        px = np.empty(w * h * 4, dtype=np.float32)
+        img.pixels.foreach_get(px)
+        PICTURES[path] = px.reshape(h, w, 4)[::-1]
+    full = PICTURES[path]
+    h, w = full.shape[:2]
+    crop = crop or [0, 0, 1, 1]
     x0, y0 = int(round(crop[0] * w)), int(round(crop[1] * h))
     x1, y1 = max(x0 + 8, int(round(crop[2] * w))), max(y0 + 8, int(round(crop[3] * h)))
-    rgba = rgba[y0:y1, x0:x1].copy()
+    return full[y0:y1, x0:x1].copy()
+
+
+def cut_out(rgba):
+    """Which pixels are the character: a plain backdrop is flood-filled away from the borders."""
     h, w = rgba.shape[:2]
     alpha = rgba[:, :, 3]
     edge = np.concatenate([alpha[0], alpha[-1], alpha[:, 0], alpha[:, -1]])
-    REPORT["stage"] = "cutout"
     if (edge < 0.5).mean() > 0.5:
         REPORT["cutout"] = "kept the picture's own transparency"
         keep = alpha > 0.5
     else:
         rgb = rgba[:, :, :3] * 255.0
         border = np.concatenate([rgb[:2].reshape(-1, 3), rgb[-2:].reshape(-1, 3), rgb[:, :2].reshape(-1, 3), rgb[:, -2:].reshape(-1, 3)])
-        palette = np.unique((border // 12).astype(np.int32), axis=0) * 12 + 6
-        if len(palette) > 96:
-            palette = palette[np.random.default_rng(0).choice(len(palette), 96, replace=False)]
+        # the backdrop is what most of the border shows; colours of something the box cuts through (a neighbour,
+        # the next view on a sheet) are only a small share of it, so they never count as backdrop
+        bins, counts = np.unique((border // 12).astype(np.int32), axis=0, return_counts=True)
+        order = np.argsort(-counts)
+        share = np.cumsum(counts[order]) / counts.sum()
+        palette = bins[order[:int(np.searchsorted(share, 0.9)) + 1]][:96] * 12 + 6
         tol = float(CFG.get("tolerance", 38))
         near = np.full((h, w), 1e9, dtype=np.float32)
         for p in palette:
@@ -84,6 +96,33 @@ def prepare():
             seen = grown
         keep = ~seen
         keep = ~dilate(~dilate(keep, 1), 2)  # close pinholes, then trim the backdrop fringe
+        # a floor or horizon line behind the feet: in the lower part of the figure, a strip only a few pixels tall
+        # but much wider than tall (shoes and legs are far taller, so they stay)
+        up = np.zeros((h, w), dtype=np.int32)
+        down = np.zeros((h, w), dtype=np.int32)
+        for r in range(h):
+            up[r] = (up[r - 1] + 1) * keep[r] if r else keep[r]
+        for r in range(h - 1, -1, -1):
+            down[r] = (down[r + 1] + 1) * keep[r] if r < h - 1 else keep[r]
+        rows = np.nonzero(keep.any(axis=1))[0]
+        strip = keep & (up + down - 1 < max(4, h // 28))
+        if len(rows):
+            strip[:int(rows[0] + (rows[-1] - rows[0]) * 0.7)] = False
+        lines = 0
+        rest = strip.copy()
+        while rest.any() and lines < 200:
+            seed = np.zeros_like(rest)
+            seed.flat[int(np.argmax(rest))] = True
+            while True:
+                grown = dilate(seed, 16, rest)
+                if np.array_equal(grown, seed):
+                    break
+                seed = grown
+            rest &= ~seed
+            ys, xs = np.nonzero(seed)
+            if xs.max() - xs.min() + 1 >= max(3 * (ys.max() - ys.min() + 1), w * 0.06):
+                keep &= ~seed
+            lines += 1
         REPORT["cutout"] = "removed a plain backdrop (%d colours)" % len(palette)
     # Labels and stray specks (e.g. a "FRONT" caption) are dropped: keep only pieces of a real size.
     pieces, rest = [], keep.copy()
@@ -113,6 +152,14 @@ def prepare():
         REPORT["pieces"] = [len(pieces), len(kept)]
     if keep.sum() < 64:
         raise RuntimeError("Nothing was left after removing the background. Crop closer to the character.")
+    return keep
+
+
+def prepare():
+    REPORT["stage"] = "read"
+    rgba = load_crop(CFG["image"], CFG.get("crop"))
+    REPORT["stage"] = "cutout"
+    keep = cut_out(rgba)
     ys, xs = np.nonzero(keep)
     rgba[:, :, 3] = keep.astype(np.float32)
     cut = rgba[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
@@ -209,11 +256,211 @@ def finish_model():
     REPORT["previews"] = previews
 
 
+def paint_from_views():
+    """Repaint a one-piece model's colours from a character sheet's views (front, right, back, left): every texel
+    takes the colour of the views that face it, where that view can actually see it (a depth test, so an arm does
+    not paint the body behind it). Texels no view sees (top of the head, soles) keep their colour."""
+    from mathutils import Vector as V3
+    from mathutils.bvhtree import BVHTree
+    REPORT["stage"] = "import"
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    bpy.ops.import_scene.gltf(filepath=CFG["model"])
+    obj = next(o for o in bpy.context.scene.objects if o.type == "MESH")
+    mesh = obj.data
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(mesh)
+    bmesh.ops.triangulate(bm, faces=bm.faces)
+    bm.to_mesh(mesh)
+    bm.free()
+    mesh.update()
+    mat = obj.active_material
+    tex = next(n for n in mat.node_tree.nodes if n.type == "TEX_IMAGE" and any(
+        l.to_socket.name == "Base Color" for o in n.outputs for l in o.links))
+    img = tex.image
+    TW, TH = img.size
+    texture = np.empty(TW * TH * 4, dtype=np.float32)
+    img.pixels.foreach_get(texture)
+    texture = texture.reshape(TH, TW, 4)
+    verts = np.array([v.co[:] for v in mesh.vertices], dtype=np.float64)
+    tris = np.array([p.vertices[:] for p in mesh.polygons], dtype=np.int64)
+    loops = np.array([p.loop_indices[:] for p in mesh.polygons], dtype=np.int64)
+    uvs = np.empty(len(mesh.loops) * 2, dtype=np.float32)
+    mesh.uv_layers.active.data.foreach_get("uv", uvs)
+    uvs = uvs.reshape(-1, 2)
+    # image-to-3D surfaces are bumpy: use normals smoothed over the neighbourhood, so which view paints a spot
+    # changes gradually across the body instead of flickering from triangle to triangle
+    vnorm = np.array([v.normal[:] for v in mesh.vertices], dtype=np.float64)
+    edges = np.array([e.vertices[:] for e in mesh.edges], dtype=np.int64)
+    for _ in range(int(CFG.get("smooth", 12))):
+        summed = vnorm.copy()
+        np.add.at(summed, edges[:, 0], vnorm[edges[:, 1]])
+        np.add.at(summed, edges[:, 1], vnorm[edges[:, 0]])
+        vnorm = summed / np.maximum(np.linalg.norm(summed, axis=1, keepdims=True), 1e-9)
+    tree = BVHTree.FromPolygons([V3(v) for v in verts], tris.tolist())
+    lo, hi = verts.min(axis=0), verts.max(axis=0)
+    height = hi[2] - lo[2]
+
+    # ---- every texel of every triangle: where it is on the model and which way it faces
+    REPORT["stage"] = "texels"
+    tx_all, ty_all, pos_all, nrm_all = [], [], [], []
+    for t in range(len(tris)):
+        uv = uvs[loops[t]] * (TW, TH)
+        x0, y0 = np.floor(uv.min(axis=0)).astype(int)
+        x1, y1 = np.ceil(uv.max(axis=0)).astype(int)
+        xs, ys = np.meshgrid(np.arange(max(0, x0), min(TW, x1 + 1)), np.arange(max(0, y0), min(TH, y1 + 1)))
+        if not xs.size:
+            continue
+        px_, py_ = xs.ravel() + 0.5, ys.ravel() + 0.5
+        a, b, c = uv
+        v0, v1 = b - a, c - a
+        den = v0[0] * v1[1] - v1[0] * v0[1]
+        if abs(den) < 1e-12:
+            continue
+        wx, wy = px_ - a[0], py_ - a[1]
+        l1 = (wx * v1[1] - v1[0] * wy) / den
+        l2 = (v0[0] * wy - wx * v0[1]) / den
+        l0 = 1 - l1 - l2
+        inside = (l0 >= -0.02) & (l1 >= -0.02) & (l2 >= -0.02)
+        if not inside.any():
+            continue
+        p3 = verts[tris[t]]
+        pos = l0[inside, None] * p3[0] + l1[inside, None] * p3[1] + l2[inside, None] * p3[2]
+        tx_all.append(xs.ravel()[inside])
+        ty_all.append(ys.ravel()[inside])
+        pos_all.append(pos)
+        n3 = vnorm[tris[t]]
+        nrm_all.append(l0[inside, None] * n3[0] + l1[inside, None] * n3[1] + l2[inside, None] * n3[2])
+    TX, TY = np.concatenate(tx_all), np.concatenate(ty_all)
+    POS, NRM = np.concatenate(pos_all), np.concatenate(nrm_all)
+    NRM /= np.maximum(np.linalg.norm(NRM, axis=1, keepdims=True), 1e-9)
+    REPORT["texels"] = int(len(TX))
+
+    # ---- each view: cut it out, line it up with the model by height, test visibility with a depth map
+    Z = np.array([0.0, 0.0, 1.0])
+    cameras = {
+        "front": [(np.array([0.0, 1.0, 0.0]), np.array([1.0, 0.0, 0.0]))],
+        "back": [(np.array([0.0, -1.0, 0.0]), np.array([-1.0, 0.0, 0.0]))],
+        # the sheet's "right" view shows the character's right side (-x); the mirror is tried too, and the
+        # silhouette that fits best wins, so a sheet with the views swapped still works
+        "right": [(np.array([1.0, 0.0, 0.0]), np.array([0.0, -1.0, 0.0])), (np.array([-1.0, 0.0, 0.0]), np.array([0.0, 1.0, 0.0]))],
+        "left": [(np.array([-1.0, 0.0, 0.0]), np.array([0.0, 1.0, 0.0])), (np.array([1.0, 0.0, 0.0]), np.array([0.0, -1.0, 0.0]))],
+    }
+    acc = np.zeros((len(TX), 3), dtype=np.float64)
+    match_x, match_y = [], []
+    wsum = np.zeros(len(TX), dtype=np.float64)
+    REPORT["views"] = {}
+    for name, box in (CFG.get("views") or {}).items():
+        if name not in cameras or not box:
+            continue
+        REPORT["stage"] = "view " + name
+        rgba = load_crop(CFG["sheet"], box)
+        keep = cut_out(rgba)
+        ys, xs = np.nonzero(keep)
+        by0, by1, bx0, bx1 = ys.min(), ys.max(), xs.min(), xs.max()
+        scale = height / (by1 - by0 + 1)  # metres per pixel
+        hh, ww = keep.shape
+        best = None
+        for d, u in cameras[name]:
+            hcoord = verts @ u
+            hc = (hcoord.min() + hcoord.max()) / 2
+            cx = (bx0 + bx1 + 1) / 2
+            depth = np.full((hh, ww), np.inf)
+            for iy in range(hh):
+                z = hi[2] - (iy + 0.5 - by0) * scale
+                if z < lo[2] - scale or z > hi[2] + scale:
+                    continue
+                for ix in range(ww):
+                    hpos = hc + (ix + 0.5 - cx) * scale
+                    origin = u * hpos + Z * z - d * (height * 4)
+                    hit = tree.ray_cast(V3(origin), V3(d), height * 8)
+                    if hit[0] is not None:
+                        depth[iy, ix] = float(np.dot(hit[0], d))
+            sil = np.isfinite(depth)
+            # the guessed shape and the drawing rarely line up exactly: slide the drawing sideways to fit best
+            for shift in range(-int(ww * 0.12), int(ww * 0.12) + 1):
+                moved = np.roll(keep, -shift, axis=1)
+                iou = float((sil & moved).sum()) / max(1, float((sil | moved).sum()))
+                if best is None or iou > best[0]:
+                    best = (iou, d, u, hc, cx + shift, depth, scale, shift)
+        iou, d, u, hc, cx, depth, scale, shift = best
+        # sample only well inside the outline, so the sheet's dark rim and backdrop never paint the model
+        inner = keep.copy()
+        for _ in range(2):
+            inner[1:-1, 1:-1] &= inner[:-2, 1:-1] & inner[2:, 1:-1] & inner[1:-1, :-2] & inner[1:-1, 2:]
+        ix = np.floor((POS @ u - hc) / scale + cx).astype(int)  # column in the drawing
+        iy = np.floor((hi[2] - POS[:, 2]) / scale + by0).astype(int)
+        ok = (ix >= 0) & (ix < ww) & (iy >= 0) & (iy < hh)
+        ixc, iyc = np.clip(ix, 0, ww - 1), np.clip(iy, 0, hh - 1)
+        dx = np.clip(ix - shift, 0, ww - 1)  # column in the depth map, made before the slide
+        seen = ok & inner[iyc, ixc] & (POS @ d <= depth[iyc, dx] + 0.012 * height)
+        facing = np.clip(-(NRM @ d), 0, 1)
+        if name == "front":
+            # the model's own front was made from this very view and is cleaner than any projection, so the
+            # front only teaches the colours: what the model's texture should look like to match the drawing
+            pick = seen & (facing > 0.7)
+            match_x.append(texture[TY[pick], TX[pick], :3])
+            match_y.append(rgba[iyc[pick], ixc[pick], :3])
+            weight = np.zeros(len(TX))
+        else:
+            # back and sides: only what clearly faces the view, fading in so there is no hard seam
+            weight = np.where(seen, np.clip((facing - 0.35) / 0.45, 0, 1) ** 2, 0.0)
+            acc += weight[:, None] * rgba[iyc, ixc, :3]
+            wsum += weight
+        REPORT["views"][name] = {"fit": round(iou, 3), "shift": int(shift), "camera": [round(c, 1) for c in d], "painted": int((weight > 0.05).sum())}
+
+    # ---- colours: group the model's front colours (hair, skin, clothes, eyes...) and shift each group by the
+    # typical difference to the drawing, so e.g. hair that came out near-black turns the drawing's brown while black
+    # eyes stay black. Medians keep the few mismatched spots (an outline, a strand) from pulling a group off.
+    REPORT["stage"] = "colours"
+    if match_x and sum(len(x) for x in match_x) > 500:
+        X, Y = np.concatenate(match_x).astype(np.float64), np.concatenate(match_y).astype(np.float64)
+        rng = np.random.default_rng(0)
+        k = min(10, len(X) // 100)
+        centres = X[rng.choice(len(X), k, replace=False)]
+        for _ in range(15):
+            label = np.argmin(((X[:, None, :] - centres[None]) ** 2).sum(axis=2), axis=1)
+            centres = np.array([X[label == i].mean(axis=0) if (label == i).any() else centres[i] for i in range(k)])
+        def group_shift(i):
+            diff = Y[label == i] - X[label == i]
+            if len(diff) <= 20:
+                return np.zeros(3)
+            middle = np.median(diff, axis=0)
+            spread = np.median(np.abs(diff - middle), axis=0).max()
+            # a group whose spots disagree in the drawing (e.g. eyes mixed with dark hair) is left alone
+            return np.zeros(3) if spread > 0.12 else np.clip(middle, -0.3, 0.3)
+
+        shifts = np.array([group_shift(i) for i in range(k)])
+        flat = texture[:, :, :3].reshape(-1, 3).astype(np.float64)
+        d2 = np.maximum((flat ** 2).sum(axis=1)[:, None] - 2 * flat @ centres.T + (centres ** 2).sum(axis=1)[None], 0)
+        soft = np.exp(-(d2 - d2.min(axis=1, keepdims=True)) / (2 * 0.06 ** 2))
+        soft /= soft.sum(axis=1, keepdims=True)
+        texture[:, :, :3] = np.clip(flat + soft @ shifts, 0, 1).reshape(TH, TW, 3)
+        REPORT["colourGroups"] = [{"colour": [round(c, 2) for c in centres[i]], "shift": [round(c, 2) for c in shifts[i]]} for i in range(k)]
+
+    # ---- blend: texels the views see well take their colours; the rest keep theirs
+    REPORT["stage"] = "blend"
+    alpha = np.clip(wsum / 0.5, 0, 1)
+    colour = acc / np.maximum(wsum, 1e-9)[:, None]
+    old = texture[TY, TX, :3]
+    texture[TY, TX, :3] = old * (1 - alpha[:, None]) + colour * alpha[:, None]
+    img.pixels.foreach_set(texture.ravel())
+    img.update()
+    img.pack()
+    REPORT["stage"] = "export"
+    obj.select_set(True)
+    bpy.ops.export_scene.gltf(filepath=CFG["output"], export_format="GLB", use_selection=True)
+    REPORT["output"] = CFG["output"]
+    REPORT["coverage"] = round(float((alpha > 0.5).mean()), 3)
+
+
 try:
     if CFG["mode"] == "prepare":
         prepare()
     elif CFG["mode"] == "finish":
         finish_model()
+    elif CFG["mode"] == "paint":
+        paint_from_views()
     else:
         raise RuntimeError("Unknown mode " + str(CFG["mode"]))
     REPORT["stage"] = "done"

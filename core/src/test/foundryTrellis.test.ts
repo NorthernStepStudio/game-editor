@@ -67,3 +67,38 @@ test("the Blender steps cut out the background, drop stray specks and fit the mo
   assert.match(TRELLIS_BLENDER_SCRIPT, /o\.name = o\.data\.name = "Body"/);
   assert.match(TRELLIS_BLENDER_SCRIPT, /DECIMATE/);
 });
+
+test("a sheet's other views are boxes too, and repainting needs a model and at least one of them", async () => {
+  assert.deepEqual(parseTrellisSettings({ crop: [0, 0.1, 0.2, 0.5], views: { back: [0.4, 0.1, 0.6, 0.5] } }).views, { back: [0.4, 0.1, 0.6, 0.5] });
+  assert.throws(() => parseTrellisSettings({ views: { top: [0, 0, 0.5, 0.5] } }), /Unknown view/);
+  assert.throws(() => parseTrellisSettings({ views: { back: [0, 0, 0.01, 0.5] } }), /back view is too small/);
+  const dir = mkdtempSync(join(tmpdir(), "trellis-paint-"));
+  try {
+    const sheet = join(dir, "sheet.png");
+    const model = join(dir, "model.glb");
+    writeFileSync(sheet, "png");
+    writeFileSync(model, "glb");
+    const provider = new TrellisImageTo3DProvider({
+      tool: { cli: "trellis-cli", models: dir },
+      resolveImagePath: (id) => (id === "sheet" ? sheet : undefined),
+      resolveModelFile: (id) => (id === "model" ? model : undefined),
+      runTrellis: async () => { throw new Error("repainting must not rebuild"); },
+    });
+    const base = { requestId: "r", assetId: "x", kind: "mesh_3d" as const, operation: "image_to_3d" as const, parentAsset: "model" };
+    await assert.rejects(provider.execute(base, { outputRoot: dir }), /character sheet to paint from/);
+    await assert.rejects(provider.execute({ ...base, referenceAssets: ["sheet"] }, { outputRoot: dir }), /back, right or left/);
+    await assert.rejects(provider.execute({ ...base, parentAsset: "gone", referenceAssets: ["sheet"], parameters: { views: { back: [0.4, 0.1, 0.6, 0.5] } } }, { outputRoot: dir }), /no \.glb model/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("painting keeps the model's own front and paints only what clearly faces the back and side views", () => {
+  assert.match(TRELLIS_BLENDER_SCRIPT, /def paint_from_views\(\):/);
+  // the front view only teaches colours; it never projects onto the model
+  assert.match(TRELLIS_BLENDER_SCRIPT, /if name == "front":[\s\S]*?match_x\.append[\s\S]*?weight = np\.zeros\(len\(TX\)\)/);
+  // a depth test, so an arm never paints the body behind it
+  assert.match(TRELLIS_BLENDER_SCRIPT, /POS @ d <= depth\[iyc, dx\]/);
+  // colour groups whose matches disagree (eyes mixed with dark hair) are left alone
+  assert.match(TRELLIS_BLENDER_SCRIPT, /spread > 0\.12/);
+});

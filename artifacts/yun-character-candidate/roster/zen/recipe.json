@@ -1,0 +1,170 @@
+{
+ "remove": [
+  "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
+  "Glasses*",
+  "Goggles*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
+  "Headband*",
+  "Headphones*",
+  "Hip_Strap",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
+ ],
+ "materials": {
+  "Zen_Hair": "#2E211B",
+  "Zen_Beanie": "#5CB8F0",
+  "Zen_Patch": "#7A4A2E",
+  "Zen_Skin": "#8A5A3B",
+  "Zen_Torso": "#8FD0F5",
+  "Zen_Top": "#8FD0F5",
+  "Zen_Body": "#2C4A78",
+  "Zen_Panel": "#8FD0F5",
+  "Zen_Trim": "#8FD0F5",
+  "Zen_Up": "#8FD0F5",
+  "Zen_Band": "#2C4A78",
+  "Zen_Low": "#8FD0F5",
+  "Zen_Collar": "#8FD0F5",
+  "Zen_Lining": "#2C4A78",
+  "Zen_Shorts": "#1E1E22",
+  "Zen_Hem": "#2A2A2E",
+  "Zen_Shoe": "#2C4A78",
+  "Zen_Shoe_panel": "#8FD0F5",
+  "Zen_Shoe_accent": "#F2F0EE",
+  "Zen_Sole": "#F2F0EE",
+  "Zen_Bag": "#1E1E22",
+  "Zen_Flap": "#2A2A2E",
+  "Zen_Strap": "#1E1E22",
+  "Zen_Belt": "#2A2A2E",
+  "Zen_Buckle": "#D9B44A",
+  "Zen_Brows": "#2E211B"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Zen_Hair",
+   "thick": 0.02,
+   "front": 0.8,
+   "side": 0.15,
+   "back": -0.1,
+   "front_power": 3.0
+  },
+  {
+   "type": "curtain",
+   "name": "Hair_Long",
+   "material": "Zen_Hair",
+   "t_top": 0.7,
+   "t_bottom": -0.45,
+   "strands": 6,
+   "span": 1.05,
+   "thick": 0.07
+  },
+  {
+   "type": "locks",
+   "name": "Hair_Locks",
+   "material": "Zen_Hair",
+   "t_top": 0.75,
+   "t_bottom": -0.25,
+   "width": 0.1,
+   "thick": 0.055,
+   "y": -0.2
+  },
+  {
+   "type": "hat",
+   "kind": "beanie",
+   "name": "Hat_Beanie",
+   "cuff_name": "Hat_Cuff",
+   "material": "Zen_Beanie",
+   "patch": "Zen_Patch",
+   "thick": 0.035,
+   "lift": 0.07,
+   "t_bottom": 0.78,
+   "shape": "dome"
+  }
+ ],
+ "slots": {
+  "Head": [
+   "Zen_Skin"
+  ],
+  "Torso": [
+   "Zen_Torso"
+  ],
+  "CropTop": [
+   "Zen_Top"
+  ],
+  "Jacket": [
+   "Zen_Body",
+   "Zen_Panel",
+   "Zen_Trim"
+  ],
+  "Arm_L": [
+   "Zen_Up",
+   "Zen_Band",
+   "Zen_Low"
+  ],
+  "Arm_R": [
+   "Zen_Up",
+   "Zen_Band",
+   "Zen_Low"
+  ],
+  "Collar": [
+   "Zen_Collar",
+   "Zen_Lining"
+  ],
+  "Hand_L": [
+   "Zen_Skin",
+   "Zen_Skin",
+   "Zen_Skin"
+  ],
+  "Hand_R": [
+   "Zen_Skin",
+   "Zen_Skin",
+   "Zen_Skin"
+  ],
+  "Shorts": [
+   "Zen_Shorts",
+   "Zen_Hem"
+  ],
+  "Leg_L": [
+   "Zen_Skin"
+  ],
+  "Leg_R": [
+   "Zen_Skin"
+  ],
+  "Shoe_L": [
+   "Zen_Shoe",
+   "Zen_Shoe_panel",
+   "Zen_Shoe_accent",
+   "Zen_Sole"
+  ],
+  "Shoe_R": [
+   "Zen_Shoe",
+   "Zen_Shoe_panel",
+   "Zen_Shoe_accent",
+   "Zen_Sole"
+  ],
+  "Bag": [
+   "Zen_Bag",
+   "Zen_Flap"
+  ],
+  "Bag_Strap": [
+   "Zen_Strap"
+  ],
+  "Belt": [
+   "Zen_Belt",
+   "Zen_Buckle"
+  ],
+  "Eyebrows": [
+   "Zen_Brows"
+  ]
+ }
+}

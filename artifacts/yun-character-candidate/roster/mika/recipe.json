@@ -1,0 +1,84 @@
+{
+ "remove": [
+  "Hair_*",
+  "Hat*",
+  "Cap*",
+  "Beanie*",
+  "Glasses*",
+  "Goggles*",
+  "Headphones*",
+  "Neckwear*",
+  "Headband*",
+  "Earcup*",
+  "Cat_Ear*",
+  "Star*",
+  "Clip*"
+ ],
+ "materials": {
+  "Mika_Hair": "#2E2622",
+  "Mika_Tie": "#F2B935",
+  "Mika_Jacket": "#F2B935",
+  "Mika_Cream": "#F6E7C8"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Mika_Hair",
+   "thick": 0.036,
+   "lift_top": 0.05,
+   "front": 0.8,
+   "side": 0.2,
+   "back": 0.0,
+   "front_power": 4.0
+  },
+  {
+   "type": "bangs",
+   "name": "Hair_Bangs",
+   "material": "Mika_Hair",
+   "strands": 4,
+   "overlap": 1.25,
+   "t_top": 0.9,
+   "span": 0.97,
+   "thick": 0.05
+  },
+  {
+   "type": "locks",
+   "name": "Hair_Locks",
+   "material": "Mika_Hair",
+   "t_top": 0.85,
+   "t_bottom": 0.0,
+   "width": 0.12,
+   "thick": 0.06,
+   "y": -0.35
+  },
+  {
+   "type": "buns",
+   "name": "Hair_Buns",
+   "material": "Mika_Hair",
+   "radius": 0.095,
+   "x": 0.78,
+   "y": 0.1,
+   "t": 1.08,
+   "tie": "Mika_Tie",
+   "tie_name": "Hair_Ties"
+  }
+ ],
+ "slots": {
+  "Jacket": [
+   "Mika_Jacket",
+   "Mika_Jacket",
+   "Mika_Cream"
+  ],
+  "Arm_L": [
+   "Mika_Jacket",
+   "Mika_Cream",
+   "Mika_Jacket"
+  ],
+  "Arm_R": [
+   "Mika_Jacket",
+   "Mika_Cream",
+   "Mika_Jacket"
+  ]
+ }
+}

@@ -1,0 +1,168 @@
+{
+ "remove": [
+  "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
+  "Glasses*",
+  "Goggles*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
+  "Headband*",
+  "Headphones*",
+  "Hip_Strap",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
+ ],
+ "materials": {
+  "Sol_Hair": "#E6DED6",
+  "Sol_Skin": "#8B5A3C",
+  "Sol_Torso": "#1E1E22",
+  "Sol_Top": "#1E1E22",
+  "Sol_Body": "#3D8EE0",
+  "Sol_Panel": "#F2F0EE",
+  "Sol_Trim": "#F2F0EE",
+  "Sol_Up": "#3D8EE0",
+  "Sol_Band": "#F2F0EE",
+  "Sol_Low": "#3D8EE0",
+  "Sol_Collar": "#F2F0EE",
+  "Sol_Lining": "#3D8EE0",
+  "Sol_Glove": "#8E8E92",
+  "Sol_Accent": "#3D8EE0",
+  "Sol_Shorts": "#1E1E22",
+  "Sol_Hem": "#2A2A2E",
+  "Sol_Shoe": "#F2F0EE",
+  "Sol_Shoe_panel": "#3D8EE0",
+  "Sol_Shoe_accent": "#3D8EE0",
+  "Sol_Sole": "#F2F0EE",
+  "Sol_Bag": "#1E1E22",
+  "Sol_Flap": "#2A2A2E",
+  "Sol_Strap": "#1E1E22",
+  "Sol_Belt": "#2A2A2E",
+  "Sol_Buckle": "#F2C04D",
+  "Sol_Brows": "#E6DED6"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Sol_Hair",
+   "thick": 0.05,
+   "lift_top": 0.07,
+   "front": 0.82,
+   "side": 0.4,
+   "back": 0.05,
+   "front_power": 3.0
+  },
+  {
+   "type": "tufts",
+   "name": "Hair_Tufts",
+   "material": "Sol_Hair",
+   "count": 72,
+   "length": 0.1,
+   "radius": 0.065,
+   "up": 0.45,
+   "back": 0.15,
+   "down": 0.6,
+   "flat": 0.6,
+   "shell": 0.035,
+   "lift_top": 0.06,
+   "front": 0.82,
+   "side": 0.42,
+   "lean_back": 0.6
+  },
+  {
+   "type": "bangs",
+   "style": "pointed",
+   "name": "Hair_Bangs",
+   "material": "Sol_Hair",
+   "strands": 7,
+   "t_top": 0.9,
+   "t_bottom": 0.62,
+   "span": 0.98,
+   "thick": 0.04,
+   "overlap": 1.5
+  }
+ ],
+ "slots": {
+  "Head": [
+   "Sol_Skin"
+  ],
+  "Torso": [
+   "Sol_Torso"
+  ],
+  "CropTop": [
+   "Sol_Top"
+  ],
+  "Jacket": [
+   "Sol_Body",
+   "Sol_Panel",
+   "Sol_Trim"
+  ],
+  "Arm_L": [
+   "Sol_Up",
+   "Sol_Band",
+   "Sol_Low"
+  ],
+  "Arm_R": [
+   "Sol_Up",
+   "Sol_Band",
+   "Sol_Low"
+  ],
+  "Collar": [
+   "Sol_Collar",
+   "Sol_Lining"
+  ],
+  "Hand_L": [
+   "Sol_Glove",
+   "Sol_Skin",
+   "Sol_Accent"
+  ],
+  "Hand_R": [
+   "Sol_Glove",
+   "Sol_Skin",
+   "Sol_Accent"
+  ],
+  "Shorts": [
+   "Sol_Shorts",
+   "Sol_Hem"
+  ],
+  "Leg_L": [
+   "Sol_Skin"
+  ],
+  "Leg_R": [
+   "Sol_Skin"
+  ],
+  "Shoe_L": [
+   "Sol_Shoe",
+   "Sol_Shoe_panel",
+   "Sol_Shoe_accent",
+   "Sol_Sole"
+  ],
+  "Shoe_R": [
+   "Sol_Shoe",
+   "Sol_Shoe_panel",
+   "Sol_Shoe_accent",
+   "Sol_Sole"
+  ],
+  "Bag": [
+   "Sol_Bag",
+   "Sol_Flap"
+  ],
+  "Bag_Strap": [
+   "Sol_Strap"
+  ],
+  "Belt": [
+   "Sol_Belt",
+   "Sol_Buckle"
+  ],
+  "Eyebrows": [
+   "Sol_Brows"
+  ]
+ }
+}

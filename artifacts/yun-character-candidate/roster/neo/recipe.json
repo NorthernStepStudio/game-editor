@@ -1,0 +1,73 @@
+{
+ "remove": [
+  "Hair_*",
+  "Hat*",
+  "Cap*",
+  "Beanie*",
+  "Glasses*",
+  "Goggles*",
+  "Headphones*",
+  "Neckwear*",
+  "Headband*",
+  "Earcup*",
+  "Cat_Ear*",
+  "Star*",
+  "Clip*"
+ ],
+ "materials": {
+  "Neo_Hair": "#D9B57E",
+  "Neo_Glasses": "#1A1A1E"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Neo_Hair",
+   "thick": 0.04,
+   "lift_top": 0.05,
+   "front": 0.82,
+   "side": 0.32,
+   "back": 0.05,
+   "front_power": 3.0
+  },
+  {
+   "type": "tufts",
+   "name": "Hair_Swoops",
+   "material": "Neo_Hair",
+   "count": 60,
+   "length": 0.08,
+   "radius": 0.07,
+   "up": 0.2,
+   "lean_back": 0.9,
+   "down": 0.9,
+   "flat": 0.55,
+   "shell": 0.028,
+   "lift_top": 0.04,
+   "front": 0.86,
+   "side": 0.42,
+   "back": 0.15,
+   "bang_t": 0.97,
+   "tip": 0.55
+  },
+  {
+   "type": "bangs",
+   "style": "pointed",
+   "name": "Hair_Bangs",
+   "material": "Neo_Hair",
+   "strands": 5,
+   "t_top": 0.9,
+   "t_bottom": 0.66,
+   "span": 0.95,
+   "thick": 0.045,
+   "overlap": 1.6,
+   "sweep": 0.15,
+   "tip": 0.5
+  },
+  {
+   "type": "glasses",
+   "name": "Glasses",
+   "material": "Neo_Glasses",
+   "radius": 0.045
+  }
+ ]
+}

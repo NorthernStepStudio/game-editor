@@ -1,0 +1,181 @@
+{
+ "remove": [
+  "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
+  "Glasses*",
+  "Goggles*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
+  "Headband*",
+  "Headphones*",
+  "Hip_Strap",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
+ ],
+ "materials": {
+  "Jet_Hair": "#F08A3C",
+  "Jet_Strap": "#1E1E22",
+  "Jet_Frame": "#26262A",
+  "Jet_Lens": "#F5A65B",
+  "Jet_Skin": "#F2C8A6",
+  "Jet_Torso": "#8E8E92",
+  "Jet_Top": "#8E8E92",
+  "Jet_Body": "#232326",
+  "Jet_Panel": "#F08A3C",
+  "Jet_Trim": "#F08A3C",
+  "Jet_Up": "#F08A3C",
+  "Jet_Band": "#F2F0EE",
+  "Jet_Low": "#F08A3C",
+  "Jet_Collar": "#232326",
+  "Jet_Lining": "#F08A3C",
+  "Jet_Glove": "#232326",
+  "Jet_Accent": "#F08A3C",
+  "Jet_Shorts": "#4A4A50",
+  "Jet_Hem": "#2A2A2E",
+  "Jet_Shoe": "#F2F0EE",
+  "Jet_Shoe_panel": "#232326",
+  "Jet_Shoe_accent": "#F08A3C",
+  "Jet_Sole": "#F2F0EE",
+  "Jet_Bag": "#1E1E22",
+  "Jet_Flap": "#2A2A2E",
+  "Jet_Belt": "#2A2A2E",
+  "Jet_Buckle": "#C9C9CF",
+  "Jet_Brows": "#B4561F"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Jet_Hair",
+   "thick": 0.05,
+   "lift_top": 0.07,
+   "front": 0.82,
+   "side": 0.4,
+   "back": 0.05,
+   "front_power": 3.0
+  },
+  {
+   "type": "tufts",
+   "name": "Hair_Tufts",
+   "material": "Jet_Hair",
+   "count": 72,
+   "length": 0.13,
+   "radius": 0.075,
+   "up": 0.9,
+   "back": 0.15,
+   "down": 0.6,
+   "flat": 0.6,
+   "shell": 0.035,
+   "lift_top": 0.06,
+   "front": 0.82,
+   "side": 0.42,
+   "lean_back": 0.4
+  },
+  {
+   "type": "bangs",
+   "style": "pointed",
+   "name": "Hair_Bangs",
+   "material": "Jet_Hair",
+   "strands": 7,
+   "t_top": 0.9,
+   "t_bottom": 0.68,
+   "span": 0.98,
+   "thick": 0.04,
+   "overlap": 1.5
+  },
+  {
+   "type": "goggles",
+   "name": "Goggles_Strap",
+   "frame_name": "Goggles",
+   "lens_name": "Goggles_Lens",
+   "strap": "Jet_Strap",
+   "frame": "Jet_Frame",
+   "lens": "Jet_Lens",
+   "t": 0.9,
+   "out": 0.075
+  }
+ ],
+ "slots": {
+  "Head": [
+   "Jet_Skin"
+  ],
+  "Torso": [
+   "Jet_Torso"
+  ],
+  "CropTop": [
+   "Jet_Top"
+  ],
+  "Jacket": [
+   "Jet_Body",
+   "Jet_Panel",
+   "Jet_Trim"
+  ],
+  "Arm_L": [
+   "Jet_Up",
+   "Jet_Band",
+   "Jet_Low"
+  ],
+  "Arm_R": [
+   "Jet_Up",
+   "Jet_Band",
+   "Jet_Low"
+  ],
+  "Collar": [
+   "Jet_Collar",
+   "Jet_Lining"
+  ],
+  "Hand_L": [
+   "Jet_Glove",
+   "Jet_Skin",
+   "Jet_Accent"
+  ],
+  "Hand_R": [
+   "Jet_Glove",
+   "Jet_Skin",
+   "Jet_Accent"
+  ],
+  "Shorts": [
+   "Jet_Shorts",
+   "Jet_Hem"
+  ],
+  "Leg_L": [
+   "Jet_Skin"
+  ],
+  "Leg_R": [
+   "Jet_Skin"
+  ],
+  "Shoe_L": [
+   "Jet_Shoe",
+   "Jet_Shoe_panel",
+   "Jet_Shoe_accent",
+   "Jet_Sole"
+  ],
+  "Shoe_R": [
+   "Jet_Shoe",
+   "Jet_Shoe_panel",
+   "Jet_Shoe_accent",
+   "Jet_Sole"
+  ],
+  "Bag": [
+   "Jet_Bag",
+   "Jet_Flap"
+  ],
+  "Bag_Strap": [
+   "Jet_Strap"
+  ],
+  "Belt": [
+   "Jet_Belt",
+   "Jet_Buckle"
+  ],
+  "Eyebrows": [
+   "Jet_Brows"
+  ]
+ }
+}

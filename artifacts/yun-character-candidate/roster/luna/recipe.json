@@ -1,0 +1,76 @@
+{
+ "remove": [
+  "Hair_*",
+  "Hat*",
+  "Cap*",
+  "Beanie*",
+  "Glasses*",
+  "Goggles*",
+  "Headphones*",
+  "Neckwear*",
+  "Headband*",
+  "Earcup*",
+  "Cat_Ear*",
+  "Star*",
+  "Clip*"
+ ],
+ "materials": {
+  "Luna_Hair": "#A47BE6",
+  "Luna_Star": "#F2C04D"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Luna_Hair",
+   "thick": 0.036,
+   "lift_top": 0.05,
+   "front": 0.8,
+   "side": 0.2,
+   "back": -0.1,
+   "front_power": 4.0
+  },
+  {
+   "type": "bangs",
+   "name": "Hair_Bangs",
+   "material": "Luna_Hair",
+   "strands": 4,
+   "overlap": 1.25,
+   "t_top": 0.9,
+   "span": 0.97,
+   "thick": 0.05
+  },
+  {
+   "type": "curtain",
+   "name": "Hair_Long",
+   "material": "Luna_Hair",
+   "t_top": 0.75,
+   "t_bottom": -0.4,
+   "strands": 6,
+   "span": 1.08,
+   "thick": 0.07,
+   "front": {
+    "t_bottom": -0.32,
+    "y": 0.95
+   }
+  },
+  {
+   "type": "buns",
+   "name": "Hair_Buns",
+   "material": "Luna_Hair",
+   "radius": 0.088,
+   "x": 0.8,
+   "y": 0.15,
+   "t": 1.06
+  },
+  {
+   "type": "star",
+   "name": "Hair_Clip",
+   "material": "Luna_Star",
+   "x": -0.55,
+   "t": 0.92,
+   "radius": 0.032,
+   "y": -0.035
+  }
+ ]
+}

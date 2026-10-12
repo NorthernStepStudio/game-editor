@@ -1,0 +1,56 @@
+{
+ "remove": [
+  "Hair_*"
+ ],
+ "materials": {
+  "Riko_Hair": "#6E3A22",
+  "Riko_Scrunchie": "#F06AA8"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Riko_Hair",
+   "thick": 0.036,
+   "lift_top": 0.05,
+   "front": 0.8,
+   "side": 0.22,
+   "back": 0.0,
+   "front_power": 4.0
+  },
+  {
+   "type": "bangs",
+   "name": "Hair_Bangs",
+   "material": "Riko_Hair",
+   "strands": 4,
+   "overlap": 1.25,
+   "t_top": 0.9,
+   "span": 0.97,
+   "thick": 0.05
+  },
+  {
+   "type": "locks",
+   "name": "Hair_Locks",
+   "material": "Riko_Hair",
+   "t_top": 0.85,
+   "t_bottom": 0.0,
+   "width": 0.12,
+   "thick": 0.06,
+   "y": -0.35
+  },
+  {
+   "type": "tail",
+   "name": "Hair_Ponytail",
+   "material": "Riko_Hair",
+   "t": 0.98,
+   "y": 0.85,
+   "radius": 0.095,
+   "up": 0.11,
+   "back": 0.17,
+   "drop": 0.36,
+   "sway": 0.03,
+   "tie": "Riko_Scrunchie",
+   "tie_name": "Hair_Scrunchie"
+  }
+ ]
+}

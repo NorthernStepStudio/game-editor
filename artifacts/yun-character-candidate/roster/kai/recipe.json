@@ -1,0 +1,72 @@
+{
+ "remove": [
+  "Hair_*",
+  "Hat*",
+  "Cap*",
+  "Beanie*",
+  "Glasses*",
+  "Goggles*",
+  "Headphones*",
+  "Neckwear*",
+  "Headband*",
+  "Earcup*",
+  "Cat_Ear*",
+  "Star*",
+  "Clip*"
+ ],
+ "materials": {
+  "Kai_Hair": "#1E2233",
+  "Kai_Phones_White": "#E8E8EC",
+  "Kai_Phones_Black": "#1A1A1E"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Kai_Hair",
+   "thick": 0.05,
+   "lift_top": 0.07,
+   "front": 0.82,
+   "side": 0.4,
+   "back": 0.05,
+   "front_power": 3.0
+  },
+  {
+   "type": "tufts",
+   "name": "Hair_Tufts",
+   "material": "Kai_Hair",
+   "count": 70,
+   "length": 0.1,
+   "radius": 0.065,
+   "up": 0.35,
+   "down": 0.7,
+   "bang_t": 0.95,
+   "front": 0.82,
+   "side": 0.42,
+   "back": 0.15,
+   "flat": 0.6,
+   "shell": 0.035,
+   "lift_top": 0.06,
+   "lean_back": 0.7
+  },
+  {
+   "type": "bangs",
+   "style": "pointed",
+   "name": "Hair_Bangs",
+   "material": "Kai_Hair",
+   "strands": 7,
+   "t_top": 0.9,
+   "t_bottom": 0.6,
+   "span": 0.98,
+   "thick": 0.04,
+   "overlap": 1.5
+  },
+  {
+   "type": "neckphones",
+   "name": "Neckwear_Band",
+   "band": "Kai_Phones_Black",
+   "cups": "Kai_Phones_White",
+   "cup": 0.058
+  }
+ ]
+}

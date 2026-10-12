@@ -1,0 +1,81 @@
+{
+ "remove": [
+  "Hair_*",
+  "Hat*",
+  "Cap*",
+  "Beanie*",
+  "Glasses*",
+  "Goggles*",
+  "Headphones*",
+  "Neckwear*",
+  "Headband*",
+  "Earcup*",
+  "Cat_Ear*",
+  "Star*",
+  "Clip*"
+ ],
+ "materials": {
+  "Ace_Hair": "#2A1D18",
+  "Ace_Cap": "#E03A3E",
+  "Ace_CapBand": "#2A2A2E"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Ace_Hair",
+   "thick": 0.02,
+   "front": 0.8,
+   "side": 0.3,
+   "back": 0.0,
+   "front_power": 3.0
+  },
+  {
+   "type": "clumps",
+   "name": "Hair_Curls",
+   "material": "Ace_Hair",
+   "count": 80,
+   "radius": 0.04,
+   "out": 0.25,
+   "scale": [
+    0.8,
+    0.8,
+    1.2
+   ],
+   "front": 0.78,
+   "side": 0.32,
+   "back": 0.05,
+   "max_t": 0.84
+  },
+  {
+   "type": "hat",
+   "kind": "cap_backwards",
+   "name": "Cap_Crown",
+   "material": "Ace_Cap",
+   "strap": "Ace_CapBand",
+   "thick": 0.03,
+   "lift": 0.05,
+   "t_bottom": 0.8,
+   "shape": "dome",
+   "wide": 1.3,
+   "deep": 1.32
+  }
+ ],
+ "slots": {
+  "Jacket": [
+   "Ace_Jacket_Red",
+   "Ace_Jacket_Red",
+   "Ace_Jacket_White"
+  ],
+  "Arm_L": [
+   "Ace_Jacket_White",
+   "Ace_Jacket_Red",
+   "Ace_Jacket_White"
+  ],
+  "Arm_R": [
+   "Ace_Jacket_White",
+   "Ace_Jacket_Red",
+   "Ace_Jacket_White"
+  ]
+ }
+}

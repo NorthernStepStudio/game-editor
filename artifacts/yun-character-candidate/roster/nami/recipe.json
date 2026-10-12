@@ -1,0 +1,173 @@
+{
+ "remove": [
+  "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
+  "Glasses*",
+  "Goggles*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
+  "Headband*",
+  "Headphones*",
+  "Hip_Strap",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
+ ],
+ "materials": {
+  "Nami_Hair": "#4FB8AE",
+  "Nami_Star": "#F2C04D",
+  "Nami_Skin": "#F3CFB2",
+  "Nami_Top": "#6FD1C6",
+  "Nami_Body": "#1E1E22",
+  "Nami_Panel": "#4FB8AE",
+  "Nami_Trim": "#4FB8AE",
+  "Nami_Up": "#1E1E22",
+  "Nami_Band": "#4FB8AE",
+  "Nami_Low": "#F4F1EE",
+  "Nami_Collar": "#1E1E22",
+  "Nami_Lining": "#4FB8AE",
+  "Nami_Glove": "#2C2C30",
+  "Nami_Accent": "#4FB8AE",
+  "Nami_Shorts": "#4FB8AE",
+  "Nami_Hem": "#F4F1EE",
+  "Nami_Shoe": "#F4F1EE",
+  "Nami_Shoe_panel": "#4FB8AE",
+  "Nami_Shoe_accent": "#4FB8AE",
+  "Nami_Sole": "#F4F1EE",
+  "Nami_Bag": "#F2C04D",
+  "Nami_Flap": "#E0A830",
+  "Nami_Strap": "#1E1E22",
+  "Nami_Belt": "#1E1E22",
+  "Nami_Buckle": "#C9C9CF",
+  "Nami_Brows": "#2F7F78"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Nami_Hair",
+   "thick": 0.036,
+   "lift_top": 0.05,
+   "front": 0.8,
+   "side": 0.15,
+   "back": -0.1,
+   "front_power": 4.0
+  },
+  {
+   "type": "bangs",
+   "name": "Hair_Bangs",
+   "material": "Nami_Hair",
+   "strands": 4,
+   "overlap": 1.3,
+   "t_top": 0.9,
+   "span": 0.95,
+   "thick": 0.05,
+   "sweep": 0.2
+  },
+  {
+   "type": "curtain",
+   "name": "Hair_Long",
+   "material": "Nami_Hair",
+   "t_top": 0.75,
+   "t_bottom": -0.5,
+   "strands": 7,
+   "span": 1.05,
+   "thick": 0.07,
+   "front": {
+    "t_bottom": -0.42,
+    "y": 0.95
+   }
+  },
+  {
+   "type": "star",
+   "name": "Hair_Clip",
+   "material": "Nami_Star",
+   "x": 0.55,
+   "t": 0.92,
+   "radius": 0.032,
+   "y": -0.035
+  }
+ ],
+ "slots": {
+  "Head": [
+   "Nami_Skin"
+  ],
+  "Torso": [
+   "Nami_Skin"
+  ],
+  "CropTop": [
+   "Nami_Top"
+  ],
+  "Jacket": [
+   "Nami_Body",
+   "Nami_Panel",
+   "Nami_Trim"
+  ],
+  "Arm_L": [
+   "Nami_Up",
+   "Nami_Band",
+   "Nami_Low"
+  ],
+  "Arm_R": [
+   "Nami_Up",
+   "Nami_Band",
+   "Nami_Low"
+  ],
+  "Collar": [
+   "Nami_Collar",
+   "Nami_Lining"
+  ],
+  "Hand_L": [
+   "Nami_Glove",
+   "Nami_Skin",
+   "Nami_Accent"
+  ],
+  "Hand_R": [
+   "Nami_Glove",
+   "Nami_Skin",
+   "Nami_Accent"
+  ],
+  "Shorts": [
+   "Nami_Shorts",
+   "Nami_Hem"
+  ],
+  "Leg_L": [
+   "Nami_Skin"
+  ],
+  "Leg_R": [
+   "Nami_Skin"
+  ],
+  "Shoe_L": [
+   "Nami_Shoe",
+   "Nami_Shoe_panel",
+   "Nami_Shoe_accent",
+   "Nami_Sole"
+  ],
+  "Shoe_R": [
+   "Nami_Shoe",
+   "Nami_Shoe_panel",
+   "Nami_Shoe_accent",
+   "Nami_Sole"
+  ],
+  "Bag": [
+   "Nami_Bag",
+   "Nami_Flap"
+  ],
+  "Bag_Strap": [
+   "Nami_Strap"
+  ],
+  "Belt": [
+   "Nami_Belt",
+   "Nami_Buckle"
+  ],
+  "Eyebrows": [
+   "Nami_Brows"
+  ]
+ }
+}

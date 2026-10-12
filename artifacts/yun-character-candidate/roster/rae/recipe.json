@@ -1,0 +1,187 @@
+{
+ "remove": [
+  "Beanie*",
+  "Cap*",
+  "Cat_Ear*",
+  "Clip*",
+  "Earcup*",
+  "Earrings",
+  "Glasses*",
+  "Goggles*",
+  "Hair_*",
+  "Hair_Curls",
+  "Hair_Ponytail",
+  "Hat*",
+  "Headband*",
+  "Headphones*",
+  "Hip_Strap",
+  "Neckwear*",
+  "Scrunchie",
+  "Star*"
+ ],
+ "materials": {
+  "Rae_Hair": "#8A4E30",
+  "Rae_Streak": "#EC4F9A",
+  "Rae_Phones_Pink": "#EC4F9A",
+  "Rae_Phones_Black": "#1E1E22",
+  "Rae_Skin": "#EDBF9A",
+  "Rae_Torso": "#F4F1EE",
+  "Rae_Top": "#F4F1EE",
+  "Rae_Body": "#1E1E22",
+  "Rae_Panel": "#EC4F9A",
+  "Rae_Trim": "#EC4F9A",
+  "Rae_Up": "#EC4F9A",
+  "Rae_Band": "#1E1E22",
+  "Rae_Low": "#F7A8CC",
+  "Rae_Collar": "#1E1E22",
+  "Rae_Lining": "#EC4F9A",
+  "Rae_Glove": "#1E1E22",
+  "Rae_Accent": "#EC4F9A",
+  "Rae_Shorts": "#4A3027",
+  "Rae_Hem": "#3A2620",
+  "Rae_Shoe": "#F4F1EE",
+  "Rae_Shoe_panel": "#EC4F9A",
+  "Rae_Shoe_accent": "#1E1E22",
+  "Rae_Sole": "#F4F1EE",
+  "Rae_Bag": "#1E1E22",
+  "Rae_Flap": "#EC4F9A",
+  "Rae_Strap": "#1E1E22",
+  "Rae_Belt": "#2A2A2E",
+  "Rae_Buckle": "#C9C9CF",
+  "Rae_Brows": "#5A3020"
+ },
+ "pieces": [
+  {
+   "type": "cap",
+   "name": "Hair_Cap",
+   "material": "Rae_Hair",
+   "thick": 0.036,
+   "lift_top": 0.05,
+   "front": 0.8,
+   "side": 0.15,
+   "back": -0.05,
+   "front_power": 4.0
+  },
+  {
+   "type": "bangs",
+   "name": "Hair_Bangs",
+   "material": "Rae_Hair",
+   "strands": 4,
+   "overlap": 1.3,
+   "t_top": 0.9,
+   "span": 0.95,
+   "thick": 0.05,
+   "sweep": 0.2
+  },
+  {
+   "type": "curtain",
+   "name": "Hair_Long",
+   "material": "Rae_Hair",
+   "t_top": 0.75,
+   "t_bottom": -0.25,
+   "strands": 6,
+   "span": 1.08,
+   "thick": 0.07,
+   "front": {
+    "t_bottom": -0.16999999999999998,
+    "y": 0.95
+   }
+  },
+  {
+   "type": "tail",
+   "name": "Hair_Ponytail",
+   "material": "Rae_Hair",
+   "t": 0.98,
+   "y": 0.85,
+   "radius": 0.09,
+   "up": 0.08,
+   "back": 0.17,
+   "drop": 0.32
+  },
+  {
+   "type": "headphones",
+   "name": "Headphones",
+   "cup_name": "Headphones_Cups",
+   "band": "Rae_Phones_Black",
+   "cups": "Rae_Phones_Pink",
+   "cup": 0.075,
+   "cat_ears": true
+  }
+ ],
+ "slots": {
+  "Head": [
+   "Rae_Skin"
+  ],
+  "Torso": [
+   "Rae_Torso"
+  ],
+  "CropTop": [
+   "Rae_Top"
+  ],
+  "Jacket": [
+   "Rae_Body",
+   "Rae_Panel",
+   "Rae_Trim"
+  ],
+  "Arm_L": [
+   "Rae_Up",
+   "Rae_Band",
+   "Rae_Low"
+  ],
+  "Arm_R": [
+   "Rae_Up",
+   "Rae_Band",
+   "Rae_Low"
+  ],
+  "Collar": [
+   "Rae_Collar",
+   "Rae_Lining"
+  ],
+  "Hand_L": [
+   "Rae_Glove",
+   "Rae_Skin",
+   "Rae_Accent"
+  ],
+  "Hand_R": [
+   "Rae_Glove",
+   "Rae_Skin",
+   "Rae_Accent"
+  ],
+  "Shorts": [
+   "Rae_Shorts",
+   "Rae_Hem"
+  ],
+  "Leg_L": [
+   "Rae_Skin"
+  ],
+  "Leg_R": [
+   "Rae_Skin"
+  ],
+  "Shoe_L": [
+   "Rae_Shoe",
+   "Rae_Shoe_panel",
+   "Rae_Shoe_accent",
+   "Rae_Sole"
+  ],
+  "Shoe_R": [
+   "Rae_Shoe",
+   "Rae_Shoe_panel",
+   "Rae_Shoe_accent",
+   "Rae_Sole"
+  ],
+  "Bag": [
+   "Rae_Bag",
+   "Rae_Flap"
+  ],
+  "Bag_Strap": [
+   "Rae_Strap"
+  ],
+  "Belt": [
+   "Rae_Belt",
+   "Rae_Buckle"
+  ],
+  "Eyebrows": [
+   "Rae_Brows"
+  ]
+ }
+}

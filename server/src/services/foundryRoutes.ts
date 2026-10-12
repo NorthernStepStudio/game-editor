@@ -145,14 +145,16 @@ export async function foundryRoutes(
     return true;
   }
 
-  const jobAction = /^\/api\/foundry\/jobs\/([a-f0-9-]{36})\/(cancel|retry)$/.exec(pathname);
+  const jobAction = /^\/api\/foundry\/jobs\/([a-f0-9-]{36})\/(cancel|retry|dismiss)$/.exec(pathname);
   if (request.method === 'POST' && jobAction) {
     try {
       const body = (await readBody()) as { providerId?: unknown } | undefined;
       const job = jobAction[2] === 'cancel'
         ? service.foundryGeneration.cancelJob(jobAction[1])
-        : service.foundryGeneration.retryJob(jobAction[1], { providerId: body?.providerId });
-      sendJson(response, jobAction[2] === 'cancel' ? 200 : 202, { job });
+        : jobAction[2] === 'dismiss'
+          ? service.foundryGeneration.dismissJob(jobAction[1])
+          : service.foundryGeneration.retryJob(jobAction[1], { providerId: body?.providerId });
+      sendJson(response, jobAction[2] === 'retry' ? 202 : 200, { job });
     } catch (error) {
       sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
     }

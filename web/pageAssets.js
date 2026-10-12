@@ -96,7 +96,7 @@ function libraryItems() {
   for (const job of jobs) {
     if (job.status === 'queued' || job.status === 'running') {
       items.push({ type: 'job', status: 'building', job, name: job.displayName || job.assetId, kind: job.kind, prompt: job.prompt });
-    } else if (job.status === 'failed' && !retried.has(job.jobId)) {
+    } else if (job.status === 'failed' && !retried.has(job.jobId) && !job.dismissed) {
       items.push({ type: 'job', status: 'failed', job, name: job.displayName || job.assetId, kind: job.kind, prompt: job.prompt });
     }
   }
@@ -255,7 +255,8 @@ function card(item, index) {
           building
             ? action('Cancel', async () => { await api(`/api/foundry/jobs/${job.jobId}/cancel`, {}); toast(`Cancelled ${item.name}.`); await refresh(); }, 'small')
             : [h('a', { class: 'btn small', href: `#assets/build/${job.jobId}` }, 'See why'),
-              action('Retry', async () => { await retry(job); }, 'small quiet')])));
+              action('Retry', async () => { await retry(job); }, 'small quiet'),
+              action('Dismiss', async () => { await api(`/api/foundry/jobs/${job.jobId}/dismiss`, {}); toast(`Cleared ${item.name} from the library.`); await refresh(); }, 'small quiet', { title: 'Clear this failed build from the library' })])));
   }
   const asset = item.asset;
   if (state.selecting) return selectableCard(item, index, kind);

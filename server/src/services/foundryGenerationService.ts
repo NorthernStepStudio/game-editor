@@ -112,6 +112,8 @@ export interface FoundryJob {
   readonly styleId?: string;
   readonly retryOf?: string;
   status: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+  /** The owner cleared this failed build from the library; it stays in the job history. */
+  dismissed?: boolean;
   readonly progress: { at: string; message: string }[];
   readonly createdAt: string;
   startedAt?: string;
@@ -583,6 +585,16 @@ export class FoundryGenerationService {
     return this.jobView(job);
   }
 
+  /** Clears a failed or cancelled build from the library (the owner no longer wants it retried). */
+  dismissJob(jobId: string): FoundryJobView {
+    const job = this.jobs.get(jobId);
+    if (!job) throw new Error('Build not found.');
+    if (job.status !== 'failed' && job.status !== 'cancelled') throw new Error('Only a build that failed or was cancelled can be dismissed.');
+    job.dismissed = true;
+    this.persistJobs();
+    return this.jobView(job);
+  }
+
   /** A style-matched set: every item shares the pack style and is built one after another. */
   submitPack(raw: unknown): readonly FoundryJobView[] {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Pack request must be an object.');
@@ -802,11 +814,13 @@ export class FoundryGenerationService {
     const explicit = this.env.MATTERHORN_MINI_SKELETON?.trim();
     const candidates = [
       ...(explicit ? [explicit] : []),
+      // Matterhorn's own copy, so rigging keeps working after a game swaps the Kenney characters for its own
+      join(this.assets.dataDirectory, 'tools', 'rig-reference', 'character-female-a.glb'),
       ...this.projects.map((project) => join(project.path, 'assets', 'kenney', 'mini_characters', 'character-female-a.glb')),
     ];
     const reference = candidates.find((file) => existsSync(file));
     if (!reference || !findBlenderExecutable()) {
-      this.blenderAgentNotes.set(MINI_RIG_PROVIDER_ID, 'Needs Blender and a game with Kenney mini characters (assets/kenney/mini_characters) to copy the skeleton and animations from.');
+      this.blenderAgentNotes.set(MINI_RIG_PROVIDER_ID, 'Needs Blender and the mini skeleton to copy from: .matterhorn/tools/rig-reference/character-female-a.glb (a rigged Kenney mini character), or a game with Kenney mini characters.');
       return;
     }
     this.rigger = new MiniRigProvider({

@@ -179,6 +179,10 @@ test('Builds can be cancelled and retried, history survives a restart, drafts an
     assert.equal(retried.retryOf, blocker.jobId);
     await waitFor(() => generation.getJob(retried.jobId)?.status === 'succeeded');
 
+    // A failed or cancelled build can be cleared from the library; finished or running ones cannot.
+    assert.equal(generation.dismissJob(queued.jobId).dismissed, true);
+    assert.throws(() => generation.dismissJob(retried.jobId), /failed or was cancelled/);
+
     const drafts = [1, 2].map((n) => generation.submitJob({
       ...base, assetId: `stall_d${n}`, prompt: 'market stall', displayName: 'Market stall', draftGroup: 'stall', styleId: style.id,
     }));

@@ -24,6 +24,8 @@ const MODEL_EXT = new Set(['.glb', '.gltf']);
 const IMAGE_EXT = new Set(['.png', '.jpg', '.jpeg', '.webp']);
 const AUDIO_EXT = new Set(['.ogg', '.wav', '.mp3']);
 const RENDER_HINT = /(three[-_]?quarter|preview|front|render|thumb|turntable|beauty)/i;
+/** Textures Godot extracts from an imported model (<model>_Image_0.png …): neither previews nor assets of their own. */
+const GODOT_EXTRACTED = /_Image_\d+\.(png|webp|jpe?g)$/i;
 const MAX_FILES = 3000;
 export const MAX_PICTURE_BYTES = 25 * 1024 * 1024;
 
@@ -107,7 +109,9 @@ export class FoundryImporter {
       }
       // Older imports without a preview get one too.
       for (const asset of this.assets.store.list()) {
-        if (asset.generationProvider !== 'imported' || asset.previewPath || !asset.localPath) continue;
+        if (asset.generationProvider !== 'imported' || !asset.localPath) continue;
+        // a preview that is really a texture Godot extracted counts as no preview
+        if (asset.previewPath && !GODOT_EXTRACTED.test(asset.previewPath)) continue;
         if (this.assets.meta(asset.assetId)?.previewPath) continue;
         if (!/\.(glb|gltf|blend)$/i.test(asset.localPath)) continue;
         if (this.previewQueue.some((q) => q.assetId === asset.assetId)) continue;
@@ -155,7 +159,7 @@ export class FoundryImporter {
     for (const [dir, list] of byDir) {
       const models = list.filter((f) => MODEL_EXT.has(extname(f).toLowerCase()));
       const blends = list.filter((f) => extname(f).toLowerCase() === '.blend');
-      const images = list.filter((f) => IMAGE_EXT.has(extname(f).toLowerCase()));
+      const images = list.filter((f) => IMAGE_EXT.has(extname(f).toLowerCase()) && !GODOT_EXTRACTED.test(f));
       const audio = list.filter((f) => AUDIO_EXT.has(extname(f).toLowerCase()));
       const usedImages = new Set<string>();
 

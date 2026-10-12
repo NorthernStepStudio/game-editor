@@ -543,7 +543,8 @@ export class FoundryAssetService {
   }
 
   private safePreviewPath(manifest: FoundryAssetManifest): string | undefined {
-    const localPath = [manifest.previewPath, this.meta_[manifest.assetId]?.previewPath, manifest.localPath].find(
+    // a preview rendered later (kept in the asset's metadata) replaces the one it was imported with
+    const localPath = [this.meta_[manifest.assetId]?.previewPath, manifest.previewPath, manifest.localPath].find(
       (path) => path && isAbsolute(path) && PREVIEW_MIME[extname(path).toLowerCase()] && existsSync(path),
     );
     return localPath ? this.safePath(localPath) : undefined;

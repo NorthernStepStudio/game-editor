@@ -84,3 +84,23 @@ test('a picture added from the computer joins the library as reference art, chec
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test('textures Godot extracts from a model are neither its preview nor separate assets', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'matterhorn-godot-tex-'));
+  const game = join(root, 'Yun', 'assets');
+  try {
+    await mkdir(join(game, 'characters', 'roster'), { recursive: true });
+    await writeFile(join(game, 'characters', 'roster', 'yun.glb'), 'glb');
+    await writeFile(join(game, 'characters', 'roster', 'yun_Image_0.png'), 'png');
+    await writeFile(join(game, 'characters', 'roster', 'yun_Image_1.webp'), 'webp');
+    const assets = new FoundryAssetService(join(root, 'data'), [{ id: 'yun', name: 'Yun', path: join(root, 'Yun') }], []);
+    const importer = new FoundryImporter(assets, () => [{ label: 'Yun', path: game, kind: 'game' }], { renderPreviews: false });
+    await importer.scan();
+    const all = assets.store.list();
+    assert.equal(all.length, 1, 'only the model is imported');
+    assert.equal(all[0]!.previewPath, undefined, 'a texture is not a preview; Blender renders one instead');
+    assert.equal(importer.status().previews.queued, 1);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

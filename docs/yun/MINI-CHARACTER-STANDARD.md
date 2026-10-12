@@ -28,8 +28,24 @@ game's Kenney mini characters (Nati). The machine-readable version is
 | Legs | short and thick | z 0.04 → 0.17, hip joint z ≈ 0.176, x ≈ ±0.065 |
 | Shoes | big and chunky, slightly wider than the legs, thick soles | z 0 → ~0.10 |
 
-The head is about **half** the character's height. That is the Kenney mini look; do not make heads smaller
-or bodies taller.
+> **Superseded by the roster ratios below (owner review, chibi v04).** The table above came from Yun mini v02
+> and the Kenney minis, whose heads are too big next to the owner's roster. Use the ratios below; Yun chibi v04
+> (`checkpoints/chibi-v04`) is built to them and awaits owner review.
+
+### Roster proportions (measured from the owner's concept sheet)
+
+Measure everything against the **body**: from the arm line (centre of the arms in T-pose) down to the soles.
+
+| | Riko | Kai | Luna | Ace | **Target** | Yun v02 | **Yun v04** |
+|---|---|---|---|---|---|---|---|
+| Head + hair width ÷ body | 1.58 | 1.62 | 1.74 | 1.49 | **1.5–1.7** | 1.74 | **1.49** |
+| Arm span ÷ body | 2.04 | 2.10 | 2.13 | 1.98 | **≈ 2.05** | 2.32 | **1.92** |
+| Total height (with hair) ÷ body | 2.47 | 2.50 | 2.37 | 2.32 | **≈ 2.4** | 2.03 | **2.23** |
+
+At the game's total height of 0.672 m this means: body (arm line) ≈ 0.28 m, head with hair ≈ 0.45 m wide,
+arm span ≈ 0.58 m, chin ≈ 0.33 m. **The hair makes the head big, not the face**: a skin face box of about
+0.27 × 0.22 m, framed by hair that adds the width and the height (ponytails, spikes, buns, caps).
+Torsos, shorts and shoes are chunky (roughly as wide as the face box).
 
 ### Face (identical construction for everyone)
 

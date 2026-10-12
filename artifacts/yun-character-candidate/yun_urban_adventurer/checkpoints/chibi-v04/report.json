@@ -1,0 +1,111 @@
+{
+  "ok": true,
+  "stage": "done",
+  "files": {
+    "blend": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/yun_urban_chibi_v04.blend",
+    "glb": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/yun_urban_chibi_v04.glb"
+  },
+  "renders": {
+    "front": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/render_front.png",
+    "three_quarter": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/render_three_quarter.png",
+    "side": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/render_side.png",
+    "back": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/render_back.png"
+  },
+  "normalizedOffset": [
+    -0.0,
+    -0.02,
+    -0.0
+  ],
+  "stats": {
+    "objects": 25,
+    "vertices": 8178,
+    "triangles": 15928,
+    "materials": [
+      "Yun_Black",
+      "Yun_Blush",
+      "Yun_Charcoal",
+      "Yun_Eye_Dark",
+      "Yun_Gold",
+      "Yun_Hair_DarkBrown",
+      "Yun_Jacket_Cream",
+      "Yun_Jacket_OrangeYellow",
+      "Yun_Leggings_Black",
+      "Yun_Mouth",
+      "Yun_Orange",
+      "Yun_Shorts_Hem_Grey",
+      "Yun_Shorts_Olive",
+      "Yun_Skin",
+      "Yun_Sneaker_Sole",
+      "Yun_Sneaker_White"
+    ],
+    "dimensions": [
+      0.58,
+      0.36,
+      0.672
+    ],
+    "min": [
+      -0.29,
+      -0.18,
+      0.0
+    ],
+    "max": [
+      0.29,
+      0.18,
+      0.672
+    ]
+  },
+  "build": [
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_01.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_02.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_03.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_04.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_05.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_06.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_07.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_08.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_09.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_10.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_11.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_12.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_13.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_14.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_15.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_16.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_17.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_18.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_19.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_20.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_21.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_22.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_23.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/build_24.png"
+  ],
+  "spin": [
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_00.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_01.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_02.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_03.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_04.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_05.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_06.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_07.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_08.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_09.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_10.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_11.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_12.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_13.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_14.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_15.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_16.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_17.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_18.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_19.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_20.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_21.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_22.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_chibi_v04/spin_23.png"
+  ],
+  "engine": "BLENDER_EEVEE",
+  "blenderVersion": "5.2.1 LTS"
+}

@@ -150,10 +150,22 @@ export class ClaudeCodeScriptAuthor implements ScriptAuthor {
           return;
         }
         const reason = parsed?.terminal_reason ?? (stderr.trim().split(/\r?\n/).pop() || `exit ${code}`);
+        // Claude's own words say why (usage limit, sign-in, overload); show them instead of guessing.
+        const said = typeof parsed?.result === "string" ? parsed.result.trim().slice(0, 300) : "";
+        if (/limit|quota|rate/i.test(said)) {
+          reject(new Error(`Claude's usage limit is reached for now (${said}). Try again after it resets, or use Local.`));
+          return;
+        }
+        if (/log ?in|sign ?in|auth|credential/i.test(said)) {
+          reject(new Error(`Claude Code is not signed in (${said}). Run \`claude\` once in a terminal and sign in.`));
+          return;
+        }
         reject(new Error(
-          reason === "api_error"
-            ? "Claude Code is installed but not signed in (or the request failed). Run `claude` once in a terminal and sign in."
-            : `Claude Code failed: ${String(reason).slice(0, 400)}`,
+          said
+            ? `Claude could not write the script: ${said}`
+            : reason === "api_error"
+              ? "Claude Code's request failed (it may be signed out or over its usage limit). Check Settings › AI, then retry."
+              : `Claude Code failed: ${String(reason).slice(0, 400)}`,
         ));
       });
       child.stdin.end(request.prompt);

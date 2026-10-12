@@ -1,0 +1,111 @@
+{
+  "ok": true,
+  "stage": "done",
+  "files": {
+    "blend": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/yun_urban_mini_v02.blend",
+    "glb": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/yun_urban_mini_v02.glb"
+  },
+  "renders": {
+    "front": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/render_front.png",
+    "three_quarter": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/render_three_quarter.png",
+    "side": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/render_side.png",
+    "back": "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/render_back.png"
+  },
+  "normalizedOffset": [
+    -0.0,
+    -0.0925,
+    -0.0
+  ],
+  "stats": {
+    "objects": 25,
+    "vertices": 7834,
+    "triangles": 15256,
+    "materials": [
+      "Yun_Black",
+      "Yun_Blush",
+      "Yun_Charcoal",
+      "Yun_Eye_Dark",
+      "Yun_Gold",
+      "Yun_Hair_DarkBrown",
+      "Yun_Jacket_Cream",
+      "Yun_Jacket_OrangeYellow",
+      "Yun_Leggings_Black",
+      "Yun_Mouth",
+      "Yun_Orange",
+      "Yun_Shorts_Hem_Grey",
+      "Yun_Shorts_Olive",
+      "Yun_Skin",
+      "Yun_Sneaker_Sole",
+      "Yun_Sneaker_White"
+    ],
+    "dimensions": [
+      0.77,
+      0.545,
+      0.672
+    ],
+    "min": [
+      -0.385,
+      -0.2725,
+      0.0
+    ],
+    "max": [
+      0.385,
+      0.2725,
+      0.672
+    ]
+  },
+  "build": [
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_01.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_02.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_03.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_04.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_05.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_06.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_07.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_08.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_09.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_10.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_11.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_12.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_13.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_14.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_15.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_16.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_17.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_18.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_19.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_20.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_21.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_22.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_23.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/build_24.png"
+  ],
+  "spin": [
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_00.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_01.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_02.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_03.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_04.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_05.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_06.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_07.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_08.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_09.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_10.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_11.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_12.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_13.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_14.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_15.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_16.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_17.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_18.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_19.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_20.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_21.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_22.png",
+    "D:/dev/Northern Step Studio/asset-library/assets/generated/foundry/yun_urban_mini_v02/spin_23.png"
+  ],
+  "engine": "BLENDER_EEVEE",
+  "blenderVersion": "5.2.1 LTS"
+}

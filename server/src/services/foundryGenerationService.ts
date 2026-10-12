@@ -737,10 +737,13 @@ export class FoundryGenerationService {
       return;
     }
 
-    if (ollamaModel || this.assetModel) {
-      const chosen = this.assetModel;
+    const chosen = this.assetModel;
+    const localAuthor = ollamaModel || chosen
+      ? new OllamaScriptAuthor(ollamaBase, () => chosen?.() ?? ollamaModel)
+      : undefined;
+    if (localAuthor) {
       this.registry.register(new BlenderAgentAssetProvider({
-        author: new OllamaScriptAuthor(ollamaBase, () => chosen?.() ?? ollamaModel),
+        author: localAuthor,
         blenderExecutable: blender,
         resolveParentScript,
         resolveParentFile,
@@ -759,10 +762,12 @@ export class FoundryGenerationService {
         blenderExecutable: blender,
         resolveParentScript,
         resolveParentFile,
+        // If Claude stops working mid-build (usage limit, signed out), the local model carries on.
+        ...(localAuthor ? { fallbackAuthor: localAuthor } : {}),
       }));
       this.blenderAgentNotes.set(
         'blender-agent-claude',
-        'Uses your Claude subscription through Claude Code (sign in once by running `claude`). Allow network providers in routing settings to use it.',
+        `Uses your Claude subscription through Claude Code (sign in once by running \`claude\`). Allow network providers in routing settings to use it.${localAuthor ? ' If Claude stops working mid-build (usage limit, signed out), your local model takes over automatically.' : ''}`,
       );
     } else {
       this.blenderAgentNotes.set(

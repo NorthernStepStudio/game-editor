@@ -40,6 +40,18 @@ export interface BlenderAgentProviderOptions {
   readonly resolveParentScript?: (assetId: string) => string | undefined;
   /** Returns an existing asset's 3D file (.glb/.gltf/.blend) to continue from when it has no script. */
   readonly resolveParentFile?: (assetId: string) => string | undefined;
+  /** Takes over the build if the main author stops working (usage limit, signed out, outage). */
+  readonly fallbackAuthor?: ScriptAuthor;
+}
+
+/** The author's model name, if it has one, without failing when none is chosen. */
+function backupModel(author: ScriptAuthor, prefix = " "): string {
+  try {
+    const model = author.model;
+    return model ? (prefix === " " ? ` (${model})` : `${prefix}${model}`) : "";
+  } catch {
+    return "";
+  }
 }
 
 const FRAME_FILE = /^(build|spin)_\d+\.png$/;
@@ -186,6 +198,7 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
     }
 
     const attempts: { attempt: number; outcome: string }[] = [];
+    let author: ScriptAuthor = this.options.author;
     let report: HarnessReport | undefined;
     const signal = context.signal;
     const stopIfCancelled = () => {
@@ -193,14 +206,27 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
     };
     for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
       stopIfCancelled();
-      progress(`Attempt ${attempt}/${this.maxAttempts}: ${this.options.author.label} is writing the Blender script…`);
+      progress(`Attempt ${attempt}/${this.maxAttempts}: ${author.label} is writing the Blender script…`);
       const live = context.onLive;
-      const reply = await this.options.author.author({
+      const write = (writer: ScriptAuthor) => writer.author({
         system: BLENDER_AGENT_SYSTEM_PROMPT,
         prompt,
         ...(signal ? { signal } : {}),
         ...(live ? { onText: (script: string) => live({ script }), onThinking: (thinking: number) => live({ thinking }) } : {}),
       });
+      let reply: string;
+      try {
+        reply = await write(author);
+      } catch (error) {
+        // If the main AI stops working mid-build (usage limit, signed out, outage), the
+        // build carries on with the backup AI instead of failing.
+        const backup = this.options.fallbackAuthor;
+        if (signal?.aborted || !backup || author === backup) throw error;
+        const why = firstLine(error instanceof Error ? error.message : String(error)).slice(0, 220);
+        progress(`${author.label} is unavailable (${why}). Continuing with ${backup.label}${backupModel(backup)}…`);
+        author = backup;
+        reply = await write(author);
+      }
       stopIfCancelled();
       const script = extractPythonScript(reply);
       writeFileSync(scriptPath, script, "utf8");
@@ -285,7 +311,7 @@ export class BlenderAgentAssetProvider implements FoundryAssetProvider {
         ...(previewPath ? { previewPath: resolve(previewPath) } : {}),
         companionFiles: companions,
         metadata: {
-          model: `${this.options.author.label}${this.options.author.model ? `:${this.options.author.model}` : ""}`,
+          model: `${author.label}${backupModel(author, ":")}`,
           attempts: attempts.length,
           stats: report.stats,
           engine: report.engine,

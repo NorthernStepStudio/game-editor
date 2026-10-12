@@ -58,3 +58,44 @@ test("extractPythonScript unwraps fenced replies", () => {
   assert.equal(extractPythonScript("Here you go:\n```python\nimport bpy\nprint(1)\n```\nEnjoy"), "import bpy\nprint(1)\n");
   assert.equal(extractPythonScript("import bpy"), "import bpy\n");
 });
+
+test("Blender Agent carries on with the backup AI when the main one stops working", async () => {
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { BlenderAgentAssetProvider } = await import("../foundry/assets/providers/blenderAgent/blenderAgentProvider.js");
+  const calls = { main: 0, backup: 0 };
+  const main = {
+    id: "claude-code" as const,
+    label: "Claude Code",
+    async author(): Promise<string> {
+      calls.main += 1;
+      throw new Error("Claude's usage limit is reached for now.");
+    },
+  };
+  const backup = {
+    id: "ollama" as const,
+    label: "Ollama",
+    model: "qwen2.5-coder:14b",
+    async author(): Promise<string> {
+      calls.backup += 1;
+      return "import bpy\nbpy.ops.mesh.primitive_cube_add(size=1)\n";
+    },
+  };
+  const dir = mkdtempSync(join(tmpdir(), "fallback-"));
+  const progress: string[] = [];
+  try {
+    // A stand-in "Blender" that exits at once: the build fails at Blender, but only after the hand-off.
+    const provider = new BlenderAgentAssetProvider({ author: main, fallbackAuthor: backup, blenderExecutable: process.execPath, maxAttempts: 2, blenderTimeoutMs: 20_000 });
+    await assert.rejects(provider.execute(
+      { requestId: "r", assetId: "crate", kind: "mesh_3d", operation: "generate", prompt: "a crate" },
+      { outputRoot: dir, onProgress: (m) => progress.push(m) },
+    ));
+    assert.equal(calls.main, 1, "the main AI is not retried once it has stopped working");
+    assert.equal(calls.backup, 2, "the backup AI writes every remaining attempt");
+    assert.ok(progress.some((m) => /Claude Code is unavailable \(Claude's usage limit.*Continuing with Ollama \(qwen2\.5-coder:14b\)/.test(m)), progress.join("\n"));
+    assert.ok(progress.some((m) => m.startsWith("Attempt 2/2: Ollama is writing")), progress.join("\n"));
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

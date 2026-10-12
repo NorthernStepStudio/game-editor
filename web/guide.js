@@ -96,7 +96,7 @@ const SECTIONS = [
         term('Name', 'Optional. Used on cards and file names.'),
         term('Style', 'Adds a saved style’s look to the description. Manage styles opens the style list.'),
         term('Type', '3D model (GLB for Godot + Blender file), Sprite sheet (8 directions rendered from 3D), or Pixel art.'),
-        term('Who builds it', 'Claude gives the best results and handles objects with many parts. Local is free and offline but only reliable for simple single-shape props.'),
+        term('Who builds it', 'Claude gives the best results and handles objects with many parts. Local is free and offline but only reliable for simple single-shape props. If Claude stops working in the middle of a build (usage limit reached, signed out), the local model takes over automatically and the build page says so.'),
         term('Allow online AI', 'Shown when Claude is chosen but online AI is switched off in Advanced. One click allows it.'),
         term('Drafts to choose from', '1, 2 or 4 versions are built one after another; you keep the best.'),
         term('Make a matching set instead', 'Builds up to 12 items that share one look. The description becomes the shared look; list items one per line, optionally “name: details”.'),

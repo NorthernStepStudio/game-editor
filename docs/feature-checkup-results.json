@@ -1,0 +1,321 @@
+{
+  "pass": 52,
+  "fail": 0,
+  "warn": 0,
+  "total": 52,
+  "at": "2026-07-23T21:12:34.639Z",
+  "rows": [
+    {
+      "area": "Pages",
+      "feature": "/",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "feature": "/login",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "feature": "/register",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "feature": "/docs",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "feature": "/marketplace",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Pages",
+      "feature": "/reset-password",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Auth",
+      "feature": "Register",
+      "status": "pass",
+      "detail": "200"
+    },
+    {
+      "area": "Auth",
+      "feature": "Login",
+      "status": "pass",
+      "detail": "dev@gridloom.local"
+    },
+    {
+      "area": "Auth",
+      "feature": "Session persistence",
+      "status": "pass",
+      "detail": "200"
+    },
+    {
+      "area": "Auth",
+      "feature": "Password reset",
+      "status": "pass",
+      "detail": "200"
+    },
+    {
+      "area": "Projects",
+      "feature": "List",
+      "status": "pass",
+      "detail": "count=6"
+    },
+    {
+      "area": "Projects",
+      "feature": "Create + starter asset",
+      "status": "pass",
+      "detail": "cmry0bubj004nvz94omt71c7s"
+    },
+    {
+      "area": "Assets",
+      "feature": "Load document",
+      "status": "pass",
+      "detail": "w=32"
+    },
+    {
+      "area": "Assets",
+      "feature": "Save + sha256",
+      "status": "pass",
+      "detail": "b52ea83a4e"
+    },
+    {
+      "area": "AI",
+      "feature": "Mode generate",
+      "status": "pass",
+      "detail": "completed"
+    },
+    {
+      "area": "AI",
+      "feature": "Mode edit",
+      "status": "pass",
+      "detail": "completed"
+    },
+    {
+      "area": "AI",
+      "feature": "Mode reskin",
+      "status": "pass",
+      "detail": "completed"
+    },
+    {
+      "area": "AI",
+      "feature": "Mode reskin_creative",
+      "status": "pass",
+      "detail": "completed"
+    },
+    {
+      "area": "AI",
+      "feature": "Mode variant",
+      "status": "pass",
+      "detail": "completed"
+    },
+    {
+      "area": "AI",
+      "feature": "Mode set",
+      "status": "pass",
+      "detail": "completed"
+    },
+    {
+      "area": "AI",
+      "feature": "Mode directions",
+      "status": "pass",
+      "detail": "completed"
+    },
+    {
+      "area": "Billing",
+      "feature": "Usage ledger",
+      "status": "pass",
+      "detail": "credits=10000"
+    },
+    {
+      "area": "Components",
+      "feature": "Save + list",
+      "status": "pass",
+      "detail": "count=1"
+    },
+    {
+      "area": "Marketplace",
+      "feature": "Submit (pending)",
+      "status": "pass",
+      "detail": "pending"
+    },
+    {
+      "area": "Marketplace",
+      "feature": "Browse approved only",
+      "status": "pass",
+      "detail": "approved=0 (pending hidden — expected)"
+    },
+    {
+      "area": "Sync",
+      "feature": "API key create",
+      "status": "pass",
+      "detail": "gl_local_9e3"
+    },
+    {
+      "area": "Sync",
+      "feature": "Manifest",
+      "status": "pass",
+      "detail": "count=1"
+    },
+    {
+      "area": "Sync",
+      "feature": "PNG download",
+      "status": "pass",
+      "detail": "HTTP 200 etag=\"b52ea83a4e2a4761b6b30e7c97861ee6d88b028195d192ea0b8ea5132a9177f0\""
+    },
+    {
+      "area": "Sync",
+      "feature": "ETag 304",
+      "status": "pass",
+      "detail": "HTTP 304"
+    },
+    {
+      "area": "Sync",
+      "feature": "API key revoke",
+      "status": "pass",
+      "detail": "revoked"
+    },
+    {
+      "area": "Editor",
+      "feature": "Editor HTML route",
+      "status": "pass",
+      "detail": "HTTP 200"
+    },
+    {
+      "area": "Docs",
+      "feature": "OpenAPI",
+      "status": "pass",
+      "detail": "GridLoom API"
+    },
+    {
+      "area": "Auth",
+      "feature": "Logout",
+      "status": "pass",
+      "detail": "200"
+    },
+    {
+      "area": "Auth",
+      "feature": "Session cleared",
+      "status": "pass",
+      "detail": "401"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Pencil paint",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Eraser",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Fill",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Undo",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Redo",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Line tool",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Rect tool",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Ellipse tool",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Add layer",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "GPL parse",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "HEX parse",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "PAL parse",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Sheet decompose",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Sheet compose",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "PNG export",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Aseprite detect false",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Local AI",
+      "status": "pass",
+      "detail": "runtime"
+    },
+    {
+      "area": "EditorCore",
+      "feature": "Engine presets",
+      "status": "pass",
+      "detail": "runtime"
+    }
+  ]
+}

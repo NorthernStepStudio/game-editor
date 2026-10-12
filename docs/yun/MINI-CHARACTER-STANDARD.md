@@ -47,6 +47,18 @@ arm span ≈ 0.58 m, chin ≈ 0.33 m. **The hair makes the head big, not the fac
 0.27 × 0.22 m, framed by hair that adds the width and the height (ponytails, spikes, buns, caps).
 Torsos, shorts and shoes are chunky (roughly as wide as the face box).
 
+### Head shape (owner review, Yun chibi v09)
+
+- **Wide jaw, flat bottom.** The head box keeps its full width down to the jaw and is only slightly rounded at
+  the bottom corners. It sits directly on the collar/shoulders. Never taper it into a "neck" (the LEGO look).
+- **Hair is one shape that follows the head box**, not a slab on top plus extra pieces. It starts at a
+  hairline just above the brows (or as bangs that fall over the forehead when the design has bangs: Riko,
+  Luna, Mika, Rae), comes down the sides to about the top of the ears, and lower at the back. No skin may show
+  through the hair.
+- Ears, earrings and headphones sit on the sides of the jaw, outside the face box.
+- Reference sheets for every character: `docs/yun/roster/NN-name.png` (front, sides, back, head close-up,
+  palette, expressions, and the in-game scale panel next to Yun).
+
 ### Face (identical construction for everyone)
 
 - Two dark vertical oval eyes with a small white highlight, eye centres at z ≈ 0.485, x ≈ ±0.085.

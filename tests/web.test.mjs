@@ -116,6 +116,7 @@ function fixture(path, method, body) {
   if (/^\/api\/foundry\/jobs\/[^/]+\/live$/.test(p)) return { status: 'running', script: 'import bpy\nbody =bpy.ops.mesh.primitive_cylinder_add()', frames: 0, updatedAt: '2026-10-11T09:00:05Z' };
   if (/^\/api\/foundry\/jobs\/[0-9a-f-]{36}$/.test(p)) return { job: jobs.find((j) => p.endsWith(j.jobId)) ?? jobs[0] };
   if (/^\/api\/foundry\/jobs\/[^/]+\/(cancel|retry)$/.test(p)) return { job: { ...jobs[1], assetId: 'lamp_z9_r2', status: 'queued' } };
+  if (/^\/api\/foundry\/jobs\/[^/]+\/dismiss$/.test(p)) return { job: { ...jobs[1], status: 'failed', dismissed: true } };
   if (p === '/api/foundry/packs') return { jobs: body.items.map((i) => ({ ...jobs[0], assetId: i.name })) };
   if (p === '/api/foundry/styles' && method === 'GET') return { styles: [{ id: '44444444-4444-4444-4444-444444444444', name: 'Calle', description: 'warm pastel street' }] };
   if (p === '/api/foundry/styles') return { style: { id: '55555555-5555-5555-5555-555555555555', ...body } };

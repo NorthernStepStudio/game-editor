@@ -123,11 +123,15 @@ def find_eyes(grid):
         h_, w_ = ys.max() - ys.min() + 1, xs.max() - xs.min() + 1
         if not 0.8 <= h_ / w_ <= 3.0:  # chibi eyes are round to tall ovals
             continue
-        ring = blob.copy()
-        for _ in range(6):
-            ring[1:] |= ring[:-1]; ring[:-1] |= ring[1:]; ring[:, 1:] |= ring[:, :-1]; ring[:, :-1] |= ring[:, 1:]
-        ring &= ~blob
-        if (lum[ring] > 0.25).mean() < 0.5:  # most of the surroundings must be skin, not more hair
+        # most of the surroundings must be skin, not more hair: right around the eye, or (behind glasses) just
+        # outside the frame
+        grown = [blob.copy()]
+        for _ in range(18):
+            g = grown[-1].copy()
+            g[1:] |= g[:-1]; g[:-1] |= g[1:]; g[:, 1:] |= g[:, :-1]; g[:, :-1] |= g[:, 1:]
+            grown.append(g)
+        near, far = grown[6] & ~blob, grown[18] & ~grown[12]
+        if (lum[near] > 0.25).mean() < 0.5 and (lum[far] > 0.25).mean() < 0.6:
             continue
         blobs.append((xs.mean(), ys.mean(), ys.min(), ys.max(), area))
     best = None

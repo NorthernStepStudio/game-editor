@@ -83,6 +83,16 @@ def cut_out(rgba):
         for p in palette:
             near = np.minimum(near, np.abs(rgb - p).sum(axis=2))
         candidate = near < tol
+        # the backdrop is smooth: the fill never crosses a visible edge, so dark hair or clothes that happen to be
+        # close to the backdrop colour (navy hair on a navy-grey backdrop) stay when an outline separates them
+        edge_limit = float(CFG.get("edge", 12))
+        if edge_limit > 0:
+            step = np.zeros((h, w), dtype=np.float32)
+            step[1:, :] = np.maximum(step[1:, :], np.abs(rgb[1:] - rgb[:-1]).sum(axis=2))
+            step[:-1, :] = np.maximum(step[:-1, :], np.abs(rgb[1:] - rgb[:-1]).sum(axis=2))
+            step[:, 1:] = np.maximum(step[:, 1:], np.abs(rgb[:, 1:] - rgb[:, :-1]).sum(axis=2))
+            step[:, :-1] = np.maximum(step[:, :-1], np.abs(rgb[:, 1:] - rgb[:, :-1]).sum(axis=2))
+            candidate &= step < edge_limit
         # A tinted backdrop (e.g. blue-grey) only matches pixels with the same tint, so dark clothing stays.
         tint = float(np.median(border[:, 2] - border[:, 0]))
         if abs(tint) >= 6:

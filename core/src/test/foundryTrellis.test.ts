@@ -93,10 +93,10 @@ test("a sheet's other views are boxes too, and repainting needs a model and at l
   }
 });
 
-test("painting keeps the model's own front and paints only what clearly faces the back and side views", () => {
+test("painting never touches the model's front and paints only what clearly faces the marked back and side views", () => {
   assert.match(TRELLIS_BLENDER_SCRIPT, /def paint_from_views\(\):/);
-  // the front view only teaches colours; it never projects onto the model
-  assert.match(TRELLIS_BLENDER_SCRIPT, /if name == "front":[\s\S]*?match_x\.append[\s\S]*?weight = np\.zeros\(len\(TX\)\)/);
+  // the front is never painted; it only teaches colours, and only when asked
+  assert.match(TRELLIS_BLENDER_SCRIPT, /if name == "front":[\s\S]*?if not CFG\.get\("matchColours"\):\s+continue[\s\S]*?weight = np\.zeros\(len\(TX\)\)/);
   // a depth test, so an arm never paints the body behind it
   assert.match(TRELLIS_BLENDER_SCRIPT, /POS @ d <= depth\[iyc, dx\]/);
   // colour groups whose matches disagree (eyes mixed with dark hair) are left alone

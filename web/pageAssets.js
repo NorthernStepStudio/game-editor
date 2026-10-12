@@ -862,7 +862,7 @@ function trellisForm(asset) {
       ? 'Uses the whole picture. If it shows several views (a character sheet), choose the views.'
       : sides.length
         ? `Front view chosen; the ${sides.join(', ')} will be painted from the sheet.`
-        : 'Front view chosen. Mark the back and sides too, so they are painted from the sheet instead of guessed.';
+        : 'Front view chosen. Mark the back too, so it is painted from the sheet instead of guessed.';
   };
   paintCrop();
   const quality = h('select', { id: 'i3d-quality', class: 'field' },
@@ -896,7 +896,7 @@ function sheetPaintCard(asset) {
   const picture = state.data.assets.find((a) => a.assetId === pictureId);
   if (asset.generationProvider !== 'trellis-local' || !picture || !state.data.trellis?.available) return null;
   const submit = async (views) => {
-    if (!SHEET_VIEWS.some((v) => v.id !== 'front' && views[v.id])) throw new Error('Mark at least the back view.');
+    if (!SHEET_VIEWS.some((v) => v.id !== 'front' && views[v.id])) throw new Error('Mark the back view (and the sides, if you want them painted too).');
     const { front, ...others } = views;
     const base = asset.assetId.replace(/_painted\d*$/, '');
     let assetId = `${base}_painted`;
@@ -910,7 +910,7 @@ function sheetPaintCard(asset) {
     location.hash = `#assets/build/${encodeURIComponent(job.jobId)}`;
   };
   return h('section', { class: 'card form' }, h('span', { class: 'label' }, 'Paint it from the sheet'),
-    h('p', { class: 'muted small' }, 'The back and sides of a model made from one picture are guessed. Mark the front, back and side views on its character sheet and they are painted from the sheet instead; the front keeps its own detail, with its colours matched to the sheet.'),
+    h('p', { class: 'muted small' }, 'The back of a model made from one picture is guessed. Mark the back view on its character sheet (and the side views, if you want those too) and they are painted from the sheet instead. The front is never changed.'),
     btn('Choose the views', () => openCropper(picture, {}, (views) => submit(views).catch((error) => toast(error.message, 'error'))), 'primary'));
 }
 

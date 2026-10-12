@@ -387,10 +387,12 @@ def paint_from_views():
                     if hit[0] is not None:
                         depth[iy, ix] = float(np.dot(hit[0], d))
             sil = np.isfinite(depth)
-            # the guessed shape and the drawing rarely line up exactly: slide the drawing sideways to fit best
-            for shift in range(-int(ww * 0.12), int(ww * 0.12) + 1):
-                moved = np.roll(keep, -shift, axis=1)
-                iou = float((sil & moved).sum()) / max(1, float((sil | moved).sum()))
+            # the guessed shape and the drawing rarely line up exactly: slide the drawing sideways to fit best,
+            # judged on the body below the head (hair and ponytails are where guesses differ most)
+            body = slice(int(by0 + (by1 - by0) * 0.45), by1 + 1)
+            for shift in range(-int(ww * 0.08), int(ww * 0.08) + 1):
+                moved = np.roll(keep, -shift, axis=1)[body]
+                iou = float((sil[body] & moved).sum()) / max(1, float((sil[body] | moved).sum()))
                 if best is None or iou > best[0]:
                     best = (iou, d, u, hc, cx + shift, depth, scale, shift)
         iou, d, u, hc, cx, depth, scale, shift = best
@@ -406,8 +408,10 @@ def paint_from_views():
         seen = ok & inner[iyc, ixc] & (POS @ d <= depth[iyc, dx] + 0.012 * height)
         facing = np.clip(-(NRM @ d), 0, 1)
         if name == "front":
-            # the model's own front was made from this very view and is cleaner than any projection, so the
-            # front only teaches the colours: what the model's texture should look like to match the drawing
+            # the model's own front was made from this very view and is never painted over; only when asked
+            # (matchColours) does it teach the colours, to shift the rest of the model toward the drawing
+            if not CFG.get("matchColours"):
+                continue
             pick = seen & (facing > 0.7)
             match_x.append(texture[TY[pick], TX[pick], :3])
             match_y.append(rgba[iyc[pick], ixc[pick], :3])

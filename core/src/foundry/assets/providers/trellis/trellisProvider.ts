@@ -19,8 +19,8 @@ import { TRELLIS_BLENDER_SCRIPT } from "./trellisScript.js";
  * (trellis.cpp on the GPU), then fit it to the game height and a polygon budget (Blender).
  * request.parameters: crop [x0, y0, x1, y1] (fractions of the picture, top-left origin), quality "standard" | "high",
  * height (metres, default 0.72, the mini characters' height) and maxFaces (default 40000).
- * On a character sheet, views { right, back, left } (boxes like crop) mark the other views: the model's back and sides
- * are then painted from them instead of guessed, and its colours are matched to the drawing.
+ * On a character sheet, views { right, back, left } (boxes like crop) mark the other views: those sides of the model
+ * are then painted from them instead of guessed. The front is never painted over.
  * With parentAsset (a model made earlier) and those views, the existing model is repainted without rebuilding it.
  */
 
@@ -171,7 +171,8 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
       const paintedFile = join(jobDir, `${baseName}-painted.glb`);
       painted = await this.blender({
         mode: "paint", model, sheet: image, output: paintedFile,
-        views: { ...(settings.crop ? { front: settings.crop } : {}), ...settings.views },
+        // only the marked back and sides are painted: the front is the model's own and stays exactly as it is
+        views: Object.fromEntries(sides.map((view) => [view, settings.views![view]])),
       }, jobDir, "paint", signal);
       model = paintedFile;
     }

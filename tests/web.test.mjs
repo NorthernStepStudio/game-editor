@@ -46,6 +46,9 @@ const assets = [
     createdAt: '2026-10-11T08:00:00Z', previewUrl: '/api/foundry/assets/imp_ref_front_aa1111/preview', files: [file('imp_ref_front_aa1111', 'front.png', 'main')] },
   { assetId: 'imp_ref_back_bb2222', type: 'concept_art', displayName: 'Back', generationProvider: 'imported', source: 'Yun urban adventurer · reference/views_isolated',
     createdAt: '2026-10-11T08:00:00Z', previewUrl: '/api/foundry/assets/imp_ref_back_bb2222/preview', files: [file('imp_ref_back_bb2222', 'back.png', 'main')] },
+  { assetId: 'yun_mini_rigged', type: 'mesh_3d', displayName: 'Yun mini (rigged)', generationProvider: 'mini-rigger', createdAt: '2026-10-11T23:00:00Z',
+    previewUrl: '/api/foundry/assets/yun_mini_rigged/preview',
+    files: [file('yun_mini_rigged', 'yun_mini_rigged.glb', 'main'), ...['idle', 'walk'].flatMap((c) => [0, 1, 2].map((i) => file('yun_mini_rigged', `anim_${c}_0${i}.png`, 'anim')))] },
   { assetId: 'stall_x1_d2', type: 'mesh_3d', displayName: 'Market stall', prompt: 'market stall', draftGroup: 'stall_x1', createdAt: '2026-10-10T09:10:00Z', generationProvider: 'blender-agent-claude',
     files: [file('stall_x1_d2', 'stall_x1_d2.glb', 'main')] },
 ];
@@ -115,7 +118,10 @@ function fixture(path, method, body) {
     { id: 'blender-agent-claude', name: 'Blender Agent (Claude Code)', available: true, local: false, requiresNetwork: true, note: 'Uses Claude' },
     { id: 'blender-agent-local', name: 'Blender Agent (local gemma4:12b)', available: true, local: true, requiresNetwork: false, note: 'Local' },
     { id: 'comfyui-local', name: 'ComfyUI Local', available: false, note: 'Configure ComfyUI' },
+    { id: 'mini-rigger', name: 'Mini character rigger (local Blender)', available: true, local: true, note: 'Local and free' },
     { id: 'meshy-image-to-3d', name: 'Meshy (images to 3D)', available: true, requiresNetwork: true, externalCost: true, estimatedCost: { currency: 'MESHY_CREDITS', amount: 30 }, note: 'Configured' }] };
+  if (/^\/api\/foundry\/assets\/[^/]+\/rig-setup$/.test(p)) return { joints: { head: [0, 0.345], 'arm-left': [0.13, 0.305], 'arm-right': [-0.13, 0.305], 'leg-left': [0.065, 0.176], 'leg-right': [-0.065, 0.176] },
+    frame: { pixels: 640, orthoScale: 0.886, centerX: 0, centerZ: 0.336 }, height: 0.672, clips: ['idle', 'walk'], image: 'data:image/png;base64,iVBORw0KGgo=' };
   const assetAction = /^\/api\/foundry\/assets\/([^/]+)(?:\/(send|keep|hide|show|rename))?$/.exec(p);
   if (assetAction) {
     const asset = assets.find((a) => a.assetId === decodeURIComponent(assetAction[1]));
@@ -346,6 +352,36 @@ test('every control in the new Matterhorn UI does something real', async () => {
   assert.notEqual(document.querySelector('.spin img').src, before3d, 'dragging turns the model');
   [...document.querySelectorAll('button')].find((b) => b.textContent === 'Replay the build').click();
   assert.match(document.querySelector('.spin img').src, /build_01\.png/);
+
+  // A 3D character can be rigged automatically or with hand-placed joints, and a rigged one plays its animations.
+  await go('#assets/crate_ab12');
+  calls.length = 0;
+  [...document.querySelectorAll('button')].find((b) => b.textContent === 'Place joints myself').click();
+  await flush(10);
+  assert.match(calls.join(' '), /POST \/api\/foundry\/assets\/crate_ab12\/rig-setup/);
+  const shoulder = document.querySelector('.joint-dot.joint-arm-left');
+  const before = shoulder.style.left;
+  shoulder.focus();
+  shoulder.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  assert.notEqual(shoulder.style.left, before, 'arrow keys move a joint');
+  assert.notEqual(document.querySelector('.joint-dot.joint-arm-right').style.left, '', 'the other side is placed too');
+  const rigBodies = [];
+  const fetchBeforeRig = globalThis.fetch;
+  globalThis.fetch = async (path, options) => { if (options?.body) rigBodies.push(JSON.parse(options.body)); return fetchBeforeRig(path, options); };
+  [...document.querySelectorAll('.sheet button')].find((b) => b.textContent === 'Rig with these joints').click();
+  await flush(20);
+  globalThis.fetch = fetchBeforeRig;
+  const rigJob = rigBodies.find((b) => b.operation === 'rig');
+  assert.equal(rigJob?.parentAsset, 'crate_ab12');
+  assert.equal(rigJob?.providerId, 'mini-rigger');
+  assert.ok(rigJob.parameters.joints['arm-left'][0] > 0.13, 'the moved joint is sent');
+  assert.ok(Math.abs(rigJob.parameters.joints['arm-right'][0] + rigJob.parameters.joints['arm-left'][0]) < 1e-9, 'left and right stay matched');
+  await go('#assets/yun_mini_rigged');
+  await flush(5);
+  assert.match(document.querySelector('.view-main')?.getAttribute('src') ?? '', /anim_idle_\d+\.png/);
+  [...document.querySelectorAll('.pill')].find((p) => p.textContent === 'walk').click();
+  await flush();
+  assert.match(document.querySelector('.view-main').alt, /playing walk/);
 
   // A running build shows a live view: its steps, the script as it is written, and where Matterhorn is now.
   await go('#assets/build/11111111-1111-1111-1111-111111111111');

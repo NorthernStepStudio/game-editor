@@ -334,7 +334,7 @@ function repairPrompt(script: string, problem: string): string {
   return `Your previous script:\n\n\`\`\`python\n${script}\`\`\`\n\n${problem}${pointer}\n\nReturn the complete corrected script.`;
 }
 
-function runBlender(
+export function runBlender(
   executable: string,
   args: readonly string[],
   cwd: string,

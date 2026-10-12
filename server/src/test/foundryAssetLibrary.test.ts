@@ -100,7 +100,7 @@ test('Asset Library jobs build without a game, expose files, and send to a game 
     assert.equal(provenance.assetId, 'crate_v1');
     assert.throws(() => assets.sendToProject('crate_v1', 'missing'), /configured project/);
   } finally {
-    await Promise.all([data, library, game].map((dir) => rm(dir, { recursive: true, force: true })));
+    await Promise.all([data, library, game].map((dir) => rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })));
   }
 });
 
@@ -135,7 +135,7 @@ test('Packs queue one style-matched job per item and failed builds are reported,
     assert.match(generation.getJob(failing.jobId)!.error ?? '', /collide/);
     assert.ok(!existsSync(join(library, 'assets', 'generated', 'foundry', 'tavern_barrel', 'extra')));
   } finally {
-    await Promise.all([data, library].map((dir) => rm(dir, { recursive: true, force: true })));
+    await Promise.all([data, library].map((dir) => rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })));
   }
 });
 
@@ -203,6 +203,6 @@ test('Builds can be cancelled and retried, history survives a restart, drafts an
     assert.ok(!('input' in (reloaded.getJob(running.jobId) as object)), 'request body is not exposed');
   } finally {
     release();
-    await Promise.all([data, library].map((dir) => rm(dir, { recursive: true, force: true })));
+    await Promise.all([data, library].map((dir) => rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 })));
   }
 });

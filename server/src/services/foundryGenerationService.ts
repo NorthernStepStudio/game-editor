@@ -14,6 +14,10 @@ import {
   MESHY_PROVIDER_DESCRIPTOR,
   MESHY_REQUEST_CREDITS,
   MeshyImageTo3DProvider,
+  MiniRigProvider,
+  MINI_RIG_PROVIDER_ID,
+  parseJoints,
+  type MiniRigSetup,
   SPRITE_FUSION_CREDIT_CURRENCY,
   SPRITE_FUSION_REQUEST_CREDITS,
   SPRITE_FUSION_PROVIDER_DESCRIPTOR,
@@ -136,6 +140,7 @@ interface GenerationBody {
   readonly approveExternalCost?: unknown;
   readonly maxCost?: unknown;
   readonly requireCommercialUse?: unknown;
+  readonly parameters?: unknown;
 }
 
 export class FoundryGenerationService {
@@ -149,6 +154,7 @@ export class FoundryGenerationService {
   private comfyModelLabel?: string;
   private busy = false;
   private readonly blenderAgentNotes = new Map<string, string>();
+  private rigger?: MiniRigProvider;
   private readonly jobs = new Map<string, FoundryJob>();
   private jobQueue: Promise<void> = Promise.resolve();
   private readonly aborts = new Map<string, AbortController>();
@@ -196,6 +202,7 @@ export class FoundryGenerationService {
       if (comfy.provider) this.registry.register(comfy.provider);
 
       this.registerBlenderAgents();
+      this.registerRigger();
 
       const meshyKey = this.env.MESHY_API_KEY?.trim();
       if (meshyKey) {
@@ -374,6 +381,7 @@ export class FoundryGenerationService {
       ...(body.width && body.height
         ? { dimensions: { width: body.width, height: body.height } }
         : {}),
+      ...(body.parameters ? { parameters: body.parameters } : {}),
     };
 
     for (const assetId of [
@@ -777,6 +785,37 @@ export class FoundryGenerationService {
     }
   }
 
+  /** The game's mini skeleton: a rigged, animated Kenney mini character from one of the configured games. */
+  private registerRigger(): void {
+    const explicit = this.env.MATTERHORN_MINI_SKELETON?.trim();
+    const candidates = [
+      ...(explicit ? [explicit] : []),
+      ...this.projects.map((project) => join(project.path, 'assets', 'kenney', 'mini_characters', 'character-female-a.glb')),
+    ];
+    const reference = candidates.find((file) => existsSync(file));
+    if (!reference || !findBlenderExecutable()) {
+      this.blenderAgentNotes.set(MINI_RIG_PROVIDER_ID, 'Needs Blender and a game with Kenney mini characters (assets/kenney/mini_characters) to copy the skeleton and animations from.');
+      return;
+    }
+    this.rigger = new MiniRigProvider({
+      referenceSkeleton: reference,
+      resolveModelFile: (assetId) => {
+        const manifest = this.assets.store.get(assetId);
+        const files = [manifest?.localPath, ...(manifest?.companionFiles ?? [])].filter((file): file is string => Boolean(file));
+        return files.find((file) => /\.(glb|gltf)$/i.test(file) && existsSync(file));
+      },
+    });
+    this.registry.register(this.rigger);
+    this.blenderAgentNotes.set(MINI_RIG_PROVIDER_ID, 'Local and free: gives a character model the game\'s mini skeleton and its animations (idle, walk, sprint, jump and more).');
+  }
+
+  /** Finds a model's joints and renders a front view, so the owner can check or place them before rigging. */
+  async rigSetup(assetId: string): Promise<MiniRigSetup> {
+    if (!this.rigger) throw new Error('Rigging is not available: it needs Blender and a game with Kenney mini characters.');
+    if (!this.assets.store.get(assetId)) throw new Error('Asset not found.');
+    return this.rigger.setup(assetId, join(this.assets.dataDirectory, 'foundry-assets', 'rig-setup', assetId.replace(/[^a-zA-Z0-9_.-]+/g, '_')));
+  }
+
   /** An existing asset's own 3D file, so work can continue on assets made outside the Blender Agent. */
   private parentFile(assetId: string): string | undefined {
     const manifest = this.assets.store.get(assetId);
@@ -808,6 +847,7 @@ export class FoundryGenerationService {
     approveExternalCost: boolean;
     maxCost?: FoundryAssetCost;
     requireCommercialUse: boolean;
+    parameters?: Readonly<Record<string, unknown>>;
   } {
     if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
       throw new Error('Foundry generation body must be an object.');
@@ -872,6 +912,7 @@ export class FoundryGenerationService {
       true,
     );
     const maxCost = parseCost(body.maxCost);
+    const parameters = parseParameters(body.parameters);
 
     return {
       projectId,
@@ -887,6 +928,7 @@ export class FoundryGenerationService {
       approveExternalCost,
       ...(maxCost ? { maxCost } : {}),
       requireCommercialUse,
+      ...(parameters ? { parameters } : {}),
     };
   }
 }
@@ -936,6 +978,18 @@ function booleanField(value: unknown, fallback: boolean): boolean {
     throw new Error('Boolean generation settings must be true or false.');
   }
   return value;
+}
+
+/** Operation settings (e.g. hand-placed joints): a small plain-JSON object. Joints are validated strictly. */
+function parseParameters(value: unknown): Readonly<Record<string, unknown>> | undefined {
+  if (value === undefined || value === null) return undefined;
+  if (typeof value !== 'object' || Array.isArray(value)) throw new Error('parameters must be an object.');
+  const record = value as Record<string, unknown>;
+  if (JSON.stringify(record).length > 4000) throw new Error('parameters are too large.');
+  const known = new Set(['joints']);
+  for (const key of Object.keys(record)) if (!known.has(key)) throw new Error(`Unknown parameter: ${key}`);
+  const joints = parseJoints(record.joints);
+  return joints ? { joints } : undefined;
 }
 
 function parseCost(value: unknown): FoundryAssetCost | undefined {

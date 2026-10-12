@@ -175,6 +175,29 @@ export async function foundryRoutes(
     return true;
   }
 
+  const rigMatch = /^\/api\/foundry\/assets\/([^/]+)\/rig-setup$/.exec(pathname);
+  if (request.method === 'POST' && rigMatch) {
+    const assetId = decodeAssetId(rigMatch[1]);
+    if (!assetId) {
+      sendJson(response, 400, { error: 'Invalid asset ID.' });
+      return true;
+    }
+    try {
+      const setup = await service.foundryGeneration.rigSetup(assetId);
+      const image = readFileSync(setup.frontImage);
+      sendJson(response, 200, {
+        joints: setup.joints,
+        frame: setup.frame,
+        height: setup.height,
+        clips: setup.clips,
+        image: `data:image/png;base64,${image.toString('base64')}`,
+      });
+    } catch (error) {
+      sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return true;
+  }
+
   const sendMatch = /^\/api\/foundry\/assets\/([^/]+)\/send$/.exec(pathname);
   if (request.method === 'POST' && sendMatch) {
     const assetId = decodeAssetId(sendMatch[1]);

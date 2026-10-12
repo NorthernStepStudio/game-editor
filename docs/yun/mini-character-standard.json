@@ -1,0 +1,74 @@
+{
+  "name": "Street Yun mini character standard",
+  "version": 1,
+  "baseline": "artifacts/yun-character-candidate/yun_urban_adventurer/checkpoints/mini-v02/yun_urban_mini_v02.glb",
+  "gameScale": 1.2,
+  "size": {
+    "height": { "target": 0.672, "tolerance": 0.01 },
+    "armSpan": { "min": 0.74, "max": 0.8 },
+    "facing": "-Y",
+    "feetAtZ": 0
+  },
+  "proportions": {
+    "head": { "width": 0.44, "depth": 0.33, "height": 0.3, "bottomZ": 0.345 },
+    "headWithHair": { "maxWidth": 0.58, "maxDepth": 0.38 },
+    "torso": { "width": 0.26, "depth": 0.18, "bottomZ": 0.17, "topZ": 0.36 },
+    "arms": { "thickness": [0.08, 0.09], "pose": "T", "shoulder": { "x": 0.13, "z": 0.305 } },
+    "hands": { "size": 0.09 },
+    "legs": { "bottomZ": 0.04, "topZ": 0.17, "hip": { "x": 0.065, "z": 0.176 } },
+    "shoes": { "topZ": 0.105, "widerThanLegs": true }
+  },
+  "allowedVariation": { "headWidth": 0.02, "torsoWidth": 0.02, "height": 0 },
+  "face": {
+    "eyes": { "shape": "dark vertical oval with white highlight", "centerZ": 0.485, "centerX": 0.085 },
+    "brows": { "z": 0.54 },
+    "mouth": { "z": 0.42 },
+    "blush": { "z": 0.44, "x": 0.145 },
+    "ears": "small, on the sides of the head box"
+  },
+  "construction": {
+    "shapes": "soft beveled boxes (2-3 bevel segments) and rounded blobs, smooth shading",
+    "colors": "flat solid colors only, no textures, no detail smaller than ~1 cm",
+    "parts": [15, 30],
+    "maxTriangles": 20000,
+    "connected": true
+  },
+  "materials": {
+    "cloth": { "roughness": [0.55, 0.8], "metallic": 0 },
+    "hair": { "roughness": 0.8, "metallic": 0 },
+    "eyes": { "roughness": 0.3, "metallic": 0 },
+    "metal": { "roughness": 0.3, "metallic": 1 },
+    "sharedNeutrals": {
+      "black": "#0F0F12", "charcoal": "#29292B", "cream": "#F2E8D1", "sneakerWhite": "#F5F5F2",
+      "sole": "#DBD9D1", "lightGrey": "#C7C7BF", "blush": "#CC7561", "mouth": "#591F19", "gold": "#FFC24C"
+    }
+  },
+  "rig": {
+    "skeleton": "Kenney mini (games/Yun/assets/kenney/mini_characters)",
+    "bones": ["root", "torso", "head", "arm-left", "arm-right", "leg-left", "leg-right"],
+    "clips": 32,
+    "partNaming": {
+      "head": ["head", "hair", "face", "eye", "brow", "mouth", "cheek", "ear", "scrunchie", "hat", "cap", "glasses", "nose"],
+      "arm": ["arm", "hand", "glove", "sleeve", "cuff", "wrist", "bracelet"],
+      "leg": ["leg", "shoe", "sneaker", "boot", "sock", "foot", "knee"],
+      "sideSuffix": ["_L", "_R"],
+      "otherwise": "torso; clothing crossing the middle below the hips is split onto the legs"
+    }
+  },
+  "uniqueness": ["hairSilhouette", "accentColor", "outfitArchetype", "heroAccessory", "shoes"],
+  "roster": [
+    {
+      "id": "yun",
+      "name": "Yun",
+      "hairSilhouette": "curly volume + high ponytail, orange scrunchie",
+      "accentColor": ["#F57319", "#FFA826"],
+      "outfitArchetype": "cropped cream bomber, black crop top, olive cargo shorts, black leggings",
+      "heroAccessory": "black crossbody bag",
+      "shoes": "white high-tops with orange and black",
+      "skin": "#A16B47",
+      "hair": "#2B1912",
+      "model": "artifacts/yun-character-candidate/yun_urban_adventurer/checkpoints/mini-v02/yun_urban_mini_v02.glb",
+      "status": "mini v02 rigged, awaiting owner review"
+    }
+  ]
+}

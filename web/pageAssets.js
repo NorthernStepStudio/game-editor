@@ -39,6 +39,7 @@ async function loadData() {
     styles: styles.styles ?? [],
     builders: (providers.providers ?? []).filter((p) => p.id.startsWith('blender-agent') && p.available),
     meshy: (providers.providers ?? []).find((p) => p.id === 'meshy-image-to-3d'),
+    rigger: (providers.providers ?? []).find((p) => p.id === 'mini-rigger'),
     games: (projects.projects ?? []).filter((p) => p.id !== 'library'),
     routing,
   };
@@ -342,8 +343,9 @@ function liveView(job) {
     h('div', { class: 'live' },
       h('div', { class: 'stack' },
         h('ol', { class: 'live-steps', id: 'live-steps', 'aria-live': 'polite' }),
-        h('span', { class: 'label', id: 'live-script-label' }, 'The script, as it is written'),
-        h('pre', { class: 'live-script', id: 'live-script' }, h('span', { class: 'muted' }, 'Nothing written yet.'))),
+        // Shown once an AI starts planning or writing; builds without a script (rigging, image-to-3D) never show it.
+        h('span', { class: 'label', id: 'live-script-label', hidden: true }, 'The script, as it is written'),
+        h('pre', { class: 'live-script', id: 'live-script', hidden: true })),
       h('div', { id: 'live-picture' },
         h('div', { class: 'live-wait' }, h('p', {}, 'The model appears here as soon as Blender renders it.')))));
 }
@@ -399,6 +401,10 @@ async function followLive(main, job) {
     const clock = document.querySelector('#live-elapsed');
     if (clock && current.startedAt) clock.textContent = elapsed(current.startedAt);
     const pre = document.querySelector('#live-script');
+    if (pre && (view.script || view.thinking)) {
+      pre.hidden = false;
+      document.querySelector('#live-script-label').hidden = false;
+    }
     if (pre && !view.script && view.thinking) {
       clear(pre, h('span', { class: 'muted' }, `Planning the build before writing it… (about ${view.thinking.toLocaleString()} words of planning so far)`),
         h('span', { class: 'caret', 'aria-hidden': 'true' }));
@@ -440,6 +446,7 @@ async function renderDetail(main, assetId) {
   const frames = files.filter((f) => f.role === 'frame');
   const spin = files.filter((f) => f.role === 'spin').sort((a, b) => a.name.localeCompare(b.name));
   const buildUp = files.filter((f) => f.role === 'build').sort((a, b) => a.name.localeCompare(b.name));
+  const anims = files.filter((f) => f.role === 'anim').sort((a, b) => a.name.localeCompare(b.name));
   const views = renders.length ? renders : asset.previewUrl ? [{ name: 'preview', url: asset.previewUrl }] : [];
   const hasScript = files.some((f) => f.role === 'script');
   const big = h('img', { class: 'view-main', src: views[0]?.url ?? '', alt: `${name}, ${viewLabel(views[0]?.name)} view`, hidden: !views.length });
@@ -474,17 +481,23 @@ async function renderDetail(main, assetId) {
       h('section', { class: 'viewer', 'aria-label': 'Views' },
         audioFile
           ? h('div', { class: 'card' }, h('span', { class: 'label' }, 'Listen'), h('audio', { controls: true, preload: 'none', src: audioFile.url, class: 'audio' }))
+          : anims.length ? animationViewer(anims, name)
           : spin.length >= 4 ? spinViewer(spin, buildUp, name)
           : views.length ? big : h('div', { class: 'view-main placeholder' }, h('p', { class: 'muted' },
             asset.generationProvider === 'imported' && asset.type === 'mesh_3d'
               ? 'A preview is being rendered in Blender — check back in a minute.'
               : 'No preview image for this asset.')),
-        views.length > 1 && spin.length < 4 ? h('div', { class: 'view-row' }, viewButtons) : null,
+        views.length > 1 && spin.length < 4 && !anims.length ? h('div', { class: 'view-row' }, viewButtons) : null,
         frames.length ? h('details', { class: 'card' }, h('summary', {}, `All ${frames.length} sprite directions`),
           h('div', { class: 'frames' }, frames.map((f) => h('img', { src: f.url, alt: f.name })))) : null),
       h('aside', { class: 'side' },
-        hasScript || canContinue(asset, files) ? changeCard(asset, hasScript) : null,
+        anims.length
+          ? h('section', { class: 'card' }, h('span', { class: 'label' }, 'Change it'),
+            h('p', { class: 'muted small' }, 'This character is rigged. To change how it looks, change the model it was rigged from, then rig that again.'),
+            asset.parentAsset ? h('a', { class: 'btn small', href: `#assets/${encodeURIComponent(asset.parentAsset)}` }, 'Open the un-rigged model') : null)
+          : hasScript || canContinue(asset, files) ? changeCard(asset, hasScript) : null,
         IMAGE_KINDS.has(asset.type) ? imageTo3dCard(asset) : null,
+        asset.type === 'mesh_3d' && !anims.length && files.some((f) => /\.(glb|gltf)$/i.test(f.name)) ? rigCard(asset) : null,
         sendCard(asset),
         downloadCard(files),
         versionsCard(detail.lineage ?? [], asset.assetId),
@@ -610,6 +623,143 @@ function changeCard(asset, hasScript) {
       toast(`Making version ${version}. The current version stays in Versions.`);
       location.hash = '#assets';
     }, 'primary'));
+}
+
+// ── Rigging: the game's mini skeleton and its animations ──────────────
+const JOINT_LABELS = {
+  head: 'Neck', 'arm-left': 'Her left shoulder', 'arm-right': 'Her right shoulder', 'leg-left': 'Her left hip', 'leg-right': 'Her right hip',
+};
+const MIRROR = { 'arm-left': 'arm-right', 'arm-right': 'arm-left', 'leg-left': 'leg-right', 'leg-right': 'leg-left' };
+
+function rigCard(asset) {
+  const rigger = state.data.rigger;
+  const head = h('span', { class: 'label' }, 'Rig for the game');
+  if (!rigger?.available) {
+    return h('section', { class: 'card' }, head, h('p', { class: 'muted small' }, rigger?.note ?? 'Rigging needs Blender and a game with Kenney mini characters.'));
+  }
+  return h('section', { class: 'card form' }, head,
+    h('p', { class: 'muted small' }, 'Gives this character the game\u2019s mini skeleton (7 bones) and all its animations \u2014 idle, walk, sprint, jump and more \u2014 so it moves like every other character. The model itself is kept as it is.'),
+    h('div', { class: 'row wrap' },
+      action('Rig automatically', () => submitRig(asset), 'primary'),
+      action('Place joints myself', () => openJointPlacer(asset))));
+}
+
+async function submitRig(asset, joints) {
+  const base = asset.assetId.replace(/_rigged\d*$/, '');
+  let assetId = `${base}_rigged`;
+  for (let n = 2; state.data.assets.some((a) => a.assetId === assetId); n++) assetId = `${base}_rigged${n}`;
+  const { job } = await api('/api/foundry/jobs', {
+    projectId: 'library', assetId, kind: 'mesh_3d', operation: 'rig', parentAsset: asset.assetId,
+    providerId: state.data.rigger.id, displayName: `${assetName(asset)} (rigged)`,
+    ...(joints ? { parameters: { joints } } : {}),
+  });
+  closeSheet();
+  toast(joints ? 'Rigging with your joints\u2026' : 'Rigging\u2026 Matterhorn finds the shoulders, hips and neck itself.');
+  location.hash = `#assets/build/${encodeURIComponent(job.jobId)}`;
+}
+
+/** Drag the neck, shoulders and hips onto the model's front view; left and right stay mirrored unless unticked. */
+async function openJointPlacer(asset) {
+  const setup = await api(`/api/foundry/assets/${encodeURIComponent(asset.assetId)}/rig-setup`, {});
+  const found = structuredClone(setup.joints);
+  const joints = structuredClone(setup.joints);
+  const { orthoScale, centerX, centerZ } = setup.frame;
+  const toPct = ([x, z]) => [((x - centerX) / orthoScale + 0.5) * 100, (0.5 - (z - centerZ) / orthoScale) * 100];
+  const toMetres = (px, py) => [centerX + (px / 100 - 0.5) * orthoScale, centerZ + (0.5 - py / 100) * orthoScale];
+  const mirror = h('input', { type: 'checkbox', checked: true, id: 'joint-mirror' });
+  const stage = h('div', { class: 'joint-stage' }, h('img', { src: setup.image, alt: `${assetName(asset)} seen from the front`, draggable: 'false' }));
+  const dots = {};
+  const selected = h('p', { class: 'small', 'aria-live': 'polite' }, 'Select a joint to move it.');
+  const select = (name) => {
+    for (const [other, dot] of Object.entries(dots)) dot.setAttribute('aria-pressed', other === name ? 'true' : 'false');
+    selected.textContent = `${JOINT_LABELS[name]} selected \u2014 drag it, or use the arrow keys.`;
+  };
+  const place = () => {
+    for (const [name, dot] of Object.entries(dots)) {
+      const [px, py] = toPct(joints[name]);
+      dot.style.left = `${px}%`;
+      dot.style.top = `${py}%`;
+    }
+  };
+  const move = (name, px, py) => {
+    const point = toMetres(Math.min(100, Math.max(0, px)), Math.min(100, Math.max(0, py)));
+    joints[name] = name === 'head' ? [0, point[1]] : point;
+    if (mirror.checked && MIRROR[name]) joints[MIRROR[name]] = [-joints[name][0] + 2 * centerX, joints[name][1]];
+    place();
+  };
+  for (const name of Object.keys(JOINT_LABELS)) {
+    const dot = h('button', { type: 'button', class: `joint-dot joint-${name}`, 'aria-pressed': 'false', 'aria-label': `${JOINT_LABELS[name]}. Drag, or use the arrow keys.`, title: JOINT_LABELS[name], onclick: () => select(name) });
+    dot.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      select(name);
+      dot.setPointerCapture?.(e.pointerId);
+      const drag = (ev) => {
+        const box = stage.getBoundingClientRect();
+        move(name, ((ev.clientX - box.left) / box.width) * 100, ((ev.clientY - box.top) / box.height) * 100);
+      };
+      const stop = () => { dot.removeEventListener('pointermove', drag); dot.removeEventListener('pointerup', stop); };
+      dot.addEventListener('pointermove', drag);
+      dot.addEventListener('pointerup', stop);
+    });
+    dot.addEventListener('keydown', (e) => {
+      const step = { ArrowLeft: [-0.5, 0], ArrowRight: [0.5, 0], ArrowUp: [0, -0.5], ArrowDown: [0, 0.5] }[e.key];
+      if (!step) return;
+      e.preventDefault();
+      const [px, py] = toPct(joints[name]);
+      move(name, px + step[0], py + step[1]);
+    });
+    dots[name] = dot;
+    stage.append(dot);
+  }
+  place();
+  openSheet(`Place the joints \u2014 ${assetName(asset)}`,
+    h('p', { class: 'muted small' }, 'Matterhorn placed these from the model\u2019s parts. Drag a dot (or select it and use the arrow keys) to where that joint should bend: the neck where the head turns, the shoulders where the arms swing, the hips where the legs swing.'),
+    stage,
+    selected,
+    h('ul', { class: 'joint-legend' }, Object.entries(JOINT_LABELS).map(([name, label]) => h('li', {}, h('span', { class: `joint-key joint-${name}`, 'aria-hidden': 'true' }), label))),
+    h('label', { class: 'check' }, mirror, ' Keep left and right matched'),
+    h('div', { class: 'row wrap' },
+      btn('Reset to Matterhorn\u2019s joints', () => {
+        for (const name of Object.keys(joints)) joints[name] = [...found[name]];
+        place();
+      }),
+      action('Rig with these joints', () => submitRig(asset, joints), 'primary')));
+}
+
+/** Plays the rigged character's animation clips. */
+function animationViewer(anims, name) {
+  const clips = {};
+  for (const f of anims) {
+    const clip = /^anim_(.+)_\d+\.png$/.exec(f.name)?.[1];
+    if (clip) (clips[clip] ??= []).push(f);
+  }
+  const order = ['idle', 'walk', 'sprint', 'jump'];
+  const names = Object.keys(clips).sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+  let current = names[0];
+  let frame = 0;
+  let timer;
+  for (const f of anims) new window.Image().src = f.url;
+  const img = h('img', { class: 'view-main', src: clips[current][0].url, alt: `${name} playing ${current}` });
+  const play = () => {
+    clearInterval(timer);
+    timer = setInterval(() => {
+      if (!img.isConnected) return clearInterval(timer);
+      frame = (frame + 1) % clips[current].length;
+      img.src = clips[current][frame].url;
+    }, 90);
+  };
+  const picker = h('div');
+  const paint = () => clear(picker, pills(names.map((c) => ({ id: c, label: c.replace(/-/g, ' ') })), current, (id) => {
+    current = id;
+    frame = 0;
+    img.alt = `${name} playing ${current}`;
+    paint();
+    play();
+  }, 'Animation'));
+  paint();
+  play();
+  return h('div', { class: 'stack' }, img, picker,
+    h('p', { class: 'muted small' }, 'Rigged with the game\u2019s mini skeleton. These are previews; the model file holds every animation.'));
 }
 
 const IMAGE_KINDS = new Set(['concept_art', 'texture', 'background', 'pixel_sprite']);

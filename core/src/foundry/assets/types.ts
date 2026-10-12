@@ -66,6 +66,8 @@ export interface FoundryAssetRequest {
   readonly seed?: string | number;
   readonly animation?: FoundryAnimationRequest;
   readonly tags?: readonly string[];
+  /** Operation-specific settings, e.g. hand-placed joints for rigging. Plain JSON values only. */
+  readonly parameters?: Readonly<Record<string, unknown>>;
 }
 
 export interface FoundryAssetProviderDescriptor {

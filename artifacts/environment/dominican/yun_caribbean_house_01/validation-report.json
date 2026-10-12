@@ -1,0 +1,1470 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_01",
+  "status": "PASS",
+  "validatedAt": "2026-10-10T18:39:38.875537+00:00",
+  "blenderVersion": "5.2.1 LTS",
+  "units": "meters",
+  "yunBuildingScale": 0.55,
+  "nativeGeometry": true,
+  "frontAxis": "-Y in the Blender source; GLB importer performs engine axis conversion",
+  "bounds": {
+    "minimum": [
+      -1.9915,
+      -3.4128,
+      -0.0
+    ],
+    "maximum": [
+      2.0423,
+      2.9975,
+      4.037
+    ],
+    "dimensions": [
+      4.0339,
+      6.4103,
+      4.037
+    ]
+  },
+  "geometry": {
+    "vertices": 22162,
+    "triangles": 10308,
+    "polygons": 10308,
+    "meshNodes": 9
+  },
+  "collisionGeometry": {
+    "vertices": 480,
+    "triangles": 240,
+    "polygons": 240,
+    "meshNodes": 20
+  },
+  "authoredGeometryBeforeExport": {
+    "vertices": 5584,
+    "triangles": 10308,
+    "polygons": 5950,
+    "meshNodes": 9
+  },
+  "materials": {
+    "count": 9,
+    "names": [
+      "MAT_AC_OffWhite",
+      "MAT_Accent_Seafoam",
+      "MAT_Concrete_Sand",
+      "MAT_Metal_Dark",
+      "MAT_Plaster_Patch",
+      "MAT_Tank_DeepBlue",
+      "MAT_Wall_Faded_Mango",
+      "MAT_Wall_Sunwashed_Coral",
+      "MAT_Window_Dark"
+    ]
+  },
+  "checks": {
+    "glbNonEmpty": true,
+    "blendNonEmpty": true,
+    "groundAlignedToOrigin": true,
+    "dimensionsSensibleAtLockedScale": true,
+    "mobileTriangleBudget": true,
+    "mobileMaterialBudget": true,
+    "batchedMeshBudget": true,
+    "collisionPresent": true,
+    "nativeObjectScalesApplied": true,
+    "componentContactAuditPassed": true,
+    "sixReviewViewsPresent": true,
+    "noAnimationPayload": true
+  },
+  "contactAudit": {
+    "result": "PASS",
+    "method": "measured pre-batch component AABB contacts",
+    "checkedContactCount": 196,
+    "failedContactCount": 0,
+    "checks": [
+      {
+        "name": "foundation to world origin",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "ground floor shell to foundation",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "interfloor band to ground floor",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "upper floor to interfloor band",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "roof slab to upper floor",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Parapet_Front to roof slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Parapet_Back to roof slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Parapet_Left to roof slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Parapet_Right to roof slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Metal_Door surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Metal_Door_FrameLeft to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Metal_Door_FrameRight to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Metal_Door_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Metal_Door_Handle to door panel",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.012,
+        "gapNativeMeters": 0.0066,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Metal_Door_Rib_0 to door panel",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0145,
+        "gapNativeMeters": 0.00798,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Metal_Door_Rib_1 to door panel",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0145,
+        "gapNativeMeters": 0.00798,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0225,
+        "gapNativeMeters": 0.01238,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window_FrameBottom to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window_FrameLeft to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window_FrameRight to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window_BarH_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window_BarH_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window_BarV_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window_BarV_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Ground_Window_BarV_2 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Utility_Door surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Utility_Door_FrameLeft to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Utility_Door_FrameRight to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Utility_Door_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Utility_Door_Handle to door panel",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.012,
+        "gapNativeMeters": 0.0066,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Utility_Door_Rib_0 to door panel",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0145,
+        "gapNativeMeters": 0.00798,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Utility_Door_Rib_1 to door panel",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0145,
+        "gapNativeMeters": 0.00798,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0225,
+        "gapNativeMeters": 0.01238,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window_FrameBottom to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window_FrameLeft to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window_FrameRight to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window_BarH_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window_BarH_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window_BarV_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window_BarV_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Ground_Window_BarV_2 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0225,
+        "gapNativeMeters": 0.01238,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front_FrameBottom to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front_FrameFar to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front_FrameNear to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front_BarH_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front_BarH_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front_BarV_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front_BarV_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Front_BarV_2 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0225,
+        "gapNativeMeters": 0.01238,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back_FrameBottom to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back_FrameFar to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back_FrameNear to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back_BarH_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back_BarH_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back_BarV_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back_BarV_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Ground_Window_Back_BarV_2 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Balcony_Metal_Door surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Balcony_Metal_Door_FrameLeft to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Balcony_Metal_Door_FrameRight to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Balcony_Metal_Door_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Balcony_Metal_Door_Handle to door panel",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.012,
+        "gapNativeMeters": 0.0066,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Balcony_Metal_Door_Rib_0 to door panel",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0145,
+        "gapNativeMeters": 0.00798,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Balcony_Metal_Door_Rib_1 to door panel",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0145,
+        "gapNativeMeters": 0.00798,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0225,
+        "gapNativeMeters": 0.01238,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window_FrameBottom to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window_FrameLeft to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window_FrameRight to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window_BarH_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window_BarH_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window_BarV_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window_BarV_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Front_Upper_Window_BarV_2 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0225,
+        "gapNativeMeters": 0.01238,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left_FrameBottom to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left_FrameLeft to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left_FrameRight to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left_BarH_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left_BarH_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left_BarV_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left_BarV_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Left_BarV_2 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0225,
+        "gapNativeMeters": 0.01238,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right_FrameBottom to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right_FrameLeft to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right_FrameRight to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right_BarH_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right_BarH_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right_BarV_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right_BarV_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Rear_Upper_Window_Right_BarV_2 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0225,
+        "gapNativeMeters": 0.01238,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window_FrameBottom to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window_FrameFar to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window_FrameNear to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window_BarH_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window_BarH_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window_BarV_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window_BarV_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Left_Upper_Window_BarV_2 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window surface to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0225,
+        "gapNativeMeters": 0.01238,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window_FrameBottom to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window_FrameFar to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window_FrameNear to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window_FrameTop to opening surface",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window_BarH_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window_BarH_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window_BarV_0 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window_BarV_1 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Right_Upper_Window_BarV_2 to opening frame",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "stair side door to upper wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0025,
+        "gapNativeMeters": 0.00138,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank foot 0 to roof slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank body to foot 0",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank foot 1 to roof slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank body to foot 1",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank foot 2 to roof slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank body to foot 2",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank foot 3 to roof slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank body to foot 3",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank lid to tank body",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank pipe to roof slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "tank pipe to tank body",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony slab to building",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony front post 0 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony front post 1 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony front post 2 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony front post 3 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony front post 4 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony front post 5 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony front post 6 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony side 0 post 0 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony side 0 post 1 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony side 0 post 2 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony side 1 post 0 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony side 1 post 1 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "balcony side 1 post 2 to slab",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "entry awning to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "awning left strut to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.02633,
+        "gapNativeMeters": 0.01448,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "awning left strut to awning",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "awning right strut to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.02633,
+        "gapNativeMeters": 0.01448,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "awning right strut to awning",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "entry gate left pier to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "entry gate right pier to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "entry gate header to left pier",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "entry gate header to right pier",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "stair step 1 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 2 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 3 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 4 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 5 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 6 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 7 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 8 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 9 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 10 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 11 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "stair step 12 to ground",
+        "status": "PASS",
+        "groundGapAuthoringUnits": 0.0,
+        "groundGapNativeMeters": 0.0
+      },
+      {
+        "name": "top stair to landing",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "stair landing to building",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "side-door threshold to landing",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "side door to threshold",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "stair rail post 0 to tread",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0275,
+        "gapNativeMeters": 0.01512,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "stair rail post 2 to tread",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0275,
+        "gapNativeMeters": 0.01512,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "stair rail post 4 to tread",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0275,
+        "gapNativeMeters": 0.01512,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "stair rail post 6 to tread",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0275,
+        "gapNativeMeters": 0.01512,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "stair rail post 8 to tread",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0275,
+        "gapNativeMeters": 0.01512,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "stair rail post 10 to tread",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0275,
+        "gapNativeMeters": 0.01512,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "landing front post to landing",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "landing center post to landing",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "landing back post to landing",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "AC bracket 0 to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "AC bracket 0 to unit",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "AC bracket 1 to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "AC bracket 1 to unit",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "electrical meter to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.01,
+        "gapNativeMeters": 0.0055,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "upper conduit to meter",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.005,
+        "gapNativeMeters": 0.00275,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "lower conduit to meter",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "upper conduit to junction box",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "rear drain to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "rear drain elbow to drain",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "rear drain elbow to roof",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Patch_Front_Low to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.002,
+        "gapNativeMeters": 0.0011,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Patch_Front_Upper to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Patch_Left_Low to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.002,
+        "gapNativeMeters": 0.0011,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Patch_Back_Mid to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.0,
+        "gapNativeMeters": 0.0,
+        "toleranceNativeMeters": 0.0165
+      },
+      {
+        "name": "Patch_Right_Low to wall",
+        "status": "PASS",
+        "gapAuthoringUnits": 0.002,
+        "gapNativeMeters": 0.0011,
+        "toleranceNativeMeters": 0.0165
+      }
+    ],
+    "note": "Required structural, rooftop, balcony, stair, awning, gate, utility and weathering contacts are measured before batching."
+  },
+  "scope": {
+    "standaloneBuildingOnly": true,
+    "containsStreet": false,
+    "containsSidewalk": false,
+    "containsTerrain": false,
+    "containsVehicles": false,
+    "containsPeople": false,
+    "containsTrees": false,
+    "containsNeighborBuildings": false
+  },
+  "files": {
+    "blend": {
+      "name": "yun_caribbean_house_01.blend",
+      "bytes": 226090,
+      "sha256": "e31094970ee411f6457f7e30e2dcfd04a393f3f8257fbeab84b6aeddb15a269a"
+    },
+    "glb": {
+      "name": "yun_caribbean_house_01.glb",
+      "bytes": 811592,
+      "sha256": "7d3e43ccdc0472840dceb9a566559038f48600b7a17fdd3b57e79658a33fab85"
+    },
+    "renders": [
+      "yun_caribbean_house_01-hero.png",
+      "yun_caribbean_house_01-front.png",
+      "yun_caribbean_house_01-right-stair.png",
+      "yun_caribbean_house_01-left-utilities.png",
+      "yun_caribbean_house_01-rear.png",
+      "yun_caribbean_house_01-roof.png"
+    ]
+  }
+}

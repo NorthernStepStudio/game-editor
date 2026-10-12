@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_01",
+  "status": "PASS",
+  "validatedAt": "2026-10-10T16:49:45.335018+00:00",
+  "blenderVersion": "5.2.1 LTS",
+  "units": "meters",
+  "frontAxis": "-Y in the Blender source; GLB importer performs engine axis conversion",
+  "bounds": {
+    "minimum": [
+      -3.621,
+      -6.2051,
+      -0.0
+    ],
+    "maximum": [
+      3.7133,
+      5.45,
+      7.34
+    ],
+    "dimensions": [
+      7.3343,
+      11.6551,
+      7.34
+    ]
+  },
+  "geometry": {
+    "vertices": 22166,
+    "triangles": 10308,
+    "polygons": 10308,
+    "meshNodes": 9
+  },
+  "authoredGeometryBeforeExport": {
+    "vertices": 5584,
+    "triangles": 10308,
+    "polygons": 5950,
+    "meshNodes": 9
+  },
+  "materials": {
+    "count": 9,
+    "names": [
+      "MAT_AC_OffWhite",
+      "MAT_Accent_Seafoam",
+      "MAT_Concrete_Sand",
+      "MAT_Metal_Dark",
+      "MAT_Plaster_Patch",
+      "MAT_Tank_DeepBlue",
+      "MAT_Wall_Faded_Mango",
+      "MAT_Wall_Sunwashed_Coral",
+      "MAT_Window_Dark"
+    ]
+  },
+  "checks": {
+    "glbNonEmpty": true,
+    "blendNonEmpty": true,
+    "groundAlignedToOrigin": true,
+    "widthWithinBrief": true,
+    "depthWithinBrief": true,
+    "heightWithinBrief": true,
+    "mobileTriangleBudget": true,
+    "mobileMaterialBudget": true,
+    "batchedMeshBudget": true,
+    "sixReviewViewsPresent": true,
+    "noAnimationPayload": true
+  },
+  "contactAudit": {
+    "method": "generator constraint audit",
+    "result": "PASS",
+    "note": "Foundation starts at Z=0; stairs are solid to the foundation; balcony, bars, conduits, awning, AC, tank, rails and drain intersect their supporting structure by construction."
+  },
+  "scope": {
+    "standaloneBuildingOnly": true,
+    "containsStreet": false,
+    "containsSidewalk": false,
+    "containsTerrain": false,
+    "containsVehicles": false,
+    "containsPeople": false,
+    "containsTrees": false,
+    "containsNeighborBuildings": false
+  },
+  "files": {
+    "blend": {
+      "name": "yun_caribbean_house_01.blend",
+      "bytes": 214244,
+      "sha256": "a5a6e34f68bdf820c9bb52eb37004c457f8b35761783b6c46b648c89719bf098"
+    },
+    "glb": {
+      "name": "yun_caribbean_house_01.glb",
+      "bytes": 780744,
+      "sha256": "44f424a544364c2fa361b3db4f7b12aa9b0d530dc59bfe928c805e2021ced916"
+    },
+    "renders": [
+      "yun_caribbean_house_01-hero.png",
+      "yun_caribbean_house_01-front.png",
+      "yun_caribbean_house_01-right-stair.png",
+      "yun_caribbean_house_01-left-utilities.png",
+      "yun_caribbean_house_01-rear.png",
+      "yun_caribbean_house_01-roof.png"
+    ]
+  }
+}

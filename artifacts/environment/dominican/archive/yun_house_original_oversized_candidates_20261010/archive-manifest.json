@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "1.0.0",
+  "archiveName": "Yun House 01 and House 02 original oversized candidates",
+  "archivedAt": "2026-10-10",
+  "reason": "Preserve byte-for-byte predecessors before native 0.55 production conversion",
+  "verification": {
+    "method": "relative filename, file count and SHA-256 comparison before production files were changed",
+    "status": "PASS",
+    "house01SourceFileCount": 15,
+    "house01ArchiveFileCount": 15,
+    "house01HashMismatches": 0,
+    "house02SourceFileCount": 18,
+    "house02ArchiveFileCount": 18,
+    "house02HashMismatches": 0
+  },
+  "candidates": {
+    "House 01 - original oversized candidate": {
+      "dimensionsBlenderXYZ": [7.3343, 11.6551, 7.34],
+      "glb": {
+        "file": "yun_caribbean_house_01.glb",
+        "bytes": 780744,
+        "sha256": "44f424a544364c2fa361b3db4f7b12aa9b0d530dc59bfe928c805e2021ced916"
+      },
+      "blend": {
+        "file": "yun_caribbean_house_01.blend",
+        "bytes": 214244,
+        "sha256": "a5a6e34f68bdf820c9bb52eb37004c457f8b35761783b6c46b648c89719bf098"
+      }
+    },
+    "House 02 - original oversized candidate": {
+      "dimensionsBlenderXYZ": [7.1075, 11.1644, 7.25],
+      "lod0Glb": {
+        "file": "yun_caribbean_house_02.glb",
+        "bytes": 388800,
+        "sha256": "8b4a0ae91701b8d5a9a4c12d77cf964556eda525c727ccff32472d2ae9981aae"
+      },
+      "lod1Glb": {
+        "file": "yun_caribbean_house_02_lod1.glb",
+        "bytes": 105056,
+        "sha256": "74d70f6888c57d4b03562bdd09a0bf9ee82b1cc94347ffabade5945efc81061b"
+      },
+      "lod0Blend": {
+        "file": "yun_caribbean_house_02.blend",
+        "bytes": 163657,
+        "sha256": "b1234f5b7f9801f8900f03276beb15bd383c603c69dfe62d84b8afc146d2fe4c"
+      },
+      "lod1Blend": {
+        "file": "yun_caribbean_house_02_lod1.blend",
+        "bytes": 106607,
+        "sha256": "600e0f70cd4ea96ffd2312263485f6175c3c055c331df798aa1a659b6b672052"
+      }
+    }
+  },
+  "generator": {
+    "file": "yun_house_generator-original-oversized.py",
+    "bytes": 33368,
+    "sha256": "0d7d1969af3a0f90cc2e1ee2cac066c6ab996ccda9b7480443ff7d543d0abf41"
+  },
+  "usage": "Reference and recovery only; do not mount archived oversized candidates in Yun"
+}

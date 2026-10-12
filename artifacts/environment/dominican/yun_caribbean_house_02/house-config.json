@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0.0",
+  "asset_id": "yun_caribbean_house_02",
+  "seed": "yun-house-02-fixed-20261010",
+  "yun_building_scale": 0.55,
+  "house_width": 6.8,
+  "house_depth": 9.8,
+  "floor_count": 2,
+  "paint_color": [0.11, 0.34, 0.31, 1.0],
+  "balcony_type": "corner_picket",
+  "balcony_side": "left",
+  "stairs_type": "none_exterior",
+  "window_layout": "asymmetric_paired",
+  "door_layout": "right_entry_left_garage",
+  "awning_type": "slab_right",
+  "water_tank": true,
+  "ac_count": 1,
+  "utility_details": "meter_conduit_rainwater",
+  "weathering_level": "mild",
+  "materials": {
+    "wall_plaster": [0.11, 0.34, 0.31, 1.0],
+    "dark_metal": [0.035, 0.045, 0.055, 1.0],
+    "window_glass": [0.025, 0.07, 0.085, 1.0],
+    "detail_roof": [0.69, 0.57, 0.40, 1.0]
+  }
+}

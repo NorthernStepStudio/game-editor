@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0.0",
+  "loader": "games/Yun/scripts/mini_figure.gd",
+  "runtimeScale": 1.2,
+  "selection": {
+    "smaller": { "name": "Paco", "rosterIndex": 2, "height": 0.793589890003204 },
+    "primary": { "name": "Tito", "rosterIndex": 0, "height": 0.805589854717255 },
+    "larger": { "name": "Neno", "rosterIndex": 4, "height": 0.951349437236786 }
+  },
+  "rosterHeights": [
+    { "name": "Tito", "rosterIndex": 0, "height": 0.805589854717255 },
+    { "name": "Lina", "rosterIndex": 1, "height": 0.930633962154388 },
+    { "name": "Paco", "rosterIndex": 2, "height": 0.793589890003204 },
+    { "name": "Yari", "rosterIndex": 3, "height": 0.868023812770844 },
+    { "name": "Neno", "rosterIndex": 4, "height": 0.951349437236786 },
+    { "name": "Cata", "rosterIndex": 5, "height": 0.930634081363678 },
+    { "name": "Rafi", "rosterIndex": 6, "height": 0.866113722324371 },
+    { "name": "Meli", "rosterIndex": 7, "height": 0.930633962154388 },
+    { "name": "Chino", "rosterIndex": 8, "height": 0.811159789562225 },
+    { "name": "Sofi", "rosterIndex": 9, "height": 0.859770357608795 },
+    { "name": "Bebo", "rosterIndex": 10, "height": 0.805589854717255 },
+    { "name": "Nati", "rosterIndex": 11, "height": 0.805590033531189 }
+  ]
+}

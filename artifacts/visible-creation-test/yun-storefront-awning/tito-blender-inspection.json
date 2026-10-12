@@ -1,0 +1,69 @@
+[
+  {
+    "name": "body-mesh",
+    "parent": "character-male-a",
+    "location": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "worldDimensions": [
+      0.9206018447875977,
+      0.32382404804229736,
+      0.4418999254703522
+    ],
+    "materials": [
+      "colormap"
+    ],
+    "visibleRender": true
+  },
+  {
+    "name": "head-mesh",
+    "parent": "character-male-a",
+    "location": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "worldDimensions": [
+      0.5442023277282715,
+      0.40799999237060547,
+      0.39369019865989685
+    ],
+    "materials": [
+      "colormap"
+    ],
+    "visibleRender": true
+  },
+  {
+    "name": "Icosphere",
+    "parent": "CurrentGameplayTito_RuntimeScale1_2",
+    "location": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "worldDimensions": [
+      2.282539129257202,
+      2.4000000953674316,
+      2.4000000953674316
+    ],
+    "materials": [],
+    "visibleRender": true
+  }
+]

@@ -1,0 +1,106 @@
+{
+  "camera": {
+    "far": 120.0,
+    "fov": 46.0,
+    "near": 0.119999997317791,
+    "viewport": [
+      1920,
+      1080
+    ]
+  },
+  "characterScaleChanged": false,
+  "characters": {
+    "Neno": {
+      "asset": "res://assets/kenney/mini_characters/character-male-c.glb",
+      "bounds": {
+        "dimensions": [
+          0.920601963996887,
+          0.951349437236786,
+          0.552788972854614
+        ],
+        "maximum": [
+          0.460300981998444,
+          0.951349556446075,
+          0.32716628909111
+        ],
+        "minimum": [
+          -0.460300981998444,
+          0.000000125169762554833,
+          -0.225622653961182
+        ]
+      },
+      "rosterIndex": 4,
+      "runtimeScale": 1.2
+    },
+    "Paco": {
+      "asset": "res://assets/kenney/mini_characters/character-male-b.glb",
+      "bounds": {
+        "dimensions": [
+          0.920601963996887,
+          0.793589890003204,
+          0.467366576194763
+        ],
+        "maximum": [
+          0.460300981998444,
+          0.793590009212494,
+          0.271932989358902
+        ],
+        "minimum": [
+          -0.460300981998444,
+          0.000000125169762554833,
+          -0.1954335719347
+        ]
+      },
+      "rosterIndex": 2,
+      "runtimeScale": 1.2
+    },
+    "Tito": {
+      "asset": "res://assets/kenney/mini_characters/character-male-a.glb",
+      "bounds": {
+        "dimensions": [
+          0.920601963996887,
+          0.805589854717255,
+          0.407999843358994
+        ],
+        "maximum": [
+          0.460300981998444,
+          0.805589973926544,
+          0.201166346669197
+        ],
+        "minimum": [
+          -0.460300981998444,
+          0.000000125169762554833,
+          -0.206833496689796
+        ]
+      },
+      "rosterIndex": 0,
+      "runtimeScale": 1.2
+    }
+  },
+  "gameplayChanged": false,
+  "promoted": false,
+  "scaledFeatureMeasurements": {
+    "house01BalconyGuardHeight": 0.506,
+    "house01DoorHeight": 1.177,
+    "house01FloorToFloorApprox": 1.6885,
+    "house01StairRise": 0.143,
+    "house02BalconyGuardHeightApprox": 0.5115,
+    "house02DoorHeight": 1.1825,
+    "house02GarageHeight": 1.265
+  },
+  "schemaVersion": "1.0.0",
+  "screenshots": {
+    "house01_front": "res://tests/_matterhorn_house_scale_lock/output/selected-055-house01-front-close.png",
+    "house01_stair": "res://tests/_matterhorn_house_scale_lock/output/selected-055-house01-stair-close.png",
+    "house02_front": "res://tests/_matterhorn_house_scale_lock/output/selected-055-house02-front-close.png",
+    "roster": "res://tests/_matterhorn_house_scale_lock/output/selected-055-both-houses-three-current-characters.png"
+  },
+  "selectedHouseScale": 0.55,
+  "sourceHouseFilesChanged": false,
+  "status": "PASS",
+  "testedHouseScales": [
+    0.55,
+    0.6,
+    0.65
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_02",
+  "status": "PASS",
+  "validatedAt": "2026-10-10T17:05:19.178612+00:00",
+  "blenderVersion": "5.2.1 LTS",
+  "units": "meters",
+  "lod0": {
+    "path": "yun_caribbean_house_02.glb",
+    "bytes": 388800,
+    "sha256": "8b4a0ae91701b8d5a9a4c12d77cf964556eda525c727ccff32472d2ae9981aae",
+    "bounds": {
+      "minimum": [
+        -3.5375,
+        -5.8384,
+        0.0
+      ],
+      "maximum": [
+        3.57,
+        5.326,
+        7.25
+      ],
+      "dimensions": [
+        7.1075,
+        11.1644,
+        7.25
+      ]
+    },
+    "geometry": {
+      "vertices": 11028,
+      "triangles": 5220,
+      "polygons": 5220,
+      "meshNodes": 4
+    },
+    "materials": {
+      "count": 4,
+      "names": [
+        "MAT_DarkMetal",
+        "MAT_DetailRoof",
+        "MAT_WallPlaster",
+        "MAT_WindowGlass"
+      ]
+    },
+    "normalsValid": true,
+    "materialsPresent": true
+  },
+  "lod1": {
+    "path": "yun_caribbean_house_02_lod1.glb",
+    "bytes": 105056,
+    "sha256": "74d70f6888c57d4b03562bdd09a0bf9ee82b1cc94347ffabade5945efc81061b",
+    "bounds": {
+      "minimum": [
+        -3.5375,
+        -5.8405,
+        0.0
+      ],
+      "maximum": [
+        3.57,
+        5.326,
+        7.25
+      ],
+      "dimensions": [
+        7.1075,
+        11.1665,
+        7.25
+      ]
+    },
+    "geometry": {
+      "vertices": 2868,
+      "triangles": 1452,
+      "polygons": 1452,
+      "meshNodes": 4
+    },
+    "materials": {
+      "count": 4,
+      "names": [
+        "MAT_DarkMetal",
+        "MAT_DetailRoof",
+        "MAT_WallPlaster",
+        "MAT_WindowGlass"
+      ]
+    },
+    "normalsValid": true,
+    "materialsPresent": true
+  },
+  "checks": {
+    "lod0GlbNonEmpty": true,
+    "lod1GlbNonEmpty": true,
+    "groundAligned": true,
+    "dimensionsSensible": true,
+    "lod0TriangleTarget": true,
+    "lod1LowerDetail": true,
+    "sharedMaterialTarget": true,
+    "batchedMeshTarget": true,
+    "normalsValid": true,
+    "materialsPresent": true,
+    "requiredRendersPresent": true,
+    "noThirdPartyCreativeAssets": true
+  },
+  "contactAudit": {
+    "result": "PASS",
+    "method": "deterministic generator constraints plus six-view review",
+    "note": "Foundation begins at Z=0. Balcony, awning, frames, utilities, AC, parapet and tank supports intersect their supporting surfaces by construction."
+  },
+  "scope": {
+    "standaloneBuildingOnly": true,
+    "containsStreet": false,
+    "containsSidewalk": false,
+    "containsPeople": false,
+    "containsCars": false,
+    "containsVegetation": false
+  },
+  "build": {
+    "lod0": {
+      "blend": "yun_caribbean_house_02.blend",
+      "glb": "yun_caribbean_house_02.glb",
+      "authoredGeometry": {
+        "vertices": 2904,
+        "triangles": 5220,
+        "polygons": 2928,
+        "meshNodes": 4
+      },
+      "authoredBounds": {
+        "minimum": [
+          -3.5375,
+          -5.8384,
+          0.0
+        ],
+        "maximum": [
+          3.57,
+          5.326,
+          7.25
+        ],
+        "dimensions": [
+          7.1075,
+          11.1644,
+          7.25
+        ]
+      },
+      "componentsBeforeBatching": 147,
+      "renders": [
+        "yun_caribbean_house_02-hero.png",
+        "yun_caribbean_house_02-front.png",
+        "yun_caribbean_house_02-right.png",
+        "yun_caribbean_house_02-left.png",
+        "yun_caribbean_house_02-rear.png",
+        "yun_caribbean_house_02-roof.png"
+      ]
+    },
+    "lod1": {
+      "blend": "yun_caribbean_house_02_lod1.blend",
+      "glb": "yun_caribbean_house_02_lod1.glb",
+      "authoredGeometry": {
+        "vertices": 956,
+        "triangles": 1452,
+        "polygons": 708,
+        "meshNodes": 4
+      },
+      "authoredBounds": {
+        "minimum": [
+          -3.5375,
+          -5.8405,
+          0.0
+        ],
+        "maximum": [
+          3.57,
+          5.326,
+          7.25
+        ],
+        "dimensions": [
+          7.1075,
+          11.1665,
+          7.25
+        ]
+      },
+      "componentsBeforeBatching": 115,
+      "renders": [
+        "yun_caribbean_house_02_lod1-hero.png"
+      ]
+    }
+  }
+}

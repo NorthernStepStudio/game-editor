@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_01",
+  "title": "Yun Caribbean House 01",
+  "assetType": "stylized modular Caribbean concrete house",
+  "status": "production-ready-unmounted",
+  "createdAt": "2026-10-10T18:39:38.875537+00:00",
+  "creationTool": "Blender 5.2.1 LTS with studio-authored Python automation",
+  "aiAssistance": {
+    "provider": "OpenAI",
+    "product": "Codex",
+    "model": "GPT-5-based Codex; exact runtime build not exposed",
+    "role": "Interpreted the human art brief and authored the procedural Blender construction script."
+  },
+  "sourceReferences": [],
+  "thirdPartyCreativeAssets": [],
+  "rightsAssessment": "original-internal",
+  "humanApprovalStatus": "productionization authorized; live-map promotion pending",
+  "promotionStatus": "not mounted in Yun; candidate artifact only",
+  "productionReadiness": "native-scale neighborhood-kit candidate; live map promotion not performed",
+  "yunBuildingScale": 0.55,
+  "nativeGeometry": true,
+  "importScale": 1.0,
+  "designBrief": "DESIGN-BRIEF.md",
+  "sourceProject": "yun_caribbean_house_01.blend",
+  "runtimeArtifact": "yun_caribbean_house_01.glb",
+  "buildScript": "build_asset.py",
+  "validationEvidence": [
+    "validation-report.json",
+    "godot-import-validation.json"
+  ],
+  "componentCountBeforeBatching": 215,
+  "batchedMeshCount": 9,
+  "materialCount": 9,
+  "collision": {
+    "strategy": "collision-only primitive boxes for shell, gate, stair treads, landing and reachable guard boundaries",
+    "shapeCount": 20
+  },
+  "dimensionsMeters": {
+    "widthX": 4.0339,
+    "depthY": 6.4103,
+    "heightZ": 4.037
+  },
+  "modificationHistory": [
+    "Initial original procedural model from the Yun Caribbean urban-house brief.",
+    "Exterior stair revision: wider turning landing, aligned threshold, continuous guardrail and clear door approach.",
+    "Material-batched mesh optimization and GLB export.",
+    "Six-view Blender review render and fresh-GLB validation.",
+    "Productionized at the locked Yun building scale 0.55 with applied transforms and simple collision.",
+    "Extended rooftop tank supports and pipe to the roof slab; added a measured pre-batch contact audit."
+  ]
+}

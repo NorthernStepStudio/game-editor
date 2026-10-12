@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_02",
+  "title": "Yun Caribbean House 02",
+  "friendlyLod1Name": "Distance version of House 02",
+  "assetType": "stylized modular Caribbean concrete house",
+  "status": "environment-candidate",
+  "createdAt": "2026-10-10T17:05:19.178612+00:00",
+  "creationTool": "Blender 5.2.1 LTS with deterministic configuration-driven Python automation",
+  "generator": "../yun_house_generator.py",
+  "configuration": "house-config.json",
+  "seed": "yun-house-02-fixed-20261010",
+  "sourceReferences": [],
+  "thirdPartyCreativeAssets": [],
+  "rightsAssessment": "original-internal",
+  "humanApprovalStatus": "pending",
+  "promotionStatus": "not mounted or made default in Yun",
+  "materials": {
+    "count": 4,
+    "strategy": [
+      "wall/plaster",
+      "dark metal",
+      "glass/window",
+      "detail/roof"
+    ]
+  },
+  "files": {
+    "lod0Blend": "yun_caribbean_house_02.blend",
+    "lod0Glb": "yun_caribbean_house_02.glb",
+    "lod1Blend": "yun_caribbean_house_02_lod1.blend",
+    "lod1Glb": "yun_caribbean_house_02_lod1.glb",
+    "renders": [
+      "yun_caribbean_house_02-hero.png",
+      "yun_caribbean_house_02-front.png",
+      "yun_caribbean_house_02-right.png",
+      "yun_caribbean_house_02-left.png",
+      "yun_caribbean_house_02-rear.png",
+      "yun_caribbean_house_02-roof.png",
+      "yun_caribbean_house_02_lod1-hero.png"
+    ],
+    "blenderValidation": "validation-report.json",
+    "godotValidation": "godot-import-validation.json",
+    "streetEvaluation": "../yun_house_street_evaluation/street-evaluation-report.json"
+  },
+  "designDifferencesFromHouse01": [
+    "No exterior stair",
+    "Asymmetric left garage and right pedestrian entry",
+    "Recessed upper floor with paired narrow windows",
+    "Corner balcony with solid curb, end piers and denser pickets",
+    "Stepped rooftop parapet and squat water tank",
+    "Shallower footprint and different facade proportions"
+  ],
+  "aiAssistance": {
+    "provider": "OpenAI",
+    "product": "Codex",
+    "model": "GPT-5-based Codex; exact runtime build not exposed",
+    "role": "Translated the owner brief into deterministic procedural geometry and validation automation."
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_01",
+  "validatedAt": "2026-10-10T18:40:55Z",
+  "engine": "Godot 4.7.2-stable (official)",
+  "project": "games/Yun",
+  "projectName": "Street Yun",
+  "status": "PASS",
+  "validationType": "isolated real-renderer import, PackedScene instantiation, transform, physics collision, current-character and gameplay-camera validation",
+  "result": {
+    "rootScale": [1.0, 1.0, 1.0],
+    "allNodeScalesOne": true,
+    "groundMinimumY": -2.60770320892334e-08,
+    "boundsGodotXYZ": [4.03385782241821, 4.03700017929077, 6.41028881072998],
+    "meshNodes": 9,
+    "surfaces": 9,
+    "triangles": 10308,
+    "materials": 9,
+    "staticBodies": 20,
+    "collisionShapes": 20,
+    "collisionShapeType": "ConcavePolygonShape3D",
+    "generatorContactAudit": {"status": "PASS", "checkedContacts": 196, "failedContacts": 0},
+    "collisionProbeHits": {
+      "buildingShell": true,
+      "exteriorStair": true,
+      "balconyBoundary": true
+    }
+  },
+  "sourceArtifact": {
+    "path": "yun_caribbean_house_01.glb",
+    "bytes": 811592,
+    "sha256": "7d3e43ccdc0472840dceb9a566559038f48600b7a17fdd3b57e79658a33fab85"
+  },
+  "scale": {
+    "lockedAuthoringValue": 0.55,
+    "godotImportScale": 1.0,
+    "characterRuntimeScale": 1.2,
+    "scaledParentWorkaround": false
+  },
+  "characters": ["Paco", "Tito", "Neno"],
+  "camera": {"fov": 46.0, "near": 0.12, "far": 120.0},
+  "evidence": "../yun_house_production_scale_validation/production-scale-validation-report.json",
+  "scope": "This proves the production GLB at native scale in an isolated Yun scene. It does not mount the house in a live map or promote a release."
+}

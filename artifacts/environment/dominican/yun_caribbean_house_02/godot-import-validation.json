@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_02",
+  "validatedAt": "2026-10-10T18:40:55Z",
+  "engine": "Godot 4.7.2-stable (official)",
+  "project": "games/Yun",
+  "projectName": "Street Yun",
+  "status": "PASS",
+  "validationType": "isolated real-renderer import, PackedScene instantiation, transform, physics collision, current-character and gameplay-camera validation",
+  "scale": {
+    "lockedAuthoringValue": 0.55,
+    "godotImportScale": 1.0,
+    "characterRuntimeScale": 1.2,
+    "scaledParentWorkaround": false
+  },
+  "lod0": {
+    "sha256": "6bf2fe677c81042400c07d4a31286fde87d17678ce60442752df35797d96e2c7",
+    "boundsGodotXYZ": [3.90912508964539, 3.98749995231628, 6.14041662216187],
+    "rootScale": [1.0, 1.0, 1.0],
+    "allNodeScalesOne": true,
+    "groundMinimumY": 0.0,
+    "triangles": 5220,
+    "meshNodes": 4,
+    "materials": 4,
+    "staticBodies": 5,
+    "collisionShapes": 5,
+    "generatorContactAudit": {"status": "PASS", "checkedContacts": 161, "failedContacts": 0}
+  },
+  "lod1": {
+    "sha256": "ca728fa4be53a9e9c9d0333e01aac2ad16bc7af91ed622892f0fb26d03ebc9c0",
+    "boundsGodotXYZ": [3.90912508964539, 3.98749995231628, 6.14156484603882],
+    "rootScale": [1.0, 1.0, 1.0],
+    "allNodeScalesOne": true,
+    "groundMinimumY": 0.0,
+    "triangles": 1452,
+    "meshNodes": 4,
+    "materials": 4,
+    "staticBodies": 5,
+    "collisionShapes": 5,
+    "generatorContactAudit": {"status": "PASS", "checkedContacts": 122, "failedContacts": 0}
+  },
+  "collisionProbeHits": {
+    "buildingShell": true,
+    "garageFront": true,
+    "balconyBoundary": true
+  },
+  "characters": ["Paco", "Tito", "Neno"],
+  "camera": {"fov": 46.0, "near": 0.12, "far": 120.0},
+  "evidence": "../yun_house_production_scale_validation/production-scale-validation-report.json",
+  "scope": "Both production GLBs passed at native scale in an isolated Yun scene. Neither was mounted in a live map or promoted as a release."
+}

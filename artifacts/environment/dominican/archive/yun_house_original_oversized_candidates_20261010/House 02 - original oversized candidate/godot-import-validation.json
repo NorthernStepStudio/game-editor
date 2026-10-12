@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_02",
+  "status": "PASS",
+  "validatedAt": "2026-10-10",
+  "project": "games/Yun",
+  "projectName": "Street Yun",
+  "projectVersion": "0.2.0",
+  "godotVersion": "4.7.2-stable (official)",
+  "checks": {
+    "lod0Imported": true,
+    "lod0PackedSceneInstantiated": true,
+    "lod1Imported": true,
+    "lod1PackedSceneInstantiated": true,
+    "materialsPresent": true,
+    "meshPayloadPresent": true,
+    "runtimeErrors": false,
+    "renderingWarnings": false
+  },
+  "lod0": {
+    "sha256": "8b4a0ae91701b8d5a9a4c12d77cf964556eda525c727ccff32472d2ae9981aae",
+    "triangles": 5220,
+    "meshNodes": 4,
+    "materials": 4
+  },
+  "lod1": {
+    "sha256": "74d70f6888c57d4b03562bdd09a0bf9ee82b1cc94347ffabade5945efc81061b",
+    "triangles": 1452,
+    "meshNodes": 4,
+    "materials": 4
+  },
+  "evidence": "../yun_house_street_evaluation/street-evaluation-report.json",
+  "note": "Both GLBs were copied into an isolated temporary folder in the canonical Yun project, imported by the editor, loaded as PackedScenes and instantiated by the real-renderer evaluation. The temporary project folder was not a map or release change."
+}

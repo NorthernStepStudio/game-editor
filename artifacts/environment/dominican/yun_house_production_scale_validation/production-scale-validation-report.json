@@ -1,0 +1,329 @@
+{
+  "camera": {
+    "far": 120.0,
+    "fov": 46.0,
+    "near": 0.119999997317791,
+    "viewport": [
+      1920,
+      1080
+    ]
+  },
+  "characterScaleChanged": false,
+  "characters": {
+    "Neno": {
+      "asset": "res://assets/kenney/mini_characters/character-male-c.glb",
+      "bounds": {
+        "dimensions": [
+          0.920601963996887,
+          0.951349437236786,
+          0.552788972854614
+        ],
+        "maximum": [
+          0.460300981998444,
+          0.951349556446075,
+          0.32716628909111
+        ],
+        "minimum": [
+          -0.460300981998444,
+          0.000000125169762554833,
+          -0.225622653961182
+        ]
+      },
+      "rosterIndex": 4,
+      "runtimeScale": 1.2
+    },
+    "Paco": {
+      "asset": "res://assets/kenney/mini_characters/character-male-b.glb",
+      "bounds": {
+        "dimensions": [
+          0.920601963996887,
+          0.793589890003204,
+          0.467366576194763
+        ],
+        "maximum": [
+          0.460300981998444,
+          0.793590009212494,
+          0.271932989358902
+        ],
+        "minimum": [
+          -0.460300981998444,
+          0.000000125169762554833,
+          -0.1954335719347
+        ]
+      },
+      "rosterIndex": 2,
+      "runtimeScale": 1.2
+    },
+    "Tito": {
+      "asset": "res://assets/kenney/mini_characters/character-male-a.glb",
+      "bounds": {
+        "dimensions": [
+          0.920601963996887,
+          0.805589854717255,
+          0.407999843358994
+        ],
+        "maximum": [
+          0.460300981998444,
+          0.805589973926544,
+          0.201166346669197
+        ],
+        "minimum": [
+          -0.460300981998444,
+          0.000000125169762554833,
+          -0.206833496689796
+        ]
+      },
+      "rosterIndex": 0,
+      "runtimeScale": 1.2
+    }
+  },
+  "checks": {
+    "cameraMatchesGameplayReference": true,
+    "characterScaleUnchanged": true,
+    "currentRosterCharactersMounted": true,
+    "house01CollisionImported": true,
+    "house01CollisionProbesHit": true,
+    "house01GroundAligned": true,
+    "house01NoScaledParentTrick": true,
+    "house01RootScaleOne": true,
+    "house02CollisionImported": true,
+    "house02CollisionProbesHit": true,
+    "house02GroundAligned": true,
+    "house02Lod1CollisionImported": true,
+    "house02Lod1NoScaledParentTrick": true,
+    "house02Lod1RootScaleOne": true,
+    "house02NoScaledParentTrick": true,
+    "house02RootScaleOne": true,
+    "screenshotsComplete": true
+  },
+  "collisionProbes": {
+    "house01": {
+      "balconyBoundary": {
+        "collider": "Collision_BalconyFrontBoundary",
+        "hit": true,
+        "position": [
+          0.230000004172325,
+          2.01999998092651,
+          0.86599999666214
+        ]
+      },
+      "buildingShell": {
+        "collider": "Collision_BuildingShell",
+        "hit": true,
+        "position": [
+          0.0,
+          3.569500207901,
+          -2.5
+        ]
+      },
+      "exteriorStair": {
+        "collider": "Collision_StairStep_01",
+        "hit": true,
+        "position": [
+          1.76999998092651,
+          0.142999827861786,
+          0.219999998807907
+        ]
+      }
+    },
+    "house02": {
+      "balconyBoundary": {
+        "collider": "Collision_BalconyFrontBoundary",
+        "hit": true,
+        "position": [
+          -0.860000014305115,
+          2.04999995231628,
+          0.635000050067902
+        ]
+      },
+      "buildingShell": {
+        "collider": "Collision_BuildingShell",
+        "hit": true,
+        "position": [
+          0.0,
+          3.59700012207031,
+          -2.5
+        ]
+      },
+      "garageFront": {
+        "collider": "Collision_GarageFront",
+        "hit": true,
+        "position": [
+          -0.850000023841858,
+          0.800000011920929,
+          0.261000156402588
+        ]
+      }
+    }
+  },
+  "house01": {
+    "allNodeScalesOne": true,
+    "bounds": {
+      "dimensions": [
+        4.03385782241821,
+        4.03700017929077,
+        6.41028881072998
+      ],
+      "maximum": [
+        2.04230785369873,
+        4.03700017929077,
+        3.41278910636902
+      ],
+      "minimum": [
+        -1.99154996871948,
+        -0.0000000260770320892334,
+        -2.99749994277954
+      ]
+    },
+    "collisionShapeTypes": [
+      "ConcavePolygonShape3D"
+    ],
+    "collisionShapes": 20,
+    "materialCount": 9,
+    "meshNodes": 9,
+    "rootName": "yun_caribbean_house_012",
+    "rootScale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "rootScaleOne": true,
+    "staticBodies": 20,
+    "surfaces": 9,
+    "triangles": 10308,
+    "vertices": 22162
+  },
+  "house02": {
+    "allNodeScalesOne": true,
+    "bounds": {
+      "dimensions": [
+        3.90912508964539,
+        3.98749995231628,
+        6.14041662216187
+      ],
+      "maximum": [
+        1.96350002288818,
+        3.98749995231628,
+        3.21111679077148
+      ],
+      "minimum": [
+        -1.9456250667572,
+        0.0,
+        -2.92929983139038
+      ]
+    },
+    "collisionShapeTypes": [
+      "ConcavePolygonShape3D"
+    ],
+    "collisionShapes": 5,
+    "materialCount": 4,
+    "meshNodes": 4,
+    "rootName": "yun_caribbean_house_022",
+    "rootScale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "rootScaleOne": true,
+    "staticBodies": 5,
+    "surfaces": 4,
+    "triangles": 5220,
+    "vertices": 11028
+  },
+  "house02Lod1": {
+    "allNodeScalesOne": true,
+    "bounds": {
+      "dimensions": [
+        3.90912508964539,
+        3.98749995231628,
+        6.14156484603882
+      ],
+      "maximum": [
+        1.96350002288818,
+        3.98749995231628,
+        3.21226501464844
+      ],
+      "minimum": [
+        -1.9456250667572,
+        0.0,
+        -2.92929983139038
+      ]
+    },
+    "collisionShapeTypes": [
+      "ConcavePolygonShape3D"
+    ],
+    "collisionShapes": 5,
+    "materialCount": 4,
+    "meshNodes": 4,
+    "rootName": "yun_caribbean_house_02_lod12",
+    "rootScale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "rootScaleOne": true,
+    "staticBodies": 5,
+    "surfaces": 4,
+    "triangles": 1452,
+    "vertices": 2868
+  },
+  "liveYunMapChanged": false,
+  "lockedBuildingScale": 0.55,
+  "nativeImportScale": 1.0,
+  "projectName": "Street Yun",
+  "runtime": {
+    "godotVersion": {
+      "build": "official",
+      "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+      "hex": 263938,
+      "major": 4,
+      "minor": 7,
+      "patch": 2,
+      "status": "stable",
+      "string": "4.7.2-stable (official)",
+      "timestamp": 0
+    },
+    "videoAdapter": "AMD Radeon RX 7700 XT",
+    "videoVendor": "AMD"
+  },
+  "schemaVersion": "1.0.0",
+  "screenshots": {
+    "house01": "res://tests/_matterhorn_house_production_scale/output/house01-native-scale-tito.png",
+    "house01_side": "res://tests/_matterhorn_house_production_scale/output/house01-native-scale-stair-side.png",
+    "house02": "res://tests/_matterhorn_house_production_scale/output/house02-native-scale-tito.png",
+    "ten_houses": "res://tests/_matterhorn_house_production_scale/output/ten-house-native-scale-performance.png",
+    "two_houses": "res://tests/_matterhorn_house_production_scale/output/two-house-native-scale-gameplay-camera.png"
+  },
+  "status": "PASS",
+  "temporaryOnly": true,
+  "tenHouseTest": {
+    "houseCount": 10,
+    "meshSurfaces": 65,
+    "performance": {
+      "averageDrawCalls": 106.0,
+      "averageFrameTimeMs": 16.526,
+      "averageRenderedPrimitives": 212744.0,
+      "engineReportedFps": 60.0,
+      "maxFrameTimeMs": 17.41,
+      "observedFpsFromAverage": 60.5,
+      "p95FrameTimeMs": 16.898,
+      "sampleFrames": 360
+    },
+    "triangles": 77640
+  },
+  "twoHouseTest": {
+    "houseCount": 2,
+    "meshSurfaces": 13,
+    "performance": {
+      "averageDrawCalls": 67.0,
+      "averageFrameTimeMs": 16.47,
+      "averageRenderedPrimitives": 53498.0,
+      "engineReportedFps": 60.0,
+      "maxFrameTimeMs": 17.332,
+      "observedFpsFromAverage": 60.7,
+      "p95FrameTimeMs": 16.869,
+      "sampleFrames": 240
+    },
+    "triangles": 15528
+  }
+}

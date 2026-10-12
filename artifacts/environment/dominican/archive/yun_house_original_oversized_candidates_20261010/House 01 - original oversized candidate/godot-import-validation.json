@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_01",
+  "validatedAt": "2026-10-10T16:50:13Z",
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "status": "PASS",
+  "validationType": "direct headless GLB import and PackedScene instantiation",
+  "result": {
+    "root": "yun_caribbean_house_01",
+    "meshNodes": 9,
+    "surfaces": 9,
+    "vertices": 22166,
+    "editorImportExitCode": 0,
+    "runtimeProbeExitCode": 0,
+    "probeMarker": "HOUSE_GODOT_IMPORT_OK"
+  },
+  "sourceArtifact": {
+    "path": "yun_caribbean_house_01.glb",
+    "bytes": 780744,
+    "sha256": "44f424a544364c2fa361b3db4f7b12aa9b0d530dc59bfe928c805e2021ced916"
+  },
+  "probeScript": "verify_godot_import.gd",
+  "scope": "This proves Godot import and instantiation of the candidate GLB. It does not mount the asset in Yun, prove production collision behavior, or constitute stakeholder promotion.",
+  "environmentWarnings": [
+    "Headless sandbox could not write the user-level Godot log/editor settings.",
+    "Windows root certificate store was unavailable to the headless process.",
+    "Neither warning affected local GLB import, PackedScene instantiation, or mesh inspection."
+  ]
+}

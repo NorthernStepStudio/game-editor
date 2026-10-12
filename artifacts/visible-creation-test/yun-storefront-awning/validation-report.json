@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0.0",
+  "asset": "yun_storefront_canopy_v05",
+  "status": "CANDIDATE_UNPROMOTED",
+  "checkpoints": {
+    "v01": "v01-blockout-live-r2.blend",
+    "v02": "v02-structure.blend",
+    "v03": "v03-details.blend",
+    "v04": "v04-materials.blend",
+    "v05": "v05-final.blend"
+  },
+  "export": "yun_storefront_canopy_v05.glb",
+  "exportMeshCount": 38,
+  "triangles": 520,
+  "materials": [
+    "MAT_DarkPaintedMetal",
+    "MAT_FadedTealMetal",
+    "MAT_WarmLamp"
+  ],
+  "boundsMeters": {
+    "minimum": [
+      -2.825,
+      -2.45,
+      0.0
+    ],
+    "maximum": [
+      2.825,
+      -0.1216,
+      3.05
+    ],
+    "dimensions": [
+      5.65,
+      2.3284,
+      3.05
+    ]
+  },
+  "scaleReference": {
+    "name": "Tito",
+    "source": "res://assets/kenney/mini_characters/character-male-a.glb",
+    "runtimeScale": 1.2
+  },
+  "gameplayCameraFovDegrees": 46.0,
+  "productionFilesChanged": false,
+  "promoted": false,
+  "visualEvidence": [
+    "v02-structure.png",
+    "v03-details.png",
+    "v04-materials.png",
+    "v05-final-close.png",
+    "v05-final-gameplay.png"
+  ]
+}

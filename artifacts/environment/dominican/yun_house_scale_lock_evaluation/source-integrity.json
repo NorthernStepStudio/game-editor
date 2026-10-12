@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "PASS",
+  "sourceHouseFilesChanged": false,
+  "housesRegenerated": false,
+  "characterScaleChanged": false,
+  "gameplayChanged": false,
+  "promoted": false,
+  "assets": {
+    "house01Lod0": {
+      "path": "../yun_caribbean_house_01/yun_caribbean_house_01.glb",
+      "sha256": "44f424a544364c2fa361b3db4f7b12aa9b0d530dc59bfe928c805e2021ced916"
+    },
+    "house02Lod0": {
+      "path": "../yun_caribbean_house_02/yun_caribbean_house_02.glb",
+      "sha256": "8b4a0ae91701b8d5a9a4c12d77cf964556eda525c727ccff32472d2ae9981aae"
+    },
+    "house02Lod1": {
+      "path": "../yun_caribbean_house_02/yun_caribbean_house_02_lod1.glb",
+      "sha256": "74d70f6888c57d4b03562bdd09a0bf9ee82b1cc94347ffabade5945efc81061b"
+    }
+  }
+}

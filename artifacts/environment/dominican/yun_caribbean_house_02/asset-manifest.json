@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "1.0.0",
+  "assetId": "yun_caribbean_house_02",
+  "title": "Yun Caribbean House 02",
+  "friendlyLod1Name": "Distance version of House 02",
+  "assetType": "stylized modular Caribbean concrete house",
+  "status": "production-ready-unmounted",
+  "createdAt": "2026-10-10T18:39:49.508014+00:00",
+  "creationTool": "Blender 5.2.1 LTS with deterministic configuration-driven Python automation",
+  "generator": "../yun_house_generator.py",
+  "configuration": "house-config.json",
+  "seed": "yun-house-02-fixed-20261010",
+  "sourceReferences": [],
+  "thirdPartyCreativeAssets": [],
+  "rightsAssessment": "original-internal",
+  "humanApprovalStatus": "productionization authorized; live-map promotion pending",
+  "promotionStatus": "not mounted or made default in Yun",
+  "productionReadiness": "native-scale neighborhood-kit candidate; live map promotion not performed",
+  "yunBuildingScale": 0.55,
+  "nativeGeometry": true,
+  "importScale": 1.0,
+  "materials": {
+    "count": 4,
+    "strategy": [
+      "wall/plaster",
+      "dark metal",
+      "glass/window",
+      "detail/roof"
+    ]
+  },
+  "collision": {
+    "strategy": "collision-only primitive boxes for closed shell, garage obstruction and balcony boundaries",
+    "lod0ShapeCount": 5,
+    "lod1ShapeCount": 5
+  },
+  "files": {
+    "lod0Blend": "yun_caribbean_house_02.blend",
+    "lod0Glb": "yun_caribbean_house_02.glb",
+    "lod1Blend": "yun_caribbean_house_02_lod1.blend",
+    "lod1Glb": "yun_caribbean_house_02_lod1.glb",
+    "renders": [
+      "yun_caribbean_house_02-hero.png",
+      "yun_caribbean_house_02-front.png",
+      "yun_caribbean_house_02-right.png",
+      "yun_caribbean_house_02-left.png",
+      "yun_caribbean_house_02-rear.png",
+      "yun_caribbean_house_02-roof.png",
+      "yun_caribbean_house_02_lod1-hero.png"
+    ]
+  },
+  "modificationHistory": [
+    "Productionized at the locked Yun building scale 0.55 with applied transforms, LOD1 and simple collision.",
+    "Extended rooftop tank supports to the roof slab, aligned upper side windows to the recessed floor, closed the balcony-door frame gap and added measured contact audits for both LODs."
+  ],
+  "designDifferencesFromHouse01": [
+    "No exterior stair",
+    "Asymmetric left garage and right pedestrian entry",
+    "Recessed upper floor with paired narrow windows",
+    "Corner balcony with solid curb, end piers and denser pickets",
+    "Stepped rooftop parapet and squat water tank",
+    "Shallower footprint and different facade proportions"
+  ],
+  "aiAssistance": {
+    "provider": "OpenAI",
+    "product": "Codex",
+    "model": "GPT-5-based Codex; exact runtime build not exposed",
+    "role": "Translated the owner brief into deterministic procedural geometry and validation automation."
+  }
+}

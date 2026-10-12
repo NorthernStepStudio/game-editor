@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "PASS",
+  "beforeFileCount": 15,
+  "afterFileCount": 15,
+  "allHashesIdentical": true,
+  "files": [
+    { "file": "asset-manifest.json", "sha256": "3f642dea2da6d5243fe5a6f1a2b032c934e1500c151434a88fefb5f5038e7667" },
+    { "file": "build_asset.py", "sha256": "6426013aed02d6fac80e804273db8be8caddf1477847fd297fcb8d34a69684d0" },
+    { "file": "DESIGN-BRIEF.md", "sha256": "9bd39e872a5de428fdfaa7e73b8cc21bc4becfb7ac6b6e5a6b670eafb6766112" },
+    { "file": "godot-import-validation.json", "sha256": "12cf9ebde707ba5beddc156a04bada5e4c040e9aaf6cd24fd71aa16358c6e9c1" },
+    { "file": "README.md", "sha256": "ff8aa9a191e7ee6826374348ab11183b70115e7bd1f42f7268359d0beece91b3" },
+    { "file": "validation-report.json", "sha256": "7c48fcd2e530e0c3093be8c5423c13ea301e2c8a6394153a934a2e1c72e1a2c3" },
+    { "file": "verify_godot_import.gd", "sha256": "fb0e4571969fff172e1c8ec515b245ec9414e056b1c3a764516c4235efe4de4a" },
+    { "file": "yun_caribbean_house_01-front.png", "sha256": "89f10d66c311683f37ed60b26c75c7669947b838405e36d327192c08b53206c4" },
+    { "file": "yun_caribbean_house_01-hero.png", "sha256": "89b7fad2c37e82a8e543d2926f0ad517a2fd911f6b51e62b462fda966cb03dad" },
+    { "file": "yun_caribbean_house_01-left-utilities.png", "sha256": "611621f5129573ae2db7f56c276448099d4f2f7d0e9512082687ec31fb65598c" },
+    { "file": "yun_caribbean_house_01-rear.png", "sha256": "7ee6fbc14180d3223bcec7a0795711e7312510d234556682610bd04b4fdc72fa" },
+    { "file": "yun_caribbean_house_01-right-stair.png", "sha256": "6029b9a8c4c7dffdb49e735d62861486c3ef7d91d5784e3e0663ed5dc66f5ce4" },
+    { "file": "yun_caribbean_house_01-roof.png", "sha256": "c557440bca18189a502ffcf57bfaf55a03a37c8f4f5f067a37ce9052ef4e6441" },
+    { "file": "yun_caribbean_house_01.blend", "sha256": "a5a6e34f68bdf820c9bb52eb37004c457f8b35761783b6c46b648c89719bf098" },
+    { "file": "yun_caribbean_house_01.glb", "sha256": "44f424a544364c2fa361b3db4f7b12aa9b0d530dc59bfe928c805e2021ced916" }
+  ]
+}

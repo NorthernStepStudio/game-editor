@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "1.0.0",
+  "asset": "yun_storefront_canopy_v05_scale_r2",
+  "status": "CANDIDATE_UNPROMOTED",
+  "lockedYunEnvironmentScale": 0.55,
+  "downspoutCorrected": true,
+  "sourceCheckpoint": "v05-final.blend",
+  "finalCheckpoint": "v05-final-scale-r2.blend",
+  "export": "yun_storefront_canopy_v05_scale_r2.glb",
+  "exportMeshCount": 38,
+  "triangles": 520,
+  "materials": [
+    "MAT_DarkPaintedMetal",
+    "MAT_FadedTealMetal",
+    "MAT_WarmLamp"
+  ],
+  "boundsGameUnits": {
+    "minimum": [
+      -1.5538,
+      -1.265,
+      0.0
+    ],
+    "maximum": [
+      1.5538,
+      -0.0669,
+      1.6775
+    ],
+    "dimensions": [
+      3.1075,
+      1.1981,
+      1.6775
+    ]
+  },
+  "scaleReference": {
+    "name": "Tito",
+    "source": "res://assets/kenney/mini_characters/character-male-a.glb",
+    "runtimeScale": 1.2,
+    "boundsGameUnits": {
+      "minimum": [
+        0.8587,
+        -2.5,
+        0.0
+      ],
+      "maximum": [
+        3.1413,
+        -0.1,
+        2.4
+      ],
+      "dimensions": [
+        2.2825,
+        2.4,
+        2.4
+      ]
+    }
+  },
+  "gameplayCameraFovDegrees": 46.0,
+  "productionFilesChanged": false,
+  "promoted": false,
+  "visualEvidence": [
+    "v05-final-close-r2.png",
+    "v05-final-gameplay-r2.png"
+  ]
+}

@@ -102,3 +102,13 @@ test("painting never touches the model's front and paints only what clearly face
   // colour groups whose matches disagree (eyes mixed with dark hair) are left alone
   assert.match(TRELLIS_BLENDER_SCRIPT, /spread > 0\.12/);
 });
+
+test("a marked side view fixes the guessed depth: invented parts removed, backs and shoes brought to the sheet", () => {
+  assert.match(TRELLIS_BLENDER_SCRIPT, /def carve_to_side\(obj, side_keep, margin=0\.025\):/);
+  assert.match(TRELLIS_BLENDER_SCRIPT, /elif CFG\["mode"\] == "carve":/);
+  // the front came from the picture and is never moved: only points behind the body's middle are
+  assert.match(TRELLIS_BLENDER_SCRIPT, /if co\.y > mid_y and co\.y > back_limit:/);
+  // shoes and depth are only ever shortened, and never below 60 %
+  assert.match(TRELLIS_BLENDER_SCRIPT, /k_shoe = max\(0\.6, ks\[len\(ks\) \/\/ 2\]\)/);
+  assert.match(TRELLIS_BLENDER_SCRIPT, /0\.6, 1\.0\)/);
+});

@@ -20,7 +20,8 @@ import { TRELLIS_BLENDER_SCRIPT } from "./trellisScript.js";
  * request.parameters: crop [x0, y0, x1, y1] (fractions of the picture, top-left origin), quality "standard" | "high",
  * height (metres, default 0.72, the mini characters' height) and maxFaces (default 40000).
  * On a character sheet, views { right, back, left } (boxes like crop) mark the other views: those sides of the model
- * are then painted from them instead of guessed. The front is never painted over.
+ * are then painted from them instead of guessed (the front is never painted over), and a side view fixes the model's
+ * guessed depth: invented parts removed, stretched backs and long shoes brought back to the sheet's profile.
  * With parentAsset (a model made earlier) and those views, the existing model is repainted without rebuilding it.
  */
 
@@ -177,6 +178,16 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
       model = paintedFile;
     }
 
+    let carved: Record<string, unknown> | undefined;
+    const side = settings.views?.right ?? settings.views?.left;
+    if (side) {
+      // the depth (front-to-back) was guessed from the front view: fix it with the sheet's side view
+      progress("Checking the side against the sheet (removing guessed parts, fixing the depth)…");
+      const carvedFile = join(jobDir, `${baseName}-carved.glb`);
+      carved = await this.blender({ mode: "carve", model, sheet: image, side, output: carvedFile }, jobDir, "carve", signal);
+      model = carvedFile;
+    }
+
     progress(parentModel ? "Rendering the previews…" : "Fitting the model to the game's size…");
     const glb = join(jobDir, `${baseName}.glb`);
     const finished = await this.blender({ mode: "finish", model, output: glb, previewBase: join(jobDir, baseName), height: settings.height, maxFaces: settings.maxFaces }, jobDir, "finish", signal);
@@ -206,6 +217,7 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
           ...(settings.crop ? { crop: settings.crop } : {}),
           ...(settings.views ? { views: settings.views } : {}),
           ...(painted ? { paintedFrom: painted.views } : {}),
+          ...(carved ? { carved: carved.carve } : {}),
           faces: finished.faces,
           size: finished.size,
           height: settings.height,
@@ -231,7 +243,7 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
     const report = existsSync(reportPath) ? JSON.parse(readFileSync(reportPath, "utf8")) as Record<string, unknown> : undefined;
     if (!report?.ok) {
       const error = String(report?.error ?? (run.timedOut ? "Blender timed out." : run.output.slice(-1500)));
-      const what = step === "prepare" ? "Preparing the picture" : step === "paint" ? "Painting from the sheet" : "Fitting the model";
+      const what = step === "prepare" ? "Preparing the picture" : step === "paint" ? "Painting from the sheet" : step === "carve" ? "Checking against the side view" : "Fitting the model";
       throw new Error(`${what} failed: ${error.trim().split(/\r?\n/).slice(-1)[0]}`);
     }
     return report;

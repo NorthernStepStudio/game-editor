@@ -3,6 +3,7 @@
  *
  * mode "prepare": crop the picture (fractions of its size), cut the character out of a plain backdrop and centre
  *   it on a square transparent canvas. A picture that is already transparent keeps its own alpha.
+ * mode "paint": paint the back and sides from the sheet's views. mode "carve": fix the guessed depth from its side view.
  * mode "finish": make the model game-ready: one mesh named "Body", centred, feet on the ground, scaled to the game
  *   height and lightened to a polygon budget; then render a front preview.
  *
@@ -500,6 +501,176 @@ def paint_from_views():
     REPORT["coverage"] = round(float((alpha > 0.5).mean()), 3)
 
 
+def carve_to_side(obj, side_keep, margin=0.025):
+    """Fix what an image-to-3D model guessed in depth (front-to-back), using the sheet's side view (side_keep: the
+    character's mask in that view, top row first). The model's side silhouette is lined up with the sheet's (scaled by
+    height, mirrored and slid to fit best; the head on its own). Then: far-out guessed parts (tails, a second cap brim)
+    and surfaces stretched behind the legs (jacket hems pulled to the heels) are removed; slight overhangs behind the body
+    are folded in; shoes are shortened to the sheet's shoe length; and the body's depth at each height is compressed
+    toward its front to the sheet's depth. The front itself, which came from the picture, is never moved."""
+    import bmesh
+    from mathutils import Vector as V3
+    from mathutils.bvhtree import BVHTree
+    report = {}
+    me = obj.data
+    verts = [v.co.copy() for v in me.vertices]
+    lo, hi = V3(map(min, *verts)), V3(map(max, *verts))
+    height = hi.z - lo.z
+    RES = 300
+    step = height / RES
+    tree = BVHTree.FromPolygons(verts, [p.vertices[:] for p in me.polygons])
+    ny = int((hi.y - lo.y) / step) + 1
+    model = np.zeros((RES, ny), dtype=bool)
+    for r in range(RES):
+        z = hi.z - (r + 0.5) * step
+        for c in range(ny):
+            model[r, c] = tree.ray_cast(V3((lo.x - 1, lo.y + (c + 0.5) * step, z)), V3((1, 0, 0)), 10)[0] is not None
+    ys, xs = np.nonzero(side_keep)
+    alpha = side_keep[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    scale = alpha.shape[0] / RES
+    cols = max(1, int(round(alpha.shape[1] / scale)))
+    ri = np.minimum((np.arange(RES) * scale).astype(int), alpha.shape[0] - 1)
+    ci = np.minimum((np.arange(cols) * scale).astype(int), alpha.shape[1] - 1)
+    sheet = alpha[ri][:, ci]
+
+    def fit(rows, mirrors, shifts):
+        best = None
+        m = model[rows]
+        for mirrored in mirrors:
+            sh = (sheet[:, ::-1] if mirrored else sheet)[rows]
+            for shift in shifts:
+                lo_c, hi_c = max(0, shift), min(ny, cols + shift)
+                if hi_c <= lo_c:
+                    continue
+                inter = (m[:, lo_c:hi_c] & sh[:, lo_c - shift:hi_c - shift]).sum()
+                iou = inter / max(m.sum() + sh.sum() - inter, 1)
+                if best is None or iou > best[0]:
+                    best = (iou, mirrored, shift)
+        return best
+
+    def outline(mirrored, shift):
+        s = sheet[:, ::-1] if mirrored else sheet
+        allowed = np.zeros((RES, ny), dtype=bool)
+        lo_c, hi_c = max(0, shift), min(ny, cols + shift)
+        allowed[:, lo_c:hi_c] = s[:, lo_c - shift:hi_c - shift]
+        for _ in range(max(1, int(round(margin * RES)))):
+            g = allowed.copy()
+            g[1:] |= allowed[:-1]; g[:-1] |= allowed[1:]; g[:, 1:] |= allowed[:, :-1]; g[:, :-1] |= allowed[:, 1:]
+            allowed = g
+        return allowed
+
+    pad = max(ny, cols)
+    body = fit(np.ones(RES, dtype=bool), (False, True), range(-pad, pad + 1))
+    report.update(fit=round(float(body[0]), 3), mirrored=bool(body[1]), shift=int(body[2]))
+    allowed = outline(body[1], body[2])
+    head_rows = np.arange(RES) * step < 0.4 * height
+    head = fit(head_rows, (body[1],), range(body[2] - int(0.08 * RES), body[2] + int(0.08 * RES) + 1))
+    head_allowed = outline(body[1], head[2])
+    report["headFit"] = round(float(head[0]), 3)
+    report["outsideBefore"] = round(float((model & ~allowed).sum() / max(model.sum(), 1)), 4)
+
+    mid_y = (lo.y + hi.y) / 2
+    head_z = lo.z + 0.6 * height
+    inset = 0.01 * height
+    FAR = 0.04 * height
+    LEG_LO, LEG_HI = lo.z + 0.05 * height, lo.z + 0.36 * height
+    row_max = np.array([np.nonzero(allowed[r])[0].max() if allowed[r].any() else -1 for r in range(RES)])
+    head_max = np.array([np.nonzero(head_allowed[r])[0].max() if head_allowed[r].any() else -1 for r in range(RES)])
+    moved, far = 0, set()
+    for v in me.vertices:
+        co = v.co
+        r = min(RES - 1, max(0, int((hi.z - co.z) / step)))
+        if co.z > head_z:
+            if head_max[r] >= 0 and co.y > mid_y and co.y > lo.y + (head_max[r] + 1) * step + FAR:
+                far.add(v.index)
+            continue
+        if row_max[r] < 0:
+            continue
+        back_limit = lo.y + (row_max[r] + 1) * step
+        if co.y > mid_y and co.y > back_limit:
+            if co.y > back_limit + FAR or LEG_LO < co.z < LEG_HI:
+                far.add(v.index)
+            co.y = max(mid_y, back_limit - inset)
+            moved += 1
+    report["verticesMoved"] = moved
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    doomed = [f for f in bm.faces if all(v.index in far for v in f.verts)]
+    bmesh.ops.delete(bm, geom=doomed, context="FACES")
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+    report["facesRemoved"] = len(doomed)
+
+    SHOE_Z = lo.z + 0.11 * height
+    rows_of = lambda z: min(RES - 1, max(0, int((hi.z - z) / step)))
+    sheet_s = sheet[:, ::-1] if body[1] else sheet
+    shoe = []
+    for r in range(rows_of(SHOE_Z), RES):
+        m_cols, s_cols = np.nonzero(model[r])[0], np.nonzero(sheet_s[r])[0]
+        if len(m_cols) > 2 and len(s_cols) > 2:
+            shoe.append(((s_cols.max() - s_cols.min() + 1) * (1 + margin) / (m_cols.max() - m_cols.min() + 1),
+                         lo.y + (m_cols.min() + m_cols.max() + 1) / 2 * step))
+    if shoe:
+        ks = sorted(min(1.0, k) for k, _ in shoe)
+        k_shoe = max(0.6, ks[len(ks) // 2])
+        centre = float(np.median([c for _, c in shoe]))
+        for v in me.vertices:
+            if v.co.z < SHOE_Z + 0.04 * height:
+                t = min(1.0, max(0.0, (SHOE_Z + 0.04 * height - v.co.z) / (0.04 * height)))
+                v.co.y = centre + (v.co.y - centre) * (1.0 - (1.0 - k_shoe) * t)
+        report["shoeScale"] = round(float(k_shoe), 3)
+
+    BODY_LO, BODY_HI = SHOE_Z + 0.04 * height, lo.z + 0.6 * height
+    ratio = np.full(RES, np.nan)
+    front = np.full(RES, np.nan)
+    for r in range(RES):
+        m_cols, s_cols = np.nonzero(model[r])[0], np.nonzero(sheet_s[r])[0]
+        if len(m_cols) > 2 and len(s_cols) > 2:
+            ratio[r] = (s_cols.max() - s_cols.min() + 1) * (1 + margin) / (m_cols.max() - m_cols.min() + 1)
+            front[r] = lo.y + m_cols.min() * step
+    valid = ~np.isnan(ratio)
+    if valid.sum() > 10:
+        idx = np.arange(RES)
+        ratio = np.interp(idx, idx[valid], ratio[valid])
+        front = np.interp(idx, idx[valid], front[valid])
+        win = max(3, int(0.03 * RES))
+        box = np.ones(2 * win + 1) / (2 * win + 1)
+        k_row = np.array([np.median(ratio[max(0, r - win):r + win + 1]) for r in range(RES)])
+        k_row = np.clip(np.convolve(np.pad(k_row, win, mode="edge"), box, mode="valid"), 0.6, 1.0)
+        f_row = np.convolve(np.pad(front, win, mode="edge"), box, mode="valid")
+        fade = 0.04 * height
+        for v in me.vertices:
+            z = v.co.z
+            if z < BODY_LO - fade or z > BODY_HI + fade:
+                continue
+            w = min(1.0, (z - (BODY_LO - fade)) / fade, ((BODY_HI + fade) - z) / fade)
+            r = rows_of(z)
+            if v.co.y > f_row[r]:
+                v.co.y = f_row[r] + (v.co.y - f_row[r]) * (1.0 - (1.0 - k_row[r]) * max(0.0, w))
+        report["depthScale"] = [round(float(k_row[rows_of(BODY_HI)]), 2), round(float(np.median(k_row[rows_of(BODY_HI):rows_of(BODY_LO)])), 2), round(float(k_row[rows_of(BODY_LO)]), 2)]
+    me.update()
+    return report
+
+
+def carve_from_sheet():
+    """Mode "carve": fix the model's guessed depth using the sheet's side view (config: model, sheet, side, output)."""
+    REPORT["stage"] = "import"
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    bpy.ops.import_scene.gltf(filepath=CFG["model"])
+    obj = next(o for o in bpy.context.scene.objects if o.type == "MESH")
+    REPORT["stage"] = "side view"
+    keep = cut_out(load_crop(CFG["sheet"], CFG["side"]))
+    REPORT["stage"] = "carve"
+    REPORT["carve"] = carve_to_side(obj, keep, float(CFG.get("margin", 0.025)))
+    REPORT["stage"] = "export"
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.ops.export_scene.gltf(filepath=CFG["output"], export_format="GLB", use_selection=True)
+    REPORT["output"] = CFG["output"]
+
+
 try:
     if CFG["mode"] == "prepare":
         prepare()
@@ -507,6 +678,8 @@ try:
         finish_model()
     elif CFG["mode"] == "paint":
         paint_from_views()
+    elif CFG["mode"] == "carve":
+        carve_from_sheet()
     else:
         raise RuntimeError("Unknown mode " + str(CFG["mode"]))
     REPORT["stage"] = "done"

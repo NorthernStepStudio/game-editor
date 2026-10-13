@@ -863,7 +863,7 @@ function trellisForm(asset) {
       ? 'Uses the whole picture. If it shows several views (a character sheet), choose the views.'
       : sides.length
         ? `Front view chosen; the ${sides.join(', ')} will be painted from the sheet.`
-        : 'Front view chosen. Mark the back too, so it is painted from the sheet instead of guessed.';
+        : 'Front view chosen. Mark the back and a side view too, so the back is painted from the sheet and the depth is checked against it.';
   };
   paintCrop();
   const quality = h('select', { id: 'i3d-quality', class: 'field' },
@@ -871,7 +871,7 @@ function trellisForm(asset) {
     h('option', { value: 'high' }, 'High detail (about 45 minutes, sharper face, needs more graphics memory)'));
   const nameInput = h('input', { id: 'i3d-name', class: 'field', maxlength: 60, value: `${assetName(asset).replace(/\b(front|left|right|back|three quarter|a pose|sheet)\b/gi, '').replace(/\s+/g, ' ').trim() || 'Character'} 3D` });
   return h('div', { class: 'stack form' },
-    h('p', { class: 'muted small' }, 'Free, on this PC: builds a textured 3D model from one clear front view (T- or A-pose works best), sized for the game. On a character sheet, also mark the back and side views: those parts are then painted from the sheet instead of guessed. Afterwards, use “Rig for the game” on the new model.'),
+    h('p', { class: 'muted small' }, 'Free, on this PC: builds a textured 3D model from one clear front view (T- or A-pose works best), sized for the game. On a character sheet, also mark the back and a side view: the back is painted from the sheet instead of guessed, and the side view fixes what the front picture cannot show (invented parts behind the body, stretched backs, oversized shoes). Afterwards, use “Rig for the game” on the new model.'),
     cropNote,
     btn('Choose the views', () => openCropper(asset, views, (chosen) => { views = chosen; paintCrop(); })),
     h('label', { for: 'i3d-quality', class: 'label' }, 'Quality'), quality,

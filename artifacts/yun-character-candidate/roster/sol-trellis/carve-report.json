@@ -2,7 +2,14 @@
  "fit": 0.815,
  "mirrored": true,
  "shift": -4,
+ "headFit": 0.846,
  "outsideBefore": 0.032,
  "verticesMoved": 3521,
- "facesRemoved": 342
+ "facesRemoved": 1912,
+ "shoeScale": 0.737,
+ "depthScale": [
+  1.0,
+  1.0,
+  0.78
+ ]
 }

@@ -1,15 +1,15 @@
 {
- "fit": 0.684,
+ "fit": 0.774,
  "mirrored": true,
- "shift": 15,
- "headFit": 0.835,
- "outsideBefore": 0.165,
- "verticesMoved": 4050,
- "facesRemoved": 3130,
- "shoeScale": 0.6,
+ "shift": 7,
+ "headFit": 0.84,
+ "outsideBefore": 0.0663,
+ "verticesMoved": 1511,
+ "facesRemoved": 952,
+ "shoeScale": 0.664,
  "depthScale": [
   1.0,
-  0.9,
+  1.0,
   0.6
  ]
 }

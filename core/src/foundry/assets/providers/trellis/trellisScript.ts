@@ -189,6 +189,80 @@ def prepare():
     REPORT["subject"] = [int(cut.shape[1]), int(cut.shape[0])]
 
 
+def view_colours(obj, toward_back, cols, rows):
+    """The model's colours seen straight on (front: looking toward +y; back: toward -y, mirrored so left stays left),
+    as a rows x cols x 4 array (alpha 1 where the model is). Used to tell which side is the face."""
+    from mathutils import Vector as V3
+    from mathutils.bvhtree import BVHTree
+    from mathutils.geometry import barycentric_transform
+    me = obj.data
+    me.calc_loop_triangles()
+    verts = [v.co.copy() for v in me.vertices]
+    tris = [t for t in me.loop_triangles]
+    tree = BVHTree.FromPolygons(verts, [t.vertices[:] for t in tris])
+    uv = me.uv_layers.active.data if me.uv_layers.active else None
+    img = None
+    if me.materials and me.materials[0] and me.materials[0].use_nodes:
+        for n in me.materials[0].node_tree.nodes:
+            if n.type == "TEX_IMAGE" and any(l.to_socket.name == "Base Color" for o in n.outputs for l in o.links):
+                img = n.image
+    out = np.zeros((rows, cols, 4), dtype=np.float32)
+    if img is None or uv is None:
+        return out
+    W, H = img.size
+    px = np.empty(W * H * 4, dtype=np.float32)
+    img.pixels.foreach_get(px)
+    px = px.reshape(H, W, 4)
+    lo = V3(map(min, *verts))
+    hi = V3(map(max, *verts))
+    d = V3((0, -1, 0)) if toward_back else V3((0, 1, 0))
+    y0 = hi.y + 1 if toward_back else lo.y - 1
+    for r in range(rows):
+        z = hi.z - (r + 0.5) / rows * (hi.z - lo.z)
+        for c in range(cols):
+            x = lo.x + (c + 0.5) / cols * (hi.x - lo.x)
+            if toward_back:
+                x = hi.x - (c + 0.5) / cols * (hi.x - lo.x)
+            hit = tree.ray_cast(V3((x, y0, z)), d, 10)
+            if hit[0] is None:
+                continue
+            t = tris[hit[2]]
+            a, b, cc = (verts[i] for i in t.vertices)
+            ua, ub, uc = (V3((uv[l].uv.x, uv[l].uv.y, 0)) for l in t.loops)
+            u = barycentric_transform(hit[0], a, b, cc, ua, ub, uc)
+            tx, ty = min(W - 1, max(0, int(u.x * W))), min(H - 1, max(0, int(u.y * H)))
+            out[r, c, :3] = px[ty, tx, :3]
+            out[r, c, 3] = 1.0
+    return out
+
+
+def face_front(obj, picture):
+    """Image-to-3D results do not always face forward (-y). Compare the model's front and back with the picture it was
+    built from (colours where both have something) and turn it around when the back matches better."""
+    img = bpy.data.images.load(picture)
+    w, h = img.size
+    px = np.empty(w * h * 4, dtype=np.float32)
+    img.pixels.foreach_get(px)
+    pic = px.reshape(h, w, 4)[::-1]
+    ys, xs = np.nonzero(pic[:, :, 3] > 0.5)
+    pic = pic[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    rows, cols = 48, 48
+    ri = np.minimum((np.arange(rows) * pic.shape[0] / rows).astype(int), pic.shape[0] - 1)
+    ci = np.minimum((np.arange(cols) * pic.shape[1] / cols).astype(int), pic.shape[1] - 1)
+    pic = pic[ri][:, ci]
+    # linear colours in Blender's images; compare both in the same space
+    scores = {}
+    for side, toward_back in (("front", False), ("back", True)):
+        seen = view_colours(obj, toward_back, cols, rows)
+        both = (seen[:, :, 3] > 0.5) & (pic[:, :, 3] > 0.5)
+        scores[side] = float(np.abs(seen[both, :3] - pic[both, :3]).mean()) if both.any() else 9.0
+    REPORT["facing"] = {k: round(v, 4) for k, v in scores.items()}
+    if scores["back"] < scores["front"] * 0.85:
+        obj.data.transform(Matrix.Rotation(math.pi, 4, "Z"))
+        obj.data.update()
+        REPORT["facing"]["turned"] = True
+
+
 def finish_model():
     REPORT["stage"] = "import"
     bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -208,6 +282,9 @@ def finish_model():
     for o in meshes:
         o.data.transform(o.matrix_world)
         o.matrix_world.identity()
+    if CFG.get("front") and len(meshes) == 1:
+        REPORT["stage"] = "facing"
+        face_front(meshes[0], CFG["front"])
     REPORT["stage"] = "lighten"
     faces = sum(len(o.data.polygons) for o in meshes)
     budget = int(CFG.get("maxFaces", 40000))

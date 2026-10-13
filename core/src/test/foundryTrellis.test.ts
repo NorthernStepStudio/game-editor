@@ -112,3 +112,10 @@ test("a marked side view fixes the guessed depth: invented parts removed, backs 
   assert.match(TRELLIS_BLENDER_SCRIPT, /k_shoe = max\(0\.6, ks\[len\(ks\) \/\/ 2\]\)/);
   assert.match(TRELLIS_BLENDER_SCRIPT, /0\.6, 1\.0\)/);
 });
+
+test("a model built facing backwards is turned to face forward, judged by the picture it was built from", () => {
+  assert.match(TRELLIS_BLENDER_SCRIPT, /def face_front\(obj, picture\):/);
+  // it only turns when the back clearly matches the picture better
+  assert.match(TRELLIS_BLENDER_SCRIPT, /if scores\["back"\] < scores\["front"\] \* 0\.85:/);
+  assert.match(TRELLIS_BLENDER_SCRIPT, /if CFG\.get\("front"\) and len\(meshes\) == 1:/);
+});

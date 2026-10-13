@@ -1,6 +1,7 @@
 """Street Yun roster: character sheet -> game-ready, rigged 3D character, the same way Matterhorn does it.
 
-For each character: cut out the front view, build it with TRELLIS on the GPU (~20 min), fit it to the game height,
+For each character: cut out the front view, build it with TRELLIS on the GPU (~20 min), turn it to face forward if it came out
+backwards, fit it to the game height,
 paint its back from the sheet's back view, (optionally) paint the roster smile, fix its guessed depth with the sheet's
 side view (invented parts removed, stretched back and long shoes brought to the sheet), rig it with the mini skeleton
 (connected weights) and install it in the game. Every step is Matterhorn's own (core/out: the TRELLIS script's
@@ -82,7 +83,9 @@ def main() -> int:
                             "--res", "512", "--require-gpu"], check=True, capture_output=True)
             for ply in out.glob("*.ply"):
                 ply.unlink()
-        step(trellis_py, work, {"mode": "finish", "model": str(raw), "output": str(work / "fit.glb"),
+        if not (work / "front.png").exists():
+            step(trellis_py, work, {"mode": "prepare", "image": str(sheet_png), "crop": box["front"], "output": str(work / "front.png")})
+        step(trellis_py, work, {"mode": "finish", "model": str(raw), "front": str(work / "front.png"), "output": str(work / "fit.glb"),
                                 "previewBase": str(work / "fit"), "height": 0.72, "maxFaces": 40000})
         step(trellis_py, work, {"mode": "paint", "model": str(work / "fit.glb"), "sheet": str(sheet_png),
                                 "output": str(work / "painted.glb"), "views": {"back": box["back"]}})

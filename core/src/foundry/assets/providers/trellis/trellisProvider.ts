@@ -130,11 +130,13 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
     let model: string;
     let res = "";
     let cutoutNote: unknown;
+    let cutoutFile: string | undefined;
     if (parentModel) {
       model = parentModel;
     } else {
       progress("Cutting the character out of the background…");
       const cutout = join(jobDir, `${baseName}-cutout.png`);
+      cutoutFile = cutout;
       const prepared = await this.blender({ mode: "prepare", image, output: cutout, ...(settings.crop ? { crop: settings.crop } : {}) }, jobDir, "prepare", signal);
       cutoutNote = prepared.cutout;
       live({ image: cutout });
@@ -164,7 +166,7 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
         // fit first, so the paint step works on the game-sized model
         progress("Fitting the model to the game's size…");
         const fitted = join(jobDir, `${baseName}-unpainted.glb`);
-        await this.blender({ mode: "finish", model, output: fitted, previewBase: join(jobDir, `${baseName}-unpainted`), height: settings.height, maxFaces: settings.maxFaces }, jobDir, "fit", signal);
+        await this.blender({ mode: "finish", model, ...(cutoutFile ? { front: cutoutFile } : {}), output: fitted, previewBase: join(jobDir, `${baseName}-unpainted`), height: settings.height, maxFaces: settings.maxFaces }, jobDir, "fit", signal);
         model = fitted;
         companions.push(fitted);
       }
@@ -190,7 +192,7 @@ export class TrellisImageTo3DProvider implements FoundryAssetProvider {
 
     progress(parentModel ? "Rendering the previews…" : "Fitting the model to the game's size…");
     const glb = join(jobDir, `${baseName}.glb`);
-    const finished = await this.blender({ mode: "finish", model, output: glb, previewBase: join(jobDir, baseName), height: settings.height, maxFaces: settings.maxFaces }, jobDir, "finish", signal);
+    const finished = await this.blender({ mode: "finish", model, ...(cutoutFile && !sides.length ? { front: cutoutFile } : {}), output: glb, previewBase: join(jobDir, baseName), height: settings.height, maxFaces: settings.maxFaces }, jobDir, "finish", signal);
     const previews = ((finished.previews ?? []) as string[]).map((file) => resolve(file)).filter((file) => existsSync(file));
     if (previews[0]) live({ image: previews[0] });
     if (!existsSync(glb)) throw new Error("Blender finished but the game-ready model is missing.");

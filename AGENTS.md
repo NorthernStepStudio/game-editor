@@ -1,5 +1,20 @@
 # Northern Step Studio Agent Instructions
 
+## Studio-wide engineering and organization rules — mandatory
+
+These Northern Step Studio rules apply to every coding assistant (Codex, Cursor, Antigravity, Claude, Matterhorn and others) and human contributor. The complete reference is maintained in the private company directory:
+- [Engineering Standards](https://github.com/NorthernStepStudio/northern-step-studio/blob/main/docs/ENGINEERING-STANDARDS.md)
+- [Workspace and Repository Structure](https://github.com/NorthernStepStudio/northern-step-studio/blob/main/docs/WORKSPACE-STRUCTURE.md)
+- [Adoption and agent discovery](https://github.com/NorthernStepStudio/northern-step-studio/blob/main/docs/AGENT-RULES-ROLLOUT.md)
+
+**One primary responsibility per production file.** A feature may span UI, domain, storage, adapters and tests; place each concern in its own cohesive module. Do not create giant files mixing unrelated features. Do not split merely for a line count. Respect existing project architecture and refactor safely, without surprise gameplay or behavioral changes.
+
+**Organize projects under their correct owners.** Identify the canonical source repository and current branch/worktree before editing. For monorepos, use `apps/` for applications, `games/` for games, `packages/` for truly shared libraries, and `tools/`/`docs/` as appropriate; preserve native layouts for established single-product repos. Do not create duplicate source trees, edit generated mirrors as if canonical, or move/delete projects without approval.
+
+**Work deliberately.** Read project-specific startup, architecture and safety rules first; use focused changes and descriptive names; run local tests before spending shared CI minutes; protect secrets, dependencies, licenses, saves and existing behavior; report real evidence, failures, cost and rollback. Never claim unrun tests passed, or merge, force-push, delete, deploy or release without approval.
+
+This shared section supplements — and **does not replace or weaken** — stronger repository-specific instructions below. If requirements conflict, surface the conflict before changing the affected code.
+
 These rules apply to AI coding agents, automation agents, and assistants working in this repository.
 
 ## Owner-readable communication — mandatory
